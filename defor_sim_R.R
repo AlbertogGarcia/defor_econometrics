@@ -32,6 +32,7 @@ std_i <- 0.1
 std_y <- 0.01
 std_e <- 0.01
 
+##########################  This section could probably be more efficiently coded  ###############################
 i_err <- rnorm(nobs*2 , 0 , std_i)
 y_err <- rnorm(years*2 , 0 , std_y)
 e_err <- matrix(rnorm(nobs*2 * years*2 , 0 , std_e), ncol = 4)
@@ -40,6 +41,14 @@ i_err <- replicate(years*2, i_err)
 y_err <- t(replicate(nobs*2, y_err))
 
 df <- data.frame( i_err + y_err + e_err)
+###################################################################################################################
+
+#Add in average deforestation rates for each group
+df[1:nobs,1:years] <- df[1:nobs,1:years] + m_00
+df[1:nobs,(years+1):ncol(df)] <- df[1:nobs,(years+1):ncol(df)] + m_01
+df[(nobs+1):nrow(df),1:years] <- df[(nobs+1):nrow(df),1:years] + m_10
+df[(nobs+1):nrow(df),(years+1):ncol(df)] <- df[(nobs+1):nrow(df),(years+1):ncol(df)] + m_11
 
 
+#define treatment
 
