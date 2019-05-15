@@ -6,6 +6,7 @@
 #packages
 library(dplyr)
 library(purrr)
+library(tidyverse)
 
 
 #define parameters
@@ -51,4 +52,20 @@ df[(nobs+1):nrow(df),(years+1):ncol(df)] <- df[(nobs+1):nrow(df),(years+1):ncol(
 
 
 #define treatment
+df$treat <- rep(0, nrow(df))
+df$treat[(nobs+1):nrow(df)] <- df$treat[(nobs+1):nrow(df)]+1
+
+df <- tibble::rownames_to_column(df)
+df <- unite(df, idx, treat, rowname, sep = "_", remove = FALSE)
+
+df <- unite(df, idx, idx, treat, sep = " , ", remove = TRUE)
+
+rownames(df) <- df$idx
+df <- subset(df, select = -c(rowname,idx))
+
+
+defor_draw <- matrix(runif(nobs*2 * years*2 , 0 , 1), ncol = 4)
+defor_df <- data.frame( df > defor_draw)*1
+
+
 
