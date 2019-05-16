@@ -66,6 +66,19 @@ df <- subset(df, select = -c(rowname,idx))
 
 defor_draw <- matrix(runif(nobs*2 * years*2 , 0 , 1), ncol = 4)
 defor_df <- data.frame( df > defor_draw)*1
+not_defor <- rowSums(defor_df)<1 *1
+defor_year <- max.col(defor_df)       #creating defor_year variable
 
+
+defor_df <- cbind(defor_df, defor_year)
+defor_df <- transform(defor_df, defor_year = ifelse(not_defor==1, years*2+1, defor_year))
+
+names(defor_df)[1:(years*2)] <- paste("defor", colnames(defor_df[1:(years*2)]), sep = "")
+
+defor_df <- tibble::rownames_to_column(defor_df)
+
+defor_df <- separate(defor_df, rowname, c("idx", "treat"), sep= ",", remove=TRUE)
+
+defor_df_long <- gather()
 
 
