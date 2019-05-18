@@ -7,7 +7,11 @@
 library(dplyr)
 library(purrr)
 library(tidyverse)
-
+library(reshape2)
+library(data.table)
+library(naniar)
+library(sandwich)
+library(plm)
 
 #define parameters
 years <- 2               # number of years in each of two periods
@@ -79,6 +83,24 @@ defor_df <- tibble::rownames_to_column(defor_df)
 
 defor_df <- separate(defor_df, rowname, c("idx", "treat"), sep= ",", remove=TRUE)
 
-defor_df_long <- gather()
+names(defor_df)[3:(years*2+2)] <- c(1:(years*2))
+
+defor_df <- melt(defor_df, id.vars = c('idx', 'treat', 'defor_year'))
+
+
+setnames(defor_df, old=c("variable","value"), new=c("year", "defor"))
+
+#replace defor with NA for any year > defor_year
+defor_df$year <- as.numeric(defor_df$year)
+defor_df$indic <- (defor_df$year - defor_df$defor_year)
+defor_df$defor <- ifelse(defor_df$indic > 0 , NA, defor_df$defor)
+defor_df <- subset(defor_df, select = -c(indic))
+
+
+defor_df$post <- (defor_df$year > years)*1
+
+defor_df <- unite(defor_df, index, year, idx, sep = ",", remove = TRUE)
+rownames(defor_df) <- defor_df$index
+defor_df <- subset(defor_df, select = -c(index))
 
 
