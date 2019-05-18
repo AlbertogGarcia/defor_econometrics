@@ -28,6 +28,7 @@ m_01 <- d_outside + trend                # average deforestation rate outside tr
 m_10 <- d_outside + diff                 # average deforestation rate inside treated area in p1
 m_11 <- d_outside + diff + trend + att   # average deforestation rate inside treated area in p2
 
+
 # introducing three types of randomness
 #     i: Individual-level
 #     y: year-level changes
@@ -67,17 +68,17 @@ df <- unite(df, idx, idx, treat, sep = " , ", remove = TRUE)
 rownames(df) <- df$idx
 df <- subset(df, select = -c(rowname,idx))
 
-
+### simulating deforestation ###
 defor_draw <- matrix(runif(nobs*2 * years*2 , 0 , 1), ncol = 4)
 defor_df <- data.frame( df > defor_draw)*1
 not_defor <- rowSums(defor_df)<1 *1
-defor_year <- max.col(defor_df)       #creating defor_year variable
+defor_year <- max.col(defor_df, ties.method = "first")       #creating defor_year variable
 
 
 defor_df <- cbind(defor_df, defor_year)
 defor_df <- transform(defor_df, defor_year = ifelse(not_defor==1, years*2+1, defor_year))
 
-names(defor_df)[1:(years*2)] <- paste("defor", colnames(defor_df[1:(years*2)]), sep = "")
+#names(defor_df)[1:(years*2)] <- paste("defor", colnames(defor_df[1:(years*2)]), sep = "")
 
 defor_df <- tibble::rownames_to_column(defor_df)
 
@@ -99,8 +100,14 @@ defor_df <- subset(defor_df, select = -c(indic))
 
 defor_df$post <- (defor_df$year > years)*1
 
-defor_df <- unite(defor_df, index, year, idx, sep = ",", remove = TRUE)
-rownames(defor_df) <- defor_df$index
-defor_df <- subset(defor_df, select = -c(index))
+#defor_df <- unite(defor_df, index, year, idx, sep = ",", remove = TRUE)
+#rownames(defor_df) <- defor_df$index
+#defor_df <- subset(defor_df, select = -c(index))
 
+
+
+
+
+DID <- lm(defor ~  post*treat, data = defor_df)
+summary(DID)
 
