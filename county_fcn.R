@@ -31,22 +31,22 @@ untreatgroups <- split(untreatsamp$idx, ceiling(seq_along(untreatsamp$idx)/x))
 
 
 #turning randomly assigned group vectors into county matrices
-
+gridlist <- list()
 for (i in 1:length(treatgroups)){
   treatmat <- matrix(unlist(treatgroups[i]), nrow = as.numeric(ceiling(sqrt(lengths(treatgroups[i])))), byrow = TRUE )
   nam <- paste("A", i, sep = "")
   assign(nam, treatmat)
-  }
 
-for (i in 1:length(untreatgroups)){
-  treatmat <- matrix(unlist(untreatgroups[i]), nrow = as.numeric(ceiling(sqrt(lengths(untreatgroups[i])))), byrow = TRUE )
-  nam <- paste("B", i, sep = "")
-  assign(nam, treatmat)
+
+  untreatmat <- matrix(unlist(untreatgroups[i]), nrow = as.numeric(ceiling(sqrt(lengths(untreatgroups[i])))), byrow = TRUE )
+  name <- paste("B", i, sep = "")
+  assign(name, untreatmat)
+  
+  gridlist <- c(gridlist, nam, name)
+  
+  
 }
-
-
-
-
+gridlist <- sample(gridlist)
 
 
 ### should have grid showing outcomes for each given year ###
