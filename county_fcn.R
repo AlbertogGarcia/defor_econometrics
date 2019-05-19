@@ -1,30 +1,49 @@
 ### creating function to aggregate pixels into larger property, grid cell, county, etc. for analysis ###
 library(tidyverse)
+library(gridExtra)
 
-
+S=10
 #county_fnc <- function(df, S){
+y = S*1000
+x <- y/30
 
 ### assign each pixel to a location on X-Y grid ###
+
+
 # separate each unique pixel
 unique <- unique(defor_df$idx)
 
 idtreat <- subset(defor_df, select = c(idx, treat))
 idtreat <- idtreat %>% distinct(idx, treat, .keep_all = TRUE)
 idtreat$treat <- as.numeric(idtreat$treat)
-idtreat <- idtreat[idtreat$treat == 1 , ]
-iduntreat <- idtreat[idtreat$treat == 0 , ]
-idtreat <- subset(idtreat, select = -c(treat))
-iduntreat <- subset(iduntreat, select = -c(treat))
-treatsamp <- sample_n(idtreat, nrow(idtreat))
-untreatsamp <- sample_n(iduntreat, nrow(iduntreat))
+idtreated <- idtreat[idtreat$treat == 0 , ]
+iduntreated <- idtreat[idtreat$treat < 1 , ]
+idtreated <- subset(idtreated, select = -c(treat))
+iduntreated <- subset(iduntreated, select = -c(treat))
+treatsamp <- sample_n(idtreated, nrow(idtreated))
+untreatsamp <- sample_n(iduntreated, nrow(iduntreated))
 
 
-# number of rows and columns for NxN grid
+# creating random groups of treated/untreated units
 
-split(d, ceiling(seq_along(d)/20))
+treatgroups <- split(treatsamp$idx, ceiling(seq_along(treatsamp$idx)/x))
+untreatgroups <- split(untreatsamp$idx, ceiling(seq_along(untreatsamp$idx)/x))
 
-# NxN grid with random arrangement
-grid <- matrix(rand, nrow)
+
+#turning randomly assigned group vectors into county matrices
+
+for (i in 1:length(treatgroups)){
+  treatmat <- matrix(unlist(treatgroups[i]), nrow = as.numeric(ceiling(sqrt(lengths(treatgroups[i])))), byrow = TRUE )
+  nam <- paste("A", i, sep = "")
+  assign(nam, treatmat)
+  }
+
+for (i in 1:length(untreatgroups)){
+  treatmat <- matrix(unlist(untreatgroups[i]), nrow = as.numeric(ceiling(sqrt(lengths(untreatgroups[i])))), byrow = TRUE )
+  nam <- paste("B", i, sep = "")
+  assign(nam, treatmat)
+}
+
 
 
 
@@ -34,12 +53,12 @@ grid <- matrix(rand, nrow)
 
 
 
-
-### group into counties based on how many kilometers each should be ###
-
-pixelper <- S/30
-
 ### calculate average deforestation rate for each county ###
+
+bob <- ceiling(sqrt(lengths(treatgroups[1])))
+
+
+### reorient original dataframe
 
 #}
 ### end function ###
