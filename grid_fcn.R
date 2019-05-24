@@ -1,36 +1,49 @@
-# random number determining location of pixels in each group
-randloc_t <- sample.int(nobs, size = nobs, replace = FALSE)
-randloc_u <- sample.int(nobs, size = nobs, replace = FALSE)
+### the purpose of this function is to aggregate pixels to a county or property level
+library(sp)
+library(sf)
+library(ggplot2)
+library(rlist)
+library(tidyverse)
 
-#subset dataframe based on year and treatment to give treated/untreated pixels for a given year
-for (i in 1:(years*2)){
-  defor_df$treat <- as.numeric(defor_df$treat)
-  #subset to only treated obs in year i
-  tyear <- subset(defor_df, variable ==i & treat ==1)
-  #attach random location column
-  tyear <- cbind(tyear, randloc_t)
-  #sort based on random location column
-  tyear <- tyear[order(randloc_t),]
-  
-  uyear <- subset(defor_df, variable ==i & treat ==0)
-  uyear <- cbind(uyear, randloc_u)
-  uyear <- uyear[order(randloc_u),]
-  
-  #splits into "counties" based on desired size of county x
-  treatgrid <- split(tyear, ceiling(seq_along(tyear$idx)/x))
-  untreatgrid <- split(uyear, ceiling(seq_along(uyear$idx)/x))
-  
-  #  for j in 1:length(treatgrid){
-  #   deforrate_t <- mean(treatgrid[j]) 
-  #  deforrate_u <- mean(untreatgrid[j])
-  #  }
-  
-  
-  #name based on year
-  t_name <- paste("treatgrid", i, sep = "_")
-  u_name <- paste("untreatgrid", i, sep = "_")
-  assign(t_name, treatgrid)
-  assign(u_name, untreatgrid)
-  rm(tyear, uyear, treatgrid, untreatgrid)
-  
-}
+# grid_fcn <- function(defor_df, celllsize) {
+
+ 
+
+# first, generate landscape based on size
+# there are nobs treated and untreated obs for nobs*2 total obs in each period
+rootn <- ceiling(sqrt(nobs*2))
+landscape = st_sfc(st_polygon(list(cbind(c(0,rootn,rootn,0,0),c(0,0,rootn,rootn,0)))))
+
+overgrid <- st_make_grid(landscape, cellsize = 11, square = TRUE)
+
+#trim grid to landscape
+overgrid <- st_intersection(overgrid, landscape)
+
+#now we want to randomly determine treated and untreated gridcells
+treat_grids <- list.sample(overgrid, round(length(overgrid)/2))
+
+# calculate untreated gridcells
+untreat_grids <- setdiff(overgrid, treat_grids)
+
+# could plot treated cells over landscape
+# plot(landscape, col = "#339900")
+# plot(overgrid, axes = TRUE, add = TRUE)
+# plot(treat_grids, col = "red", add = TRUE)
+
+# need to assign units location in treated or untreatedd gridcells
+
+st_sample(overgrid, 100)
+
+
+plot(landscape, col = "#339900")
+plot(overgrid, axes = TRUE, add = TRUE)
+plot(st_sample(overgrid, 100), col = "red", add = TRUE)
+
+
+
+
+
+
+
+
+
