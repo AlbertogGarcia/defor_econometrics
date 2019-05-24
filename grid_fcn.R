@@ -23,21 +23,24 @@ overgrid <- st_intersection(overgrid, landscape)
 treat_grids <- list.sample(overgrid, round(length(overgrid)/2))
 
 # calculate untreated gridcells
-untreat_grids <- setdiff(overgrid, treat_grids)
+untreat_grids <- overgrid[!overgrid %in% treat_grids]
 
 # could plot treated cells over landscape
 # plot(landscape, col = "#339900")
 # plot(overgrid, axes = TRUE, add = TRUE)
 # plot(treat_grids, col = "red", add = TRUE)
 
-# need to assign units location in treated or untreatedd gridcells
+#### need to assign units location in treated or untreatedd gridcells
 
-st_sample(overgrid, 100)
+# randomly sampling locations in each type of grid
+treat_locs <- st_sample(treat_grids, nobs)
+untreat_locs <- st_sample(untreat_grids, nobs)
 
 
-plot(landscape, col = "#339900")
-plot(overgrid, axes = TRUE, add = TRUE)
-plot(st_sample(overgrid, 100), col = "red", add = TRUE)
+# plot(landscape, col = "#339900")
+# plot(treat_grids, axes = TRUE, add = TRUE)
+# plot(treat_locs, col = "blue", add = TRUE)
+# plot(untreat_locs, col = "black", add = TRUE)
 
 
 
