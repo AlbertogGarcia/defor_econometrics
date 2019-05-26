@@ -49,8 +49,8 @@ df_un <- subset(defor_df, treat ==0)
 # assigning each unique unit a location
 unique_un <- unique(df_un$idx)
 unique_tr <- unique(df_tr$idx)
-df_tr <- st_sf(unique_un, u_whichcounty, geometry = untreat_locs)
-df_un <- st_sf(unique_tr, t_whichcounty, geometry = treat_locs)
+df_un <- st_sf(unique_un, u_whichcounty, geometry = untreat_locs)
+df_tr <- st_sf(unique_tr, t_whichcounty, geometry = treat_locs)
 names(df_un)[2] <- paste("county")
 names(df_tr)[2] <- paste("county")
 colnames(df_tr)[1] <- "idx"
@@ -67,7 +67,7 @@ df_match <-  merge(df_3, defor_df, by = "idx")
 suppressWarnings(
   countylevel_df <-  aggregate(df_match, by = list(df_match$county, df_match$treat, df_match$year), FUN = mean, drop = TRUE)[c("county", "treat", "year","defor")]
 )
-
+countylevel_df <- unite(countylevel_df, county, treat, county, sep = "_", remove = FALSE)
 
 
 # }
