@@ -14,8 +14,8 @@ library(sandwich)
 library(plm)
 
 #define parameters
-years <- 2               # number of years in each of two periods
-nobs <- 10000            # number of observations in each of two groups
+years <- 4               # number of years in each of two periods
+nobs <- 10000           # number of observations in each of two groups
 d_outside <- 0.30        # true deforestation rate outside treated area in period 2 
 diff <- 0.40             # pre-treatment difference between treatment and control
 trend <- -0.10           # trend in deforestation rate across periods
@@ -41,7 +41,7 @@ std_e <- 0.01
 ##########################  This section could probably be more efficiently coded  ###############################
 i_err <- rnorm(nobs*2 , 0 , std_i)
 y_err <- rnorm(years*2 , 0 , std_y)
-e_err <- matrix(rnorm(nobs*2 * years*2 , 0 , std_e), ncol = 4)
+e_err <- matrix(rnorm(nobs*2 * years*2 , 0 , std_e), ncol = years*2)
 
 i_err <- replicate(years*2, i_err)
 y_err <- t(replicate(nobs*2, y_err))
@@ -69,7 +69,7 @@ rownames(df) <- df$idx
 df <- subset(df, select = -c(rowname,idx))
 
 ### simulating deforestation ###
-defor_draw <- matrix(runif(nobs*2 * years*2 , 0 , 1), ncol = 4)
+defor_draw <- matrix(runif(nobs*2 * years*2 , 0 , 1), ncol = years*2)
 defor_df <- data.frame( df > defor_draw)*1
 not_defor <- rowSums(defor_df)<1 *1
 defor_year <- max.col(defor_df, ties.method = "first")       #creating defor_year variable
