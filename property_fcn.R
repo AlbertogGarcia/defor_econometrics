@@ -3,10 +3,10 @@ library(sf)
 library(MASS)
 library(deldir)
 library(muHVT)
+library(rlist)
 
-
-noproperties <- 1000
-cellsize = 25
+psize <- 1000
+cellsize = 20
 
 
 
@@ -52,7 +52,7 @@ u_whichcounty <- max.col(untreat_counties)
 
 
 plot(landscape)
-plot(treat_locs, pch = 20, col = "brown", add = TRUE)
+plot(treat_locs, pch = 20, col = "red", add = TRUE)
 plot(untreat_locs, pch = 20, col = "green", add = TRUE)
 plot(overgrid, axes = TRUE, add = TRUE)
 plot(v, axes = TRUE, add = TRUE)
