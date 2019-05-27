@@ -12,6 +12,9 @@ library(data.table)
 library(naniar)
 library(sandwich)
 library(plm)
+library(lmtest)
+library(clubSandwich)
+
 
 #define parameters
 years <- 4               # number of years in each of two periods
@@ -108,6 +111,16 @@ defor_df$post <- (defor_df$year > years)*1
 
 
 
-DID <- lm(defor ~  post*treat, data = defor_df)
-summary(DID)
+DID <- lm(defor ~  post*treat, 
+          data = defor_df
+)
+coeftest(DID, vcov. = vcovCL)
+
+twoway.fe <- plm(defor ~  post*treat, 
+             data   = defor_df, 
+             method = "within", #fixed effects model
+             effect = "twoway", #unit and year fixed effects
+             index  = c("idx", "year")
+)
+
 
