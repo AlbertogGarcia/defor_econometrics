@@ -96,8 +96,9 @@ v <- vorpts %>%  # consider the sampled points
 # generating perturbations for each property
 std_p <- 0.1
 p_err <- rnorm(length(v) , 0 , std_p)
-p_err <- replicate(years*2, p_err)
-
+p_err <- data.frame(p_err)
+p_err <- tibble::rownames_to_column(p_err)
+names(p_err)[1] <- paste("property")
 
 #### need to assign units location in treated or untreatedd gridcells
 
@@ -136,18 +137,32 @@ whichprop <- st_within(df, v, sparse = FALSE, prepared = TRUE)*1
 whichprop <- max.col(whichprop)
 df$property <- whichprop
 
-# df <- tibble::rownames_to_column(df)
-# df <- unite(df, idx, treat, rowname, sep = "_", remove = FALSE)
-# 
-# df <- unite(df, idx, idx, treat, sep = " , ", remove = FALSE)
-# 
-# rownames(df) <- df$idx
-# df <- subset(df, select = -c(rowname, idx))
+
+
+df <-  merge(df, p_err, by = "property")
+df <- tibble::rownames_to_column(df)
+
+df <- unite(df, idx, treat, rowname, sep = "_", remove = FALSE)
+df <- unite(df, idx, idx, treat, sep = " , ", remove = TRUE)
+
+
+#adding property level errors
+rownames(df) <- df$idx
+df <- subset(df, select = -c(rowname, idx))
 
 
 
 
+df_comp <- df[,c(2:(years*2+1))] + df$p_err
 
+
+df_comp <- subset(df_comp, select = -c(geometry))
+
+
+df <- subset(df, select = c(property, county))
+df <- tibble::rownames_to_column(df)
+df <- separate(df, rowname, c("idx", "treat"), sep= ",", remove=TRUE)
+df <- subset(df, select = -c(treat))
 ###################################################################
 
 
@@ -155,7 +170,7 @@ df$property <- whichprop
 
 ### simulating deforestation ###
 defor_draw <- matrix(runif(nobs*2 * years*2 , 0 , 1), ncol = 4)
-defor_df <- data.frame( df > defor_draw)*1
+defor_df <- data.frame( df_comp > defor_draw)*1
 not_defor <- rowSums(defor_df)<1 *1
 defor_year <- max.col(defor_df, ties.method = "first")       #creating defor_year variable
 
@@ -190,9 +205,15 @@ defor_df$post <- (defor_df$year > years)*1
 #rownames(defor_df) <- defor_df$index
 #defor_df <- subset(defor_df, select = -c(index))
 
+defor_df <-  merge(df, defor_df, by = "idx")
 
+suppressWarnings(
+  propertylevel_df <-  aggregate(defor_df, by = list(defor_df$property, defor_df$treat, defor_df$year), FUN = mean, drop = TRUE)[c("property", "county", "treat", "year","defor")]
+)
 
-
+suppressWarnings(
+  countylevel_df <-  aggregate(defor_df, by = list(defor_df$county, defor_df$treat, defor_df$year), FUN = mean, drop = TRUE)[c("county", "treat", "year","defor")]
+)
 
 DID <- lm(defor ~  post*treat, data = defor_df)
 summary(DID)
