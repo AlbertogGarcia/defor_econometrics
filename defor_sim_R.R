@@ -9,15 +9,16 @@ library(purrr)
 library(tidyverse)
 library(reshape2)
 library(data.table)
-library(naniar)
 library(sandwich)
 library(plm)
 library(lmtest)
 library(clubSandwich)
 
+# defor_sim <- function(nobs, years){
+
 
 #define parameters
-years <- 4               # number of years in each of two periods
+years <- 2               # number of years in each of two periods
 nobs <- 10000           # number of observations in each of two groups
 d_outside <- 0.30        # true deforestation rate outside treated area in period 2 
 diff <- 0.40             # pre-treatment difference between treatment and control
@@ -103,24 +104,27 @@ defor_df <- subset(defor_df, select = -c(indic))
 
 defor_df$post <- (defor_df$year > years)*1
 
+
+# }
+
+
+
+
+
 #defor_df <- unite(defor_df, index, year, idx, sep = ",", remove = TRUE)
 #rownames(defor_df) <- defor_df$index
 #defor_df <- subset(defor_df, select = -c(index))
 
-
-
-
-
-DID <- lm(defor ~  post*treat, 
-          data = defor_df
-)
-coeftest(DID, vcov. = vcovCL)
-
-twoway.fe <- plm(defor ~  post*treat, 
-             data   = defor_df, 
-             method = "within", #fixed effects model
-             effect = "twoway", #unit and year fixed effects
-             index  = c("idx", "year")
-)
+# DID <- lm(defor ~  post*treat, 
+#           data = defor_df
+# )
+# coeftest(DID, vcov. = vcovCL)
+# 
+# twoway.fe <- plm(defor ~  post*treat, 
+#              data   = defor_df, 
+#              method = "within", #fixed effects model
+#              effect = "twoway", #unit and year fixed effects
+#              index  = c("idx", "year")
+# )
 
 
