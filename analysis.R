@@ -1,5 +1,5 @@
 # econometric analyses
-# may want to incorporate monte carlos to see distribution of point estimates at some point
+# 
 
 library(sandwich)
 library(plm)
@@ -28,15 +28,15 @@ twoway.fe <- plm(defor ~  post*treat,
 
 
 ################ aggregation without property or county level perturbations ########################
-####### defor set to 1 after first occurence of deforestation
+####### defor set to 1 after first occurence of deforestation (nothing dropped)
 
-grid_fcn(defor_df, cellsize) 
-#spits out grid level (counties)dataframe countylevel_df
 
 property_fcn(defor_df, cellsize, psize)
-#spits out property level dataframe without perturbations propertylevel_df
+#spits out property and county level dataframe without perturbations propertylevel_df and countylevel_df
 
-
+deforrate1 <-                            #defor_t/defor_{t-1}
+deforrate2 <-                            #defor_t/defor_0  
+  
 
 
 
