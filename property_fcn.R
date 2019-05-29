@@ -5,7 +5,8 @@ library(rlist)
 psize <- 1000
 cellsize = 20
 
-
+#starting function
+property_fcn <- function(psize, cellsize){
 
 rootn <- ceiling(sqrt(nobs*2))
 landscape = st_sfc(st_polygon(list(cbind(c(0,rootn,rootn,0,0),c(0,0,rootn,rootn,0)))))
@@ -86,11 +87,14 @@ suppressWarnings(
 suppressWarnings(
   countylevel_df <-  aggregate(df_match, by = list(df_match$county, df_match$treat, df_match$year), FUN = mean, drop = TRUE)[c("county", "treat", "year","defor")]
 )
-countylevel_df <- unite(countylevel_df, county, treat, county, sep = "_", remove = FALSE)
 
+propertylevel_df <- unite(propertylevel_df, propertyid, treat, property, sep = "_", remove = FALSE)
+countylevel_df <- unite(countylevel_df, countyid, treat, county, sep = "_", remove = FALSE)
 
+assign('countylevel_df',countylevel_df, envir=.GlobalEnv)
+assign('propertylevel_df',propertylevel_df, envir=.GlobalEnv)
 
 # return new grid defor rate dataframe
 
-# }
+}
 
