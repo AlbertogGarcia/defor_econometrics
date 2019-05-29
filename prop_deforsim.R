@@ -6,13 +6,17 @@ library(purrr)
 library(tidyverse)
 library(reshape2)
 library(data.table)
-library(naniar)
-library(sandwich)
-library(plm)
+library(sf)
 
 #define parameters
-years <- 2               # number of years in each of two periods
-nobs <- 10000           # number of observations in each of two groups
+# years <- 2               # number of years in each of two periods
+# nobs <- 10000           # number of observations in each of two groups
+# psize <- 1000
+# cellsize = 25
+
+#starting function
+prop_deforsim <- function(nobs, years, psize, cellsize){
+
 d_outside <- 0.30        # true deforestation rate outside treated area in period 2 
 diff <- 0.40             # pre-treatment difference between treatment and control
 trend <- -0.10           # trend in deforestation rate across periods
@@ -66,8 +70,6 @@ df$treat[(nobs+1):nrow(df)] <- df$treat[(nobs+1):nrow(df)]+1
 std_p <- 0.1
 p_err <- rnorm(nobs*2 , 0 , std_p)
 
-psize <- 1000
-cellsize = 25
 
 rootn <- ceiling(sqrt(nobs*2))
 landscape = st_sfc(st_polygon(list(cbind(c(0,rootn,rootn,0,0),c(0,0,rootn,rootn,0)))))
@@ -143,7 +145,7 @@ df <-  merge(df, p_err, by = "property")
 df <- tibble::rownames_to_column(df)
 
 df <- unite(df, idx, treat, rowname, sep = "_", remove = FALSE)
-df <- unite(df, idx, idx, treat, sep = " , ", remove = TRUE)
+#df <- unite(df, idx, idx, treat, sep = " , ", remove = FALSE)
 
 
 #adding property level errors
@@ -159,10 +161,11 @@ df_comp <- df[,c(2:(years*2+1))] + df$p_err
 df_comp <- subset(df_comp, select = -c(geometry))
 
 
-df <- subset(df, select = c(property, county))
+df <- subset(df, select = c(property, county, treat))
 df <- tibble::rownames_to_column(df)
-df <- separate(df, rowname, c("idx", "treat"), sep= ",", remove=TRUE)
-df <- subset(df, select = -c(treat))
+
+
+
 ###################################################################
 
 
@@ -178,15 +181,21 @@ defor_year <- max.col(defor_df, ties.method = "first")       #creating defor_yea
 defor_df <- cbind(defor_df, defor_year)
 defor_df <- transform(defor_df, defor_year = ifelse(not_defor==1, years*2+1, defor_year))
 
-#names(defor_df)[1:(years*2)] <- paste("defor", colnames(defor_df[1:(years*2)]), sep = "")
 
 defor_df <- tibble::rownames_to_column(defor_df)
 
-defor_df <- separate(defor_df, rowname, c("idx", "treat"), sep= ",", remove=TRUE)
 
-names(defor_df)[3:(years*2+2)] <- c(1:(years*2))
+#names(defor_df)[2:(years*2+1)] <- c(1:(years*2))
 
-defor_df <- melt(defor_df, id.vars = c('idx', 'treat', 'defor_year'))
+#defor_df <-  merge(df, defor_df, by = "rowname")
+#defor_df <- subset(defor_df, select = -c(county))
+
+
+
+
+
+
+defor_df <- melt(defor_df, id.vars = c('rowname', 'defor_year'))
 
 
 setnames(defor_df, old=c("variable","value"), new=c("year", "defor"))
@@ -201,20 +210,28 @@ defor_df <- subset(defor_df, select = -c(indic))
 
 defor_df$post <- (defor_df$year > years)*1
 
-#defor_df <- unite(defor_df, index, year, idx, sep = ",", remove = TRUE)
-#rownames(defor_df) <- defor_df$index
-#defor_df <- subset(defor_df, select = -c(index))
 
-defor_df <-  merge(df, defor_df, by = "idx")
+defor_df <-  merge(df, defor_df, by = "rowname")
+rownames(df) <- df$rowname
 
-suppressWarnings(
-  propertylevel_df <-  aggregate(defor_df, by = list(defor_df$property, defor_df$treat, defor_df$year), FUN = mean, drop = TRUE)[c("property", "county", "treat", "year","defor")]
-)
+defor_df <- subset(defor_df, select = -c(rowname))
 
 suppressWarnings(
-  countylevel_df <-  aggregate(defor_df, by = list(defor_df$county, defor_df$treat, defor_df$year), FUN = mean, drop = TRUE)[c("county", "treat", "year","defor")]
+  proppert_df <-  aggregate(defor_df, by = list(defor_df$property, defor_df$treat, defor_df$year), FUN = mean, drop = TRUE)[c("property", "post", "county", "treat", "year","defor")]
 )
 
-DID <- lm(defor ~  post*treat, data = defor_df)
-summary(DID)
+proppert_df <- unite(proppert_df, countyid, treat, county, sep = "_", remove = FALSE)
 
+suppressWarnings(
+  countypert_df <-  aggregate(defor_df, by = list(defor_df$county, defor_df$treat, defor_df$year), FUN = mean, drop = TRUE)[c("county", "treat", "year","defor", "post")]
+)
+countypert_df <- unite(countypert_df, countyid, treat, county, sep = "_", remove = FALSE)
+
+
+
+assign('proppert_df',proppert_df, envir=.GlobalEnv)
+
+assign('countyprop_df',countypert_df, envir=.GlobalEnv)
+
+# end function
+}
