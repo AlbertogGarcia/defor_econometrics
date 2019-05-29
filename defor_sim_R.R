@@ -14,12 +14,14 @@ library(plm)
 library(lmtest)
 library(clubSandwich)
 
-# defor_sim <- function(nobs, years){
+years <- 2               # number of years in each of two periods
+nobs <- 10000           # number of observations in each of two groups
+
+defor_sim <- function(nobs, years){
 
 
 #define parameters
-years <- 2               # number of years in each of two periods
-nobs <- 10000           # number of observations in each of two groups
+          
 d_outside <- 0.30        # true deforestation rate outside treated area in period 2 
 diff <- 0.40             # pre-treatment difference between treatment and control
 trend <- -0.10           # trend in deforestation rate across periods
@@ -104,8 +106,8 @@ defor_df <- subset(defor_df, select = -c(indic))
 
 defor_df$post <- (defor_df$year > years)*1
 
-
-# }
+assign('defor_df',defor_df, envir=.GlobalEnv)
+}
 
 
 
