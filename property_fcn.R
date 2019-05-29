@@ -1,8 +1,5 @@
 # function to aggregate pixels to property level, adding in random perterbations at property level
 library(sf)
-library(MASS)
-library(deldir)
-library(muHVT)
 library(rlist)
 
 psize <- 1000
@@ -86,6 +83,10 @@ suppressWarnings(
   propertylevel_df <-  aggregate(df_match, by = list(df_match$property, df_match$treat, df_match$year), FUN = mean, drop = TRUE)[c("property", "county", "treat", "year","defor")]
 )
 
+suppressWarnings(
+  countylevel_df <-  aggregate(df_match, by = list(df_match$county, df_match$treat, df_match$year), FUN = mean, drop = TRUE)[c("county", "treat", "year","defor")]
+)
+countylevel_df <- unite(countylevel_df, county, treat, county, sep = "_", remove = FALSE)
 
 
 
