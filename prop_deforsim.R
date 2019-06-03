@@ -9,7 +9,7 @@ library(data.table)
 library(sf)
 
 #define parameters
-# years <- 2               # number of years in each of two periods
+# years <- 3               # number of years in each of two periods
 # nobs <- 10000           # number of observations in each of two groups
 # psize <- 1000
 # cellsize = 25
@@ -42,7 +42,7 @@ std_e <- 0.01
 ##########################  This section could probably be more efficiently coded  ###############################
 i_err <- rnorm(nobs*2 , 0 , std_i)
 y_err <- rnorm(years*2 , 0 , std_y)
-e_err <- matrix(rnorm(nobs*2 * years*2 , 0 , std_e), ncol = 4)
+e_err <- matrix(rnorm(nobs*2 * years*2 , 0 , std_e), ncol = years*2)
 
 i_err <- replicate(years*2, i_err)
 y_err <- t(replicate(nobs*2, y_err))
@@ -96,7 +96,7 @@ v <- vorpts %>%  # consider the sampled points
   st_intersection(overgrid)  # limit to within county boundaries
 
 # generating perturbations for each property
-std_p <- 0.1
+std_p <- 0.5
 p_err <- rnorm(length(v) , 0 , std_p)
 p_err <- data.frame(p_err)
 p_err <- tibble::rownames_to_column(p_err)
