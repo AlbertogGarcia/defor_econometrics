@@ -1,13 +1,16 @@
 # function to aggregate pixels to property level, adding in random perterbations at property level
 library(sf)
 library(rlist)
+library(tidyverse)
 
 psize <- 1000
 cellsize = 20
 
 #starting function
-property_fcn <- function(psize, cellsize){
-
+#property_fcn <- function(defor_df, psize, cellsize){
+  
+nobs<- length(unique(defor_df$idx))
+  
 rootn <- ceiling(sqrt(nobs*2))
 landscape = st_sfc(st_polygon(list(cbind(c(0,rootn,rootn,0,0),c(0,0,rootn,rootn,0)))))
 
@@ -48,12 +51,12 @@ u_whichcounty <- max.col(untreat_counties)
 
 #determine which property a point lies in
 
-
-plot(landscape)
-plot(treat_locs, pch = 20, col = "red", add = TRUE)
-plot(untreat_locs, pch = 20, col = "green", add = TRUE)
-plot(overgrid, axes = TRUE, add = TRUE)
-plot(v, axes = TRUE, add = TRUE)
+# 
+# plot(landscape)
+# plot(treat_locs, pch = 20, col = "red", add = TRUE)
+# plot(untreat_locs, pch = 20, col = "green", add = TRUE)
+# plot(overgrid, axes = TRUE, add = TRUE)
+# plot(v, axes = TRUE, add = TRUE)
 
 #### now we need to assign the random locations to the pixels in defor_df
 # separating treated and untreated units
@@ -96,5 +99,5 @@ assign('propertylevel_df',propertylevel_df, envir=.GlobalEnv)
 
 # return new grid defor rate dataframe
 
-}
+#}
 
