@@ -14,9 +14,10 @@ library(plm)
 library(lmtest)
 library(clubSandwich)
 
-years <- 2               # number of years in each of two periods
-nobs <- 10000           # number of observations in each of two groups
+#years <- 2               # number of years in each of two periods
+#nobs <- 10000           # number of observations in each of two groups
 
+#starting function
 defor_sim <- function(nobs, years){
 
 
