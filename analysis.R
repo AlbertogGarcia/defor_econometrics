@@ -1,5 +1,4 @@
-# econometric analyses
-# 
+# laying out outcome variables and different econometric analyses
 
 library(sandwich)
 library(plm)
@@ -8,44 +7,20 @@ library(clubSandwich)
 library(DataCombine)
 
 
-################ dropping observations in periods t+1...T when defor_it = 1 #########
-#defor_sim(nobs, years)
-defor_sim(10000, 3) #initial simulation with 10000 observations in each group/2 periods in pre/post
-# spits out dataframe defor_df
+################ addressing the dropping of observations in periods t+1 when pixel deforested in period t
+# binary_coeffdist_fcn(n, nobs, years)
+binary_coeffdist_fcn(200, 10000, 2)
+# function provides mean and variance of estimates
+#col 1 and 2 drop
+#col 3 and 4 keep
+#col 1 and 3 simple DID
+#col 2 and 4 two-way FE
 
 
-#simple DID 
-DID_drop <- lm(defor ~  post*treat, 
-          data = defor_df
-)
+################ aggregating with property level perturbations ########################
 
 
-#two-way fixed effects model
-twoway.fe <- plm(defor ~  post*treat, 
-                 data   = defor_df, 
-                 method = "within", #fixed effects model
-                 effect = "twoway", #unit and year fixed effects
-                 index  = c("idx", "year")
-)
-
-################ setting observations = 1 in periods t+1...T when defor_it = 1 #########
-
-defor_df$defor[is.na(defor_df$defor)] <- 1
-
-
-
-
-
-
-
-                
-
-
-################ with property level perturbations ########################
-
-prop_deforsim(10000, 3, 500, 20) #initial simulation with 10000 observations in each group/2 periods in pre/post
-# spits out both county level and property level dataframes countypert_df and proppert_df
-
+####creating deforrate1 outcome variable for both dataframes
 year1 <- subset(countyprop_df, year== 1)
 colnames(year1)[colnames(year1)=="defor"] <- "defor0"
 year1 <- subset(year1, select = c(countyid, defor0))
@@ -59,43 +34,15 @@ year1 <- subset(year1, select = c(property, defor0))
 st_geometry(year1) <- NULL
 proppert_df <-  merge(proppert_df, year1, by = "property")
 
-# proppert_df$defor0 <- ifelse(proppert_df$defor0 >0, proppert_df$defor0, .1 )
-# 
-# proppert_df$deforrate1 <- proppert_df$defor / proppert_df$defor0
+proppert_df$deforrate1 <- proppert_df$defor / proppert_df$defor0
+#### 
 
-
-DID_county <- lm(deforrate1 ~  post*treat, 
-               data = countyprop_df
-)
-
-summary(DID_county)
-
-
-# DID_prop <- lm(deforrate1 ~  post*treat, 
-#                data = proppert_df
-# )
-# 
-# 
-# summary(DID_prop)
+# agg_coeffdist_fcn(outcome, n, nobs, years, psize, cellsize)
+agg_coeffdist_fcn(deforrate1, 100, 10000, 1000, 25)
+# function provides mean and variance of estimates for two way FE model
+# col 1 is property level
+# col 2 is county level
 
 
 
 
-#two-way fixed effects model
-twoway.fec <- plm(deforrate1 ~  post*treat, 
-                 data   = countyprop_df, 
-                 method = "within", #fixed effects model
-                 effect = "twoway", #unit and year fixed effects
-                 index  = c("countyid", "year")
-)
-
-summary(twoway.fec)
-# 
-# twoway.fep <- plm(deforrate1 ~  post*treat, 
-#                   data   = proppert_df, 
-#                   method = "within", #fixed effects model
-#                   effect = "twoway", #unit and year fixed effects
-#                   index  = c("property", "year")
-# )
-# 
-# summary(twoway.fep)
