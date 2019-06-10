@@ -130,4 +130,3 @@ assign('defor_df',defor_df, envir=.GlobalEnv)
 #              index  = c("idx", "year")
 # )
 
-
