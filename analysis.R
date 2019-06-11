@@ -85,7 +85,17 @@ proppert_df$deforrate3 <- proppert_df$deforlag - (proppert_df$defor / proppert_d
 countypert_df$deforrate3 <- countypert_df$deforlag- (countypert_df$defor / countypert_df$deforlag)
 
 
-######################### Inverse Hyperbolic Lags ########################### 
+######################### Jones et al (2017): defor_t-defor_t-1 ########################### 
+### creating deforrate4 outcome variable for both dataframes
+
+proppert_df$deforrate4 <- proppert_df$defor - proppert_df$deforlag
+
+
+countypert_df$deforrate4 <- countypert_df$defor  countypert_df$deforlag
+
+
+
+######################### Inverse Hyperbolic sine tranformations ########################### 
 ### creating deforrate4 outcome variable for both dataframes
 
 
