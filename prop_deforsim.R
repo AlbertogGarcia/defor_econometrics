@@ -7,12 +7,13 @@ library(tidyverse)
 library(reshape2)
 library(data.table)
 library(sf)
+library(rlist)
 
 #define parameters
-# years <- 3               # number of years in each of two periods
-# nobs <- 10000           # number of observations in each of two groups
-# psize <- 1000
-# cellsize = 25
+years <- 3               # number of years in each of two periods
+nobs <- 10000           # number of observations in each of two groups
+psize <- 1000
+cellsize = 25
 
 #starting function
 prop_deforsim <- function(nobs, years, psize, cellsize){
@@ -39,16 +40,13 @@ std_i <- 0.1
 std_y <- 0.01
 std_e <- 0.01
 
-##########################  This section could probably be more efficiently coded  ###############################
-i_err <- rnorm(nobs*2 , 0 , std_i)
-y_err <- rnorm(years*2 , 0 , std_y)
-e_err <- matrix(rnorm(nobs*2 * years*2 , 0 , std_e), ncol = years*2)
 
-i_err <- replicate(years*2, i_err)
-y_err <- t(replicate(nobs*2, y_err))
+e_err <- matrix(rnorm(nobs*2 * years*2 , 0 , std_e), ncol = years*2)
+i_err <- replicate(years*2, rnorm(nobs*2 , 0 , std_i))
+y_err <- t(replicate(nobs*2, rnorm(years*2 , 0 , std_y)))
 
 df <- data.frame( i_err + y_err + e_err)
-###################################################################################################################
+
 
 #Add in average deforestation rates for each group
 df[1:nobs,1:years] <- df[1:nobs,1:years] + m_00
@@ -67,17 +65,13 @@ df$treat[(nobs+1):nrow(df)] <- df$treat[(nobs+1):nrow(df)]+1
 ####### Adding property level perturbations ######################
 # up to this point we have each obs and value for four years
 
-std_p <- 0.1
-p_err <- rnorm(nobs*2 , 0 , std_p)
-
 
 rootn <- ceiling(sqrt(nobs*2))
 landscape = st_sfc(st_polygon(list(cbind(c(0,rootn,rootn,0,0),c(0,0,rootn,rootn,0)))))
 
-overgrid <- st_make_grid(landscape, cellsize, square = TRUE)
 
-#trim grid to landscape
-overgrid <- st_intersection(overgrid, landscape)
+#create grid and trim to landscape
+overgrid <- st_intersection(st_make_grid(landscape, cellsize, square = TRUE), landscape)
 
 #now we want to randomly determine treated and untreated gridcells
 treat_grids <- list.sample(overgrid, round(length(overgrid)/2))
@@ -97,8 +91,7 @@ v <- vorpts %>%  # consider the sampled points
 
 # generating perturbations for each property
 std_p <- 0.5
-p_err <- rnorm(length(v) , 0 , std_p)
-p_err <- data.frame(p_err)
+p_err <- data.frame(rnorm(length(v) , 0 , std_p))
 p_err <- tibble::rownames_to_column(p_err)
 names(p_err)[1] <- paste("property")
 
@@ -109,24 +102,17 @@ treat_locs <- st_sample(treat_grids, nobs)
 untreat_locs <- st_sample(untreat_grids, nobs)#, coords = c("", ""))
 
 #determine which county a point lies in
-treat_counties <- st_within(treat_locs, treat_grids, sparse = FALSE, prepared = TRUE)*1
-untreat_counties <- st_within(untreat_locs, untreat_grids, sparse = FALSE, prepared = TRUE)*1
-t_whichcounty <- max.col(treat_counties)
-u_whichcounty <- max.col(untreat_counties)
-
+t_whichcounty <- max.col(st_within(treat_locs, treat_grids, sparse = FALSE, prepared = TRUE)*1)
+u_whichcounty <- max.col(st_within(untreat_locs, untreat_grids, sparse = FALSE, prepared = TRUE)*1)
 
 
 #### now we need to assign the random locations to the pixels in defor_df
-# separating treated and untreated units
+
 df$treat <- as.numeric(df$treat)
-df_tr <- subset(df, treat ==1)
-df_un <- subset(df, treat ==0)
 
-
-# assigning each unique unit a location
-
-df_un <- st_sf(df_un, u_whichcounty, geometry = untreat_locs)
-df_tr <- st_sf(df_tr, t_whichcounty, geometry = treat_locs)
+# separating treated and untreated units and assigning each unique unit a location
+df_un <- st_sf(subset(df, treat ==0), u_whichcounty, geometry = untreat_locs)
+df_tr <- st_sf(subset(df, treat ==1), t_whichcounty, geometry = treat_locs)
 
 
 names(df_un)[(years*2+2)] <- paste("county")
@@ -138,14 +124,13 @@ df <- rbind(df_tr, df_un)
 whichprop <- st_within(df, v, sparse = FALSE, prepared = TRUE)*1
 whichprop <- max.col(whichprop)
 df$property <- whichprop
+names(p_err)[2]<-"p_err"
 
 
-
-df <-  merge(df, p_err, by = "property")
-df <- tibble::rownames_to_column(df)
+# df <-  merge(df, p_err, by = "property")
+df <- tibble::rownames_to_column(merge(df, p_err, by = "property"))
 
 df <- unite(df, idx, treat, rowname, sep = "_", remove = FALSE)
-#df <- unite(df, idx, idx, treat, sep = " , ", remove = FALSE)
 
 
 #adding property level errors
@@ -226,12 +211,12 @@ suppressWarnings(
   countypert_df <-  aggregate(defor_df, by = list(defor_df$county, defor_df$treat, defor_df$year), FUN = mean, drop = TRUE)[c("county", "treat", "year","defor", "post")]
 )
 countypert_df <- unite(countypert_df, countyid, treat, county, sep = "_", remove = FALSE)
-
+countypert_df <- subset(countypert_df, select = -c(county))
 
 
 assign('proppert_df',proppert_df, envir=.GlobalEnv)
 
-assign('countyprop_df',countypert_df, envir=.GlobalEnv)
+assign('countypert_df',countypert_df, envir=.GlobalEnv)
 
 # end function
 }
