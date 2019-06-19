@@ -22,7 +22,7 @@ binary_coeffdist_fcn <- function(n, nobs, years){
     )$coefficients[4]
     
     # run two-way fixed effects    
-    coeffmatrix[i,2] <- plm(defor ~  post*treat, 
+    coeffmatrix[i, 2] <- plm(defor ~  post*treat, 
                      data   = defor_df, 
                      method = "within", #fixed effects model
                      effect = "twoway", #unit and year fixed effects
@@ -34,12 +34,12 @@ binary_coeffdist_fcn <- function(n, nobs, years){
     
     # DID keeping variables
     
-    coeffmatrix[i,3] <- lm(defor ~  post*treat, 
+    coeffmatrix[i, 3] <- lm(defor ~  post*treat, 
                            data = defor_df
     )$coefficients[4]
     
     # run two-way fixed effects    
-    coeffmatrix[i,4] <- plm(defor ~  post*treat, 
+    coeffmatrix[i, 4] <- plm(defor ~  post*treat, 
                        data   = defor_df, 
                        method = "within", #fixed effects model
                        effect = "twoway", #unit and year fixed effects
@@ -50,11 +50,10 @@ binary_coeffdist_fcn <- function(n, nobs, years){
     
   #end for loop  
   }  
-  
+  assign('coeff_bin',coeffmatrix, envir=.GlobalEnv)
   
 # get distribution information from matrix  
   return(list(colMeans(coeffmatrix), colVars(coeffmatrix)))
-
   
 #end function  
 }  
