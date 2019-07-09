@@ -37,7 +37,7 @@ DID_bias <- function(n, nobs, years, att){
                             data = defor_df
     )$coefficients[4] - att
     
-
+    print(i)
     
     #end for loop  
   }  
