@@ -1,8 +1,6 @@
 library(DeclareDesign)
   
-DIDbias <- vector()
-
-for (p in 1:100){
+defor_DGP <- function(nobs, years, b1, b2, b3){
   
   
   b0 <- .3
@@ -26,24 +24,30 @@ for (p in 1:100){
       y_it = ifelse(ystar > 0, 1, 0)
     )
   )
+  #need to determine which year deforestation occurred
+  year_df <- subset(panels, select = c(pixels, year, y_it))
+  #year_df <- melt(year_df, id.vars = c("pixels", "y_it"), value.name = "year")
+  year_df <- dcast(year_df, pixels ~ year )
+  rownames(year_df) <- year_df$pixels
+  year_df <- subset(year_df, select = -c(pixels))
+  not_defor <- rowSums(year_df)<1 *1
+  defor_year <- max.col(year_df, ties.method = "first") 
   
-  
-  
-   probitcoeff  <- glm(y_it ~  post*treat,
-                       family = binomial(link = "probit"),
-                       data = panels
-   )$coefficients
+  defor_df <- transform(year_df, defor_year = ifelse(not_defor==1, years*2+1, defor_year))
+  defor_df <- tibble::rownames_to_column(defor_df)
+  names(defor_df)[1] <- paste("pixels")
+  defor_df <- subset(defor_df, select = c(pixels, defor_year))
 
-   tr <- sum(probitcoeff)
-   untr <- probitcoeff[1]+probitcoeff[2]+probitcoeff[3]
-   probt <- pnorm(tr)
-   probu <- pnorm(untr)
-   coeff1[p] <- probt-probu
+  panels <- merge(defor_df, panels, by = "pixels")
   
-  DIDbias[p] <- lm(y_it ~ post*treat, data = panels)$coefficients[4]-ATT
-  
+  panels$year <- as.numeric(panels$year)
+  panels$indic <- (panels$year - panels$defor_year)
+  panels$y_it <- ifelse(panels$indic > 0 , NA, panels$y_it)
+  panels$defor <- ifelse(panels$indic > 0 , 1, panels$y_it)
+  panels <- subset(panels, select = -c(indic))
+
+  assign('panels',panels, envir=.GlobalEnv)
+
 }
-
-summary(DIDbias)
 
 
