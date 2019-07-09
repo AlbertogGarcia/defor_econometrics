@@ -47,6 +47,7 @@ defor_DGP <- function(nobs, years, b1, b2, b3){
   panels <- subset(panels, select = -c(indic))
 
   assign('panels',panels, envir=.GlobalEnv)
+  assign('ATT',ATT, envir=.GlobalEnv)
 
 }
 
