@@ -12,6 +12,7 @@ binary_coeffdist_fcn <- function(n, nobs, years, b1,b2,b3){
   coeffmatrix <- matrix(nrow = n, ncol = 4)
   
   for(i in 1:n){
+    
   
   
     # call defor_sim function to simulate dataframe, returned as defor_df  
