@@ -6,7 +6,7 @@ library(plm)
 library(Metrics)
 #begin function
 
-binary_coeffdist_fcn <- function(n, nobs, years, b1,b2,b3){
+binary_coeffdist_fcn <- function(n, nobs, years, b0, b1,b2,b3){
   
   #preallocate n x 4 matrix
   coeffmatrix <- matrix(nrow = n, ncol = 4)
@@ -16,7 +16,7 @@ binary_coeffdist_fcn <- function(n, nobs, years, b1,b2,b3){
   
   
     # call defor_sim function to simulate dataframe, returned as defor_df  
-    defor_DGP(nobs, years, b1, b2, b3)
+    defor_DGP(nobs, years, b0, b1, b2, b3)
 
     # run DID dropping deforested pixels
     coeffmatrix[i,1]  <- lm(y_it ~  post*treat, 
