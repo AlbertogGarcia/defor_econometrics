@@ -1,6 +1,6 @@
 
 #begin function
-DID_bias <- function(n, nobs, years, att){
+DID_bias <- function(n, nobs, years){
   
   #preallocate n x 4 matrix
   coeffmatrix <- matrix(nrow = n, ncol = 4)

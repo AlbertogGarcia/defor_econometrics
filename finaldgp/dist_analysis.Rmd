@@ -1,0 +1,12 @@
+---
+output: html_document
+---
+
+This document is set up to have a bit more of a reproducible framework for analyzing the distributions of the various estimators and any other analyses
+
+
+
+
+```{r}
+#r code
+```
