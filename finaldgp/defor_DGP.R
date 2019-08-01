@@ -1,9 +1,9 @@
 library(DeclareDesign)
 library(reshape2)  
-defor_DGP <- function(nobs, years, b1, b2, b3){
+defor_DGP <- function(nobs, years, b0, b1, b2, b3){
   
   
-  b0 <- .3
+  
   
   std_a <- 0.5
   std_v <- 0.5
