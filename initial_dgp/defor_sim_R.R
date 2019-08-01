@@ -110,23 +110,3 @@ defor_df$post <- (defor_df$year > years)*1
 assign('defor_df',defor_df, envir=.GlobalEnv)
 }
 
-
-
-
-
-#defor_df <- unite(defor_df, index, year, idx, sep = ",", remove = TRUE)
-#rownames(defor_df) <- defor_df$index
-#defor_df <- subset(defor_df, select = -c(index))
-
-# DID <- lm(defor ~  post*treat, 
-#           data = defor_df
-# )
-# coeftest(DID, vcov. = vcovCL)
-# 
-# twoway.fe <- plm(defor ~  post*treat, 
-#              data   = defor_df, 
-#              method = "within", #fixed effects model
-#              effect = "twoway", #unit and year fixed effects
-#              index  = c("idx", "year")
-# )
-
