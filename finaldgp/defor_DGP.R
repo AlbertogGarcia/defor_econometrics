@@ -8,7 +8,7 @@ defor_DGP <- function(nobs, years, b0, b1, b2, b3){
   std_a <- 0.5
   std_v <- 0.5
   
-  ATT <- pnorm(b0+b1+b2+b3, 0, std_a+std_v ) - pnorm(b0+b1+b2, 0, std_a+std_v )
+  ATT <- pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2)^(1/2) ) - pnorm(b0+b1+b2, 0, (std_a^2+std_v^2)^(1/2) )
   
   panels <- fabricate(
     pixels = add_level(N = nobs, a_i = rnorm(N, 0, std_a), treat = rbinom(N, 1, 0.5)),
