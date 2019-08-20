@@ -1,43 +1,43 @@
-
+library(ggplot2)
 #begin function
-DID_bias <- function(n, nobs, years){
+DID_bias <- function(n, nobs, years, b3){
   
   #preallocate n x 4 matrix
   coeffmatrix <- matrix(nrow = n, ncol = 4)
   
   for(i in 1:n){
     
-   b0 <- .3
-   b1p <- .2
+   b0 <- .25
+   b1p <- .1
    b1n <- -b1p
-   b2p <- -.1
+   b2p <- .1
    b2n <- -b2p
     
      
     # call defor_dgp function to simulate dataframe, returned as defor_df  
-    defor_dgp(nobs, years, b0, b1p, b2p)
+    defor_DGP(nobs, years, b0, b1p, b2p, b3)
     
     # run DID dropping deforested pixels
     coeffmatrix[i,1]  <- lm(y_it ~  post*treat, 
-                            data = defor_df
+                            data = panels
     )$coefficients[4] - ATT
    
     
-    defor_dgp(nobs, years, b0, b1p, b2n)
+    defor_DGP(nobs, years, b0, b1p, b2n, b3)
     coeffmatrix[i,2]  <- lm(y_it ~  post*treat, 
-                            data = defor_df
+                            data = panels
     )$coefficients[4] - ATT
   
     
-    defor_dgp(nobs, years, b0, b1n, b2p)
+    defor_DGP(nobs, years, b0, b1n, b2p, b3)
     coeffmatrix[i,3]  <- lm(y_it ~  post*treat, 
-                            data = defor_df
+                            data = panels
     )$coefficients[4] - ATT
     
     
-    defor_dgp(nobs, years, b0, b1n, b2n)
+    defor_DGP(nobs, years, b0, b1n, b2n, b3)
     coeffmatrix[i,4]  <- lm(y_it ~  post*treat, 
-                            data = defor_df
+                            data = panels
     )$coefficients[4] - ATT
     
     print(i)
@@ -59,7 +59,7 @@ DID_bias <- function(n, nobs, years){
     scale_fill_discrete(breaks=c("++", "+-", "-+", "--"), labels=c("b1+, b2+", "b1+, b2-", "b1-, b2+", "b1-, b2-"))+
     geom_vline(xintercept = 0, linetype = "dashed")+
     #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
-    theme(plot.caption = element_text(hjust = 0.5))+
+    theme(plot.caption = element_text(hjust = 0.5))
     #labs(x= "bias", title = "DID bias with binary outcome", caption = paste("ATT = ",att , "for each of the four density plots. n=", n , "\n",  "The mean and variance are:", "\n", "diff+, trend+:", round(colMeans(coeff_didbias)[1], digits = 4),"var:",round(colVars(coeff_didbias)[1], digits = 6), "\n",  "diff+, trend-:", round(colMeans(coeff_didbias)[2], digits = 4), "var:",round(colVars(coeff_didbias)[2], digits = 6), "\n",  "diff-, trend+:",round(colMeans(coeff_didbias)[3], digits = 4) ,"var:",round(colVars(coeff_didbias)[3], digits = 6),  "\n", "diff-, trend+:",round(colMeans(coeff_didbias)[4], digits = 4) ,"var:",round(colVars(coeff_didbias)[4], digits = 6)))
   pdid
   
