@@ -1,12 +1,32 @@
 ---
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 This document is set up to have a bit more of a reproducible framework for analyzing the distributions of the various estimators and any other analyses
 
 
-
-
-```{r}
+```{r message=FALSE, results='hide'}
 #r code
+source('defor_DGP.R')
+source('DID_bias.R')
+DID_bias(50, 10000, 3, -.15)
+
+#just testing the knit and functions
+#will want to adjust syntax on functions and here to be more flexible
+
+#checking  bias based on signs of the 4 coefficients
+#DID_bias(50, 10000, 3, -.15)
+
+```
+
+
+
+
+```{r message=FALSE, results='hide'}
+#looks at bias when using two-way fe and did, dropping and not dropping obs
+source('binary_coeffdist_fcn.R')
+binary_coeffdist_fcn(50, 10000, 3, .2, .1,-.1,-.15)
+
 ```
