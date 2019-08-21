@@ -1,32 +1,160 @@
 ---
+title: "Bias Exploration"
+date: August 19, 2019
 output:
-  html_document: default
+  word_document: default
   pdf_document: default
+  html_document: default
 ---
 
-This document is set up to have a bit more of a reproducible framework for analyzing the distributions of the various estimators and any other analyses
+Here, I am exploring the distributions of the bias in our estimates to examine where bias enters the analysis. 
+
+
+
+
+
+
+
 
 
 ```{r message=FALSE, results='hide'}
-#r code
+#calling the functions to be used
 source('defor_DGP.R')
+source('quickmontey.R')
+source('quickmonteyit.R')
 source('DID_bias.R')
-DID_bias(50, 10000, 3, -.15)
-
-#just testing the knit and functions
-#will want to adjust syntax on functions and here to be more flexible
-
-#checking  bias based on signs of the 4 coefficients
-#DID_bias(50, 10000, 3, -.15)
-
 ```
+
+
+For the first part of this exploration, we just focus on the binary outcome variable that can switch between 0 and 1 across periods. We start by excluding group and time effects in order to keep things simple and proceed to add more complexity. 
+
+
+
+
 
 
 
 
 ```{r message=FALSE, results='hide'}
-#looks at bias when using two-way fe and did, dropping and not dropping obs
-source('binary_coeffdist_fcn.R')
-binary_coeffdist_fcn(50, 10000, 3, .2, .1,-.1,-.15)
+#distribution of bias in estimates using y as the outcome, allowed to switch between 1 and 0 across periods
+y_nogrouptrend <- quickmontey(100, 10000, 3, .25, 0, 0, -.16)
+y_nogrouptrend
+```
+
+When we run the simulation with only an intercept and treatment effect and allow the outcome to transition between periods, there is no bias to speak of. 
+
+
+
+
+
+
+
+
+```{r message=FALSE, results='hide'}
+
+#let's add in a group effect to see if bias enters using y as the outcome
+y_notrend <- quickmontey(100, 10000, 3, .25, -.1, 0, -.16)
+y_notrend
 
 ```
+
+Still no bias adding in group effect with outcome switching across periods
+
+
+
+
+
+
+
+```{r message=FALSE, results='hide'}
+
+#using time effect to see if bias enters using y as the outcome
+y_nogroup <- quickmontey(100, 10000, 3, .25, 0, 0.1, -.16)
+y_nogroup
+
+```
+
+Still no bias with time effect but no group effect with outcome switching across periods
+
+
+
+
+
+
+```{r message=FALSE, results='hide'}
+
+#let's add in a time and group effect to see if bias enters using y as the outcome
+y <- quickmontey(100, 10000, 3, .25, -0.1, 0.1, -.16)
+y 
+
+```
+
+Bias seems to enter when including both a group and time effect, still allowing the outcome to switch across periods.
+
+
+
+
+
+
+
+
+Now let's transition to dropping deforested observations for the periods after they are first observed as deforested to see if the bias enters at the same point. 
+
+
+
+```{r message=FALSE, results='hide'}
+yit_nogrouptrend <- quickmonteyit(100, 10000, 3, .25, 0, 0, -.16)
+yit_nogrouptrend
+```
+
+Starting without either a group or time effect, the estimates are slightly biased. 
+
+
+
+
+
+
+```{r message=FALSE, results='hide'}
+yit_nogroup <- quickmonteyit(100, 10000, 3, .25, -0.1, 0, -.16)
+yit_nogroup
+```
+
+Bias seems to enter with only a group effect
+
+
+
+
+
+```{r message=FALSE, results='hide'}
+yit_notrend <- quickmonteyit(100, 10000, 3, .25, 0, 0.1, -.16)
+yit_notrend
+```
+
+Bias also enters with only a time effect
+
+
+
+
+
+
+```{r message=FALSE, results='hide'}
+yit <- DID_bias(100, 10000, 3, .25, .1, 0.1, -.16)
+yit
+```
+
+Bias enters with both group and time effect. The bias seems to be negative when the group and time effects are the same sign, while it is positive when the effects have opposite signs
+
+
+
+
+
+
+
+
+A few more examinations without group or time effects to try to notice any patterns
+
+```{r message=FALSE, results='hide'}
+yit_noeffect <- quickmonteyit(100, 10000, 3, .5, 0,0, 0)
+yit_noeffect
+```
+

@@ -1,16 +1,15 @@
 library(ggplot2)
 #begin function
-DID_bias <- function(n, nobs, years, b3){
+DID_bias <- function(n, nobs, years, b0, b1p, b2p, b3){
   
   #preallocate n x 4 matrix
   coeffmatrix <- matrix(nrow = n, ncol = 4)
   
   for(i in 1:n){
     
-   b0 <- .25
-   b1p <- .1
+
    b1n <- -b1p
-   b2p <- .1
+
    b2n <- -b2p
     
      
@@ -18,25 +17,25 @@ DID_bias <- function(n, nobs, years, b3){
     defor_DGP(nobs, years, b0, b1p, b2p, b3)
     
     # run DID dropping deforested pixels
-    coeffmatrix[i,1]  <- lm(y_it ~  post*treat, 
+    coeffmatrix[i,1]  <- lm(y ~  post*treat, 
                             data = panels
     )$coefficients[4] - ATT
    
     
     defor_DGP(nobs, years, b0, b1p, b2n, b3)
-    coeffmatrix[i,2]  <- lm(y_it ~  post*treat, 
+    coeffmatrix[i,2]  <- lm(y ~  post*treat, 
                             data = panels
     )$coefficients[4] - ATT
   
     
     defor_DGP(nobs, years, b0, b1n, b2p, b3)
-    coeffmatrix[i,3]  <- lm(y_it ~  post*treat, 
+    coeffmatrix[i,3]  <- lm(y ~  post*treat, 
                             data = panels
     )$coefficients[4] - ATT
     
     
     defor_DGP(nobs, years, b0, b1n, b2n, b3)
-    coeffmatrix[i,4]  <- lm(y_it ~  post*treat, 
+    coeffmatrix[i,4]  <- lm(y ~  post*treat, 
                             data = panels
     )$coefficients[4] - ATT
     
