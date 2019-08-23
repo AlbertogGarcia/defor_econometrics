@@ -5,7 +5,7 @@ defor_DGP <- function(nobs, years, b0, b1, b2, b3){
   
   
   
-  std_a <- 0.25
+  std_a <- 0.05
   std_v <- 0.25
   
   ATT <- pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2)^(1/2) ) - pnorm(b0+b1+b2, 0, (std_a^2+std_v^2)^(1/2) )
@@ -17,12 +17,12 @@ defor_DGP <- function(nobs, years, b0, b1, b2, b3){
       by = join(pixels, year),
       post = ifelse(year > years, 1, 0),
       v_it = rnorm(N, 0, std_v),
-      ystar = b0 + b1*treat + b2*post + b3*treat*post + a_i + v_it,
-      y_it = ifelse(ystar > 0, 1, 0)
+      ystar = b0 + b1*treat + b2*post + b3*treat*post  + a_i + v_it,
+      y = ifelse(ystar > 0, 1, 0)
     )
   )
   #need to determine which year deforestation occurred
-  year_df <- subset(panels, select = c(pixels, year, y_it))
+  year_df <- subset(panels, select = c(pixels, year, y))
   #year_df <- melt(year_df, id.vars = c("pixels", "y_it"), value.name = "year")
   year_df <- dcast(year_df, pixels ~ year )
   rownames(year_df) <- year_df$pixels
@@ -44,8 +44,7 @@ defor_DGP <- function(nobs, years, b0, b1, b2, b3){
   ### defor: outcome is set to 1 in each year after the pixel is deforested
   panels$year <- as.numeric(panels$year)
   panels$indic <- (panels$year - panels$defor_year)
-  panels$y <- panels$y_it
-  panels$y_it <- ifelse(panels$indic > 0 , NA, panels$y_it)
+  panels$y_it <- ifelse(panels$indic > 0 , NA, panels$y)
   panels$defor <- ifelse(panels$indic > 0 , 1, panels$y_it)
   panels <- subset(panels, select = -c(indic))
  

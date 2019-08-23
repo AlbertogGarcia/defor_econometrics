@@ -33,7 +33,7 @@ quickmonteyit <- function(n, nobs, years, b0, b1, b2, b3){
   actual <- rep(ATT, times = n)
   
   ggplot() +
-    geom_density(data = did_coeff , aes(x = V1), alpha = .2, fill="red")+
+    geom_density(data = did_coeff , aes(x = V1), alpha = .2, fill='red')+
     geom_vline(data = did_coeff, xintercept = mean(did_coeff$V1), color = 'red')+
     geom_vline(data = did_coeff, xintercept = 0, linetype = "dashed")+
     theme(plot.caption = element_text(hjust = 0.5))+
