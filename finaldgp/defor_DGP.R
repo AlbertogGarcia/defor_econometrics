@@ -5,7 +5,7 @@ defor_DGP <- function(nobs, years, b0, b1, b2, b3){
   
   
   
-  std_a <- 0.05
+  std_a <- 0.1
   std_v <- 0.25
   
   ATT <- pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2)^(1/2) ) - pnorm(b0+b1+b2, 0, (std_a^2+std_v^2)^(1/2) )
