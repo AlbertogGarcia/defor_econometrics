@@ -13,7 +13,6 @@ Here, I am exploring the distributions of the bias in our estimates to examine w
 #calling the functions to be used
 source('defor_DGP.R')
 source('quickmontey.R')
-source('quickmonteyit.R')
 source('DID_bias.R')
 library(ggplot2)
 library(clubSandwich)
@@ -23,110 +22,38 @@ library(plm)
 library(Metrics)
 ```
 
-Starting as simple as possible: we only have one error term, an intercept, and a group effect. We also allow the outcome to vary between 0 and 1 across periods. 
-
-
+Define universal parameters
 
 ```{r message=FALSE, results='hide'}
- 
- std_a <- 0.1
- std_v <- 0.25
- years <- 2
- nobs <- 10000
- 
- b0 <- .3
- b1 <- -.1
- 
- n <- 100
- coeffmatrix <- matrix(nrow = n, ncol = 1)
- for(i in 1:n){
-  
-  ATT <- pnorm(b0+b1, 0, std_v ) - pnorm(b0, 0, std_v )
-  
-  panels <- fabricate(
-    pixels = add_level(N = nobs, a_i = rnorm(N, 0, std_a), treat = rbinom(N, 1, 0.5)),
-    year = add_level(N = (years*2), nest = FALSE),
-    obs = cross_levels(
-      by = join(pixels, year),
-      post = ifelse(year > years, 1, 0),
-      v_it = rnorm(N, 0, std_v),
-      ystar = b0 + b1*treat + v_it,
-      y = ifelse(ystar > 0, 1, 0)
-    )
-  )
-  
-  coeffmatrix[i,1]  <- lm(y ~  treat, 
-          data = panels
-    )$coefficients[2] - ATT
-  
- }
- 
- did_coeff <- as.data.frame(coeffmatrix)
-  actual <- rep(ATT, times = n)
-  
-  ggplot() +
-    geom_density(data = did_coeff , aes(x = V1), alpha = .2, fill="#29CD44")+
-    geom_vline(data = did_coeff, xintercept = mean(did_coeff$V1), color = 'red')+
-    geom_vline(data = did_coeff, xintercept = 0, linetype = "dashed")+
-    theme(plot.caption = element_text(hjust = 0.5))+
-    labs(x= "Bias", caption = paste("Mean:", round(mean(did_coeff$V1), digits = 4),
-                                    ", RMSE:", round(rmse(actual, did_coeff$V1), digits = 4)) 
-    )
- 
-  
+
+b0 = .05
+b1 = -0.25
+b2 = -0.1
+b3 = .16
+std_a = .1
+std_v = 0.25
+nobs = 1000
+years = 3
+n = 50
+
+```
+
+Starting as simple as possible: we only have one error term, an intercept, and a group effect. We also allow the outcome to vary between 0 and 1 across periods. 
+
+```{r message=FALSE, results='hide'}
+
+mc_results = quickmontey(n, nobs, years, b0, b1, 0, b3, 0, std_v, "y")
+mc_results$plot
+
 ```
 There is no bias with only the interrcept, group effect, and random error term. Next, we introduce the individual level error terms. 
 
 
 ```{r message=FALSE, results='hide'}
 
-std_a <- 0.1
-std_v <- 0.25
- years <- 2
- nobs <- 10000
+mc_results = quickmontey(n, nobs, years, b0, b1, 0, b3, std_a, std_v, "y")
+mc_results$plot
  
- b0 <- .3
- b1 <- -.1
- 
- n <- 100
- coeffmatrix <- matrix(nrow = n, ncol = 1)
-
- 
- for(i in 1:n){
-  
-  ATT <- pnorm(b0+b1, 0, (std_a^2+std_v^2)^(1/2)  ) - pnorm(b0, 0, (std_a^2+std_v^2)^(1/2)  )
-  
-  panels <- fabricate(
-    pixels = add_level(N = nobs, a_i = rnorm(N, 0, std_a), treat = rbinom(N, 1, 0.5)),
-    year = add_level(N = (years*2), nest = FALSE),
-    obs = cross_levels(
-      by = join(pixels, year),
-      post = ifelse(year > years, 1, 0),
-      v_it = rnorm(N, 0, std_v),
-      ystar = b0 + b1*treat + a_i + v_it,
-      y = ifelse(ystar > 0, 1, 0)
-    )
-  )
-  
-  coeffmatrix[i,1]  <- lm(y ~  treat, 
-          data = panels
-    )$coefficients[2] - ATT
-  
- }
- 
- did_coeff <- as.data.frame(coeffmatrix)
-  actual <- rep(ATT, times = n)
-  
-  ggplot() +
-    geom_density(data = did_coeff , aes(x = V1), alpha = .2, fill="#29CD44")+
-    geom_vline(data = did_coeff, xintercept = mean(did_coeff$V1), color = 'red')+
-    geom_vline(data = did_coeff, xintercept = 0, linetype = "dashed")+
-    theme(plot.caption = element_text(hjust = 0.5))+
-    labs(x= "Bias", caption = paste("Mean:", round(mean(did_coeff$V1), digits = 4),
-                                    ", RMSE:", round(rmse(actual, did_coeff$V1), digits = 4)) 
-    )
- 
-  
 ```
 
 Introducing the individual errors to the simple model does not create any bias. 
@@ -141,7 +68,7 @@ Now, I will look at estimates from the full DID model, but still allowing the ou
 Here, we run the simulation without any group or time effects. There is only an intercept and treatment effect. 
 ```{r message=FALSE, results='hide'}
 #distribution of bias in estimates using y as the outcome, allowed to switch between 1 and 0 across periods
-y_nogrouptrend <- quickmontey(100, 10000, 3, .05, 0, 0, -.16)
+y_nogrouptrend <- quickmontey(n, nobs, years, b0, 0, 0, b3, std_a, std_v, "y")
 y_nogrouptrend
 ```
 
@@ -157,7 +84,7 @@ Here, we add in a group effect to the above model.
 ```{r message=FALSE, results='hide'}
 
 #let's add in a group effect to see if bias enters using y as the outcome
-y_notrend <- quickmontey(100, 10000, 3, .05, -.1, 0, -.16)
+y_notrend <- quickmontey(n, nobs, years, b0, b1, 0, b3, std_a, std_v, "y")
 y_notrend
 
 ```
@@ -173,7 +100,7 @@ Here, instead of a group effect, we add in a time effect. So, there is a time ef
 ```{r message=FALSE, results='hide'}
 
 #using time effect to see if bias enters using y as the outcome
-y_nogroup <- quickmontey(100, 10000, 3, .05, 0, 0.1, -.16)
+y_nogroup <- quickmontey(n, nobs, years, b0, 0, b2, b3, std_a, std_v, "y")
 y_nogroup
 
 ```
@@ -188,10 +115,11 @@ Now, we include an intercept, group effect, time effect, and treatment effect.
 ```{r message=FALSE, results='hide'}
 
 #let's add in a time and group effect to see if bias enters using y as the outcome
-ypos <- quickmontey(100, 10000, 3, .05, -0.25, 0.2, .16)
-yneg <- quickmontey(100, 10000, 3, .05, -0.25, 0.2, -.16)
-ypos
-yneg
+ypos <- quickmontey(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y")
+ypos$plot
+
+# yneg <- quickmontey(n, nobs, years, b0, b1, b2, -b3, std_a, std_v, "y")
+# yneg$plot
 
 ```
 
@@ -208,23 +136,23 @@ Now let's transition to dropping deforested observations for the periods after t
 Lets start with a basic model to make sure the errors and coefficients are ok
 
 ```{r message=FALSE, results='hide'}
- 
+
  std_a <- 0.1
  std_v <- 0.25
  years <- 2
  nobs <- 10000
- 
+
  b0 <- 0.12
  b1 <- -.25
- 
+
  n <- 100
  coeffmatrix <- matrix(nrow = n, ncol = 1)
 
- 
+
  for(i in 1:n){
-  
+
   ATT <- pnorm(b0+b1, 0, std_v  ) - pnorm(b0, 0, std_v  )
-  
+
   panels <- fabricate(
     pixels = add_level(N = nobs, a_i = rnorm(N, 0, std_a), treat = rbinom(N, 1, 0.5)),
     year = add_level(N = (years*2), nest = FALSE),
@@ -236,25 +164,25 @@ Lets start with a basic model to make sure the errors and coefficients are ok
       y = ifelse(ystar > 0, 1, 0)
     )
   )
-  
-  
+
+
   #need to determine which year deforestation occurred
   year_df <- subset(panels, select = c(pixels, year, y))
   #year_df <- melt(year_df, id.vars = c("pixels", "y_it"), value.name = "year")
   year_df <- dcast(year_df, pixels ~ year )
   rownames(year_df) <- year_df$pixels
   year_df <- subset(year_df, select = -c(pixels))
-  
+
   #creating variable for the year a pixel is deforested
   not_defor <- rowSums(year_df)<1 *1
-  defor_year <- max.col(year_df, ties.method = "first") 
+  defor_year <- max.col(year_df, ties.method = "first")
   defor_df <- transform(year_df, defor_year = ifelse(not_defor==1, years*2+1, defor_year))
   defor_df <- tibble::rownames_to_column(defor_df)
   names(defor_df)[1] <- paste("pixels")
   defor_df <- subset(defor_df, select = c(pixels, defor_year))
   panels <- merge(defor_df, panels, by = "pixels")
-  
-  
+
+
   # creating three outcome variables for each possible situation
   ### y: allows the outcome to switch between 0 and 1 across years
   ### y_it: outcome is dropped in years after pixel is first deforested
@@ -264,25 +192,25 @@ Lets start with a basic model to make sure the errors and coefficients are ok
   panels$y_it <- ifelse(panels$indic > 0 , NA, panels$y)
   panels$defor <- ifelse(panels$indic > 0 , 1, panels$y_it)
   panels <- subset(panels, select = -c(indic))
-  
-  coeffmatrix[i,1]  <- lm(y_it ~  treat, 
+
+  coeffmatrix[i,1]  <- lm(y_it ~  treat,
           data = panels
     )$coefficients[2] - ATT
-  
+
  }
- 
+
  did_coeff <- as.data.frame(coeffmatrix)
   actual <- rep(ATT, times = n)
-  
+
   ggplot() +
     geom_density(data = did_coeff , aes(x = V1), alpha = .2, fill="red")+
     geom_vline(data = did_coeff, xintercept = mean(did_coeff$V1), color = 'red')+
     geom_vline(data = did_coeff, xintercept = 0, linetype = "dashed")+
     theme(plot.caption = element_text(hjust = 0.5))+
     labs(x= "Bias", caption = paste("Mean:", round(mean(did_coeff$V1), digits = 4),
-                                    ", RMSE:", round(rmse(actual, did_coeff$V1), digits = 4)) 
+                                    ", RMSE:", round(rmse(actual, did_coeff$V1), digits = 4))
     )
- 
+
 ```
 
 
