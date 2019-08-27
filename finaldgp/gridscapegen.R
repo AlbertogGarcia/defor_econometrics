@@ -36,12 +36,12 @@ gridscapegen <- function(nobs, cellsize){
   grid= seq(from = 1, to = length(overgrid))
   treatgrid <- data.frame(
     grid= seq(from = 1, to = length(overgrid)),
-    treat = ifelse(whichgrid %in% treat_grids, 1, 0)
+    treat = ifelse(grid %in% treat_grids, 1, 0)
   ) 
 
   # determine which pixels are treated vs. untreated
   pixloc_df <- merge(pixloc_df, treatgrid, by = "grid")
 
-  
+  gridcoords_df <- data.frame(overgrid)
   
 }
