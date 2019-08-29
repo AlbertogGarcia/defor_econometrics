@@ -2,7 +2,11 @@ library(DeclareDesign)
 library(reshape2)  
 defor_DGP <- function(nobs, years, b0, b1, b2, b3, std_a, std_v){
   
-  ATT <- pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2)^(1/2) ) - pnorm(b0+b1+b2, 0, (std_a^2+std_v^2)^(1/2) )
+  ATT <- pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2)^.5) - pnorm(b0+b1+b2, 0, (std_a^2+std_v^2)^.5)
+  
+  DID_estimand <- (pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2)^.5) - pnorm(b0+b1, 0, (std_a^2+std_v^2)^.5)
+                   - (pnorm(b0+b2, 0, (std_a^2+std_v^2)^.5) - pnorm(b0, 0, (std_a^2+std_v^2)^.5)) )
+  
   
   panels <- fabricate(
     pixels = add_level(N = nobs, a_i = rnorm(N, 0, std_a), treat = rbinom(N, 1, 0.5)),
@@ -12,9 +16,11 @@ defor_DGP <- function(nobs, years, b0, b1, b2, b3, std_a, std_v){
       post = ifelse(year > years, 1, 0),
       v_it = rnorm(N, 0, std_v),
       ystar = b0 + b1*treat + b2*post + b3*treat*post + a_i + v_it,
-      y = ifelse(ystar > 0, 1, 0)
+      y = (ystar > 0)*1
     )
   )
+  
+  
   #need to determine which year deforestation occurred
   year_df <- subset(panels, select = c(pixels, year, y))
   #year_df <- melt(year_df, id.vars = c("pixels", "y_it"), value.name = "year")
@@ -42,7 +48,7 @@ defor_DGP <- function(nobs, years, b0, b1, b2, b3, std_a, std_v){
   panels$defor <- ifelse(panels$indic > 0 , 1, panels$y_it)
   panels <- subset(panels, select = -c(indic))
   
-  outputs = list("panels" = panels, "ATT" = ATT)
+  outputs = list("panels" = panels, "ATT" = ATT, "DID_estimand" = DID_estimand)
   # assign('panels',panels, envir=.GlobalEnv)
   # assign('ATT',ATT, envir=.GlobalEnv)
   return(outputs)

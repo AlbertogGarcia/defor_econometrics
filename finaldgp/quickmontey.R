@@ -17,6 +17,7 @@ quickmontey <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
     dgp_results <- defor_DGP(nobs, years, b0, b1, b2, b3, std_a, std_v)
     panels = dgp_results$panels
     ATT = dgp_results$ATT
+    DID_estimand = dgp_results$DID_estimand
     panels['outcome'] = panels[outcome_var]
     
     
@@ -26,7 +27,7 @@ quickmontey <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
     # coeffmatrix[i,1]  <- mod$coefficients[1] - ATT
     
     mod <- lm(outcome ~  post*treat, data = panels)
-    coeffmatrix[i,1] <- mod$coefficients[4] - ATT
+    coeffmatrix[i,1] <- mod$coefficients[4] - DID_estimand
     print(i)
     
     #end for loop  
@@ -35,7 +36,7 @@ quickmontey <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
   #assign('coeff_didbias',coeffmatrix, envir=.GlobalEnv)
   
   did_coeff <- as.data.frame(coeffmatrix)
-  actual <- rep(ATT, times = n)
+  actual <- rep(DID_estimand, times = n)
   
   plot = ggplot() +
     geom_density(data = did_coeff , aes(x = V1), alpha = .2, fill="#29CD44")+
