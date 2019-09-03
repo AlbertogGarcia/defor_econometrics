@@ -16,8 +16,9 @@ binary_coeffdist_fcn <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, st
     
   
   
-    # call defor_sim function to simulate dataframe, returned as defor_df  
-    defor_DGP(nobs, years, b0, b1, b2, b3, std_a, std_v)
+    # call defor_sim function to simulate dataframe, returned as panels  
+    dgp_results <- defor_DGP(nobs, years, b0, b1, b2, b3, std_a, std_v)
+    panels = dgp_results$panels
 
     # run DID dropping deforested pixels
     coeffmatrix[i,1]  <- lm(y_it ~  post*treat, 
