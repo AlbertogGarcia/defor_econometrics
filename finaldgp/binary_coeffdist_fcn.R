@@ -19,6 +19,7 @@ binary_coeffdist_fcn <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, st
     # call defor_sim function to simulate dataframe, returned as panels  
     dgp_results <- defor_DGP(nobs, years, b0, b1, b2, b3, std_a, std_v)
     panels = dgp_results$panels
+    ATT = dgp_results$ATT
 
     # run DID dropping deforested pixels
     coeffmatrix[i,1]  <- lm(y_it ~  post*treat, 
@@ -51,15 +52,14 @@ binary_coeffdist_fcn <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, st
     
   #end for loop  
   }  
-  assign('coeff_bin',coeffmatrix, envir=.GlobalEnv)
+  #assign('coeffmatrix',coeffmatrix, envir=.GlobalEnv)
   
 # get distribution information from matrix  
 
-  b_coeff <- as.data.frame(coeff_bin)
-  
+  b_coeff <- as.data.frame(coeffmatrix)
   actual <- rep(ATT, times = n)
   
-  p1 <- ggplot() +
+  plot = ggplot() +
     geom_density(data = b_coeff , aes(x = V1), alpha = .2, fill="#29CD44") +
     geom_density(data = b_coeff , aes(x = V2), alpha = .2, fill="#FF6655") +
     geom_density(data = b_coeff , aes(x = V3), alpha = .2, fill="#0000CC") +
@@ -68,11 +68,13 @@ binary_coeffdist_fcn <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, st
     geom_vline(data = b_coeff, xintercept = mean(b_coeff$V2),linetype = "dashed")+
     geom_vline(data = b_coeff, xintercept = mean(b_coeff$V3),linetype = "dashed")+
     theme(plot.caption = element_text(hjust = 0.5))+
-    labs(x= "Bias", title = "Bias with binary outcome", caption = paste("The mean and RMSE are:", "\n", "DID dropping obs:", round(colMeans(coeff_bin)[1], digits = 4),"RMSE:",round(rmse(actual, coeff_bin[1]), digits = 5), "\n", 
-                                                                        "2way FE dropping obs:", round(colMeans(coeff_bin)[2], digits = 4), "RMSE:",round(rmse(actual, coeff_bin[2]), digits = 5), "\n",  
-                                                                        "DID keeping obs:",round(colMeans(coeff_bin)[3], digits = 4) ,"RMSE:",round(rmse(actual, coeff_bin[3]), digits = 5),  "\n", 
-                                                                        "2way FE keeping obs:",round(colMeans(coeff_bin)[4], digits = 4) ,"RMSE:",round(rmse(actual, coeff_bin[4]), digits = 5)))
-  p1
+    labs(x= "Bias", title = "Bias with binary outcome", caption = paste("The mean and RMSE are:", "\n", "DID dropping obs:", round(colMeans(coeffmatrix)[1], digits = 4),"RMSE:",round(rmse(actual, coeffmatrix[1]), digits = 5), "\n", 
+                                                                        "2way FE dropping obs:", round(colMeans(coeffmatrix)[2], digits = 4), "RMSE:",round(rmse(actual, coeffmatrix[2]), digits = 5), "\n",  
+                                                                        "DID keeping obs:",round(colMeans(coeffmatrix)[3], digits = 4) ,"RMSE:",round(rmse(actual, coeffmatrix[3]), digits = 5),  "\n", 
+                                                                        "2way FE keeping obs:",round(colMeans(coeffmatrix)[4], digits = 4) ,"RMSE:",round(rmse(actual, coeffmatrix[4]), digits = 5)))
+  outputs = list("plot" = plot, "did_biases" = b_coeff)
+  return(outputs)
+  
 #end function  
 }  
 

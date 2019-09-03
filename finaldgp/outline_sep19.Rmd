@@ -14,8 +14,8 @@ source('binary_coeffdist_fcn.R')
 Define universal parameters
 ```{r parameters}
 b0 = .05
-b1 = -0.25
-b2 = -0.1
+b1 = 0.1
+b2 = -0.2
 b3 = .16
 std_a = .1
 std_v = 0.25
@@ -27,7 +27,7 @@ n = 100
 
 
 ```{r DIDy}
-DID_y <- quickmontey(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y")
+DID_y <- quickmontey(5, nobs, years, b0, b1, b2, b3, std_a, std_v, "y")
 DID_y$plot
 ```
 
@@ -38,5 +38,6 @@ DID_yit$plot
 
 
 ```{r FE}
-
+twowayFE <- binary_coeffdist_fcn(n, nobs, years, b0, b1, b2, b3, std_a, std_v)
+twowayFE$plot
 ```
