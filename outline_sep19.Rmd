@@ -1,0 +1,42 @@
+---
+title: "outline_sep19"
+author: "Alberto Garcia"
+date: "September 3, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source('quickmontey.R')
+source('binary_coeffdist_fcn.R')
+```
+
+Define universal parameters
+```{r parameters}
+b0 = .05
+b1 = -0.25
+b2 = -0.1
+b3 = .16
+std_a = .1
+std_v = 0.25
+years = 3
+nobs = 10000
+n = 100
+```
+
+
+
+```{r DIDy}
+DID_y <- quickmontey(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y")
+DID_y$plot
+```
+
+```{r DIDy_it}
+DID_yit <- quickmontey(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y_it")
+DID_yit$plot
+```
+
+
+```{r FE}
+
+```
