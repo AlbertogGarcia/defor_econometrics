@@ -4,11 +4,10 @@ library(matrixStats)
 library(ggplot2)
 library(plm)
 library(Metrics)
-source('defor_DGP.R')
 source('gridscapegen.R')
 
 #begin function
-grid_monte <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, cellsize){
+grid_sim <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, cellsize){
 
 gridscape <- gridscapegen(nobs, cellsize)
 pixloc_df = gridscape$pixloc_df
@@ -68,6 +67,8 @@ coeffmatrix <- matrix(nrow = n, ncol = 1)
     suppressWarnings(
       gridlevel_df <-  aggregate(panels, by = list(panels$grid, panels$treat, panels$year), FUN = mean, drop = TRUE)[c("grid", "treat", "post", "year","defor")]
     )
+    
+    
     
     
   }
