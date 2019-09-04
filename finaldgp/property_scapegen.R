@@ -25,10 +25,22 @@ property_scapegen <- function(nobs, cellsize, ppoints){
   
   pixloc_df <- st_as_sf(DT, coords = c("longitude", "latitude"))
   
+  #generate voronoi pts for 
+  vorpts <- st_sample(landscape, ppoints)
+  
+  v <- vorpts %>%  # consider the sampled points
+    st_geometry() %>% #  as geometry only 
+    st_union() %>% # unite them 
+    st_voronoi() %>% # perform the voronoi tessellation
+    st_collection_extract(type = "POLYGON") %>% # select the polygons
+    st_intersection(overgrid)  # limit to within grid boundaries
   
   #determine which pixels are in each grid 
   wgrid <- st_within(pixloc_df, overgrid, sparse = FALSE, prepared = TRUE)*1
   pixloc_df$grid <- max.col(wgrid)
+  
+  wprop <- st_within(pixloc_df, v, sparse = FALSE, prepared = TRUE)*1
+  pixloc_df$property <- max.col(wprop)
   
   #determine treated vs. untreated grids
   treat_grids <- sample(1:length(overgrid), (length(overgrid)/2) )
@@ -40,9 +52,22 @@ property_scapegen <- function(nobs, cellsize, ppoints){
   
   # determine which pixels are treated vs. untreated
   pixloc_df <- merge(pixloc_df, treatgrid, by = "grid")
-  gridcoords_df <- data.frame(overgrid)
   
-  outputs = list('pixloc_df' = pixloc_df, 'gridcoords' = gridcoords_df)
+  #getting areas for properies and counties
+  pareas <- data.frame(matrix(unlist(st_area(v))))
+  pareas <- tibble::rownames_to_column(pareas)
+  names(pareas)[1] <- paste("property")
+  names(pareas)[2] <- paste("parea")
+  gareas <- data.frame(matrix(unlist(st_area(overgrid))))
+  gareas <- tibble::rownames_to_column(gareas)
+  names(gareas)[1] <- paste("grid")
+  names(gareas)[2] <- paste("garea")
+  
+  #merging back areas
+  areas <- merge(pixloc_df, gareas, by = "grid")
+  pixloc_df <- merge(areas, pareas, by = "property")
+  
+  outputs = list('pixloc_df' = pixloc_df)
   return(outputs)
   
 }
