@@ -9,12 +9,15 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 source('quickmontey.R')
 source('binary_coeffdist_fcn.R')
+source('funcform.R')
+source('gridscapegen.R')
+source('grid_sim.R')
 ```
 
 Define universal parameters
 ```{r parameters}
 b0 = .05
-b1 = 0.1
+b1 = -0.1
 b2 = -0.2
 b3 = .16
 std_a = .1
@@ -27,7 +30,7 @@ n = 100
 
 
 ```{r DIDy}
-DID_y <- quickmontey(5, nobs, years, b0, b1, b2, b3, std_a, std_v, "y")
+DID_y <- quickmontey(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y")
 DID_y$plot
 ```
 
@@ -41,3 +44,21 @@ DID_yit$plot
 twowayFE <- binary_coeffdist_fcn(n, nobs, years, b0, b1, b2, b3, std_a, std_v)
 twowayFE$plot
 ```
+
+
+
+
+```{r functionalforms}
+functionalform <- funcform(n, nobs, years, b0, b1, b2, b3, std_a, std_v)
+functionalform$plot
+```
+
+
+
+```{r grids}
+cellsize = 25
+grid <- grid_sim(n, nobs, years, b0, b1, b2, b3, std_a, std_v, cellsize)
+grid$plot
+```
+
+

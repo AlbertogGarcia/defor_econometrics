@@ -5,7 +5,7 @@ library(ggplot2)
 library(rlist)
 library(tidyverse)
 
-gridscapegen <- function(nobs, cellsize){
+grid_scapegen <- function(nobs, cellsize){
   
   
   rootn <- ceiling(sqrt(nobs))
@@ -43,7 +43,7 @@ gridscapegen <- function(nobs, cellsize){
   pixloc_df <- merge(pixloc_df, treatgrid, by = "grid")
   gridcoords_df <- data.frame(overgrid)
   
-  outputs = list(pixloc_df, 'gridcoords' = gridcoords_df)
+  outputs = list('pixloc_df' = pixloc_df, 'gridcoords' = gridcoords_df)
   return(outputs)
   
 }
