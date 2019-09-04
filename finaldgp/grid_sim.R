@@ -68,7 +68,7 @@ coeffmatrix <- matrix(nrow = n, ncol = 1)
       gridlevel_df <-  aggregate(panels, by = list(panels$grid, panels$treat, panels$year), FUN = mean, drop = TRUE)[c("grid", "treat", "post", "year","defor")]
     )
     
-    
+    return(gridlevel_df)
     
     
   }
