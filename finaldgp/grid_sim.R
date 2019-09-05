@@ -6,7 +6,7 @@ library(plm)
 library(Metrics)
 library(DataCombine)
 library(tictoc)
-source('gridscapegen.R')
+source('grid_scapegen.R')
 
 #begin function
 grid_sim <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, cellsize){
@@ -14,7 +14,7 @@ grid_sim <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, 
 gridscape = grid_scapegen(nobs, cellsize)
 pixloc_df = gridscape$pixloc_df
 gridcoords = gridscape$gridcoords
-N_treat = gridscape$N_treat    
+#N_treat = gridscape$N_treat    
 ATT <- pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2)^.5) - pnorm(b0+b1+b2, 0, (std_a^2+std_v^2)^.5)
 
 pixloc <- pixloc_df[order(pixloc_df$pixels),]
@@ -23,9 +23,10 @@ coeffmatrix <- matrix(nrow = n, ncol = 1)
 
   for(i in 1:n){
   tic("loop")
-    
-  panels <- fabricate(
-    pixels = add_level(N = nobs, a_i = rnorm(N, 0, std_a), treat = pixloc$treat),
+  
+    Nobs <- length(pixloc$treat)   
+   panels <- fabricate(
+    pixels = add_level(N = Nobs, a_i = rnorm(N, 0, std_a), treat = pixloc$treat),
     year = add_level(N = (years*2), nest = FALSE),
     obs = cross_levels(
       by = join(pixels, year),

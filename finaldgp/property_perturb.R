@@ -9,39 +9,40 @@ library(tictoc)
 source('property_scapegen.R')
 
 #begin function
-weight_by_area <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, std_p = .1, cellsize, ppoints){
+property_perturb <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, std_p = .1, cellsize, ppoints){
   
   propertyscape = property_scapegen(nobs, cellsize, ppoints)
   pixloc_df = propertyscape$pixloc_df
-  ATT <- pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2)^.5) - pnorm(b0+b1+b2, 0, (std_a^2+std_v^2)^.5)
+  ATT <- pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) - pnorm(b0+b1+b2, 0, (std_a^2+std_v^2 + std_p^2)^.5)
   
   pixloc <- pixloc_df[order(pixloc_df$pixels),]
   
-  coeffmatrix <- matrix(nrow = n, ncol = 1)
+  coeffmatrix <- matrix(nrow = n, ncol = 2)
   
   for(i in 1:n){
     tic("loop")
-    
+    Nobs <- length(pixloc$treat)  
     panels <- fabricate(
-      pixels = add_level(N = nobs, a_i = rnorm(N, 0, std_a), treat = pixloc$treat),
+      pixels = add_level(N = Nobs, a_i = rnorm(N, 0, std_a), treat = pixloc$treat),
       year = add_level(N = (years*2), nest = FALSE),
       obs = cross_levels(
         by = join(pixels, year),
         post = ifelse(year > years, 1, 0),
         v_it = rnorm(N, 0, std_v),
-        ystar = b0 + b1*treat + b2*post + b3*treat*post + a_i + v_it,
+        ystar = b0 + b1*treat + b2*post + b3*treat*post + a_i + v_it
       )
     )
     
     #generate random 
     error_table <- data.frame(property = unique(pixloc$property), p_err = rnorm(length(unique(pixloc$property)), 0, std_p))
-    panels <- merge(pixloc, panels, by = c("pixels", "treat"))
     
-    panels$ystar <- panels$ystar + panels$p_err
-    panels$y <- (ystar > 0)*1
     
     panels$pixels <- gsub("(?<![0-9])0+", "", panels$pixels, perl = TRUE)
     panels <- merge(pixloc, panels, by = c("pixels", "treat"))
+    panels <- merge(panels, error_table, by = c("property"))
+    
+    panels$ystar <- panels$ystar + panels$p_err
+    panels$y <- (panels$ystar > 0)*1
     
     #need to determine which year deforestation occurred
     year_df <- subset(panels, select = c(pixels, year, y))
@@ -68,15 +69,12 @@ weight_by_area <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 
     panels$defor <- ifelse(panels$indic > 0 , 1, panels$y)
     panels <- subset(panels, select = -c(indic))
     
-    
+    #panels <- merge(pixloc, panels, by = c("pixels", "treat"))
     
     # aggregate up to county in each year 
     suppressWarnings(
-      gridlevel_df <-  aggregate(panels, by = list(panels$grid, panels$treat, panels$year), FUN = mean, drop = TRUE)[c("grid", "treat", "post", "year","defor")]
+      gridlevel_df <-  aggregate(panels, by = list(panels$grid, panels$treat, panels$year), FUN = mean, drop = TRUE)[c("grid", "treat", "post", "year","defor", "garea")]
     )
-    
-    
-    
     
     
     gridlevel_df <- gridlevel_df[order(gridlevel_df$grid, gridlevel_df$year),]
@@ -90,17 +88,48 @@ weight_by_area <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 
     #generate outcome var
     gridlevel_df$deforrate <- ((gridlevel_df$forsharelag- gridlevel_df$forshare) / gridlevel_df$forsharelag)
     #remove any infinite values
-    gridlevel_df <- subset(gridlevel_df, select = -c(geometry))
+    #gridlevel_df <- subset(gridlevel_df, select = -c(geometry))
     gridlevel_df <- 
       gridlevel_df %>% 
       filter_all(all_vars(!is.infinite(.)))
     
-    # run two-way fixed effects with outcome 1 
+    # aggregate up to property in each year 
+    suppressWarnings(
+      proplevel_df <-  aggregate(panels, by = list(panels$property, panels$treat, panels$year), FUN = mean, drop = TRUE)[c("property", "treat", "post", "year","defor", "parea")]
+    )
+    
+    
+    proplevel_df <- proplevel_df[order(proplevel_df$grid, proplevel_df$year),]
+    proplevel_df <- slide(gridlevel_df, Var = "defor", GroupVar = "grid", NewVar = "deforlag",
+                          slideBy = -1, reminder = FALSE)
+    
+    ##### creating forested share variable #####
+    proplevel_df$forshare <- 1 -  proplevel_df$defor
+    proplevel_df$forsharelag <- 1 -  proplevel_df$deforlag
+    
+    #generate outcome var
+    proplevel_df$deforrate <- ((proplevel_df$forsharelag- proplevel_df$forshare) / proplevel_df$forsharelag)
+    #remove any infinite values
+    proplevel_df <- subset(proplevel_df, select = -c(geometry))
+    proplevel_df <- 
+      proplevel_df %>% 
+      filter_all(all_vars(!is.infinite(.)))
+    
     coeffmatrix[i,1] <- plm(deforrate ~  post*treat, 
                             data   = gridlevel_df, 
+                            weights=(gridlevel_df$garea),
                             method = "within", #fixed effects model
-                            effect = "twoway", #grid and year fixed effects
+                            effect = "twoway", #property and year fixed effects
                             index  = c("grid", "year")
+    )$coefficients - ATT
+    
+    # run two-way fixed effects with outcome 1 
+    coeffmatrix[i,2] <- plm(deforrate ~  post*treat, 
+                            data   = proplevel_df, 
+                            weights=(proplevel_df$parea),
+                            method = "within", #fixed effects model
+                            effect = "twoway", #property and year fixed effects
+                            index  = c("property", "year")
     )$coefficients - ATT
     
     print(i)
