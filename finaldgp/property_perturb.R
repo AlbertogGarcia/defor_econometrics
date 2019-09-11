@@ -146,7 +146,7 @@ property_perturb <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v 
   suppressWarnings(cbias <- melt(coeff_bias, value.name = "bias"))
   
   
-  pdid <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
+  plot <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
     geom_density(alpha = .2) +
     guides(fill=guide_legend(title=NULL))+
     scale_fill_discrete(breaks=c("grid", "property"), labels=c("aggregated to grids", "aggregated to properties"))+

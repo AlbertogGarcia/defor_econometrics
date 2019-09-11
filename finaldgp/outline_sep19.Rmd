@@ -25,6 +25,9 @@ std_v = 0.25
 years = 3
 nobs = 10000
 n = 100
+cellsize = 20
+ppoints = 200
+std_p = .1
 ```
 
 
