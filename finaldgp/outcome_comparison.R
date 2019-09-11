@@ -99,7 +99,7 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     #generate outcome var
     gridlevel_df$deforrate1 <- ((gridlevel_df$forsharelag- gridlevel_df$forshare) / gridlevel_df$forsharelag)
     
-    gridlevel_df$deforrate2 <- gridlevel_df$forshare / gridlevel_df$forshare0
+    gridlevel_df$deforrate2 <- gridlevel_df$defor / gridlevel_df$forshare0
     
     #remove any infinite values
     gridlevel_df <- subset(gridlevel_df, select = -c(geometry))

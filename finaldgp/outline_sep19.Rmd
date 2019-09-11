@@ -34,12 +34,12 @@ n = 100
 
 cellsize = 20
 ppoints = 200
-std_p = .1
+std_p = .15
 ```
 
 
 
-```{r DIDy}
+```{r DIDy, results='hide'}
 DID_y <- quickmontey(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y")
 DID_y$plot
 ```
@@ -49,7 +49,7 @@ Above, we see a slight bias in the DID estimates of the ATT when the binary outc
 
 
 
-```{r DIDy_it}
+```{r DIDy_it, results='hide'}
 DID_yit <- quickmontey(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y_it")
 DID_yit$plot
 ```
@@ -57,7 +57,7 @@ DID_yit$plot
 In the above plot, we drop pixels in the periods after they first become deforested. The DID estimates are still biased here. 
 
 
-```{r FE}
+```{r FE, results='hide'}
 twowayFE <- binary_coeffdist_fcn(n, nobs, years, b0, b1, b2, b3, std_a, std_v)
 twowayFE$plot
 ```
@@ -67,14 +67,14 @@ Above, we address the use of two-way fixed effects and the dropping of observati
 
 
 
-```{r functionalforms}
+```{r functionalforms, results='hide'}
 functionalform <- funcform(n, nobs, years, b0, b1, b2, b3, std_a, std_v)
 functionalform$plot
 ```
 
 The above plot shows the DID bias depending on functional form decisions.
 
-```{r outcomes}
+```{r outcomes, results='hide'}
 outcomes <- outcome_comparison(3, nobs, years, b0, b1, b2, b3, std_a, std_v, cellsize)
 outcomes$plot
 ```
@@ -82,7 +82,7 @@ outcomes$plot
 We now aggregate to the grid level. Above, we see the bias introduced by using different outcome variables. (Need a table here to show the different outcomes and will want to cite different papers that use these outcomes. Currently only two outcomes being used in this fuction)
 
 
-```{r grids}
+```{r grids, results='hide'}
 grid <- grid_sim(n, nobs, years, b0, b1, b2, b3, std_a, std_v, cellsize)
 grid$plot
 ```
@@ -92,7 +92,7 @@ Using the outcome from abouve with the smallest amount of bias, we again look at
 
 
 
-```{r weighting}
+```{r weighting, results='hide'}
 weighting <- weightedreg_test(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints)
 weighting$plot
 ```
@@ -100,7 +100,7 @@ weighting$plot
 We now aggregate to the property level to determine whether weighting the regressions by property area is preferable. 
 
 
-```{r property_perturbations}
+```{r property_perturbations, results='hide'}
 perturb <- property_perturb(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints)
 perturb$plot
 ```
