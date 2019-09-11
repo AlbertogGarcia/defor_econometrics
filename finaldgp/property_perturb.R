@@ -1,3 +1,6 @@
+#this function uses the property_scape gen fcn to generate a landscape with properties. Then we introduce property level perturbations and compare estimates when the data is aggregateed to the grid vs. property level
+
+
 library(ggplot2)
 library(clubSandwich)
 library(matrixStats)
@@ -99,8 +102,8 @@ property_perturb <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v 
     )
     
     
-    proplevel_df <- proplevel_df[order(proplevel_df$grid, proplevel_df$year),]
-    proplevel_df <- slide(gridlevel_df, Var = "defor", GroupVar = "grid", NewVar = "deforlag",
+    proplevel_df <- proplevel_df[order(proplevel_df$property, proplevel_df$year),]
+    proplevel_df <- slide(proplevel_df, Var = "defor", GroupVar = "property", NewVar = "deforlag",
                           slideBy = -1, reminder = FALSE)
     
     ##### creating forested share variable #####
@@ -110,7 +113,7 @@ property_perturb <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v 
     #generate outcome var
     proplevel_df$deforrate <- ((proplevel_df$forsharelag- proplevel_df$forshare) / proplevel_df$forsharelag)
     #remove any infinite values
-    proplevel_df <- subset(proplevel_df, select = -c(geometry))
+
     proplevel_df <- 
       proplevel_df %>% 
       filter_all(all_vars(!is.infinite(.)))
