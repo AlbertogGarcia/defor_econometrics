@@ -141,14 +141,22 @@ property_perturb <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v 
   
   coeff_bias <- as.data.frame(coeffmatrix)
   actual <- rep(ATT, times = n)
+  names(coeff_bias)[1] <- paste("grid")
+  names(coeff_bias)[2] <- paste("property")
+  suppressWarnings(cbias <- melt(coeff_bias, value.name = "bias"))
   
-  plot = ggplot() +
-    geom_density(data = coeff_bias , aes(x = V1), alpha = .2, fill="#29CD44")+
-    geom_vline(data = coeff_bias, xintercept = mean(coeff_bias$V1), color = 'red')+
-    geom_vline(data = coeff_bias, xintercept = 0, linetype = "dashed")+
+  
+  pdid <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
+    geom_density(alpha = .2) +
+    guides(fill=guide_legend(title=NULL))+
+    scale_fill_discrete(breaks=c("grid", "property"), labels=c("aggregated to grids", "aggregated to properties"))+
+    geom_vline(xintercept = 0, linetype = "dashed")+
+    #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
     theme(plot.caption = element_text(hjust = 0.5))+
-    labs(x= "Bias", caption = paste("Mean:", round(mean(coeff_bias$V1), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$V1), digits = 4)) 
+    labs(x= "Bias", caption = paste("Mean Unweighted:", round(mean(coeff_bias$grid), digits = 4),
+                                    ", RMSE:", round(rmse(actual, coeff_bias$grid), digits = 4), "\n", 
+                                    "Mean Weighted:", round(mean(coeff_bias$property), digits = 4),
+                                    ", RMSE:", round(rmse(actual, coeff_bias$property), digits = 4) ) 
     )
   
   outputs = list("plot" = plot, "biases" = coeff_bias)
