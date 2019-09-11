@@ -19,7 +19,7 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
   
   pixloc <- pixloc_df[order(pixloc_df$pixels),]
   
-  coeffmatrix <- matrix(nrow = n, ncol = 1)
+  coeffmatrix <- matrix(nrow = n, ncol = 2)
   
   for(i in 1:n){
     tic("loop")
@@ -146,9 +146,6 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
                                     "Outcome 2 Mean:", round(mean(coeff_bias$outcome2), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$outcome2), digits = 4) ) 
     )
-  
-  
-  
   
   
   
