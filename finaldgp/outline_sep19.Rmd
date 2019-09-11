@@ -75,7 +75,7 @@ functionalform$plot
 The above plot shows the DID bias depending on functional form decisions.
 
 ```{r outcomes, results='hide'}
-outcomes <- outcome_comparison(3, nobs, years, b0, b1, b2, b3, std_a, std_v, cellsize)
+outcomes <- outcome_comparison(n, nobs, years, b0, b1, b2, b3, std_a, std_v, cellsize)
 outcomes$plot
 ```
 
