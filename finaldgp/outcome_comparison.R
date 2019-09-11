@@ -137,7 +137,7 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
   plot <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
     geom_density(alpha = .2) +
     guides(fill=guide_legend(title=NULL))+
-    scale_fill_discrete(breaks=c("outcome1", "outcome2"), labels=c("outcome 2", "outcome 2"))+
+    scale_fill_discrete(breaks=c("outcome1", "outcome2"), labels=c("outcome 1", "outcome 2"))+
     geom_vline(xintercept = 0, linetype = "dashed")+
     #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
     theme(plot.caption = element_text(hjust = 0.5))+
