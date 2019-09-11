@@ -10,8 +10,12 @@ knitr::opts_chunk$set(echo = TRUE)
 source('quickmontey.R')
 source('binary_coeffdist_fcn.R')
 source('funcform.R')
-source('gridscapegen.R')
+source('grid_scapegen.R')
 source('grid_sim.R')
+source('property_scapegen.R')
+source('weightedreg_test.R')
+source('property_perturb.R')
+
 ```
 
 Define universal parameters
@@ -58,10 +62,29 @@ functionalform$plot
 
 
 
+
+
+
+
 ```{r grids}
-cellsize = 25
 grid <- grid_sim(n, nobs, years, b0, b1, b2, b3, std_a, std_v, cellsize)
 grid$plot
 ```
 
+
+
+
+
+
+```{r weighting}
+weighting <- weightedreg_test(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints)
+weighting$plot
+```
+
+
+
+```{r property_perturbations}
+perturb <- property_perturb(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints)
+perturb$plot
+```
 
