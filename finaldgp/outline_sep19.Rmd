@@ -61,7 +61,10 @@ functionalform$plot
 ```
 
 
-
+```{r outcomes}
+outcomes <- outcome_comparison(n, nobs, years, b0, b1, b2, b3, std_a, std_v, cellsize)
+outcomes$plot
+```
 
 
 
