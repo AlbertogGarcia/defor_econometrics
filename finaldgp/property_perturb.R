@@ -17,8 +17,8 @@ property_perturb <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v 
   propertyscape = property_scapegen(nobs, cellsize, ppoints)
   pixloc_df = propertyscape$pixloc_df
   ATT <- pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) - pnorm(b0+b1+b2, 0, (std_a^2+std_v^2 + std_p^2)^.5)
-  DID_estimand <- (pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2)^.5) - pnorm(b0+b1, 0, (std_a^2+std_v^2)^.5)
-                   - (pnorm(b0+b2, 0, (std_a^2+std_v^2)^.5) - pnorm(b0, 0, (std_a^2+std_v^2)^.5)) )
+  DID_estimand <- (pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2+std_p^2)^.5) - pnorm(b0+b1, 0, (std_a^2+std_v^2+std_p^2)^.5)
+                   - (pnorm(b0+b2, 0, (std_a^2+std_v^2+std_p^2)^.5) - pnorm(b0, 0, (std_a^2+std_v^2+std_p^2)^.5)) )
   
   pixloc <- pixloc_df[order(pixloc_df$pixels),]
   
