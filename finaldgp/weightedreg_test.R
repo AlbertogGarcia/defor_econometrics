@@ -17,6 +17,8 @@ weightedreg_test <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v 
   propertyscape = property_scapegen(nobs, cellsize, ppoints)
   pixloc_df = propertyscape$pixloc_df
   ATT <- pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) - pnorm(b0+b1+b2, 0, (std_a^2+std_v^2 + std_p^2)^.5)
+  DID_estimand <- (pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2+std_p^2)^.5) - pnorm(b0+b1, 0, (std_a^2+std_v^2+std_p^2)^.5)
+                   - (pnorm(b0+b2, 0, (std_a^2+std_v^2+std_p^2)^.5) - pnorm(b0, 0, (std_a^2+std_v^2+std_p^2)^.5)) )
   
   pixloc <- pixloc_df[order(pixloc_df$pixels),]
   
@@ -150,6 +152,7 @@ weightedreg_test <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v 
     guides(fill=guide_legend(title=NULL))+
     scale_fill_discrete(breaks=c("unweighted", "weighted"), labels=c("unweighted", "weighted by area"))+
     geom_vline(xintercept = 0, linetype = "dashed")+
+    geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
     #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
     theme(plot.caption = element_text(hjust = 0.5))+
     labs(x= "Bias", caption = paste("Mean Unweighted:", round(mean(coeff_bias$unweighted), digits = 4),
