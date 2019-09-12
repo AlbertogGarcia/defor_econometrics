@@ -27,7 +27,7 @@ quickmontey <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
     # coeffmatrix[i,1]  <- mod$coefficients[1] - ATT
     
     mod <- lm(outcome ~  post*treat, data = panels)
-    coeffmatrix[i,1] <- mod$coefficients[4] - DID_estimand
+    coeffmatrix[i,1] <- mod$coefficients[4] - ATT
     print(i)
     
     #end for loop  
@@ -36,11 +36,11 @@ quickmontey <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
   #assign('coeff_didbias',coeffmatrix, envir=.GlobalEnv)
   
   did_coeff <- as.data.frame(coeffmatrix)
-  actual <- rep(DID_estimand, times = n)
+  actual <- rep(ATT, times = n)
   
   plot = ggplot() +
     geom_density(data = did_coeff , aes(x = V1), alpha = .2, fill="#29CD44")+
-    geom_vline(data = did_coeff, xintercept = mean(did_coeff$V1), color = 'red')+
+    geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
     geom_vline(data = did_coeff, xintercept = 0, linetype = "dashed")+
     theme(plot.caption = element_text(hjust = 0.5))+
     labs(x= "Bias", caption = paste("Mean:", round(mean(did_coeff$V1), digits = 4),
