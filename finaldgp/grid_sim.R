@@ -16,6 +16,8 @@ pixloc_df = gridscape$pixloc_df
 gridcoords = gridscape$gridcoords
 #N_treat = gridscape$N_treat    
 ATT <- pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2)^.5) - pnorm(b0+b1+b2, 0, (std_a^2+std_v^2)^.5)
+DID_estimand <- (pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2)^.5) - pnorm(b0+b1, 0, (std_a^2+std_v^2)^.5)
+                 - (pnorm(b0+b2, 0, (std_a^2+std_v^2)^.5) - pnorm(b0, 0, (std_a^2+std_v^2)^.5)) )
 
 pixloc <- pixloc_df[order(pixloc_df$pixels),]
 
@@ -111,7 +113,7 @@ actual <- rep(ATT, times = n)
 
 plot = ggplot() +
   geom_density(data = coeff_bias , aes(x = V1), alpha = .2, fill="#29CD44")+
-  geom_vline(data = coeff_bias, xintercept = mean(coeff_bias$V1), color = 'red')+
+  geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
   geom_vline(data = coeff_bias, xintercept = 0, linetype = "dashed")+
   theme(plot.caption = element_text(hjust = 0.5))+
   labs(x= "Bias", caption = paste("Mean:", round(mean(coeff_bias$V1), digits = 4),
