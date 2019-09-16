@@ -79,7 +79,7 @@ outcomes <- outcome_comparison(n, nobs, years, b0, b1, b2, b3, std_a, std_v, cel
 outcomes$plot
 ```
 
-We now aggregate to the grid level. Above, we see the bias introduced by using different outcome variables. (Need a table here to show the different outcomes and will want to cite different papers that use these outcomes. Currently only two outcomes being used in this fuction)
+We now aggregate to the grid level. Above, we see the bias introduced by using different outcome variables. (Need a table here to show the different outcomes and will want to cite different papers that use these outcomes. Currently only two outcomes being used in this function)
 
 
 ```{r grids, results='hide'}
@@ -105,10 +105,32 @@ perturb <- property_perturb(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p,
 perturb$plot
 ```
 
-In order to compare property level and grid level aggregation, we introduce perturbations at the property level to see if this induces any differences. It appears that when property level perturbations are introduced, aggregating to the property level and using property level fixed effects rather than doing so at the grid level may result in very minor improvement. 
+In order to compare property level and grid level aggregation, we introduce perturbations at the property level to see if this induces any differences. It appears that when property level perturbations are introduced, aggregating to the property level and using property level fixed effects rather than doing so at the grid level may improve the estimates.
+
+What is now interesting is that we seem to be identifying the ATT rather than the DID estimand that would be expected. In either case, aggregating to properties results in less bias relative to either teh DID or ATT parameters. In order to see if this is an anomaly, I alter the starting parameters 
 
 
+```{r parameters_secondary}
+b0 = .05
+b1 = 0.2
+b2 = -0.1
+b3 = -.16
+std_a = .1
+std_v = 0.25
+years = 3
+nobs = 10000
+n = 100
 
 
+cellsize = 20
+ppoints = 200
+std_p = .2
+```
 
 
+```{r property_perturbations_2, results='hide'}
+perturb2 <- property_perturb(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints)
+perturb2$plot
+```
+
+It seems that the property level aggregation does a better job of identifying the DID estimand here. The magnitude of the bias relative to the ATT is similar, however. 
