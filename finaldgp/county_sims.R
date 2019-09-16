@@ -13,7 +13,7 @@ library(tictoc)
 source('county_scapegen.R')
 
 #begin function
-clustercoverage <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, std_p = .1, cellsize, ppoints, cpoints){
+county_sims <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, std_p = .1, cellsize, ppoints, cpoints){
   
   countyscape = county_scapegen(nobs, cellsize, ppoints, cpoints)
   pixloc_df = countyscape$pixloc_df
@@ -179,33 +179,6 @@ clustercoverage <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v =
     coeffmatrix[i,3] <- DID3$coefficients - ATT
     
     
-    #standard error caclulations
-    
-    DID1_vcov_prop <- vcovHC(DID1, type = "HC0", cluster = "property", adjust = T)
-    cluster_p1    <- sqrt(diag(DID1_vcov_prop))
-    covermat[i, 1] <- between(ATT, DID1$coefficients - 1.96 * cluster_p1[4], DID1$coefficients + 1.96 * cluster_p1[4])*1
-    
-    DID2_vcov_prop <- vcovHC(DID2, type = "HC0", cluster = "property", adjust = T)
-    cluster_p2    <- sqrt(diag(DID2_vcov_prop))
-    covermat[i, 2] <- between(ATT, DID2$coefficients - 1.96 * cluster_p2[4], DID2$coefficients + 1.96 * cluster_p2[4])*1
-    
-    DID3_vcov_prop <- vcovHC(DID3, type = "HC0", cluster = "property", adjust = T)
-    cluster_p3    <- sqrt(diag(DID3_vcov_prop))
-    covermat[i, 3] <- between(ATT, DID3$coefficients - 1.96 * cluster_p3[4], DID3$coefficients + 1.96 * cluster_p3[4])*1
-    
-    DID1_vcov_county <- vcovHC(DID1, type = "HC0", cluster = "county", adjust = T)
-    cluster_c1    <- sqrt(diag(DID1_vcov_county))
-    covermat[i, 4] <- between(ATT, DID1$coefficients - 1.96 * cluster_c1[4], DID1$coefficients + 1.96 * cluster_c1[4])*1
-    
-    DID2_vcov_county <- vcovHC(DID2, type = "HC0", cluster = "county", adjust = T)
-    cluster_c2    <- sqrt(diag(DID2_vcov_county))
-    covermat[i, 5] <- between(ATT, DID2$coefficients - 1.96 * cluster_c2[4], DID2$coefficients + 1.96 * cluster_c2[4])*1
-    
-    DID3_vcov_county <- vcovHC(DID3, type = "HC0", cluster = "county", adjust = T)
-    cluster_c3    <- sqrt(diag(DID3_vcov_county))
-    covermat[i, 6] <- between(ATT, DID3$coefficients - 1.96 * cluster_c3[4], DID3$coefficients + 1.96 * cluster_c3[4])*1
-    
-    
     print(i)
     toc()
   }
@@ -217,19 +190,11 @@ clustercoverage <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v =
   names(coeff_bias)[3] <- paste("county")
   suppressWarnings(cbias <- melt(coeff_bias, value.name = "bias"))
   
-  coverages <- as.data.frame(covermat)
-  names(coverages)[1] <- paste("DID1p")
-  names(coverages)[2] <- paste("DID2p")
-  names(coverages)[3] <- paste("DID3p")
-  names(coverages)[4] <- paste("DID1c")
-  names(coverages)[5] <- paste("DID2c")
-  names(coverages)[6] <- paste("DID3c")
-  
   
   plot <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
     geom_density(alpha = .2) +
     guides(fill=guide_legend(title=NULL))+
-    scale_fill_discrete(breaks=c("grid", "property"), labels=c("aggregated to grids", "aggregated to properties"))+
+    scale_fill_discrete(breaks=c("grid", "property", "county"), labels=c("aggregated to grids", "aggregated to properties", "aggregated to counties"))+
     geom_vline(xintercept = 0, linetype = "dashed")+
     geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
     #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
@@ -242,7 +207,7 @@ clustercoverage <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v =
                                     ", RMSE:", round(rmse(actual, coeff_bias$county), digits = 4), ) 
     )
   
-  outputs = list("plot" = plot, "biases" = coeff_bias, "coverage" = coverages)
+  outputs = list("plot" = plot, "biases" = coeff_bias)
   return(outputs)
   
   #end function  

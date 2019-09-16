@@ -16,6 +16,8 @@ source('property_scapegen.R')
 source('weightedreg_test.R')
 source('property_perturb.R')
 source('outcome_comparison.R')
+source('county_scapegen.R')
+source('clustercoverage.R')
 
 ```
 
@@ -131,8 +133,12 @@ std_p = .2
 
 
 ```{r property_perturbations_2, results='hide'}
-perturb2 <- property_perturb(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints)
+perturb2 <- property_perturb(n, nobs, years, .05, .2, -.1, -.16, std_a, std_v, std_p, cellsize, ppoints)
 perturb2$plot
 ```
 
 It seems that the property level aggregation does a better job of identifying the DID estimand here. The magnitude of the bias relative to the ATT is similar, however. 
+
+
+
+
