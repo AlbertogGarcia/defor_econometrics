@@ -8,6 +8,7 @@ library(ggplot2)
 library(plm)
 library(Metrics)
 library(DataCombine)
+library(dplyr)
 library(tictoc)
 source('county_scapegen.R')
 
@@ -22,8 +23,8 @@ clustercoverage <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v =
   
   pixloc <- pixloc_df[order(pixloc_df$pixels),]
   
-  coveredmat <- matrix(nrow = n, ncol = 2)
-  coeffmatrix <- matrix(nrow = n, ncol = 2)
+  covermat <- matrix(nrow = n, ncol = 6)
+  coeffmatrix <- matrix(nrow = n, ncol = 3)
   
   for(i in 1:n){
     tic("loop")
@@ -145,40 +146,64 @@ clustercoverage <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v =
     
     
     
-    coeffmatrix[i,1] <- plm(deforrate ~  post*treat, 
+    DID1 <- plm(deforrate ~  post*treat, 
                             data   = gridlevel_df, 
                             weights=(gridlevel_df$garea),
                             method = "within", #fixed effects model
                             effect = "twoway", #property and year fixed effects
                             index  = c("grid", "year")
-    )$coefficients - ATT
+    )
     
     # run two-way fixed effects with outcome 1 
-    coeffmatrix[i,2] <- plm(deforrate ~  post*treat, 
+    DID2 <- plm(deforrate ~  post*treat, 
                             data   = proplevel_df, 
                             weights=(proplevel_df$parea),
                             method = "within", #fixed effects model
                             effect = "twoway", #property and year fixed effects
                             index  = c("property", "year")
-    )$coefficients - ATT
+    )
     
-    coeffmatrix[i,3] <- plm(deforrate ~  post*treat, 
+    DID3 <- plm(deforrate ~  post*treat, 
                             data   = countylevel_df, 
                             weights=(countylevel_df$carea),
                             method = "within", #fixed effects model
                             effect = "twoway", #county and year fixed effects
                             index  = c("county", "year")
-    )$coefficients - ATT
+    )
+    
+    
+    coeffmatrix[i,1] <- DID1$coefficients - ATT
+    
+    coeffmatrix[i,2] <- DID2$coefficients - ATT
+    
+    coeffmatrix[i,3] <- DID3$coefficients - ATT
     
     
     #standard error caclulations
     
+    DID1_vcov_prop <- vcovHC(DID1, type = "HC0", cluster = "property", adjust = T)
+    cluster_p1    <- sqrt(diag(DID1_vcov_prop))
+    covermat[i, 1] <- between(ATT, DID1$coefficients - 1.96 * cluster_p1[4], DID1$coefficients + 1.96 * cluster_p1[4])*1
     
+    DID2_vcov_prop <- vcovHC(DID2, type = "HC0", cluster = "property", adjust = T)
+    cluster_p2    <- sqrt(diag(DID2_vcov_prop))
+    covermat[i, 2] <- between(ATT, DID2$coefficients - 1.96 * cluster_p2[4], DID2$coefficients + 1.96 * cluster_p2[4])*1
     
+    DID3_vcov_prop <- vcovHC(DID3, type = "HC0", cluster = "property", adjust = T)
+    cluster_p3    <- sqrt(diag(DID3_vcov_prop))
+    covermat[i, 3] <- between(ATT, DID3$coefficients - 1.96 * cluster_p3[4], DID3$coefficients + 1.96 * cluster_p3[4])*1
     
+    DID1_vcov_county <- vcovHC(DID1, type = "HC0", cluster = "county", adjust = T)
+    cluster_c1    <- sqrt(diag(DID1_vcov_county))
+    covermat[i, 4] <- between(ATT, DID1$coefficients - 1.96 * cluster_c1[4], DID1$coefficients + 1.96 * cluster_c1[4])*1
     
+    DID2_vcov_county <- vcovHC(DID2, type = "HC0", cluster = "county", adjust = T)
+    cluster_c2    <- sqrt(diag(DID2_vcov_county))
+    covermat[i, 5] <- between(ATT, DID2$coefficients - 1.96 * cluster_c2[4], DID2$coefficients + 1.96 * cluster_c2[4])*1
     
-    
+    DID3_vcov_county <- vcovHC(DID3, type = "HC0", cluster = "county", adjust = T)
+    cluster_c3    <- sqrt(diag(DID3_vcov_county))
+    covermat[i, 6] <- between(ATT, DID3$coefficients - 1.96 * cluster_c3[4], DID3$coefficients + 1.96 * cluster_c3[4])*1
     
     
     print(i)
@@ -189,6 +214,7 @@ clustercoverage <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v =
   actual <- rep(ATT, times = n)
   names(coeff_bias)[1] <- paste("grid")
   names(coeff_bias)[2] <- paste("property")
+  names(coeff_bias)[3] <- paste("county")
   suppressWarnings(cbias <- melt(coeff_bias, value.name = "bias"))
   
   
@@ -203,7 +229,9 @@ clustercoverage <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v =
     labs(x= "Bias", caption = paste("Mean grid:", round(mean(coeff_bias$grid), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$grid), digits = 4), "\n", 
                                     "Mean property:", round(mean(coeff_bias$property), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$property), digits = 4) ) 
+                                    ", RMSE:", round(rmse(actual, coeff_bias$property), digits = 4),"\n",
+                                    "Mean county:", round(mean(coeff_bias$county), digits = 4),
+                                    ", RMSE:", round(rmse(actual, coeff_bias$county), digits = 4), ) 
     )
   
   outputs = list("plot" = plot, "biases" = coeff_bias, "coverage" = coverages)
