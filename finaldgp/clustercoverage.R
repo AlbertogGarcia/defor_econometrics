@@ -217,6 +217,14 @@ clustercoverage <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v =
   names(coeff_bias)[3] <- paste("county")
   suppressWarnings(cbias <- melt(coeff_bias, value.name = "bias"))
   
+  coverages <- as.data.frame(covermat)
+  names(coverages)[1] <- paste("DID1p")
+  names(coverages)[2] <- paste("DID2p")
+  names(coverages)[3] <- paste("DID3p")
+  names(coverages)[4] <- paste("DID1c")
+  names(coverages)[5] <- paste("DID2c")
+  names(coverages)[6] <- paste("DID3c")
+  
   
   plot <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
     geom_density(alpha = .2) +
