@@ -204,7 +204,7 @@ county_sims <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
                                     "Mean property:", round(mean(coeff_bias$property), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$property), digits = 4),"\n",
                                     "Mean county:", round(mean(coeff_bias$county), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$county), digits = 4), ) 
+                                    ", RMSE:", round(rmse(actual, coeff_bias$county), digits = 4) ) 
     )
   
   outputs = list("plot" = plot, "biases" = coeff_bias)
