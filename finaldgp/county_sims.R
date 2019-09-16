@@ -23,7 +23,6 @@ county_sims <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
   
   pixloc <- pixloc_df[order(pixloc_df$pixels),]
   
-  covermat <- matrix(nrow = n, ncol = 6)
   coeffmatrix <- matrix(nrow = n, ncol = 3)
   
   for(i in 1:n){

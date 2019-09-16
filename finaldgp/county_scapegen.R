@@ -55,6 +55,7 @@ county_scapegen <- function(nobs, cellsize, ppoints, cpoints){
   #determine treated vs. untreated counties
   treat_counties <- sample(1:length(v_county), (length(v_county)/2) )
   county= seq(from = 1, to = length(v_county))
+  
   treatcounty <- data.frame(
     county= seq(from = 1, to = length(v_county)),
     treat = ifelse(county %in% treat_counties, 1, 0)
