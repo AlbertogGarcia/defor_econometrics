@@ -17,7 +17,7 @@ source('weightedreg_test.R')
 source('property_perturb.R')
 source('outcome_comparison.R')
 source('county_scapegen.R')
-source('clustercoverage.R')
+source('county_sims.R')
 
 ```
 
@@ -35,7 +35,7 @@ n = 100
 
 
 cellsize = 20
-ppoints = 200
+ppoints = 100
 std_p = .2
 
 cpoints = 20
@@ -114,23 +114,6 @@ In order to compare property level and grid level aggregation, we introduce pert
 What is now interesting is that we seem to be identifying the ATT rather than the DID estimand that would be expected. In either case, aggregating to properties results in less bias relative to either teh DID or ATT parameters. In order to see if this is an anomaly, I alter the starting parameters 
 
 
-```{r parameters_secondary}
-b0 = .05
-b1 = 0.2
-b2 = -0.1
-b3 = -.16
-std_a = .1
-std_v = 0.25
-years = 3
-nobs = 10000
-n = 100
-
-
-cellsize = 20
-ppoints = 200
-std_p = .2
-```
-
 
 ```{r property_perturbations_2, results='hide'}
 perturb2 <- property_perturb(n, nobs, years, .05, .2, -.1, -.16, std_a, std_v, std_p, cellsize, ppoints)
@@ -140,5 +123,8 @@ perturb2$plot
 It seems that the property level aggregation does a better job of identifying the DID estimand here. The magnitude of the bias relative to the ATT is similar, however. 
 
 
-
+```{r county_intro, results='hide'}
+county <- county_sims(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, 4, ppoints, cpoints)
+county$plot
+```
 
