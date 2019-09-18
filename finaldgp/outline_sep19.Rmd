@@ -31,7 +31,7 @@ std_a = .1
 std_v = 0.25
 years = 3
 nobs = 10000
-n = 100
+n = 200
 
 
 cellsize = 20
@@ -116,11 +116,11 @@ What is now interesting is that we seem to be identifying the ATT rather than th
 
 
 ```{r property_perturbations_2, results='hide'}
-perturb2 <- property_perturb(n, nobs, years, .05, .2, -.1, -.16, std_a, std_v, std_p, cellsize, ppoints)
+perturb2 <- property_perturb(n, nobs, years, -b0, -b1, b2, -b3, std_a, std_v, std_p, cellsize, ppoints)
 perturb2$plot
 ```
 
-It seems that the property level aggregation does a better job of identifying the DID estimand here. The magnitude of the bias relative to the ATT is similar, however. 
+It seems that the property level aggregation does a better job of identifying the DID estimand and ATT here. 
 
 
 ```{r county_intro, results='hide'}
@@ -128,3 +128,12 @@ county <- county_sims(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, 4, pp
 county$plot
 ```
 
+The bias is smallest relative to both the ATT and DID estimand when we aggregate to the property level. It appears that the distribution of the estimates is much wider when aggregating to properties, however. In the next chunk, we look at the coverage of each of the aggregation decisions. 
+
+
+# ```{r covers, results='hide'}
+# county_cover <- clustercover(5, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, 4, ppoints, cpoints)
+# county_cover$plot
+# coverages_df <- county_cover$cover_df
+# mean(coverages_df$property_cover)
+# ```
