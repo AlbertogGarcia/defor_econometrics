@@ -122,7 +122,7 @@ property_perturb <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v 
     
     coeffmatrix[i,1] <- plm(deforrate ~  post*treat, 
                             data   = gridlevel_df, 
-                            weights=(gridlevel_df$garea),
+                            #weights=(gridlevel_df$garea),
                             method = "within", #fixed effects model
                             effect = "twoway", #property and year fixed effects
                             index  = c("grid", "year")
@@ -131,7 +131,7 @@ property_perturb <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v 
     # run two-way fixed effects with outcome 1 
     coeffmatrix[i,2] <- plm(deforrate ~  post*treat, 
                             data   = proplevel_df, 
-                            weights=(proplevel_df$parea),
+                            #weights=(proplevel_df$parea),
                             method = "within", #fixed effects model
                             effect = "twoway", #property and year fixed effects
                             index  = c("property", "year")

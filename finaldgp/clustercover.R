@@ -171,20 +171,20 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
                 index  = c("county", "year")
     )
     
-    vcov1 <- vcovHC(DID1, type = "HC0", cluster = "grid", adjust = T)
+    vcov1 <- vcovHC(DID1, type = "HC0", cluster = "group")
     cluster_se1    <- sqrt(diag(vcov1))
-    vcov2 <- vcovHC(DID2, type = "HC0", cluster = "property", adjust = T)
+    vcov2 <- vcovHC(DID2, type = "HC0", cluster = "group")
     cluster_se2    <- sqrt(diag(vcov2))
-    vcov3 <- vcovHC(DID3, type = "HC0", cluster = "county", adjust = T)
+    vcov3 <- vcovHC(DID3, type = "HC0", cluster = "group")
     cluster_se3    <- sqrt(diag(vcov3))
     
     coeffmatrix[i,1] <- DID1$coefficients - ATT
     coeffmatrix[i,2] <- DID2$coefficients - ATT
     coeffmatrix[i,3] <- DID3$coefficients - ATT
     
-    covermat[i,1] <- between(ATT, DID1$coefficients - 1.96 * cluster_se1, DID1$coefficients - 1.96 * cluster_se1)*1
-    covermat[i,2] <- between(ATT, DID2$coefficients - 1.96 * cluster_se2, DID2$coefficients - 1.96 * cluster_se2)*1
-    covermat[i,3] <- between(ATT, DID3$coefficients - 1.96 * cluster_se3, DID3$coefficients - 1.96 * cluster_se3)*1
+    covermat[i,1] <- between(ATT, DID1$coefficients - 1.96 * cluster_se1, DID1$coefficients + 1.96 * cluster_se1)*1
+    covermat[i,2] <- between(ATT, DID2$coefficients - 1.96 * cluster_se2, DID2$coefficients + 1.96 * cluster_se2)*1
+    covermat[i,3] <- between(ATT, DID3$coefficients - 1.96 * cluster_se3, DID3$coefficients + 1.96 * cluster_se3)*1
     
     
     print(i)
@@ -198,10 +198,9 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
   names(coeff_bias)[3] <- paste("county")
   suppressWarnings(cbias <- melt(coeff_bias, value.name = "bias"))
   
-  coverage <- as.data.frame(covermat)
-  names(coverage)[1] <- paste("grid_cover")
-  names(coverage)[2] <- paste("property_cover")
-  names(coverage)[3] <- paste("county_cover")
+  grid_cover <- mean(covermat[,1]) 
+  prop_cover <- mean(covermat[,2])
+  county_cover <- mean(covermat[,3])  
   
   
   plot <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
@@ -220,7 +219,7 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
                                     ", RMSE:", round(rmse(actual, coeff_bias$county), digits = 4) ) 
     )
   
-  outputs = list("plot" = plot, "biases" = coeff_bias, "cover_df" = coverage)
+  outputs = list("plot" = plot, "biases" = coeff_bias, "grid_cover" = grid_cover, "prop_cover" = prop_cover, "county_cover" = county_cover)
   return(outputs)
   
   #end function  

@@ -147,7 +147,7 @@ county_sims <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
     
     DID1 <- plm(deforrate ~  post*treat, 
                             data   = gridlevel_df, 
-                            weights=(gridlevel_df$garea),
+                           # weights=(gridlevel_df$garea),
                             method = "within", #fixed effects model
                             effect = "twoway", #property and year fixed effects
                             index  = c("grid", "year")
@@ -156,7 +156,7 @@ county_sims <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
     # run two-way fixed effects with outcome 1 
     DID2 <- plm(deforrate ~  post*treat, 
                             data   = proplevel_df, 
-                            weights=(proplevel_df$parea),
+                           # weights=(proplevel_df$parea),
                             method = "within", #fixed effects model
                             effect = "twoway", #property and year fixed effects
                             index  = c("property", "year")
@@ -164,7 +164,7 @@ county_sims <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
     
     DID3 <- plm(deforrate ~  post*treat, 
                             data   = countylevel_df, 
-                            weights=(countylevel_df$carea),
+                            #weights=(countylevel_df$carea),
                             method = "within", #fixed effects model
                             effect = "twoway", #county and year fixed effects
                             index  = c("county", "year")
