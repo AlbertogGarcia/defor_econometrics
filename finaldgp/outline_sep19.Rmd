@@ -18,6 +18,7 @@ source('property_perturb.R')
 source('outcome_comparison.R')
 source('county_scapegen.R')
 source('county_sims.R')
+source('clustercover.R')
 
 ```
 
@@ -31,7 +32,7 @@ std_a = .1
 std_v = 0.25
 years = 3
 nobs = 10000
-n = 200
+n = 100
 
 
 cellsize = 20
@@ -96,14 +97,6 @@ Using the outcome from above with the smallest amount of bias, we again look at 
 
 
 
-```{r weighting, results='hide'}
-weighting <- weightedreg_test(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints)
-weighting$plot
-```
-
-We now aggregate to the property level to determine whether weighting the regressions by property area is preferable. Clearly, weighting by property area leads to less bias in the estimates. Moving forward, we weight all regressions by area.  
-
-
 ```{r property_perturbations, results='hide'}
 perturb <- property_perturb(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints)
 perturb$plot
@@ -123,7 +116,7 @@ perturb2$plot
 It seems that the property level aggregation does a better job of identifying the DID estimand and ATT here. 
 
 
-```{r county_intro, results='hide'}
+```{r county_prop_aggregate, results='hide'}
 county <- county_sims(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, 4, ppoints, cpoints)
 county$plot
 ```
@@ -131,9 +124,22 @@ county$plot
 The bias is smallest relative to both the ATT and DID estimand when we aggregate to the property level. It appears that the distribution of the estimates is much wider when aggregating to properties, however. In the next chunk, we look at the coverage of each of the aggregation decisions. 
 
 
-# ```{r covers, results='hide'}
-# county_cover <- clustercover(5, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, 4, ppoints, cpoints)
-# county_cover$plot
-# coverages_df <- county_cover$cover_df
-# mean(coverages_df$property_cover)
-# ```
+```{r aggregate_coverages, results='hide'}
+countycoverage <- clustercover(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, 5, ppoints, cpoints)
+countycoverage$plot
+
+#coverages by aggregation nmethod
+countycoverage$grid_cover
+countycoverage$prop_cover
+countycoverage$county_cover
+
+```
+
+
+
+
+
+```{r weighting, results='hide'}
+weighting <- weightedreg_test(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints)
+weighting$plot
+```
