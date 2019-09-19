@@ -87,14 +87,6 @@ outcomes$plot
 We now aggregate to the grid level. Above, we see the bias introduced by using different outcome variables. (Need a table here to show the different outcomes and will want to cite different papers that use these outcomes. Currently only two outcomes being used in this function)
 
 
-```{r grids, results='hide'}
-grid <- grid_sim(n, nobs, years, b0, b1, b2, b3, std_a, std_v, cellsize)
-grid$plot
-```
-
-
-Using the outcome from above with the smallest amount of bias, we again look at the grid level aggregation to assess this outcome. 
-
 
 
 ```{r property_perturbations, results='hide'}
@@ -116,22 +108,21 @@ perturb2$plot
 It seems that the property level aggregation does a better job of identifying the DID estimand and ATT here. 
 
 
-```{r county_prop_aggregate, results='hide'}
-county <- county_sims(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, 4, ppoints, cpoints)
-county$plot
-```
 
 The bias is smallest relative to both the ATT and DID estimand when we aggregate to the property level. It appears that the distribution of the estimates is much wider when aggregating to properties, however. In the next chunk, we look at the coverage of each of the aggregation decisions. 
 
 
-```{r aggregate_coverages, results='hide'}
+```{r aggregate, results = 'hide'}
 countycoverage <- clustercover(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, 5, ppoints, cpoints)
 countycoverage$plot
+```
+
+```{r coverages}
 
 #coverages by aggregation nmethod
-countycoverage$grid_cover
-countycoverage$prop_cover
-countycoverage$county_cover
+print(countycoverage$grid_cover)
+print(countycoverage$prop_cover)
+print(countycoverage$county_cover)
 
 ```
 
