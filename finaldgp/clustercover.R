@@ -214,7 +214,7 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
   prop_clustercover <- mean(covermat[,2])
   county_clustercover <- mean(covermat[,3])  
   
- # grid_cover <- mean(covermat[,4]) 
+  grid_cover <- mean(covermat[,4]) 
   prop_cover <- mean(covermat[,5])
   county_cover <- mean(covermat[,6])  
   
