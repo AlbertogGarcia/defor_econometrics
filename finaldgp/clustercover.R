@@ -23,7 +23,7 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
   
   pixloc <- pixloc_df[order(pixloc_df$pixels),]
   
-  covermat <- matrix(nrow = n, ncol = 3)
+  covermat <- matrix(nrow = n, ncol = 6)
   coeffmatrix <- matrix(nrow = n, ncol = 3)
   
   for(i in 1:n){
@@ -171,6 +171,11 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
                 index  = c("county", "year")
     )
     
+    #calculating bias from each aggregation method
+    coeffmatrix[i,1] <- DID1$coefficients - ATT
+    coeffmatrix[i,2] <- DID2$coefficients - ATT
+    coeffmatrix[i,3] <- DID3$coefficients - ATT
+    
     vcov1 <- vcovHC(DID1, type = "HC0", cluster = "group")
     cluster_se1    <- sqrt(diag(vcov1))
     vcov2 <- vcovHC(DID2, type = "HC0", cluster = "group")
@@ -178,13 +183,20 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
     vcov3 <- vcovHC(DID3, type = "HC0", cluster = "group")
     cluster_se3    <- sqrt(diag(vcov3))
     
-    coeffmatrix[i,1] <- DID1$coefficients - ATT
-    coeffmatrix[i,2] <- DID2$coefficients - ATT
-    coeffmatrix[i,3] <- DID3$coefficients - ATT
+    covercov1 <- vcovHC(DID1, type = "HC0")
+    se1 <- sqrt(diag(covercov1))
+    covercov2 <- vcovHC(DID2, type = "HC0")
+    se2 <- sqrt(diag(covercov2))
+    covercov3 <- vcovHC(DID3, type = "HC0")
+    se3 <- sqrt(diag(covercov3))
     
     covermat[i,1] <- between(ATT, DID1$coefficients - 1.96 * cluster_se1, DID1$coefficients + 1.96 * cluster_se1)*1
     covermat[i,2] <- between(ATT, DID2$coefficients - 1.96 * cluster_se2, DID2$coefficients + 1.96 * cluster_se2)*1
     covermat[i,3] <- between(ATT, DID3$coefficients - 1.96 * cluster_se3, DID3$coefficients + 1.96 * cluster_se3)*1
+    
+    covermat[i,4] <- between(ATT, DID1$coefficients - 1.96 * se1, DID1$coefficients + 1.96 * se1)*1
+    covermat[i,5] <- between(ATT, DID2$coefficients - 1.96 * se2, DID2$coefficients + 1.96 * se2)*1
+    covermat[i,6] <- between(ATT, DID3$coefficients - 1.96 * se3, DID3$coefficients + 1.96 * se3)*1
     
     
     print(i)
@@ -198,9 +210,13 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
   names(coeff_bias)[3] <- paste("county")
   suppressWarnings(cbias <- melt(coeff_bias, value.name = "bias"))
   
-  grid_cover <- mean(covermat[,1]) 
-  prop_cover <- mean(covermat[,2])
-  county_cover <- mean(covermat[,3])  
+  grid_clustercover <- mean(covermat[,1]) 
+  prop_clustercover <- mean(covermat[,2])
+  county_clustercover <- mean(covermat[,3])  
+  
+  grid_cover <- mean(covermat[,4]) 
+  prop_cover <- mean(covermat[,5])
+  county_cover <- mean(covermat[,6])  
   
   
   plot <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
@@ -219,7 +235,7 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
                                     ", RMSE:", round(rmse(actual, coeff_bias$county), digits = 4) ) 
     )
   
-  outputs = list("plot" = plot, "biases" = coeff_bias, "grid_cover" = grid_cover, "prop_cover" = prop_cover, "county_cover" = county_cover)
+  outputs = list("plot" = plot, "biases" = coeff_bias, "grid_cover" = grid_cover, "prop_cover" = prop_cover, "county_cover" = county_cover, "grid_clustercover" = grid_clustercover, "prop_clustercover" = prop_clustercover, "county_clustercover" = county_clustercover)
   return(outputs)
   
   #end function  
