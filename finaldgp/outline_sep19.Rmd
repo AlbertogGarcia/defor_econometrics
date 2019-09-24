@@ -34,7 +34,7 @@ std_a = .1
 std_v = 0.25
 years = 3
 nobs = 10000
-n = 1
+n = 100
 
 
 cellsize = 15
@@ -115,7 +115,7 @@ countycoverage <- clustercover(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std
 countycoverage$plot
 ```
 
-This function includes three possible aggregation methods: county, property, and grid level. We then compute the coverage propbability of the ATT with a 95% CI, clustering standard errors at the group level. 
+This function includes three possible aggregation methods: county, property, and grid level. We then compute the coverage propability of the ATT with a 95% CI. We first cluster standard errors at the group level and then, simply use White standard errors for comparison. 
 
 ```{r coverages}
 
@@ -138,7 +138,7 @@ weighting <- weightingarea(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, 
 weighting$plot
 ```
 
-Weighting the regressions by area does seem to generate slightly more bias compared to the ATT, however, this is likely because the estimates are less biased relative to the estimand. 
+Update weighting commentary here based on results. 
 
 
 
