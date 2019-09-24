@@ -13,7 +13,7 @@ library(tictoc)
 source('county_scapegen.R')
 
 #begin function
-clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, std_p = .1, cellsize, ppoints, cpoints){
+weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, std_p = .1, cellsize, ppoints, cpoints){
   
   countyscape = county_scapegen(nobs, cellsize, ppoints, cpoints)
   pixloc_df = countyscape$pixloc_df
