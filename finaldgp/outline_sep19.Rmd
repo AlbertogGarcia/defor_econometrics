@@ -33,7 +33,7 @@ std_a = .1
 std_v = 0.25
 years = 3
 nobs = 10000
-n = 100
+n = 200
 
 
 cellsize = 15
