@@ -19,6 +19,7 @@ source('outcome_comparison.R')
 source('county_scapegen.R')
 source('county_sims.R')
 source('clustercover.R')
+source('weightingarea.R')
 
 ```
 
@@ -33,7 +34,7 @@ std_a = .1
 std_v = 0.25
 years = 3
 nobs = 10000
-n = 200
+n = 1
 
 
 cellsize = 15
@@ -119,6 +120,9 @@ This function includes three possible aggregation methods: county, property, and
 ```{r coverages}
 
 #coverages by aggregation nmethod
+print(countycoverage$grid_clustercover)
+print(countycoverage$prop_clustercover)
+print(countycoverage$county_clustercover)
 print(countycoverage$grid_cover)
 print(countycoverage$prop_cover)
 print(countycoverage$county_cover)
@@ -130,8 +134,14 @@ The property level aggregation leads to the least bias in this case. It also res
 
 
 ```{r weighting, results='hide'}
-weighting <- weightedreg_test(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints)
+weighting <- weightingarea(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
 weighting$plot
 ```
 
 Weighting the regressions by area does seem to generate slightly more bias compared to the ATT, however, this is likely because the estimates are less biased relative to the estimand. 
+
+
+
+
+
+Next we'd like to incorporate the spatial and temporal autocorrelation. 

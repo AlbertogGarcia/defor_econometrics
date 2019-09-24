@@ -211,12 +211,12 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
   
   coeff_bias <- as.data.frame(coeffmatrix)
   actual <- rep(ATT, times = n)
-  names(coeff_bias)[1] <- paste("unweighted grid")
-  names(coeff_bias)[2] <- paste("unweighted property")
-  names(coeff_bias)[3] <- paste("unweighted county")
-  names(coeff_bias)[4] <- paste("weighted grid")
-  names(coeff_bias)[5] <- paste("weighted property")
-  names(coeff_bias)[6] <- paste("weighted county")
+  names(coeff_bias)[1] <- paste("ugrid")
+  names(coeff_bias)[2] <- paste("uproperty")
+  names(coeff_bias)[3] <- paste("ucounty")
+  names(coeff_bias)[4] <- paste("wgrid")
+  names(coeff_bias)[5] <- paste("wproperty")
+  names(coeff_bias)[6] <- paste("wcounty")
   suppressWarnings(cbias <- melt(coeff_bias, value.name = "bias"))
   
   
@@ -228,12 +228,19 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
     geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
     #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
     theme(plot.caption = element_text(hjust = 0.5))+
-    labs(x= "Bias", caption = paste("Mean grid:", round(mean(coeff_bias$grid), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$grid), digits = 4), "\n", 
-                                    "Mean property:", round(mean(coeff_bias$property), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$property), digits = 4),"\n",
-                                    "Mean county:", round(mean(coeff_bias$county), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$county), digits = 4) ) 
+    labs(x= "Bias", caption = paste("Mean unweighted grid:", round(mean(coeff_bias$ugrid), digits = 4),
+                                    ", RMSE:", round(rmse(actual, coeff_bias$ugrid), digits = 4), "\n", 
+                                    "Mean unweighted property:", round(mean(coeff_bias$uproperty), digits = 4),
+                                    ", RMSE:", round(rmse(actual, coeff_bias$uproperty), digits = 4),"\n",
+                                    "Mean unweighted county:", round(mean(coeff_bias$ucounty), digits = 4),
+                                    ", RMSE:", round(rmse(actual, coeff_bias$ucounty), digits = 4),
+                                    "Mean weighted grid:", round(mean(coeff_bias$wgrid), digits = 4),
+                                    ", RMSE:", round(rmse(actual, coeff_bias$wgrid), digits = 4), "\n", 
+                                    "Mean weighted property:", round(mean(coeff_bias$wproperty), digits = 4),
+                                    ", RMSE:", round(rmse(actual, coeff_bias$wproperty), digits = 4),"\n",
+                                    "Mean weighted county:", round(mean(coeff_bias$wcounty), digits = 4),
+                                    ", RMSE:", round(rmse(actual, coeff_bias$wcounty), digits = 4)
+                                    ) 
     )
   
   outputs = list("plot" = plot, "biases" = coeff_bias, "grid_cover" = grid_cover, "prop_cover" = prop_cover, "county_cover" = county_cover, "grid_clustercover" = grid_clustercover, "prop_clustercover" = prop_clustercover, "county_clustercover" = county_clustercover)
