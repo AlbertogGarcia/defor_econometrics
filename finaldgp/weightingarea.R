@@ -230,14 +230,14 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
     theme(plot.caption = element_text(hjust = 0.5))+
     labs(x= "Bias", caption = paste("Mean grid:", round(mean(coeff_bias$ugrid), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$ugrid), digits = 4), "\n", 
-                                    "Mean property:", round(mean(coeff_bias$uproperty), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$uproperty), digits = 4),"\n",
-                                    "Mean county:", round(mean(coeff_bias$ucounty), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$ucounty), digits = 4),"\n", 
                                     "Mean weighted grid:", round(mean(coeff_bias$wgrid), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$wgrid), digits = 4), "\n", 
+                                    "Mean property:", round(mean(coeff_bias$uproperty), digits = 4),
+                                    ", RMSE:", round(rmse(actual, coeff_bias$uproperty), digits = 4),"\n",
                                     "Mean weighted property:", round(mean(coeff_bias$wproperty), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$wproperty), digits = 4),"\n",
+                                    "Mean county:", round(mean(coeff_bias$ucounty), digits = 4),
+                                    ", RMSE:", round(rmse(actual, coeff_bias$ucounty), digits = 4),"\n", 
                                     "Mean weighted county:", round(mean(coeff_bias$wcounty), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$wcounty), digits = 4)
                                     ) 
