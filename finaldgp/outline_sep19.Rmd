@@ -24,6 +24,7 @@ source('clustercover.R')
 
 Define universal parameters
 ```{r parameters}
+set.seed(930)
 b0 = .05
 b1 = -0.1
 b2 = -0.2
@@ -35,7 +36,7 @@ nobs = 10000
 n = 100
 
 
-cellsize = 20
+cellsize = 15
 ppoints = 100
 std_p = .2
 
@@ -105,17 +106,15 @@ perturb2 <- property_perturb(n, nobs, years, -b0, -b1, b2, -b3, std_a, std_v, st
 perturb2$plot
 ```
 
-It seems that the property level aggregation does a better job of identifying the DID estimand and ATT here. 
-
-
-
-The bias is smallest relative to both the ATT and DID estimand when we aggregate to the property level. It appears that the distribution of the estimates is much wider when aggregating to properties, however. In the next chunk, we look at the coverage of each of the aggregation decisions. 
+It seems that aggregating to the properties vs grids here makes a smaller difference with this set of parameters. 
 
 
 ```{r aggregate, results = 'hide'}
-countycoverage <- clustercover(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, 5, ppoints, cpoints)
+countycoverage <- clustercover(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
 countycoverage$plot
 ```
+
+This function includes three possible aggregation methods: county, property, and grid level. We then compute the coverage propbability of the ATT with a 95% CI, clustering standard errors at the group level. 
 
 ```{r coverages}
 
@@ -126,7 +125,7 @@ print(countycoverage$county_cover)
 
 ```
 
-
+The property level aggregation leads to the least bias in this case. It also results in the expected coverage, while the county and grid level aggregation results in under coverage. It is unclear how much of the issue is related to the bias and not the standard errors themselves. 
 
 
 
@@ -134,3 +133,5 @@ print(countycoverage$county_cover)
 weighting <- weightedreg_test(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints)
 weighting$plot
 ```
+
+Weighting the regressions by area does seem to generate slightly more bias compared to the ATT, however, this is likely because the estimates are less biased relative to the estimand. 
