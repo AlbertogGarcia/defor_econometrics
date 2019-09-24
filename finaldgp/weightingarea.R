@@ -233,7 +233,7 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
                                     "Mean unweighted property:", round(mean(coeff_bias$uproperty), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$uproperty), digits = 4),"\n",
                                     "Mean unweighted county:", round(mean(coeff_bias$ucounty), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$ucounty), digits = 4),
+                                    ", RMSE:", round(rmse(actual, coeff_bias$ucounty), digits = 4),"\n", 
                                     "Mean weighted grid:", round(mean(coeff_bias$wgrid), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$wgrid), digits = 4), "\n", 
                                     "Mean weighted property:", round(mean(coeff_bias$wproperty), digits = 4),
@@ -243,7 +243,7 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
                                     ) 
     )
   
-  outputs = list("plot" = plot, "biases" = coeff_bias, "grid_cover" = grid_cover, "prop_cover" = prop_cover, "county_cover" = county_cover, "grid_clustercover" = grid_clustercover, "prop_clustercover" = prop_clustercover, "county_clustercover" = county_clustercover)
+  outputs = list("plot" = plot, "biases" = coeff_bias)
   return(outputs)
   
   #end function  
