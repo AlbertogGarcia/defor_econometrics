@@ -265,7 +265,7 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
                                     ) 
     )
   
-  outputs = list("plot" = plot, "biases" = coeff_bias)
+  outputs = list("gridplot" = gridplot, "propertyplot" = propertyplot, "countyplot" = countyplot, "biases" = coeff_bias)
   return(outputs)
   
   #end function  
