@@ -220,10 +220,10 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
   suppressWarnings(cbias <- melt(coeff_bias, value.name = "bias"))
   
   
-  plot <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
+  gridplot <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
     geom_density(alpha = .2) +
     guides(fill=guide_legend(title=NULL))+
-    scale_fill_discrete(breaks=c("ugrid", "uproperty", "ucounty", "wgrid", "wproperty", "wcounty"), labels=c("grid", "property", "county", "weighted grid", "weighted property", "weighted county"))+
+    scale_fill_discrete(breaks=c("ugrid", "wgrid"), labels=c("grid", "weighted grid"))+
     geom_vline(xintercept = 0, linetype = "dashed")+
     geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
     #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
@@ -232,11 +232,33 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
                                     ", RMSE:", round(rmse(actual, coeff_bias$ugrid), digits = 4), "\n", 
                                     "Mean weighted grid:", round(mean(coeff_bias$wgrid), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$wgrid), digits = 4), "\n", 
-                                    "Mean property:", round(mean(coeff_bias$uproperty), digits = 4),
+                                    ) 
+    )
+  
+  propertyplot <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
+    geom_density(alpha = .2) +
+    guides(fill=guide_legend(title=NULL))+
+    scale_fill_discrete(breaks=c("uproperty", "wproperty"), labels=c("property", "weighted property"))+
+    geom_vline(xintercept = 0, linetype = "dashed")+
+    geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
+    #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
+    theme(plot.caption = element_text(hjust = 0.5))+
+    labs(x= "Bias", caption = paste("Mean property:", round(mean(coeff_bias$uproperty), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$uproperty), digits = 4),"\n",
                                     "Mean weighted property:", round(mean(coeff_bias$wproperty), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$wproperty), digits = 4),"\n",
-                                    "Mean county:", round(mean(coeff_bias$ucounty), digits = 4),
+                                   ) 
+    )
+  
+  countyplot <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
+    geom_density(alpha = .2) +
+    guides(fill=guide_legend(title=NULL))+
+    scale_fill_discrete(breaks=c("ucounty","wcounty"), labels=c("county", "weighted county"))+
+    geom_vline(xintercept = 0, linetype = "dashed")+
+    geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
+    #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
+    theme(plot.caption = element_text(hjust = 0.5))+
+    labs(x= "Bias", caption = paste("Mean county:", round(mean(coeff_bias$ucounty), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$ucounty), digits = 4),"\n", 
                                     "Mean weighted county:", round(mean(coeff_bias$wcounty), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$wcounty), digits = 4)
