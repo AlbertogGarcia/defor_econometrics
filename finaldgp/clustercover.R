@@ -22,7 +22,7 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
                    - (pnorm(b0+b2, 0, (std_a^2+std_v^2+std_p^2)^.5) - pnorm(b0, 0, (std_a^2+std_v^2+std_p^2)^.5)) )
   
   pixloc <- pixloc_df[order(pixloc_df$pixels),]
-  
+  pixloc$pixels <- as.character(pixloc$pixels)
   covermat <- matrix(nrow = n, ncol = 6)
   coeffmatrix <- matrix(nrow = n, ncol = 3)
   
@@ -45,8 +45,8 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
     
     
     panels$pixels <- gsub("(?<![0-9])0+", "", panels$pixels, perl = TRUE)
-    panels <- merge(pixloc, panels, by = c("pixels", "treat"))
-    panels <- merge(panels, error_table, by = c("property"))
+    panels <- inner_join(pixloc, panels, by = c("pixels", "treat"))
+    panels <- inner_join(panels, error_table, by = c("property"))
     
     panels$ystar <- panels$ystar + panels$p_err
     panels$y <- (panels$ystar > 0)*1
@@ -65,7 +65,7 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
     defor_df <- tibble::rownames_to_column(defor_df)
     names(defor_df)[1] <- paste("pixels")
     defor_df <- subset(defor_df, select = c(pixels, defor_year))
-    panels <- merge(defor_df, panels, by = "pixels")
+    panels <- inner_join(defor_df, panels, by = "pixels")
     
     
     # creating three outcome variables for each possible situation
@@ -74,7 +74,7 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
     panels$year <- as.numeric(panels$year)
     panels$indic <- (panels$year - panels$defor_year)
     panels$defor <- ifelse(panels$indic > 0 , 1, panels$y)
-    panels <- subset(panels, select = -c(indic))
+    #panels <- subset(panels, select = -c(indic))
     
     # aggregate up to county in each year 
     suppressWarnings(
@@ -176,24 +176,16 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
     coeffmatrix[i,2] <- DID2$coefficients - ATT
     coeffmatrix[i,3] <- DID3$coefficients - ATT
     
-    vcov1 <- vcovHC(DID1, type = "HC0", cluster = "group")
-    cluster_se1    <- sqrt(diag(vcov1))
-    vcov2 <- vcovHC(DID2, type = "HC0", cluster = "group")
-    cluster_se2    <- sqrt(diag(vcov2))
-    vcov3 <- vcovHC(DID3, type = "HC0", cluster = "group")
-    cluster_se3    <- sqrt(diag(vcov3))
-    
-    covercov1 <- vcovHC(DID1, type = "HC0")
-    se1 <- sqrt(diag(covercov1))
-    covercov2 <- vcovHC(DID2, type = "HC0")
-    se2 <- sqrt(diag(covercov2))
-    covercov3 <- vcovHC(DID3, type = "HC0")
-    se3 <- sqrt(diag(covercov3))
-    
+    cluster_se1    <- sqrt(diag(vcovHC(DID1, type = "HC0", cluster = "group")))
+    cluster_se2    <- sqrt(diag(vcovHC(DID2, type = "HC0", cluster = "group")))
+    cluster_se3    <- sqrt(diag(vcovHC(DID3, type = "HC0", cluster = "group")))
     covermat[i,1] <- between(ATT, DID1$coefficients - 1.96 * cluster_se1, DID1$coefficients + 1.96 * cluster_se1)*1
     covermat[i,2] <- between(ATT, DID2$coefficients - 1.96 * cluster_se2, DID2$coefficients + 1.96 * cluster_se2)*1
     covermat[i,3] <- between(ATT, DID3$coefficients - 1.96 * cluster_se3, DID3$coefficients + 1.96 * cluster_se3)*1
     
+    se1 <- sqrt(diag(vcovHC(DID1, type = "HC0")))
+    se2 <- sqrt(diag(vcovHC(DID2, type = "HC0")))
+    se3 <- sqrt(diag(vcovHC(DID3, type = "HC0")))
     covermat[i,4] <- between(ATT, DID1$coefficients - 1.96 * se1, DID1$coefficients + 1.96 * se1)*1
     covermat[i,5] <- between(ATT, DID2$coefficients - 1.96 * se2, DID2$coefficients + 1.96 * se2)*1
     covermat[i,6] <- between(ATT, DID3$coefficients - 1.96 * se3, DID3$coefficients + 1.96 * se3)*1
