@@ -22,7 +22,6 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
                    - (pnorm(b0+b2, 0, (std_a^2+std_v^2+std_p^2)^.5) - pnorm(b0, 0, (std_a^2+std_v^2+std_p^2)^.5)) )
   
   pixloc <- pixloc_df[order(pixloc_df$pixels),]
-  pixloc$pixels <- as.character(pixloc$pixels)
   covermat <- matrix(nrow = n, ncol = 6)
   coeffmatrix <- matrix(nrow = n, ncol = 3)
   
@@ -41,7 +40,7 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
     )
     
     #generate random 
-    error_table <- data.frame(property = unique(pixloc$property), p_err = rnorm(length(unique(pixloc$property)), 0, std_p))
+    error_table <- data.frame(property = as.character(unique(pixloc$property)), p_err = rnorm(length(unique(pixloc$property)), 0, std_p))
     
     
     panels$pixels <- gsub("(?<![0-9])0+", "", panels$pixels, perl = TRUE)
@@ -71,14 +70,17 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
     # creating three outcome variables for each possible situation
     ### y: allows the outcome to switch between 0 and 1 across years
     ### defor: outcome is set to 1 in each year after the pixel is deforested
-    panels$year <- as.numeric(panels$year)
+    #sapply(pixloc_df, class)
+    cols.num <- c("pixels", "grid", "property", "county", "year")
+    panels[cols.num] <- sapply(panels[cols.num],as.numeric)
+    
     panels$indic <- (panels$year - panels$defor_year)
     panels$defor <- ifelse(panels$indic > 0 , 1, panels$y)
     #panels <- subset(panels, select = -c(indic))
     
     # aggregate up to county in each year 
     suppressWarnings(
-      gridlevel_df <-  aggregate(panels, by = list(panels$grid, panels$year), FUN = mean, drop = TRUE)[c("grid", "treat", "post", "year","defor", "garea")]
+      gridlevel_df <-  aggregate(panels, by = list(panels$year, panels$grid), FUN = mean, drop = TRUE)[c("grid", "treat", "post", "year","defor", "garea")]
     )
     
     gridlevel_df <- gridlevel_df[order(gridlevel_df$grid, gridlevel_df$year),]
@@ -216,7 +218,7 @@ clustercover <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.
     guides(fill=guide_legend(title=NULL))+
     scale_fill_discrete(breaks=c("grid", "property", "county"), labels=c("aggregated to grids", "aggregated to properties", "aggregated to counties"))+
     geom_vline(xintercept = 0, linetype = "dashed")+
-    geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
+    #geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
     #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
     theme(plot.caption = element_text(hjust = 0.5))+
     labs(x= "Bias", caption = paste("Mean grid:", round(mean(coeff_bias$grid), digits = 4),

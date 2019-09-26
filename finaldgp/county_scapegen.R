@@ -61,8 +61,9 @@ county_scapegen <- function(nobs, cellsize, ppoints, cpoints){
     treat = ifelse(county %in% treat_counties, 1, 0)
   ) 
   
+  
   # determine which pixels are treated vs. untreated
-  pixloc_df <- merge(pixloc_df, treatcounty, by = "county")
+  pixloc_df <- inner_join(pixloc_df, treatcounty, by = "county")
   
   #getting areas for properies and counties
   pareas <- data.frame(matrix(unlist(st_area(v_property))))
@@ -78,11 +79,17 @@ county_scapegen <- function(nobs, cellsize, ppoints, cpoints){
   names(gareas)[1] <- paste("grid")
   names(gareas)[2] <- paste("garea")
   
-  #merging back areas
-  areas <- merge(pixloc_df, gareas, by = "grid")
-  c_areas <- merge(areas, careas, by = "county")
-  pixloc_df <- merge(c_areas, pareas, by = "property")
   
+  #sapply(pixloc_df, class)
+  cols.num <- c("pixels", "grid", "property", "county")
+  pixloc_df[cols.num] <- sapply(pixloc_df[cols.num],as.character)
+  
+  #merging back areas
+
+  areas <- inner_join(pixloc_df, gareas, by = "grid")
+  c_areas <- inner_join(areas, careas, by = "county")
+  pixloc_df <- inner_join(c_areas, pareas, by = "property")
+
   outputs = list('pixloc_df' = pixloc_df)
   return(outputs)
   
