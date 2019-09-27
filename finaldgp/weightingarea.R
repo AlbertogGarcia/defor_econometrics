@@ -22,8 +22,8 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
                    - (pnorm(b0+b2, 0, (std_a^2+std_v^2+std_p^2)^.5) - pnorm(b0, 0, (std_a^2+std_v^2+std_p^2)^.5)) )
   
   pixloc <- pixloc_df[order(pixloc_df$pixels),]
-  
-  coeffmatrix <- matrix(nrow = n, ncol = 6)
+  covermat <- matrix(nrow = n, ncol = 6)
+  coeffmatrix <- matrix(nrow = n, ncol = 3)
   
   for(i in 1:n){
     tic("loop")
@@ -40,12 +40,12 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
     )
     
     #generate random 
-    error_table <- data.frame(property = unique(pixloc$property), p_err = rnorm(length(unique(pixloc$property)), 0, std_p))
+    error_table <- data.frame(property = as.character(unique(pixloc$property)), p_err = rnorm(length(unique(pixloc$property)), 0, std_p))
     
     
     panels$pixels <- gsub("(?<![0-9])0+", "", panels$pixels, perl = TRUE)
-    panels <- merge(pixloc, panels, by = c("pixels", "treat"))
-    panels <- merge(panels, error_table, by = c("property"))
+    panels <- inner_join(pixloc, panels, by = c("pixels", "treat"))
+    panels <- inner_join(panels, error_table, by = c("property"))
     
     panels$ystar <- panels$ystar + panels$p_err
     panels$y <- (panels$ystar > 0)*1
@@ -64,20 +64,23 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
     defor_df <- tibble::rownames_to_column(defor_df)
     names(defor_df)[1] <- paste("pixels")
     defor_df <- subset(defor_df, select = c(pixels, defor_year))
-    panels <- merge(defor_df, panels, by = "pixels")
+    panels <- inner_join(defor_df, panels, by = "pixels")
     
     
     # creating three outcome variables for each possible situation
     ### y: allows the outcome to switch between 0 and 1 across years
     ### defor: outcome is set to 1 in each year after the pixel is deforested
-    panels$year <- as.numeric(panels$year)
+    #sapply(pixloc_df, class)
+    cols.num <- c("pixels", "grid", "property", "county", "year")
+    panels[cols.num] <- sapply(panels[cols.num],as.numeric)
+    
     panels$indic <- (panels$year - panels$defor_year)
     panels$defor <- ifelse(panels$indic > 0 , 1, panels$y)
-    panels <- subset(panels, select = -c(indic))
+    #panels <- subset(panels, select = -c(indic))
     
     # aggregate up to county in each year 
     suppressWarnings(
-      gridlevel_df <-  aggregate(panels, by = list(panels$grid, panels$year), FUN = mean, drop = TRUE)[c("grid", "treat", "post", "year","defor", "garea")]
+      gridlevel_df <-  aggregate(panels, by = list(panels$year, panels$grid), FUN = mean, drop = TRUE)[c("grid", "treat", "post", "year","defor", "garea")]
     )
     
     gridlevel_df <- gridlevel_df[order(gridlevel_df$grid, gridlevel_df$year),]
@@ -219,11 +222,10 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
   names(coeff_bias)[6] <- paste("wcounty")
   suppressWarnings(cbias <- melt(coeff_bias, value.name = "bias"))
   
-  
-  gridplot <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
+  plot <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
     geom_density(alpha = .2) +
     guides(fill=guide_legend(title=NULL))+
-    scale_fill_discrete(breaks=c("ugrid", "wgrid"), labels=c("grid", "weighted grid"))+
+    scale_fill_discrete(breaks=c("ugrid", "uproperty", "ucounty", "wgrid", "wproperty", "wcounty"), labels=c("grid", "property", "county", "weighted grid", "weighted property", "weighted county"))+
     geom_vline(xintercept = 0, linetype = "dashed")+
     geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
     #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
@@ -232,40 +234,19 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
                                     ", RMSE:", round(rmse(actual, coeff_bias$ugrid), digits = 4), "\n", 
                                     "Mean weighted grid:", round(mean(coeff_bias$wgrid), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$wgrid), digits = 4), "\n", 
-                                    ) 
-    )
-  
-  propertyplot <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
-    geom_density(alpha = .2) +
-    guides(fill=guide_legend(title=NULL))+
-    scale_fill_discrete(breaks=c("uproperty", "wproperty"), labels=c("property", "weighted property"))+
-    geom_vline(xintercept = 0, linetype = "dashed")+
-    geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
-    #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
-    theme(plot.caption = element_text(hjust = 0.5))+
-    labs(x= "Bias", caption = paste("Mean property:", round(mean(coeff_bias$uproperty), digits = 4),
+                                    "Mean property:", round(mean(coeff_bias$uproperty), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$uproperty), digits = 4),"\n",
                                     "Mean weighted property:", round(mean(coeff_bias$wproperty), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$wproperty), digits = 4),"\n",
-                                   ) 
-    )
-  
-  countyplot <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
-    geom_density(alpha = .2) +
-    guides(fill=guide_legend(title=NULL))+
-    scale_fill_discrete(breaks=c("ucounty","wcounty"), labels=c("county", "weighted county"))+
-    geom_vline(xintercept = 0, linetype = "dashed")+
-    geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
-    #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
-    theme(plot.caption = element_text(hjust = 0.5))+
-    labs(x= "Bias", caption = paste("Mean county:", round(mean(coeff_bias$ucounty), digits = 4),
+                                    "Mean county:", round(mean(coeff_bias$ucounty), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$ucounty), digits = 4),"\n", 
                                     "Mean weighted county:", round(mean(coeff_bias$wcounty), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$wcounty), digits = 4)
                                     ) 
     )
   
-  outputs = list("gridplot" = gridplot, "propertyplot" = propertyplot, "countyplot" = countyplot, "biases" = coeff_bias)
+ 
+  outputs = list("plot" = plot, "biases" = coeff_bias)
   return(outputs)
   
   #end function  
