@@ -22,8 +22,8 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
                    - (pnorm(b0+b2, 0, (std_a^2+std_v^2+std_p^2)^.5) - pnorm(b0, 0, (std_a^2+std_v^2+std_p^2)^.5)) )
   
   pixloc <- pixloc_df[order(pixloc_df$pixels),]
-  covermat <- matrix(nrow = n, ncol = 6)
-  coeffmatrix <- matrix(nrow = n, ncol = 3)
+  #covermat <- matrix(nrow = n, ncol = 6)
+  coeffmatrix <- matrix(nrow = n, ncol = 6)
   
   for(i in 1:n){
     tic("loop")
