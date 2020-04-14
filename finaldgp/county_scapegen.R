@@ -23,6 +23,7 @@ county_scapegen <- function(nobs, cellsize, ppoints, cpoints){
     latitude= (rep(1:rootn, each= rootn) - .33)
   ) 
   
+  #create sf object by assigning long lat coordinates as geometry
   pixloc_df <- st_as_sf(DT, coords = c("longitude", "latitude"))
   
   #generate voronoi pts for 
@@ -63,7 +64,8 @@ county_scapegen <- function(nobs, cellsize, ppoints, cpoints){
   
   
   # determine which pixels are treated vs. untreated
-  pixloc_df <- inner_join(pixloc_df, treatcounty, by = "county")
+  pixloc_df <- pixloc_df %>%
+    inner_join(treatcounty, by = "county")
   
   #getting areas for properies and counties
   pareas <- data.frame(matrix(unlist(st_area(v_property))))
@@ -86,9 +88,10 @@ county_scapegen <- function(nobs, cellsize, ppoints, cpoints){
   
   #merging back areas
 
-  areas <- inner_join(pixloc_df, gareas, by = "grid")
-  c_areas <- inner_join(areas, careas, by = "county")
-  pixloc_df <- inner_join(c_areas, pareas, by = "property")
+  pixloc_df <- pixloc_df %>%
+    inner_join(gareas, by = "grid") %>%
+    inner_join(careas, by = "county") %>%
+    inner_join(pareas, by = "property")
 
   outputs = list('pixloc_df' = pixloc_df)
   return(outputs)
