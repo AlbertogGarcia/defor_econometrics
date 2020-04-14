@@ -21,7 +21,7 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
   
   pixloc <- pixloc_df[order(pixloc_df$pixels),]
   
-  coeffmatrix <- matrix(nrow = n, ncol = 2)
+  coeffmatrix <- matrix(nrow = n, ncol = 4)
   
   for(i in 1:n){
     tic("loop")
@@ -65,10 +65,11 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     panels$defor <- ifelse(panels$indic > 0 , 1, panels$y)
     panels <- subset(panels, select = -c(indic))
     
-    panels$pixels <- gsub("(?<![0-9])0+", "", panels$pixels, perl = TRUE)
+    panels$pixels <- as.numeric(gsub("(?<![0-9])0+", "", panels$pixels, perl = TRUE))
     
     
-    panels <- merge(pixloc, panels, by = c("pixels", "treat"))
+    panels <- panels %>%
+      inner_join(pixloc, by = c("pixels", "treat"))
     
     
     # aggregate up to county in each year 
@@ -76,17 +77,13 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
       gridlevel_df <-  aggregate(panels, by = list(panels$grid, panels$treat, panels$year), FUN = mean, drop = TRUE)[c("grid", "treat", "post", "year","defor")]
     )
     
-    
-    
-    
-    
     gridlevel_df <- gridlevel_df[order(gridlevel_df$grid, gridlevel_df$year),]
-    gridlevel_df <- slide(gridlevel_df, Var = "defor", GroupVar = "grid", NewVar = "deforlag",
-                          slideBy = -1, reminder = FALSE)
     
-    ##### creating forested share variable #####
-    gridlevel_df$forshare <- 1 -  gridlevel_df$defor
-    gridlevel_df$forsharelag <- 1 -  gridlevel_df$deforlag
+    
+    gridlevel_df <- gridlevel_df %>%
+      slide(Var = "defor", GroupVar = "grid", NewVar = "deforlag", slideBy = -1, reminder = FALSE) %>%
+      mutate(forshare = (1-defor)) %>%
+      mutate(forsharelag = (1-deforlag))
     
     #### create baseline defor and forshare vars 
     #county level
@@ -94,19 +91,21 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     colnames(year1)[colnames(year1)=="defor"] <- "defor0"
     year1 <- subset(year1, select = c(grid, defor0))
     #st_geometry(year1) <- NULL
-    gridlevel_df <-  merge(gridlevel_df, year1, by = "grid")
-    
-    gridlevel_df$forshare0 <- 1 -  gridlevel_df$defor0
+    gridlevel_df <-  gridlevel_df %>%
+      inner_join( year1, by = "grid") %>%
+      mutate(forshare0 = (1 - defor0))
     
     #generate outcome var
-    gridlevel_df$deforrate1 <- ((gridlevel_df$forsharelag- gridlevel_df$forshare) / gridlevel_df$forsharelag)
     
-    gridlevel_df$deforrate2 <- gridlevel_df$defor / gridlevel_df$forshare0
+    gridlevel_df <- gridlevel_df %>%
+      mutate(deforrate1 = (forsharelag - forshare) / forsharelag) %>%
+      mutate(deforrate2 = (forsharelag - forshare) / forshare0) %>%
+      mutate(deforrate3 = (forshare0 - forshare) / forshare0)
+      
     
     #remove any infinite values
-    gridlevel_df <- subset(gridlevel_df, select = -c(geometry))
-    gridlevel_df <- 
-      gridlevel_df %>% 
+    #gridlevel_df <- subset(gridlevel_df, select = -c(geometry))
+    gridlevel_df <- gridlevel_df %>% 
       filter_all(all_vars(!is.infinite(.)))
     
     # run two-way fixed effects with outcome 1 
@@ -124,6 +123,20 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
                             index  = c("grid", "year")
     )$coefficients - ATT
     
+    coeffmatrix[i,3] <- plm(deforrate3 ~  post*treat, 
+                            data   = gridlevel_df, 
+                            method = "within", #fixed effects model
+                            effect = "twoway", #grid and year fixed effects
+                            index  = c("grid", "year")
+    )$coefficients - ATT
+    
+    coeffmatrix[i,4] <- plm(forshare ~  post*treat + forsharelag, 
+                            data   = gridlevel_df, 
+                            method = "within", #fixed effects model
+                            effect = "twoway", #grid and year fixed effects
+                            index  = c("grid", "year")
+    )$coefficients[2] - ATT
+    
     print(i)
     toc()
   }
@@ -133,13 +146,15 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
   actual <- rep(ATT, times = n)
   names(coeff_bias)[1] <- paste("outcome1")
   names(coeff_bias)[2] <- paste("outcome2")
+  names(coeff_bias)[3] <- paste("outcome3")
+  names(coeff_bias)[4] <- paste("outcome4")
   suppressWarnings(cbias <- melt(coeff_bias, value.name = "bias"))
   
   
   plot <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
     geom_density(alpha = .2) +
     guides(fill=guide_legend(title=NULL))+
-    scale_fill_discrete(breaks=c("outcome1", "outcome2"), labels=c("outcome 1", "outcome 2"))+
+    scale_fill_discrete(breaks=c("outcome1", "outcome2", "outcome3", "outcome4"), labels=c("outcome 1", "outcome 2", "outcome 3", "outcome 4"))+
     geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
     geom_vline(xintercept = 0, linetype = "dashed")+
     #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
@@ -147,7 +162,12 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     labs(x= "Bias", caption = paste("Outcome 1 Mean:", round(mean(coeff_bias$outcome1), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$outcome1), digits = 4), "\n", 
                                     "Outcome 2 Mean:", round(mean(coeff_bias$outcome2), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$outcome2), digits = 4) ) 
+                                    ", RMSE:", round(rmse(actual, coeff_bias$outcome2), digits = 4), "\n",
+                                    "Outcome 3 Mean:", round(mean(coeff_bias$outcome3), digits = 4),
+                                    ", RMSE:", round(rmse(actual, coeff_bias$outcome3), digits = 4), "\n",
+                                    "Outcome 4 Mean:", round(mean(coeff_bias$outcome4), digits = 4),
+                                    ", RMSE:", round(rmse(actual, coeff_bias$outcome4), digits = 4)
+                                    ) 
     )
   
   

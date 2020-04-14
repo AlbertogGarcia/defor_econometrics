@@ -54,7 +54,7 @@ std_a = .1
 std_v = 0.25
 years = 3
 nobs = 10000
-n = 500
+n = 100
 
 
 cellsize = 15
@@ -82,7 +82,7 @@ where the mapping from the latent to observed variable $y_{it}$ is
 
 
 
-The treatment variable is generated according to $D_i \sim bernoulli(.5)$. The period in which the treatment is implemented is denoted $t_0$. The pixel specific parameter is generated according to $\alpha_i \sim N(0, \sigma^2_a)$ and the error term is generated according to $u_{it} \sim N(0, \sigma^2_u)$\\
+The treatment variable is generated according to $D_i \sim bernoulli(.5)$. The period in which the treatment is implemented is denoted $t_0$. The pixel specific parameter is generated according to $\alpha_i \sim N(0, \sigma^2_a)$ and the error term is generated according to $u_{it} \sim N(0, \sigma^2_u)$
 
 
 
@@ -134,14 +134,14 @@ twowayFE$plot
 
 We can show that in the case where the binary outcome is dropped in periods after the outcome is realized as a 1, two-way fixed effects regressions typically do not identify the ATT, but the ATT + the group difference. 
 
-pf/
+pf:
 
 Consider the regression
 $$ y_{it}=\alpha+\eta d2_t+\tau w_{it}+c_i+u_{it}, \text{ for } t=1,2 $$
 
-$y_{it}$ is the binary outcome; $w_{it}$ is a dummy equal to 1 when unit $i$ is treated in time $t$; $d2_t$ is a dummy for the second time period; $c_i$ is an observed effect for unit i\\
+$y_{it}$ is the binary outcome; $w_{it}$ is a dummy equal to 1 when unit $i$ is treated in time $t$; $d2_t$ is a dummy for the second time period; $c_i$ is an observed effect for unit i.
 
-Jones and Lewis (2015) advise to drop unit $i$ in periods $t+1,..., T$ when $y_{it}=1$\\
+Jones and Lewis (2015) advise to drop unit $i$ in periods $t+1,..., T$ when $y_{it}=1$.
 
 In the two period case, we have 
 $$ y_{i1}=\alpha+\tau w_{i1}+c_i+u_{i1}$$
@@ -176,7 +176,7 @@ Coming back to the general expression,
    \end{cases}
 \]
 
-(NAN - $(\alpha+\tau w_{i1}+c_i+u_{i1})$ is NAN)\\
+(NAN - $(\alpha+\tau w_{i1}+c_i+u_{i1})$ is NAN)
 
 We have that with binary $w_{i2}$
 \begin{align*}
@@ -185,7 +185,7 @@ We have that with binary $w_{i2}$
 
 , where $n_{ST}$ and $n_{SU}$ are the number of surviving treated and untreated units such that $y_{i1}=0$, respectively. 
 
-Note: Since this captures where $y_{i1}=0$, we have $\frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i1}=0$ and $\frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i1}=0$   \\
+Note: Since this captures where $y_{i1}=0$, we have $\frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i1}=0$ and $\frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i1}=0$ 
 
 Then,   
 
@@ -225,8 +225,11 @@ We now aggregate to the grid level. Below, we see the bias introduced by using d
  \hline
  number & outcome & additional covariates & model type & paper \\ 
  \hline
- 1 & $\frac{F_{it-1} - F_{it}}{F_{it-1}} $ & & Two-way FE  &\\ 
- 2 & $\frac{F_{i0} - F_{it}}{F_{i0}} $ &  & Two-way FE &\\ 
+ 1 & $\frac{F_{it-1} - F_{it}}{F_{it-1}} $ & & Two-way FE& Busch et al. 2015; Carlson et al. 2018 \\ 
+ 2 & $\frac{F_{i0} - F_{it}}{F_{i0}} $ &  & Two-way FE & Pfaff 1999
+\\ 
+ 3 & $\frac{F_{it-1} - F_{it}}{F_{i0}} $& & Two-way FE & \\ 
+ 4 & $F_{it}$ & $F_{it-1}$ & Two-way FE & \\
  \hline
 \end{tabular}
 \end{center}
