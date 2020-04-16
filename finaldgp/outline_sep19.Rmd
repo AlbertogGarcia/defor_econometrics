@@ -36,7 +36,7 @@ source('grid_scapegen.R')
 source('outcome_comparison.R')
 source('county_scapegen.R')
 source('county_sims.R')
-source('clustercover.R')
+source('aggregation_method.R')
 source('weightingarea.R')
 
 ```
@@ -46,22 +46,39 @@ source('weightingarea.R')
 Define universal parameters
 ```{r parameters}
 set.seed(930)
-b0 = .05
-b1 = -0.1
-b2 = -0.2
-b3 = .16
-std_a = .1
-std_v = 0.25
+b0 = .25
+b1 = -.5
+b2 = .5
+b3 = -1
+std_a = .2
+std_v = 0.5
 years = 3
 nobs = 10000
 n = 100
 
 
-cellsize = 15
+cellsize = 10
 ppoints = 75
-std_p = .2
+std_p = 0.2
 
 cpoints = 20
+
+# b0 = .05
+# b1 = -0.1
+# b2 = -0.2
+# b3 = .16
+# std_a = .1
+# std_v = 0.25
+# years = 3
+# nobs = 10000
+# n = 100
+# 
+# 
+# cellsize = 10
+# ppoints = 75
+# std_p = .2
+# 
+# cpoints = 20
 ```
 
 # DGP
@@ -106,7 +123,7 @@ ATT =& E[y_{it}(1) - y_{it}(0) |  t>t_0, D_i=1]\\
 We begin by allowing the outcome to vary between 0 and 1 across time periods.  We see a slight bias in the DID estimates of the ATT. This result stems from the fact that the DID estimand does not identify the ATT with the given DGP. 
 
 
-```{r DIDy, results='hide'}
+```{r DIDy, results='hide', warning = FALSE}
 DID_y <- quickmontey(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y")
 DID_y$plot
 ```
@@ -114,7 +131,7 @@ DID_y$plot
 
 We will now drop pixels in the periods after they first become deforested. The DID estimates are still biased here. It appears that the sign of the bias does not change, while the bias worsens slightly. 
 
-```{r DIDy_it, results='hide'}
+```{r DIDy_it, results='hide', warning = FALSE}
 DID_yit <- quickmontey(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y_it")
 DID_yit$plot
 ```
@@ -125,7 +142,7 @@ We'll now address the use of two-way fixed effects and the dropping of observati
 
 This may vary in certain cases. If the DID estimand identifies something very far from the ATT, we can imagine that the DID dropping obs may actually generate more bias than the other methods. 
 
-```{r FE, results='hide'}
+```{r FE, results='hide', warning = FALSE}
 twowayFE <- binary_coeffdist_fcn(n, nobs, years, b0, b1, b2, b3, std_a, std_v)
 twowayFE$plot
 ```
@@ -206,7 +223,7 @@ Then,
 ## functional form test (logit, probit, vs. DID)
 
 
-```{r functionalforms, results='hide'}
+```{r functionalforms, results='hide', warning = FALSE}
 functionalform <- funcform(n, nobs, years, b0, b1, b2, b3, std_a, std_v)
 functionalform$plot
 ```
@@ -234,7 +251,7 @@ We now aggregate to the grid level. Below, we see the bias introduced by using d
 \end{tabular}
 \end{center}
 
-```{r outcomes, results='hide'}
+```{r outcomes, results='hide', warning = FALSE}
 outcomes <- outcome_comparison(n, nobs, years, b0, b1, b2, b3, std_a, std_v, cellsize)
 outcomes$plot
 ```
@@ -245,31 +262,12 @@ outcomes$plot
 Moving forward, we use the first outcome from above, as it generated the least bias. We consider three possible aggregation methods: county, property, and grid level in order to look at the distribution of the estimates. At this point we also introduce property level perturbations into the DGP. The property level aggregation leads to the least bias in this case, however the distributions appear to be relatively similar for all three levels of aggregation. 
 
 ```{r aggregate, results = 'hide', warning=FALSE}
-countycoverage <- clustercover(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
-countycoverage$plot
+aggregation <- aggregation_method(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+aggregation$plot
+
+# countycoverage <- clustercover(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+# countycoverage$plot
 ```
-
-
-## Coverage based on aggregation and standard error
-
-We consider three possible aggregation methods: county, property, and grid level. We then compute the coverage probability of the ATT with a 95% CI. We first cluster standard errors at the group level and then, simply use White standard errors for comparison.
-
-Property level aggregation also leads to roughly the expected coverage, while the county and grid level aggregation results in under coverage. It is unclear how much of the issue is related to the bias rather than the standard errors themselves. The coverage seems to be the same whether we cluster the standard errors at the group level or simply use White standard errors. 
-
-\begin{center}
-\begin{tabular}{ |c|c|c| } 
- \hline
- level of aggregation & std. errors & coverage probability\\ 
- \hline
- grid & clustered at grid & `r countycoverage$grid_clustercover` \\
- property & clustered at property & `r countycoverage$prop_clustercover` \\
- county & clustered at county & `r countycoverage$county_clustercover` \\
- grid & white & `r countycoverage$grid_cover` \\
- property & white & `r countycoverage$prop_cover` \\
- county & white & `r countycoverage$county_cover` \\
- \hline
-\end{tabular}
-\end{center}
 
 
 ## Weighting the regression
@@ -284,4 +282,28 @@ weighting$plot
 ```
 
 
+## Coverage based on aggregation and standard error
 
+We consider three possible aggregation methods: county, property, and grid level. We then compute the coverage probability of the ATT with a 95% CI. We first cluster standard errors at the group level and then, simply use White standard errors for comparison.
+
+Property level aggregation also leads to roughly the expected coverage, while the county and grid level aggregation results in under coverage. It is unclear how much of the issue is related to the bias rather than the standard errors themselves. The coverage seems to be the same whether we cluster the standard errors at the group level or simply use White standard errors. 
+
+
+
+\begin{center}
+\begin{tabular}{ |c|c|c| } 
+ \hline
+ level of aggregation & std. errors & coverage probability\\ 
+ \hline
+ grid & clustered at grid & `r weighting$grid_clustercover` \\
+ property & clustered at property & `r weighting$prop_clustercover` \\
+ county & clustered at county & `r weighting$county_clustercover` \\
+ grid & classical & `r weighting$grid_cover` \\
+ property & classical & `r weighting$prop_cover` \\
+ weighted county & classical & `r weighting$county_cover` \\
+ weighted grid & classical & `r weighting$wgrid_cover` \\
+ weighted property & classical & `r weighting$wprop_cover` \\
+ weighted county & classical & `r weighting$wcounty_cover` \\
+ \hline
+\end{tabular}
+\end{center}

@@ -13,7 +13,7 @@ library(tictoc)
 source('county_scapegen.R')
 
 #begin function
-weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, std_p = .1, cellsize, ppoints, cpoints){
+aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, std_p = .1, cellsize, ppoints, cpoints){
   
   countyscape = county_scapegen(nobs, cellsize, ppoints, cpoints)
   pixloc_df = countyscape$pixloc_df
@@ -22,10 +22,8 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
                    - (pnorm(b0+b2, 0, (std_a^2+std_v^2+std_p^2)^.5) - pnorm(b0, 0, (std_a^2+std_v^2+std_p^2)^.5)) )
   
   pixloc <- pixloc_df[order(pixloc_df$pixels),]
-  
-  covermat <- matrix(nrow = n, ncol = 9)
 
-  coeffmatrix <- matrix(nrow = n, ncol = 6)
+  coeffmatrix <- matrix(nrow = n, ncol = 3)
   
   for(i in 1:n){
     tic("loop")
@@ -81,7 +79,7 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
     panels <- panels %>%
       mutate(indic = year - defor_year) %>%
       mutate(defor = ifelse(indic > 0, 1, y)
-      )
+             )
     
     # aggregate up to county in each year 
     suppressWarnings(
@@ -178,121 +176,40 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
                 index  = c("county", "year")
     )
     
-    DID4 <- plm(deforrate ~  post*treat, 
-                data   = gridlevel_df, 
-                weights=(gridlevel_df$garea),
-                method = "within", #fixed effects model
-                effect = "twoway", #property and year fixed effects
-                index  = c("grid", "year")
-    )
-    
-    # run two-way fixed effects with outcome 1 
-    DID5 <- plm(deforrate ~  post*treat, 
-                data   = proplevel_df, 
-                weights=(proplevel_df$parea),
-                method = "within", #fixed effects model
-                effect = "twoway", #property and year fixed effects
-                index  = c("property", "year")
-    )
-    
-    DID6 <- plm(deforrate ~  post*treat, 
-                data   = countylevel_df, 
-                weights=(countylevel_df$carea),
-                method = "within", #fixed effects model
-                effect = "twoway", #county and year fixed effects
-                index  = c("county", "year")
-    )
-    
     #calculating bias from each aggregation method
     coeffmatrix[i,1] <- DID1$coefficients - ATT
     coeffmatrix[i,2] <- DID2$coefficients - ATT
     coeffmatrix[i,3] <- DID3$coefficients - ATT
     
-    coeffmatrix[i,4] <- DID4$coefficients - ATT
-    coeffmatrix[i,5] <- DID5$coefficients - ATT
-    coeffmatrix[i,6] <- DID6$coefficients - ATT
     
-    #calculating standard errors and whether att is within CI
-    cluster_se1    <- sqrt(diag(vcovHC(DID1, type = "HC0", cluster = "group")))
-    cluster_se2    <- sqrt(diag(vcovHC(DID2, type = "HC0", cluster = "group")))
-    cluster_se3    <- sqrt(diag(vcovHC(DID3, type = "HC0", cluster = "group")))
-    covermat[i,1] <- between(ATT, DID1$coefficients - 1.96 * cluster_se1, DID1$coefficients + 1.96 * cluster_se1)*1
-    covermat[i,2] <- between(ATT, DID2$coefficients - 1.96 * cluster_se2, DID2$coefficients + 1.96 * cluster_se2)*1
-    covermat[i,3] <- between(ATT, DID3$coefficients - 1.96 * cluster_se3, DID3$coefficients + 1.96 * cluster_se3)*1
-    
-    se1 <- sqrt(DID1$vcov)
-    se2 <- sqrt(DID2$vcov)
-    se3 <- sqrt(DID3$vcov)
-    covermat[i,4] <- between(ATT, DID1$coefficients - 1.96 * se1, DID1$coefficients + 1.96 * se1)*1
-    covermat[i,5] <- between(ATT, DID2$coefficients - 1.96 * se2, DID2$coefficients + 1.96 * se2)*1
-    covermat[i,6] <- between(ATT, DID3$coefficients - 1.96 * se3, DID3$coefficients + 1.96 * se3)*1
-    
-    se4 <- sqrt(DID4$vcov)
-    se5 <- sqrt(DID5$vcov)
-    se6 <- sqrt(DID6$vcov)
-    covermat[i,7] <- between(ATT, DID4$coefficients - 1.96 * se4, DID4$coefficients + 1.96 * se4)*1
-    covermat[i,8] <- between(ATT, DID5$coefficients - 1.96 * se5, DID5$coefficients + 1.96 * se5)*1
-    covermat[i,9] <- between(ATT, DID6$coefficients - 1.96 * se6, DID6$coefficients + 1.96 * se6)*1
-    
-   
     print(i)
     toc()
   }
   
   coeff_bias <- as.data.frame(coeffmatrix)
   actual <- rep(ATT, times = n)
-  names(coeff_bias)[1] <- paste("ugrid")
-  names(coeff_bias)[2] <- paste("uproperty")
-  names(coeff_bias)[3] <- paste("ucounty")
-  names(coeff_bias)[4] <- paste("wgrid")
-  names(coeff_bias)[5] <- paste("wproperty")
-  names(coeff_bias)[6] <- paste("wcounty")
+  names(coeff_bias)[1] <- paste("grid")
+  names(coeff_bias)[2] <- paste("property")
+  names(coeff_bias)[3] <- paste("county")
   suppressWarnings(cbias <- melt(coeff_bias, value.name = "bias"))
   
   plot <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
     geom_density(alpha = .2) +
     guides(fill=guide_legend(title=NULL))+
-    scale_fill_discrete(breaks=c("ugrid", "uproperty", "ucounty", "wgrid", "wproperty", "wcounty"), labels=c("grid", "property", "county", "weighted grid", "weighted property", "weighted county"))+
+    scale_fill_discrete(breaks=c("grid", "property", "county"), labels=c("aggregated to grids", "aggregated to properties", "aggregated to counties"))+
     geom_vline(xintercept = 0, linetype = "dashed")+
     geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
     #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
     theme(plot.caption = element_text(hjust = 0.5))+
-    labs(x= "Bias", caption = paste("Mean grid:", round(mean(coeff_bias$ugrid), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$ugrid), digits = 4), "\n", 
-                                    "Mean weighted grid:", round(mean(coeff_bias$wgrid), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$wgrid), digits = 4), "\n", 
-                                    "Mean property:", round(mean(coeff_bias$uproperty), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$uproperty), digits = 4),"\n",
-                                    "Mean weighted property:", round(mean(coeff_bias$wproperty), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$wproperty), digits = 4),"\n",
-                                    "Mean county:", round(mean(coeff_bias$ucounty), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$ucounty), digits = 4),"\n", 
-                                    "Mean weighted county:", round(mean(coeff_bias$wcounty), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$wcounty), digits = 4)
-                                    ) 
+    labs(x= "Bias", caption = paste("Mean grid:", round(mean(coeff_bias$grid), digits = 4),
+                                    ", RMSE:", round(rmse(actual, coeff_bias$grid), digits = 4), "\n", 
+                                    "Mean property:", round(mean(coeff_bias$property), digits = 4),
+                                    ", RMSE:", round(rmse(actual, coeff_bias$property), digits = 4),"\n",
+                                    "Mean county:", round(mean(coeff_bias$county), digits = 4),
+                                    ", RMSE:", round(rmse(actual, coeff_bias$county), digits = 4) ) 
     )
   
-  grid_clustercover <- mean(covermat[,1]) 
-  prop_clustercover <- mean(covermat[,2])
-  county_clustercover <- mean(covermat[,3])  
-  
-  grid_cover <- mean(covermat[,4]) 
-  prop_cover <- mean(covermat[,5])
-  county_cover <- mean(covermat[,6]) 
-  
-  wgrid_cover <- mean(covermat[,7]) 
-  wprop_cover <- mean(covermat[,8])
-  wcounty_cover <- mean(covermat[,9])
-  
-  
-  
- 
-  outputs = list("plot" = plot, "biases" = coeff_bias, 
-                 "grid_cover" = grid_cover, "prop_cover" = prop_cover, "county_cover" = county_cover, 
-                 "grid_clustercover" = grid_clustercover, "prop_clustercover" = prop_clustercover, "county_clustercover" = county_clustercover, 
-                 "wgrid_cover" = wgrid_cover, "wprop_cover" = wprop_cover, "wcounty_cover" = wcounty_cover
-                 )
-  
+  outputs = list("plot" = plot, "biases" = coeff_bias)
   return(outputs)
   
   #end function  
