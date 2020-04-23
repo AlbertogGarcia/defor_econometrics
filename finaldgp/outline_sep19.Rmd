@@ -46,42 +46,28 @@ source('weightingarea.R')
 Define universal parameters
 ```{r parameters}
 set.seed(930)
-b0 = .25
-b1 = -.5
-b2 = .5
-b3 = -1
-std_a = .2
-std_v = 0.5
+
+base_0 <- .1
+base_1 <- .15
+trend <- .03
+ATT <- -.09
+
+std_a = .1
+std_v = 0.25
 years = 3
 nobs = 10000
 n = 100
 
-
 cellsize = 10
-ppoints = 75
+ppoints = 50
 std_p = 0.2
-
 cpoints = 20
 
-# b0 = .05
-# b1 = -0.1
-# b2 = -0.2
-# b3 = .16
-# std_a = .1
-# std_v = 0.25
-# years = 3
-# nobs = 10000
-# n = 100
-# 
-# 
-# cellsize = 10
-# ppoints = 75
-# std_p = .2
-# 
-# cpoints = 20
 ```
 
 # DGP
+
+
 
 The initial data generating process as follows:
 
@@ -122,6 +108,16 @@ ATT =& E[y_{it}(1) - y_{it}(0) |  t>t_0, D_i=1]\\
 
 We begin by allowing the outcome to vary between 0 and 1 across time periods.  We see a slight bias in the DID estimates of the ATT. This result stems from the fact that the DID estimand does not identify the ATT with the given DGP. 
 
+```{r generating beta parameters, results='hide', warning = FALSE}
+
+std_av = (std_a^2+std_v^2)^.5
+b0 = qnorm(base_0, mean = 0, sd = std_av)
+b1 = qnorm(base_1, mean = 0, sd = std_av) - b0
+b2 = qnorm(trend + base_0, mean = 0, sd = std_av) - b0
+b3 = qnorm( pnorm(b0+b1+b2, mean = 0, sd = std_av) + ATT , mean = 0, sd = std_av) - (b0 + b1 + b2)
+
+```
+
 
 ```{r DIDy, results='hide', warning = FALSE}
 DID_y <- quickmontey(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y")
@@ -138,9 +134,7 @@ DID_yit$plot
 
 ## two-way fixed effects vs. simple DID
 
-We'll now address the use of two-way fixed effects and the dropping of observations in the periods after pixels are first observed as deforested. The magnitude of the bias is smallest using the basic DID. The bias is negative when using the 2way FE dropping deforested obs and when using either the DID or 2way FE keeping obs. Note that the DID and 2way fixed effects estimates are identical when observations are not dropped. As we show in our proof, in the general case, using 2 way fixed effects dropping the observations yields the ATT plus the difference between the treated and untreated groups. The DID on the other hand should identify the ATT. 
-
-This may vary in certain cases. If the DID estimand identifies something very far from the ATT, we can imagine that the DID dropping obs may actually generate more bias than the other methods. 
+We'll now address the use of two-way fixed effects and the dropping of observations in the periods after pixels are first observed as deforested. The magnitude of the bias is smallest using the basic DID. Note that the DID and 2way fixed effects estimates are identical when observations are not dropped. As we show in our proof, in the general case, using 2 way fixed effects dropping the observations yields the ATT plus the difference between the treated and untreated groups. The DID on the other hand should identify the ATT. 
 
 ```{r FE, results='hide', warning = FALSE}
 twowayFE <- binary_coeffdist_fcn(n, nobs, years, b0, b1, b2, b3, std_a, std_v)
@@ -228,14 +222,14 @@ functionalform <- funcform(n, nobs, years, b0, b1, b2, b3, std_a, std_v)
 functionalform$plot
 ```
 
-The above plot shows the DID bias depending on functional form decisions. Interestingly, in our case the magnitude of the bias is fairly similar using each of the three methods. The probit seems to outperform the logit slightly. The sign does differs between the probit/logit and DID estimates however. 
+The above plot shows the DID bias depending on functional form decisions. 
 
 
 # Aggregating pixels
 
 ## various outcomes wheen aggregating
 
-We now aggregate to the grid level. Below, we see the bias introduced by using different outcome variables and specifications commonly used in the literature. (Need a table here to show the different outcomes and will want to cite different papers that use these outcomes. Currently only two outcomes are being used in this function)
+We now aggregate to the grid level. Below, we see the bias introduced by using different outcome variables and specifications commonly used in the literature. (Need a table here to show the different outcomes and will want to cite different papers that use these outcomes)
 
 \begin{center}
 \begin{tabular}{ |c|c|c|c|c| } 
@@ -259,7 +253,19 @@ outcomes$plot
 
 ## aggregating to county, property, and grid levels
  
-Moving forward, we use the first outcome from above, as it generated the least bias. We consider three possible aggregation methods: county, property, and grid level in order to look at the distribution of the estimates. At this point we also introduce property level perturbations into the DGP. The property level aggregation leads to the least bias in this case, however the distributions appear to be relatively similar for all three levels of aggregation. 
+Moving forward, we use the first outcome from above, as it generated the least bias. We consider three possible aggregation methods: county, property, and grid level in order to look at the distribution of the estimates. At this point we also introduce property level perturbations into the DGP. 
+
+```{r generating parameters with std_p, results = 'hide', warning=FALSE}
+
+std_avp = (std_a^2 + std_v^2 + std_p)^.5
+b0 = qnorm(base_0, mean = 0, sd = std_avp)
+b1 = qnorm(base_1, mean = 0, sd = std_avp) - b0
+b2 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
+b3 = qnorm( pnorm(b0+b1+b2, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2)
+
+```
+
+
 
 ```{r aggregate, results = 'hide', warning=FALSE}
 aggregation <- aggregation_method(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
@@ -272,9 +278,7 @@ aggregation$plot
 
 ## Weighting the regression
 
-Interestingly, we note that upon weighting the regression aggregated to the property level, the distribution is significantly wider. This also appears to happen with the regression aggregated to the county level, but not nearly to the same extent. Weighting the regression aggregated to the grid level has almost no impact. This makes intuitive sense, since the grids are all of equal size. 
-
-Weighting the regression results in less bias at the property level, but the difference is negligible at the county and grid level. We see a larger impact of weighting the regressions in the property and county cases, because there is more area heterogeneity across units. 
+Interestingly, we note that upon weighting the regression aggregated to the property level, the distribution is significantly wider. This also appears to happen with the regression aggregated to the county level, but not nearly to the same extent. Weighting the regression aggregated to the grid level has almost no impact. This makes intuitive sense, since the grids are all of equal size. We see a larger impact of weighting the regressions in the property and county cases, because there is more area heterogeneity across units. 
 
 ```{r weighting, results='hide', warning=FALSE}
 weighting <- weightingarea(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
