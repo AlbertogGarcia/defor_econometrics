@@ -53,7 +53,7 @@ base_0 = .08
 base_1 = .12
 #trend = .00
 trend = .02
-ATT = -.07
+ATT = -.05
 
 std_a = .1
 std_v = 0.2
