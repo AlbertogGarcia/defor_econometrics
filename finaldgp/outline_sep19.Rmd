@@ -1,5 +1,5 @@
 ---
-title: "deforestaion econometrics results outline"
+title: "deforestation econometrics results outline"
 #author: "Alberto Garcia"
 #date: "September 3, 2019"
 #updated: "October 1, 2019"
@@ -39,6 +39,8 @@ source('county_sims.R')
 source('aggregation_method.R')
 source('weightingarea.R')
 
+source('xy_ATT.R')
+
 ```
 \sectionfont{\fontsize{11}{11}\selectfont}
 \subsectionfont{\fontsize{11}{11}\selectfont}
@@ -47,66 +49,25 @@ Define universal parameters
 ```{r parameters}
 set.seed(930)
 
-base_0 <- .1
-base_1 <- .15
-trend <- .03
-ATT <- -.09
+base_0 = .08
+base_1 = .12
+#trend = .00
+trend = .02
+ATT = -.07
 
 std_a = .1
-std_v = 0.25
+std_v = 0.2
 years = 3
 nobs = 10000
 n = 100
 
 cellsize = 10
 ppoints = 50
-std_p = 0.2
+std_p = 0.15
 cpoints = 20
 
 ```
 
-# DGP
-
-
-
-The initial data generating process as follows:
-
-We generate the latent variable $$ y^*_{it} = \beta_0 + \beta_1 \mathbbm{1}\{  D_i = 1  \} +\beta_2 \mathbbm{1}\{  t \geq t_0  \} +\beta_3 \mathbbm{1}\{  D_i = 1  \} \mathbbm{1}\{  t \geq t_0  \} + \alpha_i +u_{it}, $$
-
-where the mapping from the latent to observed variable $y_{it}$ is
-
-
-
-\[ y_{it} = \begin{cases} 
-      1 & y^*_{it} > 0  \\
-      0 & else
-   \end{cases}
-\]
-
-
-
-The treatment variable is generated according to $D_i \sim bernoulli(.5)$. The period in which the treatment is implemented is denoted $t_0$. The pixel specific parameter is generated according to $\alpha_i \sim N(0, \sigma^2_a)$ and the error term is generated according to $u_{it} \sim N(0, \sigma^2_u)$
-
-
-
-Note:
-\begin{align*}
-ATT =& E[y_{it}(1) - y_{it}(0) |  t>t_0, D_i=1]\\
-=& E[ y_{it}(1) |  t>t_0, D_i=1] - E[y_{it}(0) |  t>t_0, D_i=1]\\
-=& P(y_{it}(1) = 1 | t>t_0, D_i=1) - P(y_{it}(0) = 1 | t>t_0, D_i=1)\\
-=& P(y_{it}^*(1) >0 | t>t_0, D_i=1) - P(y_{it}^*(0) >0 | t>t_0, D_i=1)\\
-=& P(\beta_0 + \beta_1 +\beta_2 +\beta_3 + \alpha_i +u_{it} > 0) - P(\beta_0 + \beta_1 +\beta_2 + \alpha_i +u_{it} > 0)\\
-=& P(-\alpha_i -u_{it} < \beta_0 + \beta_1 +\beta_2 +\beta_3) - P(-\alpha_i -u_{it} < \beta_0 + \beta_1 +\beta_2)\\
-=& F(\beta_0 + \beta_1 +\beta_2 +\beta_3) - F(\beta_0 + \beta_1 +\beta_2)
-\end{align*}
-
-, Where $F()$ is the CDF of a $N(0, \sigma^2_a + \sigma^2_u)$
-
-# DID and functional forms
-
-## initial DID estimates
-
-We begin by allowing the outcome to vary between 0 and 1 across time periods.  We see a slight bias in the DID estimates of the ATT. This result stems from the fact that the DID estimand does not identify the ATT with the given DGP. 
 
 ```{r generating beta parameters, results='hide', warning = FALSE}
 
@@ -117,19 +78,149 @@ b2 = qnorm(trend + base_0, mean = 0, sd = std_av) - b0
 b3 = qnorm( pnorm(b0+b1+b2, mean = 0, sd = std_av) + ATT , mean = 0, sd = std_av) - (b0 + b1 + b2)
 
 ```
+# DGP
 
+## Setting initial parameters
+
+The researcher sets the following four parameters:
+
+\begin{align*}
+baseline_0 &= E[y_{it}(0) |  t<t_0, D_i=0]\\
+baseline_1 &= E[y_{it}(0) |  t<t_0, D_i=1]\\
+trend &= E[y_{it}(0) |  t\geq t_0, D_i=0] - E[y_{it}(0) |  t<t_0, D_i=0]\\
+ATT &= E[y_{it}(1) - y_{it}(0) |  t\geq t_0, D_i=1]\\
+\end{align*}
+
+Note the following constraints on the parameters:
+\begin{align*}
+E[y_{it}(0) |  t \geq t_0, D_i=0] \geq 0\\
+E[y_{it}(1) |  t \geq t_0, D_i=1] \geq 0
+\end{align*}
+
+The initial DGP is now as follows. We define the latent variable, $y^*_{it}$,
+\begin{align*}
+y^*_{it} = \beta_0 + \beta_1 \mathbbm{1}\{  D_i = 1  \} +\beta_2 \mathbbm{1}\{  t \geq t_0  \} +\beta_3 \mathbbm{1}\{  D_i = 1  \} \mathbbm{1}\{  t \geq t_0  \} + \alpha_i +u_{it}
+\end{align*}
+, where the $\beta$ coefficients are derived from the four parameters assigned by the researcher. 
+
+The treatment variable is generated according to $D_i \sim bernoulli(.5)$. The period in which the treatment is implemented is denoted $t_0$. The pixel specific parameter is generated according to $\alpha_i \sim N(0, \sigma^2_a)$ and the error term is generated according to $u_{it} \sim N(0, \sigma^2_u)$. 
+
+The mapping from the latent to observed variable $y_{it}$ is
+
+\[ y_{it} = \begin{cases} 
+      1 & y^*_{it} > 0  \\
+      0 & else
+   \end{cases}
+\]
+
+## parameter to $\beta$ coefficient mapping
+
+\begin{align*}
+ATT =& E[y_{it}(1) - y_{it}(0) |  t\geq t_0, D_i=1] \\
+=& E[ y_{it}(1) |  t\geq t_0, D_i=1] - E[y_{it}(0) |  t\geq t_0, D_i=1]\\
+=& P(y_{it}(1) = 1 | t\geq t_0, D_i=1) - P(y_{it}(0) = 1 | t\geq t_0, D_i=1)\\
+=& P(y_{it}^* (1) >0 | t\geq t_0, D_i=1) - P(y_{it}^*(0) >0 | t\geq t_0, D_i=1)\\
+=& P(\beta_0 + \beta_1 +\beta_2 +\beta_3 + \alpha_i +u_{it} > 0) - P(\beta_0 + \beta_1 +\beta_2 + \alpha_i +u_{it} > 0)\\
+=& P(-\alpha_i -u_{it} < \beta_0 + \beta_1 +\beta_2 +\beta_3) - P(-\alpha_i -u_{it} < \beta_0 + \beta_1 +\beta_2)\\
+=& F(\beta_0 + \beta_1 +\beta_2 +\beta_3) - F(\beta_0 + \beta_1 +\beta_2)
+\end{align*}
+
+
+\begin{align*}
+trend =& E[y_{it}(0) |  t\geq t_0, D_i=0] - E[y_{it}(0) |  t<t_0, D_i=0]\\
+=& P(y_{it}(0)=1 |  t\geq t_0, D_i=0) - P(y_{it}(0)=1 |  t<t_0, D_i=0)\\
+=& P(y^*_{it}(0)>0 |  t\geq t_0, D_i=0) - P(y^*_{it}(0)>0 |  t<t_0, D_i=0)\\
+=& P(-\alpha_i -u_{it} < \beta_0 +\beta_2) - P(-\alpha_i -u_{it} < \beta_0 )\\
+=& F(\beta_0 + \beta_2) - F(\beta_0)
+\end{align*}
+
+\begin{align*}
+baseline_0 =& E[y_{it}(0) |  t<t_0, D_i=0]\\
+=& P(y_{it}(0)=1 |  t< t_0, D_i=0)\\
+=& P(y^*_{it}(0)>0 | t<t_0, D_i=0)\\
+=& P(-\alpha_i -u_{it} < \beta_0 ) \\
+=& F(\beta_0)
+\end{align*}
+
+\begin{align*}
+baseline_1 =& E[y_{it}(0) |  t<t_0, D_i=1]\\
+=& P(y_{it}(0)=1 |  t< t_0, D_i=1)\\
+=& P(y^*_{it}(0)>0 | t<t_0, D_i=1)\\
+=& P(-\alpha_i -u_{it} < \beta_0 +\beta_1) \\
+=& F(\beta_0+\beta_1)
+\end{align*}
+
+
+, Where $F()$ is the CDF of a $N(0, \sigma^2_a + \sigma^2_u)$
+
+
+
+## solving for the $\beta$ coefficients
+
+solving for $\beta_0$
+\begin{align*}
+baseline_0= F(\beta_0) \\
+\Leftrightarrow \\
+\beta_0 = F^{-1}(baseline_0)
+\end{align*}
+
+solving for $\beta_1$
+\begin{align*}
+baseline_1= F(\beta_0 + \beta_1) \\
+\Leftrightarrow \\
+\beta_1 = F^{-1}(baseline_1) - \beta_0
+\end{align*}
+
+solving for $\beta_2$
+\begin{align*}
+trend= F(\beta_0 + \beta_2 ) - F(\beta_0) \\
+\Leftrightarrow \\
+trend + baseline_0 =F( \beta_0 + \beta_2)\\
+\Leftrightarrow \\
+F^{-1}(trend + baseline_0 ) =\beta_0 + \beta_2\\
+\Leftrightarrow \\
+\beta_2 = F^{-1}(trend + baseline_0 ) - \beta_0 
+\end{align*}
+
+solving for $\beta_3$
+\begin{align*}
+ATT= F(\beta_0 + \beta_1 +\beta_2 +\beta_3) - F(\beta_0 + \beta_1 +\beta_2)\\
+\Leftrightarrow \\
+ATT + F(\beta_0 + \beta_1 +\beta_2) = F(\beta_0 + \beta_1 +\beta_2 +\beta_3) \\
+\Leftrightarrow \\
+F^{-1}(ATT + F(\beta_0 + \beta_1 +\beta_2) )= \beta_0 + \beta_1 +\beta_2 +\beta_3\\
+\Leftrightarrow \\
+\beta_3 = F^{-1}(ATT + F(\beta_0 + \beta_1 +\beta_2) )- (\beta_0 + \beta_1 +\beta_2)\\
+\end{align*}
+
+
+# DID and functional forms
+
+## initial DID estimates
 
 ```{r DIDy, results='hide', warning = FALSE}
 DID_y <- quickmontey(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y")
-DID_y$plot
+
 ```
 
+We begin by allowing the outcome to vary between 0 and 1 across time periods.  We see a slight bias in the DID estimates of the ATT when there exist both a time trend and a group difference in the baseline deforestation rates. This result stems from the fact that the DID estimand does not identify the ATT with the nonlinearity introduced in the DGP. The bias generated is on average `r mean(DID_y$did_biases$V1)`, which represents a bias of `r abs(DID_y$prop_ATT)*100` \% of the ATT. 
 
-We will now drop pixels in the periods after they first become deforested. The DID estimates are still biased here. It appears that the sign of the bias does not change, while the bias worsens slightly. 
+```{r DIDyplot, results='hide', warning = FALSE}
+DID_y$plot
+
+```
 
 ```{r DIDy_it, results='hide', warning = FALSE}
 DID_yit <- quickmontey(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y_it")
+
+```
+
+We will now drop pixels in the periods after they first become deforested. The DID estimates are still biased here. It appears that the sign of the bias does not change, while the bias worsens slightly. The bias generated is `r mean(DID_yit$did_biases$V1)`, which represents `r abs(DID_yit$prop_ATT)*100`\% of the ATT. 
+
+```{r DIDy_it plot, results='hide', warning = FALSE}
+
 DID_yit$plot
+
 ```
 
 ## two-way fixed effects vs. simple DID
@@ -271,8 +362,6 @@ b3 = qnorm( pnorm(b0+b1+b2, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_a
 aggregation <- aggregation_method(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
 aggregation$plot
 
-# countycoverage <- clustercover(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
-# countycoverage$plot
 ```
 
 
@@ -311,3 +400,16 @@ Property level aggregation also leads to roughly the expected coverage, while th
  \hline
 \end{tabular}
 \end{center}
+
+
+```{r xy plot ATT, results = 'hide', warning=FALSE}
+min_ATT = -.12
+max_ATT = .12
+
+ATT_bias <- xy_ATT(50, nobs, years, min_ATT, max_ATT, base_0, base_1, trend, std_a, std_v, "y_it")
+
+
+ATT_bias$plot
+
+  
+```

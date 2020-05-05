@@ -21,6 +21,8 @@ binary_coeffdist_fcn <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, st
     panels = dgp_results$panels
     ATT = dgp_results$ATT
     DID_estimand = dgp_results$DID_estimand
+    
+    DIFF <- pnorm(b0+b1, 0, (std_a^2+std_v^2)^.5) - pnorm(b0, 0, (std_a^2+std_v^2)^.5)
 
     # run DID dropping deforested pixels
     coeffmatrix[i,1]  <- lm(y_it ~  post*treat, 
@@ -65,11 +67,9 @@ binary_coeffdist_fcn <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, st
     geom_density(data = b_coeff , aes(x = V2), alpha = .2, fill="#FF6655") +
     geom_density(data = b_coeff , aes(x = V3), alpha = .2, fill="#0000CC") +
     geom_density(data = b_coeff , aes(x = V4), alpha = .2, fill="#0000CC") +
-    # geom_vline(data = b_coeff, xintercept = mean(b_coeff$V1),linetype = "dashed")+
-    # geom_vline(data = b_coeff, xintercept = mean(b_coeff$V2),linetype = "dashed")+
-    # geom_vline(data = b_coeff, xintercept = mean(b_coeff$V3),linetype = "dashed")+
     geom_vline(data = b_coeff, xintercept = 0, linetype = "dashed")+
-    geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
+    geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), color ="green", linetype="dashed")+
+    geom_vline(aes(xintercept= (DIFF), color="2way FE bias from group DIFF"), linetype="dashed", color = "red")+
     theme(plot.caption = element_text(hjust = 0.5))+
     labs(x= "Bias", title = "Bias with binary outcome", caption = paste("The mean and RMSE are:", "\n", "DID dropping obs:", round(colMeans(coeffmatrix)[1], digits = 4),"RMSE:",round(rmse(actual, coeffmatrix[1]), digits = 5), "\n", 
                                                                         "2way FE dropping obs:", round(colMeans(coeffmatrix)[2], digits = 4), "RMSE:",round(rmse(actual, coeffmatrix[2]), digits = 5), "\n",  
