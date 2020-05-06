@@ -49,7 +49,7 @@ xy_ATT <- function(n, nobs, years, min_ATT, max_ATT, base_0, base_1, trend, std_
   
   
   plot <- ggplot(data = bias_df, aes(x = ATT_vals, y = V1)) + 
-    geom_line(aes(x = ATT_vals, y = V1), color = "purple", size =1) +
+    geom_line(aes(x = ATT_vals, y = V1, color = "DID bias"), color = "purple", size =1) +
     #geom_line(aes(x = ATT_vals, y = prop, ymin = 0.001), color = "yellow", size =1) +
     #geom_line(aes(x = ATT_vals, y = prop, ymax = -.001), color = "yellow", size =1) +
     labs(x = "ATT", y = "Bias", caption = paste("Bias as a function of ATT")) + 

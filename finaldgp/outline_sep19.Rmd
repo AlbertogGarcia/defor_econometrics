@@ -40,6 +40,7 @@ source('aggregation_method.R')
 source('weightingarea.R')
 
 source('xy_ATT.R')
+source('xy_agg_ATT.R')
 
 ```
 \sectionfont{\fontsize{11}{11}\selectfont}
@@ -53,7 +54,7 @@ base_0 = .08
 base_1 = .12
 #trend = .00
 trend = .02
-ATT = -.05
+ATT = -.06
 
 std_a = .1
 std_v = 0.2
@@ -403,13 +404,18 @@ Property level aggregation also leads to roughly the expected coverage, while th
 
 
 ```{r xy plot ATT, results = 'hide', warning=FALSE}
-min_ATT = -.12
-max_ATT = .12
+min_ATT = -.1
+max_ATT = .1
 
-ATT_bias <- xy_ATT(50, nobs, years, min_ATT, max_ATT, base_0, base_1, trend, std_a, std_v, "y_it")
-
+ATT_bias <- xy_ATT(n, nobs, years, min_ATT, max_ATT, base_0, base_1, trend, std_a, std_v, "y_it")
 
 ATT_bias$plot
+  
+```
 
+```{r xy agg plot ATT, results = 'hide', warning=FALSE}
+ATTagg_bias <- xy_agg_ATT(30, nobs, years, min_ATT, max_ATT, base_0, base_1, trend, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+
+ATTagg_bias$plot
   
 ```
