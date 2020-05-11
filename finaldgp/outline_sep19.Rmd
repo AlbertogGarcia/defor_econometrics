@@ -41,6 +41,7 @@ source('weightingarea.R')
 
 source('xy_ATT.R')
 source('xy_agg_ATT.R')
+source('xy_proppert.R')
 
 ```
 \sectionfont{\fontsize{11}{11}\selectfont}
@@ -52,8 +53,8 @@ set.seed(930)
 
 base_0 = .08
 base_1 = .12
-#trend = .00
-trend = .02
+trend = .00
+#trend = .02
 ATT = -.06
 
 std_a = .1
@@ -63,7 +64,7 @@ nobs = 10000
 n = 100
 
 cellsize = 10
-ppoints = 50
+ppoints = 40
 std_p = 0.15
 cpoints = 20
 
@@ -419,3 +420,16 @@ ATTagg_bias <- xy_agg_ATT(30, nobs, years, min_ATT, max_ATT, base_0, base_1, tre
 ATTagg_bias$plot
   
 ```
+
+```{r xy prop_err plot, results = 'hide', warning=FALSE}
+
+min_std_p = 0
+max_std_p = .21
+interval = .03
+
+p_err_bias <- xy_proppert(30, nobs, years, ATT, base_0, base_1, trend, std_a, std_v, min_std_p, max_std_p, interval, cellsize, ppoints, cpoints)
+
+p_err_bias$plot
+  
+```
+
