@@ -1,0 +1,51 @@
+---
+title: "Practical guidance for conservation impact evaluation using remotely sensed data"
+author: "Albert Garcia and Robert Heilmayr"
+date: "April 22, 2020"
+output: html_document
+bibliography: '../references.bib'
+
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(ggplot2)
+
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Abstract
+Conservation science needs more rigorous evidence measuring the effectiveness of proposed policy interventions. In response, scientists are increasingly combining methods of impact evaluation with remotely sensed data on land use change to assess conservation effectiveness. Here we review this burgeoning literature to develop practical guidance for the design of econometric models quantifying conservation policy effectiveness. Using Monte Carlo simulations, we demonstrate that many of the models employed for conservation impact evaluation suffer from significant bias. This bias threatens to undermine the evidence base that is increasingly used to inform conservation policy adoption. We provide clear guidance to help scientists minimize the bias of their impact evaluations by carefully designing the structure of their econometric model, their unit of observation and their method and scale of data aggregation.
+
+## Introduction
+* Multiple calls to action to improve evidence base surrounding underlying drivers of environmental degradation, as well as policies that could have an impact. Much of this literature emphasizes use of quasi-experimental methods to isolate causal relations from observational data [@baylis2016a; @butsicQuasiexperimentalMethodsEnable2017; @ferraro2009; @ferraro2019; @meyfroidt2016; @williamsFutureRoleConservation]
+* Remotely sensed measurements of deforestation / land use change are particularly well suited for these purposes [@blackman2013; @jones2015]
+* Proliferation of data and packages make these analyses relatively easy [@hansen2013] 
+* Lots of emerging papers - show plot highlighting trends? Add several examples of diversity of applications.
+* However, many of the remotely sensed metrics used in these applications have structural differences from traditional applications of causal inference. Careful attention must be placed on the design of econometric models to ensure that estimated effects are unbiased [@jain2020]
+* Here we demonstrate that many of the econometric models used in this growing literature are likely biased - significance, magnitude and even direction of estimated effects might be incorrect 
+* Based on a review of the existing literature, we identify key model design decisions that researchers need to make. 
+* Using Monte Carlo simulations, we illustrate ways in which researchers can minimize the bias resulting from their analyses.
+
+
+## Methods
+
+### Literature review
+
+### Monte Carlo simulation
+
+
+## Results
+
+### Unit of analysis
+
+### Functional form
+
+### Calculating deforestation rates
+
+## Discussion
+
+
+## Acknowledgements and data
+
+## References
