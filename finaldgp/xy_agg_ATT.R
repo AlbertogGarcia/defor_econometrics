@@ -189,8 +189,8 @@ xy_agg_ATT <- function(n, nobs, years, min_ATT, max_ATT, base_0, base_1, trend, 
       
       #calculating bias from each aggregation method
       gridmatrix[i,place] <- DID1$coefficients - ATT
-      countymatrix[i,place] <- DID2$coefficients - ATT
-      propertymatrix[i,place] <- DID3$coefficients - ATT
+      countymatrix[i,place] <- DID3$coefficients - ATT
+      propertymatrix[i,place] <- DID2$coefficients - ATT
       
     }
     print(k)

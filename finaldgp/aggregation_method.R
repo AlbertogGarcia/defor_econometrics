@@ -23,24 +23,24 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
   
   pixloc <- pixloc_df[order(pixloc_df$pixels),]
 
-  coeffmatrix <- matrix(nrow = n, ncol = 3)
+  coeffmatrix <- matrix(nrow = n, ncol = 4)
   
   for(i in 1:n){
     tic("loop")
     Nobs <- length(pixloc$treat)  
     panels <- fabricate(
-      pixels = add_level(N = Nobs, a_i = rnorm(N, 0, std_a), treat = pixloc$treat),
+      pixels = add_level(N = Nobs, a_i = rnorm(N, 0, sd = std_a), treat = pixloc$treat),
       year = add_level(N = (years*2), nest = FALSE),
       obs = cross_levels(
         by = join(pixels, year),
         post = ifelse(year > years, 1, 0),
-        v_it = rnorm(N, 0, std_v),
+        v_it = rnorm(N, 0, sd = std_v),
         ystar = b0 + b1*treat + b2*post + b3*treat*post + a_i + v_it
       )
     )
     
     #generate random 
-    error_table <- data.frame(property = as.character(unique(pixloc$property)), p_err = rnorm(length(unique(pixloc$property)), 0, std_p))
+    error_table <- data.frame(property = as.character(unique(pixloc$property)), p_err = rnorm(length(unique(pixloc$property)), 0, sd = std_p))
     
     panels$pixels <- gsub("(?<![0-9])0+", "", panels$pixels, perl = TRUE)
     
@@ -78,8 +78,10 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     
     panels <- panels %>%
       mutate(indic = year - defor_year) %>%
-      mutate(defor = ifelse(indic > 0, 1, y)
-             )
+      mutate(defor = ifelse(indic > 0, 1, y)) %>%
+      mutate(y_it = ifelse(indic > 0, NA, y) )        
+               
+             
     
     # aggregate up to county in each year 
     suppressWarnings(
@@ -176,10 +178,15 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
                 index  = c("county", "year")
     )
     
+    DID4 <- lm(y_it ~  post*treat, 
+                data   = panels
+    )
+    
     #calculating bias from each aggregation method
     coeffmatrix[i,1] <- DID1$coefficients - ATT
     coeffmatrix[i,2] <- DID2$coefficients - ATT
     coeffmatrix[i,3] <- DID3$coefficients - ATT
+    coeffmatrix[i,4] <- DID4$coefficients[4] - ATT
     
     
     print(i)
@@ -191,12 +198,13 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
   names(coeff_bias)[1] <- paste("grid")
   names(coeff_bias)[2] <- paste("property")
   names(coeff_bias)[3] <- paste("county")
+  names(coeff_bias)[4] <- paste("pixel")
   suppressWarnings(cbias <- melt(coeff_bias, value.name = "bias"))
   
   plot <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
     geom_density(alpha = .2) +
     guides(fill=guide_legend(title=NULL))+
-    scale_fill_discrete(breaks=c("grid", "property", "county"), labels=c("aggregated to grids", "aggregated to properties", "aggregated to counties"))+
+    scale_fill_discrete(breaks=c("grid", "property", "county", "pixel"), labels=c("aggregated to grids", "aggregated to properties", "aggregated to counties", "pixel"))+
     geom_vline(xintercept = 0, linetype = "dashed")+
     geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
     #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
@@ -206,7 +214,9 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
                                     "Mean property:", round(mean(coeff_bias$property), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$property), digits = 4),"\n",
                                     "Mean county:", round(mean(coeff_bias$county), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$county), digits = 4) ) 
+                                    ", RMSE:", round(rmse(actual, coeff_bias$county), digits = 4), "\n",
+                                    "Mean pixel:", round(mean(coeff_bias$pixel), digits = 4),
+                                    ", RMSE:", round(rmse(actual, coeff_bias$pixel), digits = 4)) 
     )
   
   outputs = list("plot" = plot, "biases" = coeff_bias)

@@ -23,7 +23,7 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
   
   pixloc <- pixloc_df[order(pixloc_df$pixels),]
   
-  covermat <- matrix(nrow = n, ncol = 9)
+  covermat <- matrix(nrow = n, ncol = 10)
 
   coeffmatrix <- matrix(nrow = n, ncol = 6)
   
@@ -80,8 +80,8 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
     
     panels <- panels %>%
       mutate(indic = year - defor_year) %>%
-      mutate(defor = ifelse(indic > 0, 1, y)
-      )
+      mutate(defor = ifelse(indic > 0, 1, y))%>%
+      mutate(y_it = ifelse(indic > 0, NA, y))
     
     # aggregate up to county in each year 
     suppressWarnings(
@@ -186,6 +186,10 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
                 index  = c("grid", "year")
     )
     
+    DID7 <- lm(y_it ~  post*treat, 
+                data   = panels) 
+               
+    
     # run two-way fixed effects with outcome 1 
     DID5 <- plm(deforrate ~  post*treat, 
                 data   = proplevel_df, 
@@ -223,9 +227,11 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
     se1 <- sqrt(DID1$vcov)
     se2 <- sqrt(DID2$vcov)
     se3 <- sqrt(DID3$vcov)
+    se7 <- sqrt(diag(vcovHC(DID7)))[4]
     covermat[i,4] <- between(ATT, DID1$coefficients - 1.96 * se1, DID1$coefficients + 1.96 * se1)*1
     covermat[i,5] <- between(ATT, DID2$coefficients - 1.96 * se2, DID2$coefficients + 1.96 * se2)*1
     covermat[i,6] <- between(ATT, DID3$coefficients - 1.96 * se3, DID3$coefficients + 1.96 * se3)*1
+    covermat[i,10] <- between(ATT, DID7$coefficients[4] - 1.96 * se7, DID7$coefficients[4] + 1.96 * se7)*1
     
     se4 <- sqrt(DID4$vcov)
     se5 <- sqrt(DID5$vcov)
@@ -284,8 +290,7 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
   wprop_cover <- mean(covermat[,8])
   wcounty_cover <- mean(covermat[,9])
   
-  
-  
+  pix_cover <- mean(covermat[,10]) 
  
   outputs = list("plot" = plot, "biases" = coeff_bias, 
                  "grid_cover" = grid_cover, "prop_cover" = prop_cover, "county_cover" = county_cover, 

@@ -148,13 +148,16 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
   names(coeff_bias)[2] <- paste("outcome2")
   names(coeff_bias)[3] <- paste("outcome3")
   names(coeff_bias)[4] <- paste("outcome4")
-  suppressWarnings(cbias <- melt(coeff_bias, value.name = "bias"))
+
+  cbias <- coeff_bias %>%
+    select(outcome1, outcome2, outcome3)
   
+  suppressWarnings(cbias <- melt(cbias, value.name = "bias"))
   
   plot <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
     geom_density(alpha = .2) +
     guides(fill=guide_legend(title=NULL))+
-    scale_fill_discrete(breaks=c("outcome1", "outcome2", "outcome3", "outcome4"), labels=c("outcome 1", "outcome 2", "outcome 3", "outcome 4"))+
+    scale_fill_discrete(breaks=c("outcome1", "outcome2", "outcome3"), labels=c("outcome 1", "outcome 2", "outcome 3"))+
     geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
     geom_vline(xintercept = 0, linetype = "dashed")+
     #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
@@ -164,9 +167,9 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
                                     "Outcome 2 Mean:", round(mean(coeff_bias$outcome2), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$outcome2), digits = 4), "\n",
                                     "Outcome 3 Mean:", round(mean(coeff_bias$outcome3), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$outcome3), digits = 4), "\n",
-                                    "Outcome 4 Mean:", round(mean(coeff_bias$outcome4), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$outcome4), digits = 4)
+                                    ", RMSE:", round(rmse(actual, coeff_bias$outcome3), digits = 4)#, "\n",
+                                    #"Outcome 4 Mean:", round(mean(coeff_bias$outcome4), digits = 4),
+                                    #", RMSE:", round(rmse(actual, coeff_bias$outcome4), digits = 4)
                                     ) 
     )
   

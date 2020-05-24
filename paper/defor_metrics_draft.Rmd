@@ -32,16 +32,69 @@ Conservation science needs more rigorous evidence measuring the effectiveness of
 
 ### Literature review
 
+### Panel estimators
+Panel data settings, in which units are observed repeatedly through time, greatly facilitate the measurement of treatment effects [@blackman2013]. Two methods in particular are often used to measure the ATT in impact evaluations with panel data settings: Difference-in-Differences (DID) and Two-way Fixed Effects (FE) regression models.  
+
+The typical DID regression model includes a dummy equal to one for units in the treatment group, a dummy equal to one for observations in the period after the intenvention, and their interaction. 
+
+FE regression models are often used to apply DID methods to multiple groups or time periods. This amounts to estimating a regression that controls for unit and time fixed effects. Intuitively, this can be thought of as including a dummy variable for each unit of analysis and each time period. The fixed effects account for any unubservable confounding variables that may vary across units or through time. In the case of two groups and two time periods, the FE regression should give an estimate equivalent to that of the DID model. Because FE regression models are used to generalize the DID method, they are used in a wider variety of settings. For example, a setting in which several municipalities undergo treatment in more than two distinct time periods may be amenable to an FE regression, but not the standard DID method. 
+
 ### Monte Carlo simulation
+
+To study how choices pertaining to model selection influence estimates of conservation program effectiveness, we employ a set of Monte Carlo simulations to generate and analyze data. To begin, consider a setting in which a policy is implemented to reduce deforestation at a discrete point in time. The researcher observes treatment and control units in two time periods, before and after the implementation of the policy. Forest cover outcome data is obtained at the pixel resolution, where pixels are determined to either be forested or deforested for a given time period.
+
+The data generating process underlying our Monte Carlo simulations begins with the assignment of four parameters: The pre-treatment period deforestation rate for untreated units, $baseline_0$; the pre-treatment period deforestation rate for treated units, $baseline_1$; the difference in the deforestation rate between the period in which the treatment has been implemented and the pre-treatment period for the untreated units, $trend$; and lastly, the average treatment effect of the policy on the treated units, $ATT$. The ATT is the parameter that the researcher is interested in uncovering. It represents the reduction in the deforestation rate in treated units resulting from the policy. 
+
+We then define the latent variable,
+\begin{align*}
+y^*_{it} = \beta_0 + \beta_1 \mathbbm{1}\{  D_i = 1  \} +\beta_2 \mathbbm{1}\{  t \geq t_0  \} +\beta_3 \mathbbm{1}\{  D_i = 1  \} \mathbbm{1}\{  t \geq t_0  \} + \alpha_i +u_{it}
+\end{align*}
+The $\beta$ coefficients are derived from the above four parameters assigned by the researcher (see appendix 1). The treatment variable, $D_i$, is equal to 1 when pixel $i$ is treated. The period in which the treatment is implemented is denoted $t_0$. The pixel specific parameter is generated according to $\alpha_i \sim N(0, \sigma^2_a)$ and the error term is generated according to $u_{it} \sim N(0, \sigma^2_u)$. 
+
+The mapping from the latent to observed variable $y_{it}$ is
+
+\[ y_{it} = \begin{cases} 
+      1 & y^*_{it} > 0  \\
+      0 & else
+   \end{cases}
+\]
+
+Here, the observed outcome variable, $y_{it}$, is equal to 1 if pixel $i$ is observed as deforested in time $t$ and 0 otherwise. This DGP implies that the researcher does not observe the underlying spatial process of deforestation, but instead, a pixelated version according to a forest cover share cutoff. The area represented by a pixel may experience a decline in forest cover, but this deforestation will only be obsered if it pushes the pixel's total forested share below the cutoff. This is representative of most analyses using satellite measures of deforestation. For example, the widely used Hansen et al. (2013) global forest change dataset ...
+
 
 
 ## Results
 
+### Bias inherent to deforestation DGP
+
+Because of the data generating process inherent to remotely sensed metrics of deforestation, there is often some degree of bias. Given our framework, the 
+
+* bias when using DID given latent deforestation is unobserved, cutoff rule to observed variable
+
 ### Unit of analysis
 
+For simplicity, we assume the researcher can choose between four levels at which to aggregate the data: pixel, grid cell, county, and property. The pixel is the level at which the researcher is able to observe the data and is assigned a binary outcome. Grid cells are uniform grids layered over the study area and may not be entiraly treated or untreated. Counties are non-uniform administrative units at which treatment is assigned. Lastly, properties are smaller administrative units within a county. 
+
+Analyses at the pixel level are prevalent in the literature (), and are often promoted in review articles (). The pixel is the level at which the researcher is able to observe the data and is assigned a binary outcome. In the context of deforestation, it is often advised to drop deforested pixels in the periods after they first become deforested. The logic for doing so is as follows. A forested pixel switches from its assigned value of 0 to a value of 1 following a discrete deforestation event. Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested may imply that it has actively been deforested in each subsequent time period. In fact, no new deforestation event has ocurred, but it simply remains deforested from the prior event. Indeed, we see in our Monte Carlo simulations that regression models failing to drop deforested pixels in subsequent periods tend to incur severe bias, while dropping the pixels lessens this bias. 
+
+Despite widespread use of pixel level analyses, it is problematic in the context of FE regression models. In fact, the FE model yields the post-treatment difference in outcomes (single difference), rather than the desired ATT. We provide two forms of evidence to support this claim: (1) an analytical proof and (2) evidence from our Monte Carlo simulations. The result arises from the fact that the FE regression is only able to identify off of pixels that are not dropped in the panel. Thus the pre-treatment period deforestation rates are not accounted for in the FE estimates. 
+
+Since pixel level analyses are not feasible in the context of FE regressions, researchers should be aware of the tradeoffs using aggregated units of analysis. The follwoing results apply to both DID and FE regression models, as both are equivalent in the two-period two-group example. For simplicity, we assume the researcher can choose between three levels at which to aggregate the data: grid cell, county, and property. Grid cells are uniform grids layered over the study area and may have a treatment value between 0 and 1 following aggregation of pixels. Counties are non-uniform administrative units at which treatment is assigned. Lastly, properties are smaller administrative units within a county. 
+
+We find little evidence that any one level of aggregation is consistently preferrable in terms of bias. We therefore consider coverage probability as an additional outcome of interest. This part may be harder to make general statements
+
+Property level unobservables may impact both treatment effect estimates and coverage probability. This is likely to be a factor when land use decisions are made at the property level by the landowner or the policy intervention seeks to alter landowner incentives behind certain land use activities. 
+
+As property level unobservables play a larger role, the treatment of standard errors also becomes more important. 
+
 ### Functional form
+* options: ols, probit, logit, poisson
+* context dependent
+
+Understanding the observed data as well as the underlying DGP is therefore particularly important when it comes to choices of functional form. Factors that may affect a researchers decision are:...
 
 ### Calculating deforestation rates
+* outcome calculations and weighting
 
 ## Discussion
 

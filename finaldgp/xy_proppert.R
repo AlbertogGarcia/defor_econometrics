@@ -22,6 +22,15 @@ xy_proppert <- function(n, nobs, years, ATT, base_0, base_1, trend, std_a = 0.1,
   propertymatrix <- matrix(nrow = n, ncol = length(list))
   pixelmatrix <- matrix(nrow = n, ncol = length(list))
   
+  clustergrid <- matrix(nrow = n, ncol = length(list))
+  clusterprop <- matrix(nrow = n, ncol = length(list))
+  clustercounty <- matrix(nrow = n, ncol = length(list))
+  
+  covergrid <- matrix(nrow = n, ncol = length(list))
+  coverprop <- matrix(nrow = n, ncol = length(list))
+  covercounty <- matrix(nrow = n, ncol = length(list))
+  
+  
   for(k in list){
     tic("loop")
     std_p <- k
@@ -199,9 +208,23 @@ xy_proppert <- function(n, nobs, years, ATT, base_0, base_1, trend, std_a = 0.1,
       
       #calculating bias from each aggregation method
       gridmatrix[i,place] <- DID1$coefficients - ATT
-      countymatrix[i,place] <- DID2$coefficients - ATT
-      propertymatrix[i,place] <- DID3$coefficients - ATT
+      countymatrix[i,place] <- DID3$coefficients - ATT
+      propertymatrix[i,place] <- DID2$coefficients - ATT
       pixelmatrix[i,place] <- DID4$coefficients[4] - ATT
+      
+      cluster_se1    <- sqrt(diag(vcovHC(DID1, type = "HC0", cluster = "group")))
+      cluster_se2    <- sqrt(diag(vcovHC(DID2, type = "HC0", cluster = "group")))
+      cluster_se3    <- sqrt(diag(vcovHC(DID3, type = "HC0", cluster = "group")))
+      clustergrid[i,place] <- between(ATT, DID1$coefficients - 1.96 * cluster_se1, DID1$coefficients + 1.96 * cluster_se1)*1
+      clusterprop[i,place] <- between(ATT, DID2$coefficients - 1.96 * cluster_se2, DID2$coefficients + 1.96 * cluster_se2)*1
+      clustercounty[i,place] <- between(ATT, DID3$coefficients - 1.96 * cluster_se3, DID3$coefficients + 1.96 * cluster_se3)*1
+      
+      se1 <- sqrt(DID1$vcov)
+      se2 <- sqrt(DID2$vcov)
+      se3 <- sqrt(DID3$vcov)
+      covergrid[i,place] <- between(ATT, DID1$coefficients - 1.96 * se1, DID1$coefficients + 1.96 * se1)*1
+      coverprop[i,place] <- between(ATT, DID2$coefficients - 1.96 * se2, DID2$coefficients + 1.96 * se2)*1
+      covercounty[i,place] <- between(ATT, DID3$coefficients - 1.96 * se3, DID3$coefficients + 1.96 * se3)*1
       
     }
     print(k)
@@ -209,24 +232,50 @@ xy_proppert <- function(n, nobs, years, ATT, base_0, base_1, trend, std_a = 0.1,
   }
   
   gridbias_df <- as.data.frame(cbind(colMeans(gridmatrix), p_vals)) 
-  
   countybias_df <- as.data.frame(cbind(colMeans(countymatrix), p_vals)) 
-  
   propbias_df <- as.data.frame(cbind(colMeans(propertymatrix), p_vals)) 
-  
   pixbias_df <- as.data.frame(cbind(colMeans(pixelmatrix), p_vals)) 
   
+  gridcluster_df <- as.data.frame(cbind(colMeans(clustergrid), p_vals)) 
+  countycluster_df <- as.data.frame(cbind(colMeans(clustercounty), p_vals)) 
+  propcluster_df <- as.data.frame(cbind(colMeans(clusterprop), p_vals)) 
+  
+  covergrid_df <- as.data.frame(cbind(colMeans(covergrid), p_vals)) 
+  covercounty_df <- as.data.frame(cbind(colMeans(covercounty), p_vals)) 
+  coverprop_df <- as.data.frame(cbind(colMeans(coverprop), p_vals)) 
   
   plot <- ggplot() + 
-    geom_line(data = gridbias_df, aes(x = p_vals, y = V1, colour="aggregated to grid"), color = "purple", size =1) +
-    geom_line(data = countybias_df, aes(x = p_vals, y = V1, colour="aggregated to county"), color = "green", size =1) +
-    geom_line(data = propbias_df, aes(x = p_vals, y = V1, colour="aggregated to property"), color = "blue", size =1) +
-    geom_line(data = pixbias_df, aes(x = p_vals, y = V1, colour="pixel"), color = "red", size =1) +
+    geom_line(data = gridbias_df, aes(x = p_vals, y = V1, color="aggregated to grid"), size =1) +
+    geom_line(data = countybias_df, aes(x = p_vals, y = V1, color="aggregated to county"), size =1) +
+    geom_line(data = propbias_df, aes(x = p_vals, y = V1, color="aggregated to property"), size =1) +
+    geom_line(data = pixbias_df, aes(x = p_vals, y = V1, color="pixel"), size =1) +
+    scale_color_manual(values = c(
+      'aggregated to grid' = 'green',
+      'aggregated to county' = 'red',
+      'aggregated to property' = 'blue',
+      'pixel' = 'yellow'))+
     labs(x = "property level std. error", y = "Bias", caption = paste("Bias as a function of property perturbations depends on aggregation method")) + 
     geom_hline(yintercept = 0, linetype = "dashed")
   
+  plot2 <- ggplot() + 
+    geom_line(data = gridcluster_df, aes(x = p_vals, y = V1, color = "grid clustered"), size =1, linetype = "dashed") +
+    geom_line(data = countycluster_df, aes(x = p_vals, y = V1, color = "county clustered"), size =1, linetype = "dashed") +
+    geom_line(data = propcluster_df, aes(x = p_vals, y = V1, color = "property clustered"), size =1, linetype = "dashed") +
+    geom_line(data = covergrid_df, aes(x = p_vals, y = V1, color = "grid classical"), size =1) +
+    geom_line(data = covercounty_df, aes(x = p_vals, y = V1, color = "county classical"), size =1) +
+    geom_line(data = coverprop_df, aes(x = p_vals, y = V1, color = "property classical"), size =1) +
+    scale_color_manual(values = c(
+      'grid clustered' = 'green',
+      'county clustered' = 'red',
+      'property clustered' = 'blue',
+      'grid classical' = 'darkgreen',
+      'county classical' = 'darkred',
+      'property classical' = 'darkblue'))+
+    labs(x = "property level std. error", y = "coverage probability", caption = paste("Bias as a function of property perturbations depends on aggregation method")) + 
+    geom_hline(yintercept = 0.95, linetype = "dashed")
   
-  outputs = list("gridbias_df" = gridbias_df, "countybias_df" = countybias_df, "propbias_df" = propbias_df, "pixelbias_df" = pixbias_df, "plot" = plot)
+  
+  outputs = list("plot" = plot, "plot2" = plot2)
   
   return(outputs)
   
