@@ -22,6 +22,9 @@ Conservation science needs more rigorous evidence measuring the effectiveness of
 * Remotely sensed measurements of deforestation / land use change are particularly well suited for these purposes [@blackman2013; @jones2015]
 * Proliferation of data and packages make these analyses relatively easy [@hansen2013] 
 * Lots of emerging papers - show plot highlighting trends? Add several examples of diversity of applications.
+
+** maybe if we want to discuss prevalence or trends, we could choose 5 or so journals to bound the search (conservation letters, plos one, land economics, pnas, jaere)
+
 * However, many of the remotely sensed metrics used in these applications have structural differences from traditional applications of causal inference. Careful attention must be placed on the design of econometric models to ensure that estimated effects are unbiased [@jain2020]
 * Here we demonstrate that many of the econometric models used in this growing literature are likely biased - significance, magnitude and even direction of estimated effects might be incorrect 
 * Based on a review of the existing literature, we identify key model design decisions that researchers need to make. 
@@ -35,9 +38,9 @@ Conservation science needs more rigorous evidence measuring the effectiveness of
 ### Panel estimators
 Panel data settings, in which units are observed repeatedly through time, greatly facilitate the measurement of treatment effects [@blackman2013]. Two methods in particular are often used to measure the ATT in impact evaluations with panel data settings: Difference-in-Differences (DID) and Two-way Fixed Effects (FE) regression models.  
 
-The typical DID regression model includes a dummy equal to one for units in the treatment group, a dummy equal to one for observations in the period after the intenvention, and their interaction. 
+The typical DID regression model includes a dummy equal to one for units in the treatment group, a dummy equal to one for observations in the period after the intervention, and their interaction. Under the common trends assumption, the coefficient on the interaction term represents the ATT. 
 
-FE regression models are often used to apply DID methods to multiple groups or time periods. This amounts to estimating a regression that controls for unit and time fixed effects. Intuitively, this can be thought of as including a dummy variable for each unit of analysis and each time period. The fixed effects account for any unubservable confounding variables that may vary across units or through time. In the case of two groups and two time periods, the FE regression should give an estimate equivalent to that of the DID model. Because FE regression models are used to generalize the DID method, they are used in a wider variety of settings. For example, a setting in which several municipalities undergo treatment in more than two distinct time periods may be amenable to an FE regression, but not the standard DID method. 
+FE regression models are often used to apply DID methods to multiple groups or time periods. This amounts to estimating a regression that controls for unit and time fixed effects. Intuitively, this can be thought of as including a dummy variable for each unit of analysis and each time period. The fixed effects account for any unobservable confounding variables that may vary across units or through time. In the case of two groups and two time periods, the FE regression should give an estimate equivalent to that of the DID model. Because FE regression models are used to generalize the DID method, they are used in a wider variety of settings. For example, a setting in which several municipalities undergo treatment in more than two distinct time periods may be amenable to an FE regression, but not the standard DID method. 
 
 ### Monte Carlo simulation
 
@@ -73,17 +76,15 @@ Because of the data generating process inherent to remotely sensed metrics of de
 
 ### Unit of analysis
 
-For simplicity, we assume the researcher can choose between four levels at which to aggregate the data: pixel, grid cell, county, and property. The pixel is the level at which the researcher is able to observe the data and is assigned a binary outcome. Grid cells are uniform grids layered over the study area and may not be entiraly treated or untreated. Counties are non-uniform administrative units at which treatment is assigned. Lastly, properties are smaller administrative units within a county. 
-
 Analyses at the pixel level are prevalent in the literature (), and are often promoted in review articles (). The pixel is the level at which the researcher is able to observe the data and is assigned a binary outcome. In the context of deforestation, it is often advised to drop deforested pixels in the periods after they first become deforested. The logic for doing so is as follows. A forested pixel switches from its assigned value of 0 to a value of 1 following a discrete deforestation event. Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested may imply that it has actively been deforested in each subsequent time period. In fact, no new deforestation event has ocurred, but it simply remains deforested from the prior event. Indeed, we see in our Monte Carlo simulations that regression models failing to drop deforested pixels in subsequent periods tend to incur severe bias, while dropping the pixels lessens this bias. 
 
-Despite widespread use of pixel level analyses, it is problematic in the context of FE regression models. In fact, the FE model yields the post-treatment difference in outcomes (single difference), rather than the desired ATT. We provide two forms of evidence to support this claim: (1) an analytical proof and (2) evidence from our Monte Carlo simulations. The result arises from the fact that the FE regression is only able to identify off of pixels that are not dropped in the panel. Thus the pre-treatment period deforestation rates are not accounted for in the FE estimates. 
+Despite widespread use of pixel level analyses, they are problematic in the context of FE regression models. In fact, the FE model yields the post-treatment difference in outcomes (single difference), rather than the desired ATT. We provide two forms of evidence to support this claim: (1) an analytical proof and (2) evidence from our Monte Carlo simulations. The result arises from the fact that the FE regression is only able to identify off of pixels that are not dropped in the panel. Thus the pre-treatment period deforestation rates are not accounted for in the FE estimates. 
 
-Since pixel level analyses are not feasible in the context of FE regressions, researchers should be aware of the tradeoffs using aggregated units of analysis. The follwoing results apply to both DID and FE regression models, as both are equivalent in the two-period two-group example. For simplicity, we assume the researcher can choose between three levels at which to aggregate the data: grid cell, county, and property. Grid cells are uniform grids layered over the study area and may have a treatment value between 0 and 1 following aggregation of pixels. Counties are non-uniform administrative units at which treatment is assigned. Lastly, properties are smaller administrative units within a county. 
+Since pixel level analyses are generally not feasible in the context of FE regressions, researchers should be aware of the tradeoffs using aggregated units of analysis. The following results apply to both DID and FE regression models, as both are equivalent in the two-period, two-group example. For simplicity, we assume the researcher can choose between three levels at which to aggregate the data: grid cell, county, and property. Grid cells are uniform grids layered over the study area and may have a treatment value between 0 and 1 following aggregation of pixels. Counties are heterogeneous administrative units at which we now assign the treatment. Lastly, properties are smaller administrative units within a county. 
 
 We find little evidence that any one level of aggregation is consistently preferrable in terms of bias. We therefore consider coverage probability as an additional outcome of interest. This part may be harder to make general statements
 
-Property level unobservables may impact both treatment effect estimates and coverage probability. This is likely to be a factor when land use decisions are made at the property level by the landowner or the policy intervention seeks to alter landowner incentives behind certain land use activities. 
+Property level unobservables may impact both treatment effect estimates and coverage probability. This is likely to be a factor when land use decisions are made at the property level by the landowner or the policy intervention seeks to alter landowner incentives underlying certain land use activities. We introduce an additional error term to the initial DGP that varies at the property level in order to account for these unobservables. 
 
 As property level unobservables play a larger role, the treatment of standard errors also becomes more important. 
 
@@ -95,6 +96,10 @@ Understanding the observed data as well as the underlying DGP is therefore parti
 
 ### Calculating deforestation rates
 * outcome calculations and weighting
+
+Upon aggregating data, the researcher must determine how to calculate deforestation rates in the outcome. With no clear guidance on how this deforestation rate should be computed, there have been a variety of techniques used. We outline some of these methods in Table 1. 
+
+It is also common practice to weight the outcome by the unit's area, particularly when the units of analysis are heterogeneous in size. In our simulations, we find that weighting the regression does not impact the bias of the estimators significantly, however, the distribution of estimates is drastically widened. This may have implications for inference. We find that in cases where the bias is relatively low, it is preferable not to weight the regression, as coverage probability is negatively impacted. 
 
 ## Discussion
 
