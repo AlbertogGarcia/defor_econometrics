@@ -53,21 +53,47 @@ Upon deciding to use DID or FE regression models to estimate the ATT, researcher
 
 * In cases where researchers opt to use a binary outcome, many grapple with the subsequent decision of functional form. 
 
-Lit Table
-* columns: authors, method, unit of analysis, functional form, apparent parameters 
+\begin{table}[h!]
+\begin{tabular}{|c|c|c|c|c|}
+\cline{1-5}
+Authors & Year & Journal & Method & Unit of Analysis  \\ \cline{1-5}
+ Oliviera Fiorini et al. & 2020 & Ecological Economics  & matching and regression & pixel     \\\cline{1-5}
+Blackman  & 2015 & Ecological Economics  & probit regression & pixel    \\ \cline{1-5}
+Baylis et al. & 2015 &  & matching and regression & grid    \\ \cline{1-5}
+Alix-Garcia  & 2018 & Conservation Letters & FE  & pixel  \\ \cline{1-5}
+Busch et al. & 2015 & PNAs & FE & grid  \\ \cline{1-5}
+Alix-Garcia and Gibbs & 2017 & Global Environmental Change & FE  & pixel   \\ \cline{1-5}
+Carlson et al. & 2018 & PNAS & FE poisson  & plantation   \\ \cline{1-5}
+Ruggiero et al. & 2019 & Land Use Policy & matching and DID & property   \\ \cline{1-5}
+Blackman et al. & 2017 & PNAS & FE & community  \\ \cline{1-5}
+Pfaff & 1999  &    &    & county \\ \cline{1-5}
+Sanchez-Azofeifa et al & 2007 &   & OLS   & grid  \\ \cline{1-5}
+Blackman et al. & 2018  &  OLS  &  FE  & forest management unit \\ \cline{1-5}
+&   &    &    &  \\ \cline{1-5}
+&   &    &    &  \\ \cline{1-5}
+&   &    &    &  \\ \cline{1-5}
+&   &    &    &  \\ \cline{1-5}
+&   &    &    &  \\ \cline{1-5}
+&   &    &    &  \\ \cline{1-5}
+&   &    &    &  \\ \cline{1-5}
+&   &    &    &  \\ \cline{1-5}
+&   &    &    &  \\ \cline{1-5}
+
+\end{tabular}
+\end{table} 
 
 
 ### Monte Carlo simulations
 
 To study how choices pertaining to model selection influence estimates of conservation program effectiveness, we employ a set of Monte Carlo simulations to generate and analyze data. To begin, consider a setting in which a policy is implemented to reduce deforestation at a discrete point in time. The researcher observes treatment and control units in two time periods, before and after the implementation of the policy. Forest cover outcome data is obtained at the pixel resolution, where pixels are determined to either be forested or deforested for a given time period.
 
-The data generating process underlying our Monte Carlo simulations begins with the assignment of four parameters: The pre-treatment period deforestation rate for untreated units, $baseline_0$; the pre-treatment period deforestation rate for treated units, $baseline_1$; the difference in the deforestation rate between the period in which the treatment has been implemented and the pre-treatment period for the untreated units, $trend$; and lastly, the average treatment effect of the policy on the treated units, $ATT$. The ATT is the primary parameter the researcher is interested in uncovering. 
+The data generating process underlying our Monte Carlo simulations begins with the assignment of four parameters: The pre-treatment period deforestation rate for untreated units, $baseline_0$; the pre-treatment period deforestation rate for treated units, $baseline_1$; the difference in the deforestation rate between the period in which the treatment has been implemented and the pre-treatment period for the untreated units, $trend$; and lastly, the average treatment effect of the policy on the untreated units, $ATT$. The ATT is the primary parameter the researcher is interested in uncovering. 
 
 We then define the latent variable,
 \begin{align*}
 y^*_{it} = \beta_0 + \beta_1 \mathbbm{1}\{  D_i = 1  \} +\beta_2 \mathbbm{1}\{  t \geq t_0  \} +\beta_3 \mathbbm{1}\{  D_i = 1  \} \mathbbm{1}\{  t \geq t_0  \} + \alpha_i +u_{it}
 \end{align*}
-The $\beta$ coefficients are derived from the above four parameters assigned by the researcher (see appendix 1). The treatment variable, $D_i$, is equal to 1 when pixel $i$ is treated. The period in which the treatment is implemented is denoted $t_0$. The pixel specific parameter is generated according to $\alpha_i \sim N(0, \sigma^2_a)$ and the error term is generated according to $u_{it} \sim N(0, \sigma^2_u)$. 
+The $\beta$ coefficients are derived from the above four parameters assigned by the researcher (see appendix 1). The treatment variable, $D_i$, is equal to 1 when pixel $i$ is treated. The period in which the treatment is implemented is denoted $t_0$. The pixel specific parameter is generated according to $\alpha_i \sim N(0, .1^2)$ and the error term is generated according to $u_{it} \sim N(0, .25^2)$. 
 
 The mapping from the latent to observed variable $y_{it}$ is
 
@@ -83,13 +109,13 @@ Here, the observed outcome variable, $y_{it}$, is equal to 1 if pixel $i$ is obs
 
 ### Set up and evaluation measures
 
-Based on baseline parameters that appeared to be common in the literature, we've selected a guiding example to explore for the remainder of the paper. 
+Based on baseline parameters that appeared to be common in the literature, we've selected a guiding example to explore for the remainder of the paper. We've set $baseline_0 = 0.13$, $baseline_1 = 0.17$, $trend = 0.02$, and lastly, the true $ATT = -0.08$. The primary criteria we use to evaluate different methods are bias and coverage probability. Using our Monte Carlo simulations, we determine bias by computing the difference between the mean of the coefficient estimates and the $ATT$ parameter. Coverage probability is defined as the proportion of simulations in which the $ATT$ lies within a 95\% confidence interval (CI). As such, we would expect the $ATT$ to lie within this CI 95\% of the time, however, factors such as the bias of the estimates, their distribution, and treatment of standard errors may impact coverage. If the estimator is biased, for example, it is ex-ante less likely to contain the true parameter within the CI. 
 
 ### Bias inherent to deforestation DGP
 
-Because of the data generating process inherent to remotely sensed metrics of deforestation as well as our framework, there is often bias. In our DGP, the researcher does not observe the underlying spatial process of deforestation, but instead, a pixelated version according to a forest cover share cutoff. The area represented by a pixel may experience a decline in forest cover, but this deforestation will only be obsered if it pushes the pixel's total forested share below the cutoff. This is representative of most analyses using satellite measures of deforestation. For example, in the widely used Hansen et al. (2013) global forest change dataset, forest loss is defined as a stand-replacement disturbance and disaggregated by reference percent tree cover stratum (e.g. >50% crown cover to 0% crown cover) and by year. This will often result in some degree of bias. The magnitude and direction of this bias depend largely on the $baseline_0$, $baseline_1$, $trend$, and $ATT$ parameters. Understanding at a minimum the direction of the bias this imposes on a researcher's estimates can aid in proper inference. 
+Because of the data generating process inherent to remotely sensed metrics of deforestation as well as our framework, there is often bias. In our DGP, the researcher does not observe the underlying spatial process of deforestation, but instead, a pixelated version according to a forest cover share cutoff. The area represented by a pixel may experience a decline in forest cover, but this deforestation will only be observed if it pushes the pixel's total forested share below the cutoff. This is representative of most analyses using satellite measures of deforestation. For example, in the widely used Hansen et al. (2013) global forest change dataset, forest loss is defined as a stand-replacement disturbance and disaggregated by reference percent tree cover stratum (e.g. >50% crown cover to 0% crown cover) and by year. This will often result in some degree of bias. The magnitude and direction of this bias depend largely on the $baseline_0$, $baseline_1$, $trend$, and $ATT$ parameters. Understanding at a minimum the direction of the bias this imposes on a researcher's estimates can aid in proper inference. 
 
-In Figure..., we can see that the . 
+In Figure 1, we can see this bias in the context of our guiding example. 
 
 * figure allowing outcome to vary between 0 and 1 showing bias
 
@@ -100,18 +126,26 @@ Analyses at the pixel level are prevalent in the literature, as seen in Table 1.
 
 In order to account for these dynamics in the context of deforestation, it has been advised to drop deforested pixels in the periods after they first become deforested. The logic for doing so is as follows. A forested pixel switches from its assigned value of 0 to a value of 1 following a discrete deforestation event. Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested may imply that it has actively been deforested in each subsequent time period. In fact, no new deforestation event has ocurred, but it simply remains deforested from the prior event. Indeed, we see in our Monte Carlo simulations that regression models failing to drop deforested pixels in subsequent periods incur severe bias, while dropping the pixels lessens this bias. 
 
-Figure... demonstrates the magnitude and direction of the bias incurred from keeping deforested pixels in the panel after they are first realized as deforested in the context of our guiding example. We see that the direction of the bias is positive, which aligns with our intuition from above. The positive bias seems to stem from deforested observations in years subsequent to the actual deforestation event contributing to the deforestation rate. As a result, pixels that were drforested prior to the implementation of the policy continued to contribute to the deforestation rate in the post period in both the treatment and control groups.
+Figure 2 demonstrates the magnitude and direction of the bias incurred from keeping deforested pixels in the panel after they are first realized as deforested in the context of our guiding example. We see that the direction of the bias is positive, which aligns with our intuition from above. The positive bias seems to stem from deforested observations in years subsequent to the actual deforestation event contributing to the deforestation rate. As a result, pixels that were deforested prior to the implementation of the policy continued to contribute to the deforestation rate in the post period in both the treatment and control groups.
 * it might be possible to get an expression for this bias
 
-#### Issue with Two-way Fixed Effects 
+
+
+
+#### Issue with FE using pixel unit of analysis
 Despite widespread use of pixel level analyses, they are problematic in the context of FE regression models. In fact, the FE model yields the post-treatment difference in outcomes (single difference), rather than the desired ATT. We provide two forms of evidence to support this claim: (1) an analytical proof and (2) evidence from our Monte Carlo simulations. The result arises from the fact that the FE regression is only able to identify off of pixels that are not dropped in the panel. Thus the pre-treatment period deforestation rates are not accounted for in the FE estimates. 
 
+In Figure 3, we see Monte Carlo Outcomes for four econometric model specifications with a binary outcome: (1) FE dropping deforested pixels from the panel for the periods after they are first realized as deforested; (2) DID dropping deforested pixels from the panel for the periods after they are first realized as deforested; (3) DID keeping deforested pixels in the panel for the length of the study period; and (4) FE keeping deforested pixels in the panel for the length of the study period. We see that specifications (3) and (4) are identical, showing that DID and FE regression models are generally identical in the two-group, two-period case. As described above, we again see the bias resulting from leaving deforested pixels in the panel for the duration of the study period in specifications (3) and (4). 
+
+We now bring attention to the distinction between specifications (1) and (2). In both specifications, observations are dropped from the panel in the periods after which they are first realized as deforested. As discussed, this is preferable in terms of bias when using the pixel as the unit of analysis. The figure shows that the FE model returns a biased measure of the ATT, and in fact, estimates an ex-post single difference. In our guiding example, the ex-post single difference is $-0.04$, representing a decrease of $4\%$ in the deforestation rate, while the assigned $ATT$ is equal to $-0.08$. Thus, the ex-post single difference as well as the FE estimate, is biased positively by a rate of $4\%$, as evidenced both in Figure 3 and the analytical proof found in the appendix. This shows that FE models using the pixel as the unit of analysis is not a viable method to estimate the ATT in deforestation impact evaluations.
+
 #### Aggregated Outcomes
-Since pixel level analyses are generally not feasible in the context of FE regressions, researchers should be aware of the tradeoffs using aggregated units of analysis. The following results apply to both DID and FE regression models, as both are equivalent in the two-period, two-group example. For simplicity, we assume the researcher can choose between three levels at which to aggregate the data: grid cell, county, and property. Grid cells are uniform grids layered over the study area and may have a treatment value between 0 and 1 following aggregation of pixels. Counties are heterogeneous administrative units at which we now assign the treatment. Lastly, properties are smaller administrative units within a county. 
+Since pixel level analyses are not feasible in the context of FE regressions, researchers should be aware of the tradeoffs using aggregated units of analysis. The following results apply to both DID and FE regression models, as both are equivalent in the two-period, two-group example. For simplicity, we assume the researcher can choose between three levels at which to aggregate the data: grid cell, county, and property. Grid cells are uniform grids layered over the study area and may have a treatment value between 0 and 1 following aggregation of pixels. Counties are heterogeneous administrative units at which we now assign the treatment. Lastly, properties are smaller administrative units within a county. 
 
-We find little evidence that any one level of aggregation is consistently preferrable in terms of bias. We therefore consider coverage probability as an additional outcome of interest. This part may be harder to make general statements
+We find little evidence that any one level of aggregation is consistently preferrable in terms of bias, meaning that coverage probability will play a larger role as an evaluation metric. We explore the bias and coverage probabilities corresponding to different levels of aggregation in the context of our guiding example. Figure 4 shows that the bias of the estimates is not critically different depending on level of aggregation, however the distributions are slightly different. Notice that the distribution of estimates when aggregating to the property level is wider than the others. This is likely due to the heterogeneity in property size. The distribution of the estimates as well as the standard errors will affect the coverage probabilities. Looking at Table 3
 
-Property level unobservables may impact both treatment effect estimates and coverage probability. This is likely to be a factor when land use decisions are made at the property level by the landowner or the policy intervention seeks to alter landowner incentives underlying certain land use activities. We introduce an additional error term to the initial DGP that varies at the property level in order to account for these unobservables. 
+#### Property level unobservables
+Property level unobservables may impact both treatment effect estimates and coverage probabilities. This is likely to be a factor when land use decisions are made at the property level by the landowner or the policy intervention seeks to alter landowner incentives underlying certain land use activities. We introduce an additional error term to the initial DGP that varies at the property level in order to account for these unobservables. 
 
 As property level unobservables play a larger role, the treatment of standard errors also becomes more important. 
 
@@ -126,14 +160,36 @@ Understanding the observed data as well as the underlying DGP is therefore parti
 
 Upon aggregating data, the researcher must determine how to calculate deforestation rates in the outcome. With no clear guidance on how this deforestation rate should be computed, there have been a variety of techniques used. We outline some of these methods in Table 2. 
 
-Outcomes Table:
-* columns: outcome, papers using the outcome
+\begin{table}[h!]
+\begin{tabular}{|c|c|c|}
+\cline{1-3}
+& Outcome & Papers \\ \cline{1-3}
+1 & fractional deforestation based on lag & Shah and Baylis 2015, Busch et al. 2015, Carlson et al. 2018
+  \\ \cline{1-3}
+2 & fractional deforestation based on baseline forest cover & Pfaff 1999\\ \cline{1-3}
+\end{tabular}
+\end{table} 
 
 Figure showing outcomes. 
 
-As seen in Figure... , outcome 1 results in the least bias in the ___ example and the distribution is nearly identical to the binary outcome when pixels are dropped in the DID case. The other outcomes result in relatively greater bias. 
+As seen in Figure... , outcome 1 results in the least bias in our guiding example, and the distribution is nearly identical to the binary outcome when pixels are dropped in the DID case. The other outcomes result in relatively greater bias. 
 
-It is also common practice to weight the outcome by the unit's area, particularly when the units of analysis are heterogeneous in size. In our simulations, we find that weighting the regression does not impact the bias of the estimators significantly, however, the distribution of estimates is drastically widened. This may have implications for inference. We find that in cases where the bias is relatively low, it is preferable not to weight the regression, as coverage probability is negatively impacted. 
+It is also common practice to weight the outcome by the unit's area, particularly when the units of analysis are heterogeneous in size. In our simulations, we find that weighting the regression does not impact the bias of the estimators significantly (Figure 5), however, the distribution of estimates is drastically widened. This may have implications for inference. We find that in cases where the bias is relatively low, it is preferable not to weight the regression, as coverage probability is negatively impacted. In Table 3, we show that coverage probability is negatively impacted when the regression is weighted by area. 
+
+* Figure 5 showing that weighting doesn't significantly affect bias, but widens distribution
+
+\begin{table}[h!]
+\begin{tabular}{|c|c|c|}
+\cline{1-3}
+Level & Weighted & Unweighted \\ \cline{1-3}
+grid &  & 
+  \\ \cline{1-3}
+property &  & 
+ \\ \cline{1-3}
+ county &  & 
+ \\ \cline{1-3}
+\end{tabular}
+\end{table} 
 
 ## Discussion
 
