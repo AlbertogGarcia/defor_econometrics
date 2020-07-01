@@ -34,12 +34,14 @@ xy_proppert <- function(n, nobs, years, ATT, base_0, base_1, trend, std_a = 0.1,
   for(k in list){
     tic("loop")
     std_p <- k
-    std_avp = (std_a^2 + std_v^2 + std_p)^.5
     
     b0 = qnorm(base_0, mean = 0, sd = std_avp)
     b1 = qnorm(base_1, mean = 0, sd = std_avp) - b0
     b2 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
     b3 = qnorm( pnorm(b0+b1+b2, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2)
+    
+    DID_estimand <- (pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2+std_p^2)^.5) - pnorm(b0+b1, 0, (std_a^2+std_v^2+std_p^2)^.5)
+                     - (pnorm(b0+b2, 0, (std_a^2+std_v^2+std_p^2)^.5) - pnorm(b0, 0, (std_a^2+std_v^2+std_p^2)^.5)) )
     
     countyscape = county_scapegen(nobs, cellsize, ppoints, cpoints)
     pixloc_df = countyscape$pixloc_df
@@ -207,24 +209,24 @@ xy_proppert <- function(n, nobs, years, ATT, base_0, base_1, trend, std_a = 0.1,
       place <- which(list == k)
       
       #calculating bias from each aggregation method
-      gridmatrix[i,place] <- DID1$coefficients - ATT
-      countymatrix[i,place] <- DID3$coefficients - ATT
-      propertymatrix[i,place] <- DID2$coefficients - ATT
-      pixelmatrix[i,place] <- DID4$coefficients[4] - ATT
+      gridmatrix[i,place] <- DID1$coefficients - DID_estimand
+      countymatrix[i,place] <- DID3$coefficients - DID_estimand
+      propertymatrix[i,place] <- DID2$coefficients - DID_estimand
+      pixelmatrix[i,place] <- DID4$coefficients[4] - DID_estimand
       
       cluster_se1    <- sqrt(diag(vcovHC(DID1, type = "HC0", cluster = "group")))
       cluster_se2    <- sqrt(diag(vcovHC(DID2, type = "HC0", cluster = "group")))
       cluster_se3    <- sqrt(diag(vcovHC(DID3, type = "HC0", cluster = "group")))
-      clustergrid[i,place] <- between(ATT, DID1$coefficients - 1.96 * cluster_se1, DID1$coefficients + 1.96 * cluster_se1)*1
-      clusterprop[i,place] <- between(ATT, DID2$coefficients - 1.96 * cluster_se2, DID2$coefficients + 1.96 * cluster_se2)*1
-      clustercounty[i,place] <- between(ATT, DID3$coefficients - 1.96 * cluster_se3, DID3$coefficients + 1.96 * cluster_se3)*1
+      clustergrid[i,place] <- between(DID_estimand, DID1$coefficients - 1.96 * cluster_se1, DID1$coefficients + 1.96 * cluster_se1)*1
+      clusterprop[i,place] <- between(DID_estimand, DID2$coefficients - 1.96 * cluster_se2, DID2$coefficients + 1.96 * cluster_se2)*1
+      clustercounty[i,place] <- between(DID_estimand, DID3$coefficients - 1.96 * cluster_se3, DID3$coefficients + 1.96 * cluster_se3)*1
       
       se1 <- sqrt(DID1$vcov)
       se2 <- sqrt(DID2$vcov)
       se3 <- sqrt(DID3$vcov)
-      covergrid[i,place] <- between(ATT, DID1$coefficients - 1.96 * se1, DID1$coefficients + 1.96 * se1)*1
-      coverprop[i,place] <- between(ATT, DID2$coefficients - 1.96 * se2, DID2$coefficients + 1.96 * se2)*1
-      covercounty[i,place] <- between(ATT, DID3$coefficients - 1.96 * se3, DID3$coefficients + 1.96 * se3)*1
+      covergrid[i,place] <- between(DID_estimand, DID1$coefficients - 1.96 * se1, DID1$coefficients + 1.96 * se1)*1
+      coverprop[i,place] <- between(DID_estimand, DID2$coefficients - 1.96 * se2, DID2$coefficients + 1.96 * se2)*1
+      covercounty[i,place] <- between(DID_estimand, DID3$coefficients - 1.96 * se3, DID3$coefficients + 1.96 * se3)*1
       
     }
     print(k)

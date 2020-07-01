@@ -114,28 +114,28 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
                             method = "within", #fixed effects model
                             effect = "twoway", #grid and year fixed effects
                             index  = c("grid", "year")
-    )$coefficients - ATT
+    )$coefficients - DID_estimand
     
     coeffmatrix[i,2] <- plm(deforrate2 ~  post*treat, 
                             data   = gridlevel_df, 
                             method = "within", #fixed effects model
                             effect = "twoway", #grid and year fixed effects
                             index  = c("grid", "year")
-    )$coefficients - ATT
+    )$coefficients - DID_estimand
     
     coeffmatrix[i,3] <- plm(deforrate3 ~  post*treat, 
                             data   = gridlevel_df, 
                             method = "within", #fixed effects model
                             effect = "twoway", #grid and year fixed effects
                             index  = c("grid", "year")
-    )$coefficients - ATT
+    )$coefficients - DID_estimand
     
     coeffmatrix[i,4] <- plm(forshare ~  post*treat + forsharelag, 
                             data   = gridlevel_df, 
                             method = "within", #fixed effects model
                             effect = "twoway", #grid and year fixed effects
                             index  = c("grid", "year")
-    )$coefficients[2] - ATT
+    )$coefficients[2] - DID_estimand
     
     print(i)
     toc()
@@ -143,7 +143,7 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
   
   
   coeff_bias <- as.data.frame(coeffmatrix)
-  actual <- rep(ATT, times = n)
+  actual <- rep(DID_estimand, times = n)
   names(coeff_bias)[1] <- paste("outcome1")
   names(coeff_bias)[2] <- paste("outcome2")
   names(coeff_bias)[3] <- paste("outcome3")
@@ -158,7 +158,7 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     geom_density(alpha = .2) +
     guides(fill=guide_legend(title=NULL))+
     scale_fill_discrete(breaks=c("outcome1", "outcome2", "outcome3"), labels=c("outcome 1", "outcome 2", "outcome 3"))+
-    geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
+    #geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
     geom_vline(xintercept = 0, linetype = "dashed")+
     #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
     theme(plot.caption = element_text(hjust = 0.5))+

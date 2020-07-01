@@ -208,37 +208,37 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
     )
     
     #calculating bias from each aggregation method
-    coeffmatrix[i,1] <- DID1$coefficients - ATT
-    coeffmatrix[i,2] <- DID2$coefficients - ATT
-    coeffmatrix[i,3] <- DID3$coefficients - ATT
+    coeffmatrix[i,1] <- DID1$coefficients - DID_estimand
+    coeffmatrix[i,2] <- DID2$coefficients - DID_estimand
+    coeffmatrix[i,3] <- DID3$coefficients - DID_estimand
     
-    coeffmatrix[i,4] <- DID4$coefficients - ATT
-    coeffmatrix[i,5] <- DID5$coefficients - ATT
-    coeffmatrix[i,6] <- DID6$coefficients - ATT
+    coeffmatrix[i,4] <- DID4$coefficients - DID_estimand
+    coeffmatrix[i,5] <- DID5$coefficients - DID_estimand
+    coeffmatrix[i,6] <- DID6$coefficients - DID_estimand
     
     #calculating standard errors and whether att is within CI
     cluster_se1    <- sqrt(diag(vcovHC(DID1, type = "HC0", cluster = "group")))
     cluster_se2    <- sqrt(diag(vcovHC(DID2, type = "HC0", cluster = "group")))
     cluster_se3    <- sqrt(diag(vcovHC(DID3, type = "HC0", cluster = "group")))
-    covermat[i,1] <- between(ATT, DID1$coefficients - 1.96 * cluster_se1, DID1$coefficients + 1.96 * cluster_se1)*1
-    covermat[i,2] <- between(ATT, DID2$coefficients - 1.96 * cluster_se2, DID2$coefficients + 1.96 * cluster_se2)*1
-    covermat[i,3] <- between(ATT, DID3$coefficients - 1.96 * cluster_se3, DID3$coefficients + 1.96 * cluster_se3)*1
+    covermat[i,1] <- between(DID_estimand, DID1$coefficients - 1.96 * cluster_se1, DID1$coefficients + 1.96 * cluster_se1)*1
+    covermat[i,2] <- between(DID_estimand, DID2$coefficients - 1.96 * cluster_se2, DID2$coefficients + 1.96 * cluster_se2)*1
+    covermat[i,3] <- between(DID_estimand, DID3$coefficients - 1.96 * cluster_se3, DID3$coefficients + 1.96 * cluster_se3)*1
     
     se1 <- sqrt(DID1$vcov)
     se2 <- sqrt(DID2$vcov)
     se3 <- sqrt(DID3$vcov)
     se7 <- sqrt(diag(vcovHC(DID7)))[4]
-    covermat[i,4] <- between(ATT, DID1$coefficients - 1.96 * se1, DID1$coefficients + 1.96 * se1)*1
-    covermat[i,5] <- between(ATT, DID2$coefficients - 1.96 * se2, DID2$coefficients + 1.96 * se2)*1
-    covermat[i,6] <- between(ATT, DID3$coefficients - 1.96 * se3, DID3$coefficients + 1.96 * se3)*1
-    covermat[i,10] <- between(ATT, DID7$coefficients[4] - 1.96 * se7, DID7$coefficients[4] + 1.96 * se7)*1
+    covermat[i,4] <- between(DID_estimand, DID1$coefficients - 1.96 * se1, DID1$coefficients + 1.96 * se1)*1
+    covermat[i,5] <- between(DID_estimand, DID2$coefficients - 1.96 * se2, DID2$coefficients + 1.96 * se2)*1
+    covermat[i,6] <- between(DID_estimand, DID3$coefficients - 1.96 * se3, DID3$coefficients + 1.96 * se3)*1
+    covermat[i,10] <- between(DID_estimand, DID7$coefficients[4] - 1.96 * se7, DID7$coefficients[4] + 1.96 * se7)*1
     
     se4 <- sqrt(DID4$vcov)
     se5 <- sqrt(DID5$vcov)
     se6 <- sqrt(DID6$vcov)
-    covermat[i,7] <- between(ATT, DID4$coefficients - 1.96 * se4, DID4$coefficients + 1.96 * se4)*1
-    covermat[i,8] <- between(ATT, DID5$coefficients - 1.96 * se5, DID5$coefficients + 1.96 * se5)*1
-    covermat[i,9] <- between(ATT, DID6$coefficients - 1.96 * se6, DID6$coefficients + 1.96 * se6)*1
+    covermat[i,7] <- between(DID_estimand, DID4$coefficients - 1.96 * se4, DID4$coefficients + 1.96 * se4)*1
+    covermat[i,8] <- between(DID_estimand, DID5$coefficients - 1.96 * se5, DID5$coefficients + 1.96 * se5)*1
+    covermat[i,9] <- between(DID_estimand, DID6$coefficients - 1.96 * se6, DID6$coefficients + 1.96 * se6)*1
     
    
     print(i)
@@ -246,7 +246,7 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
   }
   
   coeff_bias <- as.data.frame(coeffmatrix)
-  actual <- rep(ATT, times = n)
+  actual <- rep(DID_estimand, times = n)
   names(coeff_bias)[1] <- paste("ugrid")
   names(coeff_bias)[2] <- paste("uproperty")
   names(coeff_bias)[3] <- paste("ucounty")
@@ -260,7 +260,7 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
     guides(fill=guide_legend(title=NULL))+
     scale_fill_discrete(breaks=c("ugrid", "uproperty", "ucounty", "wgrid", "wproperty", "wcounty"), labels=c("grid", "property", "county", "weighted grid", "weighted property", "weighted county"))+
     geom_vline(xintercept = 0, linetype = "dashed")+
-    geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
+    #geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
     #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
     theme(plot.caption = element_text(hjust = 0.5))+
     labs(x= "Bias", caption = paste("Mean grid:", round(mean(coeff_bias$ugrid), digits = 4),

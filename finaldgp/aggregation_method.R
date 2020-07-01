@@ -183,10 +183,10 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     )
     
     #calculating bias from each aggregation method
-    coeffmatrix[i,1] <- DID1$coefficients - ATT
-    coeffmatrix[i,2] <- DID2$coefficients - ATT
-    coeffmatrix[i,3] <- DID3$coefficients - ATT
-    coeffmatrix[i,4] <- DID4$coefficients[4] - ATT
+    coeffmatrix[i,1] <- DID1$coefficients - DID_estimand
+    coeffmatrix[i,2] <- DID2$coefficients - DID_estimand
+    coeffmatrix[i,3] <- DID3$coefficients - DID_estimand
+    coeffmatrix[i,4] <- DID4$coefficients[4] - DID_estimand
     
     
     print(i)
@@ -194,7 +194,7 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
   }
   
   coeff_bias <- as.data.frame(coeffmatrix)
-  actual <- rep(ATT, times = n)
+  actual <- rep(DID_estimand, times = n)
   names(coeff_bias)[1] <- paste("grid")
   names(coeff_bias)[2] <- paste("property")
   names(coeff_bias)[3] <- paste("county")
@@ -206,7 +206,7 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     guides(fill=guide_legend(title=NULL))+
     scale_fill_discrete(breaks=c("grid", "property", "county", "pixel"), labels=c("aggregated to grids", "aggregated to properties", "aggregated to counties", "pixel"))+
     geom_vline(xintercept = 0, linetype = "dashed")+
-    geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
+    #geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
     #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
     theme(plot.caption = element_text(hjust = 0.5))+
     labs(x= "Bias", caption = paste("Mean grid:", round(mean(coeff_bias$grid), digits = 4),

@@ -24,25 +24,27 @@ binary_coeffdist_fcn <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, st
     
     DIFF = pnorm(b0+b1, 0, (std_a^2+std_v^2)^.5) - pnorm(b0, 0, (std_a^2+std_v^2)^.5)
 
-    # run DID dropping deforested pixels
-    coeffmatrix[i,2]  <- lm(y_it ~  post*treat, 
-                   data = panels
-    )$coefficients[4] - ATT
+    
+    coeffmatrix[i,1]  <- lm(y_it ~  post*treat, 
+                            data = panels
+    )$coefficients[4] - DID_estimand
     
     # run two-way fixed effects    
-    coeffmatrix[i, 1] <- plm(y_it ~  post*treat, 
-                     data   = panels, 
-                     method = "within", #fixed effects model
-                     effect = "twoway", #unit and year fixed effects
-                     index  = c("pixels", "year")
-    )$coefficients - ATT
+    coeffmatrix[i, 2] <- plm(y_it ~  post*treat, 
+                             data   = panels, 
+                             method = "within", #fixed effects model
+                             effect = "twoway", #unit and year fixed effects
+                             index  = c("pixels", "year")
+    )$coefficients - DID_estimand
+    
+    
     
     
     # DID keeping variables
     
     coeffmatrix[i, 3] <- lm(defor ~  post*treat, 
                            data = panels
-    )$coefficients[4] - ATT
+    )$coefficients[4] - DID_estimand
     
     # run two-way fixed effects    
     coeffmatrix[i, 4] <- plm(defor ~  post*treat, 
@@ -50,7 +52,7 @@ binary_coeffdist_fcn <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, st
                        method = "within", #fixed effects model
                        effect = "twoway", #unit and year fixed effects
                        index  = c("pixels", "year")
-    )$coefficients - ATT
+    )$coefficients - DID_estimand
     
     
   #end for loop  
@@ -60,10 +62,11 @@ binary_coeffdist_fcn <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, st
 # get distribution information from matrix  
 
   b_coeff <- as.data.frame(coeffmatrix)
-  actual <- rep(ATT, times = n)
+  actual <- rep(DID_estimand, times = n)
   
-  names(b_coeff)[2] <- paste("DID1")
-  names(b_coeff)[1] <- paste("tw1")
+  names(b_coeff)[1] <- paste("DID1")
+  names(b_coeff)[2] <- paste("tw1")
+  
   names(b_coeff)[3] <- paste("DID2")
   names(b_coeff)[4] <- paste("tw2")
   suppressWarnings(cbias <- melt(b_coeff, value.name = "bias"))
@@ -71,10 +74,10 @@ binary_coeffdist_fcn <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, st
   plot = ggplot(data = cbias, aes(x = bias, fill=variable)) +
     geom_density(alpha = .2) +
     guides(fill=guide_legend(title=NULL))+
-    scale_fill_discrete(breaks=c("tw1", "DID1", "DID2", "tw2"), labels=c("2way FE dropping obs", "DID dropping obs", "DID keeping obs", "2way FE keeping obs"))+
+    scale_fill_discrete(breaks=c("DID1", "tw1", "DID2", "tw2"), labels=c("DID dropping obs", "2way FE dropping obs", "DID keeping obs", "2way FE keeping obs"))+
     geom_vline(xintercept = 0, linetype = "dashed")+
-    geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed", color = "green")+
-    geom_vline(aes(xintercept= (DIFF), color="2way FE bias from group DIFF"), linetype="dashed", color = "red")+
+    #geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed", color = "green")+
+    #geom_vline(aes(xintercept= (DIFF), color="2way FE bias from group DIFF"), linetype="dashed", color = "red")+
     #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
     theme(plot.caption = element_text(hjust = 0.5))+
     labs(x= "Bias", title = "Bias with binary outcome", caption = paste("The mean and RMSE are:", "\n", "DID dropping obs:", round(colMeans(coeffmatrix)[1], digits = 4),"RMSE:",round(rmse(actual, coeffmatrix[1]), digits = 5), "\n", 
