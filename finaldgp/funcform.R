@@ -14,32 +14,33 @@ funcform <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25){
     dgp_results <- defor_DGP(nobs, years, b0, b1, b2, b3, std_a, std_v)
     panels = dgp_results$panels
     ATT = dgp_results$ATT
+    DID_estimand = dgp_results$DID_estimand
     
     # run DID dropping deforested pixels
     coeffmatrix[i,1]  <- lm(y_it ~  post*treat, 
                             data = panels
-    )$coefficients[4] - ATT
+    )$coefficients[4] - DID_estimand
     
     
     
     probit_me <- probitmfx(formula = y_it ~  post*treat, data = panels)$mfxest[3]
-    coeffmatrix[i,2] <- probit_me - ATT
+    coeffmatrix[i,2] <- probit_me - DID_estimand
     
     
     #run logit regression
     
     logit_me  <- logitmfx(formula = y_it ~  post*treat, data = panels)$mfxest[3]
-    coeffmatrix[i,3] <- logit_me - ATT
+    coeffmatrix[i,3] <- logit_me - DID_estimand
     
     
     poiss_me <- poissonmfx(formula = y_it ~  post*treat, data = panels)$mfxest[3]
-    coeffmatrix[i,4] <- poiss_me - ATT
+    coeffmatrix[i,4] <- poiss_me - DID_estimand
     
     
     #end for loop  
   }  
   
-  
+  actual <- rep(DID_estimand, times = n)
   
   did_coeff <- as.data.frame(coeffmatrix)
   names(did_coeff)[1] <- paste("DID")
@@ -56,10 +57,10 @@ funcform <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25){
     theme(plot.caption = element_text(hjust = 0.5))+
     labs(x= "bias", title = "DID bias based on functional form", 
          caption = paste("The mean and variance are:", "\n", 
-                         "DID:"    , round(colMeans(coeffmatrix)[1], digits = 4), ", var:", round(colVars(coeffmatrix)[1], digits = 6), "\n",  
-                         "Probit:" , round(colMeans(coeffmatrix)[2], digits = 4), ", var:", round(colVars(coeffmatrix)[2], digits = 6), "\n",  
-                         "Logit:"  , round(colMeans(coeffmatrix)[3], digits = 4), ", var:", round(colVars(coeffmatrix)[3], digits = 6)
-                         , "\n", "Poisson:", round(colMeans(coeffmatrix)[4], digits = 4), ", var:", round(colVars(coeffmatrix)[4], digits = 6)
+                         "DID:"    , round(colMeans(coeffmatrix)[1], digits = 4), "RMSE:", round(rmse(actual, coeffmatrix[1]), digits = 5), "\n",  
+                         "Probit:" , round(colMeans(coeffmatrix)[2], digits = 4), "RMSE:", round(rmse(actual, coeffmatrix[2]), digits = 5), "\n",  
+                         "Logit:"  , round(colMeans(coeffmatrix)[3], digits = 4), "RMSE:", round(rmse(actual, coeffmatrix[3]), digits = 5)
+                         , "\n", "Poisson:", round(colMeans(coeffmatrix)[4], digits = 4), "RMSE:", round(rmse(actual, coeffmatrix[4]), digits = 5)
                          )
     )
 
