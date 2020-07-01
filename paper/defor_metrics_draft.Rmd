@@ -93,7 +93,7 @@ We then define the latent variable,
 \begin{align}
 y^*_{it} = \beta_0 + \beta_1 \mathbbm{1}\{  D_i = 1  \} +\beta_2 \mathbbm{1}\{  t \geq t_0  \} +\beta_3 \mathbbm{1}\{  D_i = 1  \} \mathbbm{1}\{  t \geq t_0  \} + \alpha_i +u_{it}
 \end{align}
-The $\beta$ coefficients are derived from the above four parameters assigned by the researcher (see appendix 1). The treatment variable, $D_i$, is equal to 1 when pixel $i$ is treated. The period in which the treatment is implemented is denoted $t_0$. The pixel specific parameter is generated according to $\alpha_i \sim N(0, .1^2)$ and the error term is generated according to $u_{it} \sim N(0, .25^2)$. 
+The $\beta$ coefficients are derived from the above four parameters assigned by the researcher (see appendix 1). The treatment variable, $D_i$, is equal to 1 when pixel $i$ is treated. The period in which the treatment is implemented is denoted $t_0$. The pixel specific parameter is generated according to $\alpha_i \sim N(0, .1^2)$ and the error term is generated according to $u_{it} \sim N(0, .25^2)$. This latent variable encaptures the underlying spatial processes determining the policy's impact on deforestation within the area represented by a given pixel. This is unobservable to the researcher in its current form. 
 
 The mapping from the latent to observed variable $y_{it}$ is
 \begin{align}
@@ -102,7 +102,7 @@ The mapping from the latent to observed variable $y_{it}$ is
       0 & else
    \end{cases}
 \end{align}
-Here, the observed outcome variable, $y_{it}$, is equal to 1 if pixel $i$ is observed as deforested in time $t$ and 0 otherwise. 
+Here, the observed outcome variable, $y_{it}$, is equal to 1 if pixel $i$ is observed as deforested in time $t$ and 0 otherwise. The observed variable is the binary outcome visible to the researcher. It tells the researcher whether the pixel is classified as deforested or forested. The area represented by a pixel may not be entirely deforested but may still be classified as deforested using the binary outcome metric. 
 
 ## Results
 
@@ -112,13 +112,13 @@ Based on baseline parameters that appeared to be common in the literature, we've
 
 ### Bias inherent to binary deforestation DGP
 
-Because of the data generating process inherent to remotely sensed metrics of deforestation as well as our framework, there is often bias. In the case of a binary pixel as in our DGP, the researcher does not observe the underlying spatial process of deforestation, but instead, a pixelated version according to a forest cover share cutoff. The area represented by a pixel may experience a decline in forest cover, but this deforestation will only be observable if it pushes the pixel's total forested share below the cutoff (expressed by equation (2) in our DGP). This is representative of most analyses using binary satellite measures of deforestation. For example, in the widely used Hansen et al. (2013) global forest change dataset, forest loss is defined as a stand-replacement disturbance and disaggregated by reference percent tree cover stratum (e.g. >50% crown cover to 0% crown cover) and by year. This will often result in some degree of bias. The magnitude and direction of this bias depend largely on the $baseline_0$, $baseline_1$, $trend$, and $ATT$ parameters. Understanding at a minimum the direction of the bias this imposes on a researcher's estimates can aid in proper inference. 
-
-
+Because of the data generating process inherent to remotely sensed metrics of deforestation as well as our framework, there is often bias. In the case of a binary pixel as in our DGP, the researcher does not observe the underlying spatial process of deforestation, but instead, a pixelated version according to a forest cover share cutoff. The area represented by a pixel may experience a decline in forest cover, but this deforestation will only be observable if it pushes the pixel's total forested share below the cutoff (expressed by equation (2) in our DGP). This is representative of most analyses using binary satellite measures of deforestation. For example, in the widely used Hansen et al. (2013) global forest change dataset, forest loss is defined as a stand-replacement disturbance and disaggregated by reference percent tree cover stratum (e.g. >50% crown cover to 0% crown cover) and by year. Note that any time the latent DGP has error generated according to a distribution with a nonlinear cumulative distribution function (e.g. normal), this type of bias will arise from the DGP. The magnitude and direction of the resulting bias depend largely on the $baseline_0$, $baseline_1$, $trend$, and $ATT$ parameters. Understanding at a minimum the direction of the bias this imposes on a researcher's estimates can aid in proper inference. 
 
 In Figure 1, we can see this bias in the context of our guiding example. Allowing the outcome to vary between 0 and 1 across time periods allows us to see the bias due only to the disparity between the underlying spatial data generating process and the observed binary outcome. 
 
 * figure allowing outcome to vary between 0 and 1 showing bias
+
+This bias is separate from that which may arise from satellite sensor characteristics, satellite angle, or atmospheric condiitons (@jain2020). We do not explore the interaction of these two potential sources of bias in our paper, however, it is likely an important consideration. For the remainder of the paper, we net out the bias due to the discussed underlying spatial processes in order to focus on bias that arises from various model selection decisions. 
 
 ### Unit of analysis
 
