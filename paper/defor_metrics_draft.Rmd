@@ -90,19 +90,18 @@ To study how choices pertaining to model selection influence estimates of conser
 The data generating process underlying our Monte Carlo simulations begins with the assignment of four parameters: The pre-treatment period deforestation rate for untreated units, $baseline_0$; the pre-treatment period deforestation rate for treated units, $baseline_1$; the difference in the deforestation rate between the period in which the treatment has been implemented and the pre-treatment period for the untreated units, $trend$; and lastly, the average treatment effect of the policy on the untreated units, $ATT$. The ATT is the primary parameter the researcher is interested in uncovering. 
 
 We then define the latent variable,
-\begin{align*}
+\begin{align}
 y^*_{it} = \beta_0 + \beta_1 \mathbbm{1}\{  D_i = 1  \} +\beta_2 \mathbbm{1}\{  t \geq t_0  \} +\beta_3 \mathbbm{1}\{  D_i = 1  \} \mathbbm{1}\{  t \geq t_0  \} + \alpha_i +u_{it}
-\end{align*}
+\end{align}
 The $\beta$ coefficients are derived from the above four parameters assigned by the researcher (see appendix 1). The treatment variable, $D_i$, is equal to 1 when pixel $i$ is treated. The period in which the treatment is implemented is denoted $t_0$. The pixel specific parameter is generated according to $\alpha_i \sim N(0, .1^2)$ and the error term is generated according to $u_{it} \sim N(0, .25^2)$. 
 
 The mapping from the latent to observed variable $y_{it}$ is
-
-\[ y_{it} = \begin{cases} 
+\begin{align}
+ y_{it} = \begin{cases} 
       1 & y^*_{it} > 0  \\
       0 & else
    \end{cases}
-\]
-
+\end{align}
 Here, the observed outcome variable, $y_{it}$, is equal to 1 if pixel $i$ is observed as deforested in time $t$ and 0 otherwise. 
 
 ## Results
@@ -111,11 +110,13 @@ Here, the observed outcome variable, $y_{it}$, is equal to 1 if pixel $i$ is obs
 
 Based on baseline parameters that appeared to be common in the literature, we've selected a guiding example to explore for the remainder of the paper. We've set $baseline_0 = 0.13$, $baseline_1 = 0.17$, $trend = 0.02$, and lastly, the true $ATT = -0.08$. The primary criteria we use to evaluate different methods are bias and coverage probability. Using our Monte Carlo simulations, we determine bias by computing the difference between the mean of the coefficient estimates and the $ATT$ parameter. Coverage probability is defined as the proportion of simulations in which the $ATT$ lies within a 95\% confidence interval (CI). As such, we would expect the $ATT$ to lie within this CI 95\% of the time, however, factors such as the bias of the estimates, their distribution, and treatment of standard errors may impact coverage. If the estimator is biased, for example, it is ex-ante less likely to contain the true parameter within the CI. 
 
-### Bias inherent to deforestation DGP
+### Bias inherent to binary deforestation DGP
 
-Because of the data generating process inherent to remotely sensed metrics of deforestation as well as our framework, there is often bias. In our DGP, the researcher does not observe the underlying spatial process of deforestation, but instead, a pixelated version according to a forest cover share cutoff. The area represented by a pixel may experience a decline in forest cover, but this deforestation will only be observed if it pushes the pixel's total forested share below the cutoff. This is representative of most analyses using satellite measures of deforestation. For example, in the widely used Hansen et al. (2013) global forest change dataset, forest loss is defined as a stand-replacement disturbance and disaggregated by reference percent tree cover stratum (e.g. >50% crown cover to 0% crown cover) and by year. This will often result in some degree of bias. The magnitude and direction of this bias depend largely on the $baseline_0$, $baseline_1$, $trend$, and $ATT$ parameters. Understanding at a minimum the direction of the bias this imposes on a researcher's estimates can aid in proper inference. 
+Because of the data generating process inherent to remotely sensed metrics of deforestation as well as our framework, there is often bias. In the case of a binary pixel as in our DGP, the researcher does not observe the underlying spatial process of deforestation, but instead, a pixelated version according to a forest cover share cutoff. The area represented by a pixel may experience a decline in forest cover, but this deforestation will only be observable if it pushes the pixel's total forested share below the cutoff (expressed by equation (2) in our DGP). This is representative of most analyses using binary satellite measures of deforestation. For example, in the widely used Hansen et al. (2013) global forest change dataset, forest loss is defined as a stand-replacement disturbance and disaggregated by reference percent tree cover stratum (e.g. >50% crown cover to 0% crown cover) and by year. This will often result in some degree of bias. The magnitude and direction of this bias depend largely on the $baseline_0$, $baseline_1$, $trend$, and $ATT$ parameters. Understanding at a minimum the direction of the bias this imposes on a researcher's estimates can aid in proper inference. 
 
-In Figure 1, we can see this bias in the context of our guiding example. 
+
+
+In Figure 1, we can see this bias in the context of our guiding example. Allowing the outcome to vary between 0 and 1 across time periods allows us to see the bias due only to the disparity between the underlying spatial data generating process and the observed binary outcome. 
 
 * figure allowing outcome to vary between 0 and 1 showing bias
 
