@@ -150,6 +150,8 @@ Property level unobservables may impact both treatment effect estimates and cove
 
 As property level unobservables play a larger role, the treatment of standard errors also becomes more important. 
 
+*plot of p_err vs. coverage by agg method and error structure
+
 ### Functional form
 * options: ols, probit, logit, poisson
 * context dependent
@@ -198,3 +200,14 @@ property &  &
 ## Acknowledgements and data
 
 ## References
+
+
+## Appendix
+
+### Initial parameter to $\beta$ coefficient mapping
+
+### Bias inherent to binary deforestation DGP
+
+### Bias from including deforested pixels in the panel beyond year of initial deforestation event
+
+### Two-way fixed effects proof
