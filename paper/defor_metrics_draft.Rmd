@@ -6,7 +6,7 @@ date: "April 22, 2020"
 output:
   pdf_document: default
   html_document: default
-  #bibliography: ../references.bib
+bibliography: deforestation_econometrics.bib
 header-includes: 
   \usepackage{bbm}  
 ---
@@ -22,7 +22,8 @@ knitr::opts_chunk$set(echo = TRUE)
 Conservation science needs more rigorous evidence measuring the effectiveness of proposed policy interventions. In response, scientists are increasingly combining methods of impact evaluation with remotely sensed data on land use change to assess conservation effectiveness. Here we review this burgeoning literature to develop practical guidance for the design of econometric models quantifying conservation policy effectiveness. Using Monte Carlo simulations, we demonstrate that many of the models employed for conservation impact evaluation suffer from significant bias. This bias threatens to undermine the evidence base that is increasingly used to inform conservation policy adoption. We provide clear guidance to help scientists minimize the bias of their impact evaluations by carefully designing the structure of their econometric model, their unit of observation and their method and scale of data aggregation.
 
 ## Introduction
-* Multiple calls to action to improve the evidence base surrounding underlying drivers of environmental degradation, as well as policies that could have an impact. Much of this literature emphasizes use of quasi-experimental methods to isolate causal relations from observational data [@baylis2016a; @butsicQuasiexperimentalMethodsEnable2017; @ferraro2009; @ferraro2019; @meyfroidt2016; @williamsFutureRoleConservation]
+* Multiple calls to action to improve the evidence base surrounding underlying drivers of environmental degradation, as well as policies that could have an impact. Much of this literature emphasizes use of quasi-experimental methods to isolate causal relations from observational data [@baylis2016; @butsic2017; @ferraro2009; @ferraro2019; @meyfroidt2016; @williams2020]
+* Importance of relying on counterfactual analysis [@ribas2020]
 * Remotely sensed measurements of deforestation / land use change are particularly well suited for these purposes [@blackman2013; @jones2015]
 * Proliferation of data and packages make these analyses relatively easy [@hansen2013] 
 * Lots of emerging papers - show plot highlighting trends? Add several examples of diversity of applications.
@@ -35,17 +36,15 @@ Conservation science needs more rigorous evidence measuring the effectiveness of
 * Using Monte Carlo simulations and analytical proofs, we illustrate ways in which researchers can minimize the bias resulting from their analyses.
 
 
-## Methods
-
-### Literature Review
+## Key considerations for impact evaluation design
 
 * Panel data settings, in which units are observed repeatedly through time, greatly facilitate the measurement of treatment effects and program impacts [@blackman2013]. 
 
 * We focus on the measurement of the average treatment effect on the treated (ATT), or the change in the deforestation rate in treated units resulting from the policy. Two methods in particular are often advocated for and used to measure the ATT in impact evaluations with panel data settings: Difference-in-Differences (DID) and Two-way Fixed Effects (FE) regression models.
 
-The typical DID regression model includes a dummy equal to one for units in the treatment group, a dummy equal to one for observations in the period after the intervention, and their interaction. Conceptually, the DiD estimator calculates the treatment effect as the difference between the differences of the treated and non-treated observations before and after treatment [@butsicQuasiexperimentalMethodsEnable2017]. In order for this estimator to identify the ATT, one must make a common trends assumption, which amounts to assuming that both untreated and treated units would have experienced the same average change in the outcome in the absence of treatment. 
+The typical DID regression model includes a dummy equal to one for units in the treatment group, a dummy equal to one for observations in the period after the intervention, and their interaction. Conceptually, the DiD estimator calculates the treatment effect as the difference between the differences of the treated and non-treated observations before and after treatment [@butsic2017]. In order for this estimator to identify the ATT, one must make a common trends assumption, which amounts to assuming that both untreated and treated units would have experienced the same average change in the outcome in the absence of treatment. 
 
-FE regression models are often used to apply DID methods to multiple groups or time periods. This amounts to estimating a regression that controls for unit and time fixed effects. Intuitively, this can be thought of as including a dummy variable for each unit of analysis and each time period. The fixed effects account for any unobservable confounding variables that may vary across units or through time. In the case of two groups and two time periods, the FE regression should give an estimate equivalent to that of the DID model [@Wooldridge]. Because FE regression models are often used to generalize the DID method, they are used in a wider variety of settings. For example, a setting in which a policy is applied to a set of municipalities in more than two distinct time periods may be amenable to an FE regression, but not the standard DID method. 
+FE regression models are often used to apply DID methods to multiple groups or time periods. This amounts to estimating a regression that controls for unit and time fixed effects. Intuitively, this can be thought of as including a dummy variable for each unit of analysis and each time period. The fixed effects account for any unobservable confounding variables that may vary across units or through time. In the case of two groups and two time periods, the FE regression should give an estimate equivalent to that of the DID model [@wooldridge]. Because FE regression models are often used to generalize the DID method, they are used in a wider variety of settings. For example, a setting in which a policy is applied to a set of municipalities in more than two distinct time periods may be amenable to an FE regression, but not the standard DID method. 
 
 Upon deciding to use DID or FE regression models to estimate the ATT, researchers must make several other decisions about their estimation strategy. 
 
@@ -83,6 +82,8 @@ Blackman et al. & 2018  &  OLS  &  FE  & forest management unit \\ \cline{1-5}
 \end{table} 
 
 
+
+## Methods
 ### Monte Carlo simulations
 
 To study how choices pertaining to model selection influence estimates of conservation program effectiveness, we employ a set of Monte Carlo simulations to generate and analyze data. To begin, consider a setting in which a policy is implemented to reduce deforestation at a discrete point in time. The researcher observes treatment and control units in two time periods, before and after the implementation of the policy. Forest cover outcome data is obtained at the pixel resolution, where pixels are determined to either be forested or deforested for a given time period.
@@ -104,14 +105,13 @@ The mapping from the latent to observed variable $y_{it}$ is
 \end{align}
 Here, the observed outcome variable, $y_{it}$, is equal to 1 if pixel $i$ is observed as deforested in time $t$ and 0 otherwise. The observed variable is the binary outcome visible to the researcher. It tells the researcher whether the pixel is classified as deforested or forested. The area represented by a pixel may not be entirely deforested but may still be classified as deforested using the binary outcome metric. 
 
-## Results
 
 ### Set up and evaluation measures
+Based on baseline parameters that appeared to be common in the literature, we've selected a guiding example to explore for the remainder of the paper. We've set $baseline_0 = 0.13$, $baseline_1 = 0.17$, $trend = 0.02$, and lastly, the true $ATT = -0.08$. The primary criteria we use to evaluate different methods are bias and coverage probability. Using our Monte Carlo simulations, we determine bias by computing the difference between the mean of the coefficient estimates and the $ATT$ parameter. Coverage probability is defined as the proportion of simulations in which the true $ATT$ lies within the simulation's 95\% confidence interval (CI). As such, we would expect the $ATT$ to lie within this CI 95\% of the time, however, factors such as the bias of the estimates, their distribution, and treatment of standard errors may impact coverage. If the estimator is biased, for example, it is ex-ante less likely to contain the true parameter within the CI. 
 
-Based on baseline parameters that appeared to be common in the literature, we've selected a guiding example to explore for the remainder of the paper. We've set $baseline_0 = 0.13$, $baseline_1 = 0.17$, $trend = 0.02$, and lastly, the true $ATT = -0.08$. The primary criteria we use to evaluate different methods are bias and coverage probability. Using our Monte Carlo simulations, we determine bias by computing the difference between the mean of the coefficient estimates and the $ATT$ parameter. Coverage probability is defined as the proportion of simulations in which the $ATT$ lies within a 95\% confidence interval (CI). As such, we would expect the $ATT$ to lie within this CI 95\% of the time, however, factors such as the bias of the estimates, their distribution, and treatment of standard errors may impact coverage. If the estimator is biased, for example, it is ex-ante less likely to contain the true parameter within the CI. 
+## Results
 
 ### Bias inherent to binary deforestation DGP
-
 Because of the data generating process inherent to remotely sensed metrics of deforestation as well as our framework, there is often bias. In the case of a binary pixel as in our DGP, the researcher does not observe the underlying spatial process of deforestation, but instead, a pixelated version according to a forest cover share cutoff. The area represented by a pixel may experience a decline in forest cover, but this deforestation will only be observable if it pushes the pixel's total forested share below the cutoff (expressed by equation (2) in our DGP). This is representative of most analyses using binary satellite measures of deforestation. For example, in the widely used Hansen et al. (2013) global forest change dataset, forest loss is defined as a stand-replacement disturbance and disaggregated by reference percent tree cover stratum (e.g. >50% crown cover to 0% crown cover) and by year. Note that any time the latent DGP has error generated according to a distribution with a nonlinear cumulative distribution function (e.g. normal), this type of bias will arise from the DGP. The magnitude and direction of the resulting bias depend largely on the $baseline_0$, $baseline_1$, $trend$, and $ATT$ parameters. Understanding at a minimum the direction of the bias this imposes on a researcher's estimates can aid in proper inference. 
 
 In Figure 1, we can see this bias in the context of our guiding example. Allowing the outcome to vary between 0 and 1 across time periods allows us to see the bias due only to the disparity between the underlying spatial data generating process and the observed binary outcome. 
