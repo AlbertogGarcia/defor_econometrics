@@ -19,38 +19,38 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Abstract
-Conservation science needs more rigorous evidence measuring the effectiveness of proposed policy interventions. In response, scientists are increasingly combining methods of impact evaluation with remotely sensed data on land use change to assess conservation effectiveness. Here we review this burgeoning literature to develop practical guidance for the design of econometric models quantifying conservation policy effectiveness. Using Monte Carlo simulations, we demonstrate that many of the models employed for conservation impact evaluation suffer from significant bias. This bias threatens to undermine the evidence base that is increasingly used to inform conservation policy adoption. We provide clear guidance to help scientists minimize the bias of their impact evaluations by carefully designing the structure of their econometric model, their unit of observation and their method and scale of data aggregation.
+Conservation practitioners need rigorous evidence measuring the effectiveness of proposed policy interventions. In response, scientists are increasingly combining methods of impact evaluation with remotely sensed data on land use change to assess conservation effectiveness. Here we review this burgeoning literature to develop practical guidance for the design of econometric models quantifying conservation policy effectiveness. Using Monte Carlo simulations and analytical proofs, we demonstrate that many of the models employed for conservation impact evaluation suffer from significant bias - the significance, magnitude and even direction of estimated effects from many studies may be incorrect. These errors threaten to undermine the evidence base that is increasingly used to inform conservation policy adoption. To address this concern, we provide clear guidance to help scientists minimize the bias of their impact evaluations by carefully designing the structure of their econometric model, their unit of observation and their method and scale of data aggregation.
 
 ## Introduction
-* Multiple calls to action to improve the evidence base surrounding underlying drivers of environmental degradation, as well as policies that could have an impact. Much of this literature emphasizes use of quasi-experimental methods to isolate causal relations from observational data [@baylis2016; @butsic2017; @ferraro2009; @ferraro2019; @meyfroidt2016; @williams2020]
-* Importance of relying on counterfactual analysis [@ribas2020]
-* Remotely sensed measurements of deforestation / land use change are particularly well suited for these purposes [@blackman2013; @jones2015]
-* Proliferation of data and packages make these analyses relatively easy [@hansen2013] 
-* Lots of emerging papers - show plot highlighting trends? Add several examples of diversity of applications.
+The founding goal of conservation biology is to provide principles and tools to preserve biological diversity [@soule1985]. To live up to this goal, scientists must generate causal evidence detailing the effectiveness of  conservation interventions [@williams2020]. Such evidence is critical for practitioners who grapple with challenging questions of cause and effect. Do marine protected areas stop unsustainable harvesting of fish populations? Can payments for ecosystem services encourage lasting reforestation? When successful, conservation science provides answers that improve the way society confronts environmental challenges. However, inappropriate methods can yield misleading conclusions and, as a result, risk diverting scarce financial and political resources from the most effective conservation strategies.
 
-<!-- ** maybe if we want to discuss prevalence or trends, we could choose 5 or so journals to bound the search (conservation letters, plos one, land economics, pnas, jaere) -->
+Increasingly, conservation science has turned to econometric methods of impact evaluation to disentangle causal relationships [@butsic2017; @baylis2016]. While randomized experiments are the gold standard for scientific discovery in both the natural and social sciences, conservation often poses questions that are impossible or unethical to pursue through experimentation. In such settings, a growing portfolio of statistical techniques enable researchers to draw causal conclusions using observational data. When implemented carefully, these methods can yield conclusions that are comparable to what a researcher would discover if they were able to run a randomized experiment [@ferraro2017].
+[@ferraro2019]
 
-* However, many of the remotely sensed metrics used in these applications have structural differences from traditional applications of causal inference. Careful attention must be placed on the design of econometric models to ensure that estimated effects are unbiased [@jain2020]
-* Here we demonstrate that many of the econometric models used in this growing literature are likely biased - significance, magnitude and even direction of estimated effects might be incorrect 
-* Based on a review of the existing literature, we identify key model design decisions that researchers need to make. 
-* Using Monte Carlo simulations and analytical proofs, we illustrate ways in which researchers can minimize the bias resulting from their analyses.
+Econometric methods generate accurate estimates of an intervention's impact when they effectively control for the non-random assignment of the intervention. A low rate of deforestation within a remote protected area may reflect the protected area's effectiveness, or it may be indicative of the remote location's poor suitability for agricultural development [@andam2008; @pfaff2009]. Econometric methods control for both observed and unobserved... Panel data settings, in which units are observed repeatedly through time, greatly facilitate the measurement of treatment effects and program impacts [@blackman2013]. XX - ELABORATE ON SUITE OF METHODS - panel, matching... XX importance of counterfactual thinking [@ferraro2009; meyfroidt2016; @ribas2020]
 
+Econometric methods of causal inference have become particularly useful for conservation impact evaluation as a result of the proliferation of remotely sensed data [@blackman2013; @jones2015].  For example, NASA's landsat missions provide detailed and consistent information on land use spanning the entirety of the world since the 1970s. As a result, a scientist hoping to quantify the impacts of a land use policy adopted decades ago can assemble longitudinal data for treated and control units that span both pre- and post-implementation periods.  [@jain2020]
 
-## Key considerations for impact evaluation design
+However, many of the remotely sensed metrics used in these applications have structural differences from the data used in more traditional applications of causal inference. These differences include... Here we demonstrate that, as a result of these differences, many of the econometric models used in this growing literature are likely biased - significance, magnitude and even direction of estimated effects might be incorrect. These biases arise even when researchers follow common guidance to adopt "rigorous" research designs with valid counterfactuals [@blackman2013; jones2015]. Based on a review of the existing literature, we identify key model design decisions that researchers need to make. Using Monte Carlo simulations and analytical proofs, we show how these design decisions affect the validity of , we illustrate ways in which scientists can tailor these design decisions to minimize the bias in their impact evaluations.
 
-* Panel data settings, in which units are observed repeatedly through time, greatly facilitate the measurement of treatment effects and program impacts [@blackman2013]. 
+<!-- ** maybe if we want to discuss prevalence or trends, we could choose 5 or so journals to bound the search (conservation letters, plos one, land economics, pnas, jaere) 
+Robert - I think we can sidestep this for now. I think
+we have plenty to cover, and hope the right reviewers won't need to see this to be convinced it's important. -->
 
-* We focus on the measurement of the average treatment effect on the treated (ATT), or the change in the deforestation rate in treated units resulting from the policy. Two methods in particular are often advocated for and used to measure the ATT in impact evaluations with panel data settings: Difference-in-Differences (DID) and Two-way Fixed Effects (FE) regression models.
+## Key considerations for impact evaluations of deforestation
+<!-- ** I think we want an introductory section that serves as a review of the approach. This section should:
+1) Introduce data setting: Use a simple  diagram of a small landscape with deforestation and a conservation initiative. Show counterfactual vs observed to demonstrate PO framework
+2) Describe the traditional DiD and FE models
+3) Highlight the key parameters in the model, and introduce table illustrating how different researchers use a wide variety of parameterizations
 
-The typical DID regression model includes a dummy equal to one for units in the treatment group, a dummy equal to one for observations in the period after the intervention, and their interaction. Conceptually, the DiD estimator calculates the treatment effect as the difference between the differences of the treated and non-treated observations before and after treatment [@butsic2017]. In order for this estimator to identify the ATT, one must make a common trends assumption, which amounts to assuming that both untreated and treated units would have experienced the same average change in the outcome in the absence of treatment. 
+I think all this belongs outside of the methods. If we're shooting for a review article, this deserves its own dedicated section with lots of references to highlight how different researchers have made these decisions.
+-->
+We consider the case in which a researcher would like to quantify the impact that an intervention has had on deforestation rates. We assume that the intervention has clearly defined boundaries (e.g. a protected area, certified concession or indigenous territory), and that the researcher has access to spatially explicit observations of forest cover and forest loss spanning the periods before and after the intervention was adopted. The researcher's goal is to measure the Average Treatment Effect on the Treated $(ATT)$, which quantifies the change in deforestation occurring inside treated units when compared to an unobservable counterfactual world in which no conservation intervention was adopted (Figure XX). This general setting describes a broad array of research studies that apply panel methods to remotely sensed data (Table XX).
 
-FE regression models are often used to apply DID methods to multiple groups or time periods. This amounts to estimating a regression that controls for unit and time fixed effects. Intuitively, this can be thought of as including a dummy variable for each unit of analysis and each time period. The fixed effects account for any unobservable confounding variables that may vary across units or through time. In the case of two groups and two time periods, the FE regression should give an estimate equivalent to that of the DID model [@wooldridge]. Because FE regression models are often used to generalize the DID method, they are used in a wider variety of settings. For example, a setting in which a policy is applied to a set of municipalities in more than two distinct time periods may be amenable to an FE regression, but not the standard DID method. 
-
-Upon deciding to use DID or FE regression models to estimate the ATT, researchers must make several other decisions about their estimation strategy. 
-
-* unit of analysis and aggregation
-
-* In cases where researchers opt to use a binary outcome, many grapple with the subsequent decision of functional form. 
+<!-- ** 
+Robert - Maybe better to move tables into csvs that are loaded and formatted into markdown using kable?
+Especially for the simulation results below, this will allow us to create an easy output file that then gets dynamically loaded in this script.
+-->
 
 \begin{table}[h!]
 \begin{tabular}{|c|c|c|c|c|}
@@ -81,10 +81,33 @@ Blackman et al. & 2018  &  OLS  &  FE  & forest management unit \\ \cline{1-5}
 \end{tabular}
 \end{table} 
 
+### Model structure
+Two methods in particular are often advocated for and used to measure the ATT in impact evaluations with panel data settings: Difference-in-Differences (DID) and Two-way Fixed Effects (FE) regression models [@blackman2013; @jones2015].
+
+The typical DID regression model includes a dummy equal to one for units in the treatment group, a dummy equal to one for observations in the period after the intervention, and their interaction. Conceptually, the DiD estimator calculates the treatment effect as the difference between the differences of the treated and non-treated observations before and after treatment [@butsic2017]. In order for this estimator to identify the ATT, one must make a common trends assumption, which amounts to assuming that both untreated and treated units would have experienced the same average change in the outcome in the absence of treatment. 
+
+FE regression models are often used to apply DID methods to multiple groups or time periods. This amounts to estimating a regression that controls for unit and time fixed effects. Intuitively, this can be thought of as including a dummy variable for each unit of analysis and each time period. The fixed effects account for any unobservable confounding variables that may vary across units or through time. In the case of two groups and two time periods, the FE regression should give an estimate equivalent to that of the DID model [@wooldridge]. Because FE regression models are often used to generalize the DID method, they are used in a wider variety of settings. For example, a setting in which a policy is applied to a set of municipalities in more than two distinct time periods may be amenable to an FE regression, but not the standard DID method. 
+
+Upon deciding to use DID or FE regression models to estimate the ATT, researchers must make several other decisions about their estimation strategy. 
+
+
+### Unit of analysis
+* unit of analysis and aggregation
+
+### Functional form
+* In cases where researchers opt to use a binary outcome, many grapple with the subsequent decision of functional form.
+
+
+### Method of aggregation
+
+
 
 
 ## Methods
 ### Monte Carlo simulations
+<!-- ** 
+Return to simple diagram from previous section but here, instead of showing counterfactual vs reality, highlight two time periods to illustrate DiD method.
+-->
 
 To study how choices pertaining to model selection influence estimates of conservation program effectiveness, we employ a set of Monte Carlo simulations to generate and analyze data. To begin, consider a setting in which a policy is implemented to reduce deforestation at a discrete point in time. The researcher observes treatment and control units in two time periods, before and after the implementation of the policy. Forest cover outcome data is obtained at the pixel resolution, where pixels are determined to either be forested or deforested for a given time period.
 
@@ -125,11 +148,10 @@ This bias is separate from that which may arise from satellite sensor characteri
 #### Treatment of binary outcome
 Analyses at the pixel level are prevalent in the literature, as seen in Table 1. Further, the pixel is often promoted as the preferred unit of analysis in review articles (). The pixel is the level at which the researcher is able to observe the data and is assigned a binary outcome. Remotely sensed metrics of deforestation at the pixel level are often subject to the dynamics of forest disturbance and regrowth. After a deforestation event occurs, the deforested area is unlikely to revert to forest cover within the study period, as it takes several years for trees to regrow to a detectable level. In the panel therefore, it is probable that in the periods after a pixel is first realized as deforested, subsequent observations of the pixel will also observe the pixel as deforested. 
 
-In order to account for these dynamics in the context of deforestation, it has been advised to drop deforested pixels in the periods after they first become deforested. The logic for doing so is as follows. A forested pixel switches from its assigned value of 0 to a value of 1 following a discrete deforestation event. Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested may imply that it has actively been deforested in each subsequent time period. In fact, no new deforestation event has ocurred, but it simply remains deforested from the prior event. Indeed, we see in our Monte Carlo simulations that regression models failing to drop deforested pixels in subsequent periods incur severe bias, while dropping the pixels lessens this bias. 
+In order to account for these dynamics in the context of deforestation, it has been advised to drop deforested pixels in the periods after they first become deforested [@jones2015; @alix-garcia2017]. The logic for doing so is as follows. A forested pixel switches from its assigned value of 0 to a value of 1 following a discrete deforestation event. Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested may imply that it has actively been deforested in each subsequent time period. In fact, no new deforestation event has ocurred, but it simply remains deforested from the prior event. Indeed, we see in our Monte Carlo simulations that regression models failing to drop deforested pixels in subsequent periods incur severe bias, while dropping the pixels lessens this bias. 
 
 Figure 2 demonstrates the magnitude and direction of the bias incurred from keeping deforested pixels in the panel after they are first realized as deforested in the context of our guiding example. We see that the direction of the bias is positive, which aligns with our intuition from above. The positive bias seems to stem from deforested observations in years subsequent to the actual deforestation event contributing to the deforestation rate. As a result, pixels that were deforested prior to the implementation of the policy continued to contribute to the deforestation rate in the post period in both the treatment and control groups.
 * it might be possible to get an expression for this bias
-
 
 
 
@@ -138,7 +160,7 @@ Despite widespread use of pixel level analyses, they are problematic in the cont
 
 In Figure 3, we see Monte Carlo Outcomes for four econometric model specifications with a binary outcome: (1) FE dropping deforested pixels from the panel for the periods after they are first realized as deforested; (2) DID dropping deforested pixels from the panel for the periods after they are first realized as deforested; (3) DID keeping deforested pixels in the panel for the length of the study period; and (4) FE keeping deforested pixels in the panel for the length of the study period. We see that specifications (3) and (4) are identical, showing that DID and FE regression models are generally identical in the two-group, two-period case. As described above, we again see the bias resulting from leaving deforested pixels in the panel for the duration of the study period in specifications (3) and (4). 
 
-We now bring attention to the distinction between specifications (1) and (2). In both specifications, observations are dropped from the panel in the periods after which they are first realized as deforested. As discussed, this is preferable in terms of bias when using the pixel as the unit of analysis. The figure shows that the FE model returns a biased measure of the ATT, and in fact, estimates an ex-post single difference. In our guiding example, the ex-post single difference is $-0.04$, representing a decrease of $4\%$ in the deforestation rate, while the assigned $ATT$ is equal to $-0.08$. Thus, the ex-post single difference as well as the FE estimate, is biased positively by a rate of $4\%$, as evidenced both in Figure 3 and the analytical proof found in the appendix. This shows that FE models using the pixel as the unit of analysis is not a viable method to estimate the ATT in deforestation impact evaluations.
+We now bring attention to the distinction between specifications (1) and (2). In both specifications, observations are dropped from the panel in the periods after which they are first realized as deforested. As discussed, this is preferable in terms of bias when using the pixel as the unit of analysis. The figure shows that the FE model returns a biased measure of the ATT, and in fact, estimates an ex-post single difference. In our guiding example, the ex-post single difference is $-0.04$, representing a decrease of $4\%$ in the deforestation rate, while the assigned $ATT$ is equal to $-0.08$. Thus, the ex-post single difference as well as the FE estimate, is biased positively by a rate of $4\%$, as evidenced both in Figure 3 and the analytical proof found in the appendix. This shows that FE models using the pixel as the unit of analysis is not a viable method to estimate the ATT in deforestation impact evaluations. In contrast, the DID...
 
 #### Aggregated Outcomes
 Since pixel level analyses are not feasible in the context of FE regressions, researchers should be aware of the tradeoffs using aggregated units of analysis. The following results apply to both DID and FE regression models, as both are equivalent in the two-period, two-group example. For simplicity, we assume the researcher can choose between three levels at which to aggregate the data: grid cell, county, and property. Grid cells are uniform grids layered over the study area and may have a treatment value between 0 and 1 following aggregation of pixels. Counties are heterogeneous administrative units at which we now assign the treatment. Lastly, properties are smaller administrative units within a county. 
@@ -195,7 +217,19 @@ property &  &
 \end{table} 
 
 ## Discussion
+<!-- ** 
+Robert - I think this should be a really short summary of the key guiding principles.
 
+Guiding principles - If we were to give a researcher one paragraph to guide their model design, what would it be?
+Link to shiny app that gives researchers ability to visualize landscapes and quantify biases under different designs?
+
+Limitations - reference broader econometric literature that highlights considerations beyond the scope
+of this analysis. eg time-varying adoption under heterogeneous treatment effects.
+
+Implications - how does this change our interpretation of the existing literature?
+Why is it important that scientists follow our suggestions for future impact evaluation?
+Does this apply beyond our example deforestation case?
+-->
 
 ## Acknowledgements and data
 
