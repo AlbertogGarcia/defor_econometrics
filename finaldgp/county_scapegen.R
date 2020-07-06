@@ -3,6 +3,7 @@
 library(sf)
 library(rlist)
 library(tidyverse)
+library(ggpattern)
 
 county_scapegen <- function(nobs, cellsize, ppoints, cpoints){
   
@@ -34,7 +35,8 @@ county_scapegen <- function(nobs, cellsize, ppoints, cpoints){
     st_geometry() %>% #  as geometry only 
     st_union() %>% # unite them 
     st_voronoi() %>% # perform the voronoi tessellation
-    st_collection_extract(type = "POLYGON")
+    st_collection_extract(type = "POLYGON") %>%
+    st_intersection(landscape)
   
   v_property <- vorpts_prop %>%  # consider the sampled points
     st_geometry() %>% #  as geometry only 
@@ -93,7 +95,19 @@ county_scapegen <- function(nobs, cellsize, ppoints, cpoints){
     inner_join(careas, by = "county") %>%
     inner_join(pareas, by = "property")
 
-  outputs = list('pixloc_df' = pixloc_df)
+  county_plot <- st_as_sf(v_county) %>%
+    tibble::rownames_to_column("county") 
+  county_plot$county <- as.integer(county_plot$county)
+  county_plot <- county_plot %>%
+    inner_join(treatcounty, by = "county")
+  county_plot$treat <- as.factor(county_plot$treat)
+  
+  landscape_plot <- 
+    ggplot() + 
+    geom_sf(data = v_property, color = "white", fill = "gray80") +
+    geom_sf(data = county_plot, aes(fill = treat), alpha = .3) + scale_fill_manual(values=c("#a1d76a", "#ef8a62")) 
+  
+  outputs = list('pixloc_df' = pixloc_df, 'landscape_plot' = landscape_plot)
   return(outputs)
   
 }

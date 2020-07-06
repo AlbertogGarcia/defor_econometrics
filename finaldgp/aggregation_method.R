@@ -17,11 +17,13 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
   
   countyscape = county_scapegen(nobs, cellsize, ppoints, cpoints)
   pixloc_df = countyscape$pixloc_df
+  landscape_plot = countyscape$landscape_plot
+  
   ATT <- pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) - pnorm(b0+b1+b2, 0, (std_a^2+std_v^2 + std_p^2)^.5)
   DID_estimand <- (pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2+std_p^2)^.5) - pnorm(b0+b1, 0, (std_a^2+std_v^2+std_p^2)^.5)
                    - (pnorm(b0+b2, 0, (std_a^2+std_v^2+std_p^2)^.5) - pnorm(b0, 0, (std_a^2+std_v^2+std_p^2)^.5)) )
   
-  pixloc <- pixloc_df[order(pixloc_df$pixels),]
+  pixloc <- pixloc_df#[order(pixloc_df$pixels),]
 
   coeffmatrix <- matrix(nrow = n, ncol = 4)
   
@@ -71,17 +73,14 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
       select(pixels, defor_year) %>%
       inner_join(panels, by = "pixels")
     
-    
-    
     cols.num <- c("pixels", "grid", "property", "county", "year")
     panels[cols.num] <- sapply(panels[cols.num],as.numeric)
     
     panels <- panels %>%
       mutate(indic = year - defor_year) %>%
       mutate(defor = ifelse(indic > 0, 1, y)) %>%
-      mutate(y_it = ifelse(indic > 0, NA, y) )        
+      mutate(y_it = ifelse(indic > 0, NA, y) )  
                
-             
     
     # aggregate up to county in each year 
     suppressWarnings(
@@ -219,7 +218,26 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
                                     ", RMSE:", round(rmse(actual, coeff_bias$pixel), digits = 4)) 
     )
   
-  outputs = list("plot" = plot, "biases" = coeff_bias)
+  panels$defor <- as.factor(panels$defor)
+  
+  plot_df_year1 <- panels %>%
+    st_as_sf() %>%
+    select(pixels, year, treat, defor) %>%
+    filter(year == 1  & defor == 1)
+  
+  plot_df_year6 <- panels %>%
+    st_as_sf() %>%
+    select(pixels, year, treat, defor) %>%
+    filter(year == 6  & defor == 1)
+  
+  
+  landscape_year1_plot <- landscape_plot +
+    geom_sf(data = plot_df_year1, aes(fill = defor), shape = 15, alpha = .9, size = 3, color = "white")
+  
+  landscape_year6_plot <- landscape_plot +
+    geom_sf(data = plot_df_year6, aes(fill = defor), shape = 15, alpha = .9, size = 3,color = "white")
+  
+  outputs = list("plot" = plot, "biases" = coeff_bias, "landscape_year1" = landscape_year1_plot, "landscape_year6" = landscape_year6_plot)
   return(outputs)
   
   #end function  
