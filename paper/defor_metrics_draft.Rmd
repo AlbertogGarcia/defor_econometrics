@@ -14,6 +14,7 @@ header-includes:
 ```{r setup, include=FALSE}
 library(knitr)
 library(ggplot2)
+library(kableExtra)
 
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -38,66 +39,50 @@ Robert - I think we can sidestep this for now. I think
 we have plenty to cover, and hope the right reviewers won't need to see this to be convinced it's important. -->
 
 ## Key considerations for impact evaluations of deforestation
-<!-- ** I think we want an introductory section that serves as a review of the approach. This section should:
-1) Introduce data setting: Use a simple  diagram of a small landscape with deforestation and a conservation initiative. Show counterfactual vs observed to demonstrate PO framework
-2) Describe the traditional DiD and FE models
-3) Highlight the key parameters in the model, and introduce table illustrating how different researchers use a wide variety of parameterizations
+<!-- I think we want an introductory section that serves as a review of the approach. This section should: -->
+<!-- 1) Introduce data setting: Use a simple diagram of a small landscape with deforestation and a conservation initiative. Show counterfactual vs observed to demonstrate PO framework -->
 
-I think all this belongs outside of the methods. If we're shooting for a review article, this deserves its own dedicated section with lots of references to highlight how different researchers have made these decisions.
--->
-We consider the case in which a researcher would like to quantify the impact that an intervention has had on deforestation rates. We assume that the intervention has clearly defined boundaries (e.g. a protected area, certified concession or indigenous territory), and that the researcher has access to spatially explicit observations of forest cover and forest loss spanning the periods before and after the intervention was adopted. The researcher's goal is to measure the Average Treatment Effect on the Treated $(ATT)$, which quantifies the change in deforestation occurring inside treated units when compared to an unobservable counterfactual world in which no conservation intervention was adopted (Figure XX). This general setting describes a broad array of research studies that apply panel methods to remotely sensed data (Table XX).
+
+<!-- 2) Describe the traditional DiD and FE models -->
+Two methods in particular are often used to measure the ATT in impact evaluations with panel data settings: Difference-in-Differences (DID) and Two-way Fixed Effects (FE) regression models [@blackman2013; @jones2015].
+
+The typical DID regression model includes a dummy equal to one for units in the treatment group, a dummy equal to one for observations in the period after the intervention, and their interaction. Conceptually, the DiD estimator calculates the treatment effect as the difference between the differences of the treated and non-treated observations before and after treatment [@butsic2017]. In our example, this is the difference between post and pre-treatment deforestation rates in the counties with the policy, minus the difference between post and pre-treatment deforestation rates in the counties without the policy. 
+
+FE regression models are often used to apply DID methods to multiple groups or treatment periods. This amounts to estimating a regression that controls for unit and time fixed effects. Intuitively, this can be thought of as including a dummy variable for each unit of analysis and each time period. The fixed effects account for any unobservable confounding variables that may vary across units or through time. In the case of two groups and two time periods, the FE regression should give an estimate equivalent to that of the DID model [@wooldridge]. Because FE regression models are often used to generalize the DID method, they are used in a wider variety of settings. Settings in which units undergo treatment in more than two distinct time periods may be amenable to an FE regression, but not the standard DID method. For example, a researcher may use an FE regression model to examine the effectiveness of a network of protected areas, where the protected areas where created at different times or a payment for ecosystem services (PES) program, which enrolls properties in annual cohorts.  
+
+<!-- 3) Highlight the key parameters in the model, and introduce table illustrating how different researchers use a wide variety of parameterizations -->
+
+<!-- I think all this belongs outside of the methods. If we're shooting for a review article, this deserves its own dedicated section with lots of references to highlight how different researchers have made these decisions. -->
+
+We consider the case in which a researcher would like to quantify the impact that an intervention has had on deforestation rates. We assume that the intervention has clearly defined boundaries (e.g. a protected area, certified concession, or indigenous territory), and that the researcher has access to spatially explicit observations of forest cover and forest loss spanning the periods before and after the intervention was adopted. The researcher's goal is to measure the Average Treatment Effect on the Treated $(ATT)$, which quantifies the change in deforestation occurring inside treated units when compared to an unobservable counterfactual world in which no conservation intervention was adopted (Figure XX). This general setting describes a broad array of research studies that apply panel methods to remotely sensed data (Table XX). 
+
+The DID and FE models identify the ATT in the two-period two-group case under one main assumption. This assumption is known as the common trends assumption, which amounts to assuming that both untreated and treated units would have experienced the same average change in the outcome in the absence of treatment. 
 
 <!-- ** 
 Robert - Maybe better to move tables into csvs that are loaded and formatted into markdown using kable?
 Especially for the simulation results below, this will allow us to create an easy output file that then gets dynamically loaded in this script.
 -->
 
-\begin{table}[h!]
-\begin{tabular}{|c|c|c|c|c|}
-\cline{1-5}
-Authors & Year & Journal & Method & Unit of Analysis  \\ \cline{1-5}
- Oliviera Fiorini et al. & 2020 & Ecological Economics  & matching and regression & pixel     \\\cline{1-5}
-Blackman  & 2015 & Ecological Economics  & probit regression & pixel    \\ \cline{1-5}
-Baylis et al. & 2015 &  & matching and regression & grid    \\ \cline{1-5}
-Alix-Garcia  & 2018 & Conservation Letters & FE  & pixel  \\ \cline{1-5}
-Busch et al. & 2015 & PNAs & FE & grid  \\ \cline{1-5}
-Alix-Garcia and Gibbs & 2017 & Global Environmental Change & FE  & pixel   \\ \cline{1-5}
-Carlson et al. & 2018 & PNAS & FE poisson  & plantation   \\ \cline{1-5}
-Ruggiero et al. & 2019 & Land Use Policy & matching and DID & property   \\ \cline{1-5}
-Blackman et al. & 2017 & PNAS & FE & community  \\ \cline{1-5}
-Pfaff & 1999  &    &    & county \\ \cline{1-5}
-Sanchez-Azofeifa et al & 2007 &   & OLS   & grid  \\ \cline{1-5}
-Blackman et al. & 2018  &  OLS  &  FE  & forest management unit \\ \cline{1-5}
-&   &    &    &  \\ \cline{1-5}
-&   &    &    &  \\ \cline{1-5}
-&   &    &    &  \\ \cline{1-5}
-&   &    &    &  \\ \cline{1-5}
-&   &    &    &  \\ \cline{1-5}
-&   &    &    &  \\ \cline{1-5}
-&   &    &    &  \\ \cline{1-5}
-&   &    &    &  \\ \cline{1-5}
-&   &    &    &  \\ \cline{1-5}
+<!-- ```{r table1 echo = FALSE, results = 'asis'} -->
 
-\end{tabular}
-\end{table} 
+<!-- #lit_table <- read.csv(url("")) -->
 
-### Model structure
-Two methods in particular are often advocated for and used to measure the ATT in impact evaluations with panel data settings: Difference-in-Differences (DID) and Two-way Fixed Effects (FE) regression models [@blackman2013; @jones2015].
+<!-- #kable(locust.stats, format = "latex",   -->
+<!-- #      caption = "Table of common methods in the literature") -->
 
-The typical DID regression model includes a dummy equal to one for units in the treatment group, a dummy equal to one for observations in the period after the intervention, and their interaction. Conceptually, the DiD estimator calculates the treatment effect as the difference between the differences of the treated and non-treated observations before and after treatment [@butsic2017]. In order for this estimator to identify the ATT, one must make a common trends assumption, which amounts to assuming that both untreated and treated units would have experienced the same average change in the outcome in the absence of treatment. 
+<!-- ``` -->
 
-FE regression models are often used to apply DID methods to multiple groups or time periods. This amounts to estimating a regression that controls for unit and time fixed effects. Intuitively, this can be thought of as including a dummy variable for each unit of analysis and each time period. The fixed effects account for any unobservable confounding variables that may vary across units or through time. In the case of two groups and two time periods, the FE regression should give an estimate equivalent to that of the DID model [@wooldridge]. Because FE regression models are often used to generalize the DID method, they are used in a wider variety of settings. For example, a setting in which a policy is applied to a set of municipalities in more than two distinct time periods may be amenable to an FE regression, but not the standard DID method. 
-
-Upon deciding to use DID or FE regression models to estimate the ATT, researchers must make several other decisions about their estimation strategy. 
 
 
 ### Unit of analysis
 * unit of analysis and aggregation
 
 ### Functional form
-* In cases where researchers opt to use a binary outcome, many grapple with the subsequent decision of functional form.
+* Busch 15 pnas: Poisson is theoretically consistent with forest cover loss within a 3 km x 3 km grid cell being the count of many independent, discrete binary observations of forest cover loss or maintenance at the level of 30m x 30 m remote sensing data. A Poisson QMLE model tolerates zero values, and generates a distribution of predicted values that fits the distribution of observed data, which is concentrated nearest to zero deforestation and diminishes toward greater levels of deforestation
 
+* Carlson 18 Since our four outcome variables were all nonnegative, include zero, and not overdispersed, we used a Poisson model to assess the impact of certification on deforestation and fire activity
 
+* Many papers, ex: Blackman 2015, do not justify use of non-linear functional form. Most default to OLS or simply check that their estimates are robust to different functional forms. 
 ### Method of aggregation
 
 
