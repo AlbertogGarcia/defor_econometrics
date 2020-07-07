@@ -18,6 +18,8 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
   countyscape = county_scapegen(nobs, cellsize, ppoints, cpoints)
   pixloc_df = countyscape$pixloc_df
   landscape_plot = countyscape$landscape_plot
+  p_bounds = countyscape$p_bounds
+  c_bounds = countyscape$c_bounds
   
   ATT <- pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) - pnorm(b0+b1+b2, 0, (std_a^2+std_v^2 + std_p^2)^.5)
   DID_estimand <- (pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2+std_p^2)^.5) - pnorm(b0+b1, 0, (std_a^2+std_v^2+std_p^2)^.5)
@@ -37,7 +39,8 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
         by = join(pixels, year),
         post = ifelse(year > years, 1, 0),
         v_it = rnorm(N, 0, sd = std_v),
-        ystar = b0 + b1*treat + b2*post + b3*treat*post + a_i + v_it
+        ystar = b0 + b1*treat + b2*post + b3*treat*post + a_i + v_it,
+        ystar_counterfactual = b0 + b1*treat + b2*post + a_i + v_it
       )
     )
     
@@ -49,8 +52,11 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     panels <- panels %>%
       inner_join(pixloc, by = c("pixels", "treat")) %>%
       inner_join(error_table, by = "property") %>%
-      mutate(ystar = ystar + p_err) %>%
-      mutate(y = (ystar > 0)*1 )
+      mutate(ystar = ystar + p_err, 
+             y = (ystar > 0)*1, 
+             y_counterfactual = (ystar_counterfactual > 0)*1) 
+    
+    panels_counterfactual <- panels
     
     #need to determine which year deforestation occurred
     year_df <- panels %>%
@@ -225,19 +231,82 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     select(pixels, year, treat, defor) %>%
     filter(year == 1  & defor == 1)
   
-  plot_df_year6 <- panels %>%
+  plot_df_year4 <- panels %>%
     st_as_sf() %>%
     select(pixels, year, treat, defor) %>%
-    filter(year == 6  & defor == 1)
-  
+    filter(year == 4  & defor == 1)
   
   landscape_year1_plot <- landscape_plot +
-    geom_sf(data = plot_df_year1, aes(fill = defor), shape = 15, alpha = .9, size = 3, color = "white")
+    geom_sf(data = plot_df_year1, aes(fill = defor), shape = 15, alpha = .9, size = 1.9, color = "white")+
+    geom_sf(data = p_bounds, color = "gray60", fill = "NA")+
+    geom_sf(data = c_bounds, color = "black", size = 1, fill = "NA") 
   
-  landscape_year6_plot <- landscape_plot +
-    geom_sf(data = plot_df_year6, aes(fill = defor), shape = 15, alpha = .9, size = 3,color = "white")
+  landscape_year4_plot <- landscape_plot +
+    geom_sf(data = plot_df_year4, aes(fill = defor), shape = 15, alpha = .9, size = 1.9,color = "white")+
+    geom_sf(data = p_bounds, color = "gray60", fill = "NA")+
+    geom_sf(data = c_bounds, color = "black", size= 1, fill = "NA") 
   
-  outputs = list("plot" = plot, "biases" = coeff_bias, "landscape_year1" = landscape_year1_plot, "landscape_year6" = landscape_year6_plot)
+  ######################################################################
+  year_counterfactual <- panels_counterfactual %>%
+    select(pixels, year, y_counterfactual) %>%
+    dcast(pixels ~ year , value.var = "y_counterfactual")
+  
+  rownames(year_counterfactual) <- year_counterfactual$pixels
+  
+  year_counterfactual <- year_counterfactual %>%
+    select(- pixels)
+  
+  #creating variable for the year a pixel is deforested
+  not_defor_counterfactual <- rowSums(year_counterfactual)<1 *1
+  defor_year_counterfactual <- max.col(year_counterfactual, ties.method = "first") 
+  defor_counterfactual <- transform(year_counterfactual, defor_year_counterfactual = ifelse(not_defor_counterfactual==1, years*2+1, defor_year_counterfactual))
+  defor_counterfactual <- tibble::rownames_to_column(defor_counterfactual)
+  names(defor_counterfactual)[1] <- paste("pixels")
+  
+  panels_counterfactual <- defor_counterfactual %>%
+    select(pixels, defor_year_counterfactual) %>%
+    inner_join(panels_counterfactual, by = "pixels")
+  
+  cols.num <- c("pixels", "grid", "property", "county", "year")
+  panels_counterfactual[cols.num] <- sapply(panels_counterfactual[cols.num],as.numeric)
+  
+  panels_counterfactual <- panels_counterfactual %>%
+    mutate(indic = year - defor_year_counterfactual) %>%
+    mutate(defor = ifelse(indic > 0, 1, y_counterfactual)) %>%
+    mutate(y_it = ifelse(indic > 0, NA, y_counterfactual) )  
+  
+  panels_counterfactual$defor <- as.factor(panels_counterfactual$defor)
+  
+  plot_counterfactual_year4 <- panels_counterfactual %>%
+    st_as_sf() %>%
+    select(pixels, year, treat, defor) %>%
+    filter(year == 4  & defor == 1)
+  
+  panel_extra <- panels %>%
+    select(pixels, year, defor) %>%
+    rename(defor_panel = defor)
+  
+  extra_defor <- panels_counterfactual %>%
+    select(pixels, year, treat, defor, geometry) %>%
+    inner_join(panel_extra, by = c("pixels", "year")) 
+  
+  extra_defor$defor_panel <- as.numeric(extra_defor$defor_panel)
+  extra_defor$defor<- as.numeric(extra_defor$defor)
+  
+  extra_year4 <- extra_defor %>%
+    mutate(extra = defor - defor_panel) %>%
+    st_as_sf() %>%
+    filter(year == 4  & extra == 1)
+  
+  extra_year4$extra<- as.factor(extra_year4$extra)
+  
+  landscape_counterfactual_year4_plot <- landscape_plot +
+    geom_sf(data = plot_counterfactual_year4, aes(fill = defor), shape = 15, alpha = .9, size = 1.9, color = "white")+
+    geom_sf(data = extra_year4, aes(fill = extra), shape = 15, alpha = .9, size = 1.5, color = "gray50")+
+    geom_sf(data = p_bounds, color = "gray60", fill = "NA")+
+    geom_sf(data = c_bounds, color = "black", size = 1, fill = "NA") 
+  ######################################################################
+  outputs = list("plot" = plot, "biases" = coeff_bias, "landscape_year1" = landscape_year1_plot, "landscape_year4" = landscape_year4_plot, "landscape_counter_year4" = landscape_counterfactual_year4_plot)
   return(outputs)
   
   #end function  
