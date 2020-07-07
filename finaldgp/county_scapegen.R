@@ -104,10 +104,12 @@ county_scapegen <- function(nobs, cellsize, ppoints, cpoints){
   
   landscape_plot <- 
     ggplot() + 
-    geom_sf(data = v_property, color = "white", fill = "gray80") +
-    geom_sf(data = county_plot, aes(fill = treat), alpha = .3) + scale_fill_manual(values=c("#a1d76a", "#ef8a62")) 
+    geom_sf(data = county_plot, aes(fill = treat), alpha = .3) + scale_fill_manual(values=c("#a1d76a", "#ef8a62")) +
+    geom_sf(data = v_property, color = "white", fill = "NA")+
+    geom_sf(data = v_county, color = "black", fill = "NA") +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
   
-  outputs = list('pixloc_df' = pixloc_df, 'landscape_plot' = landscape_plot)
+  outputs = list('pixloc_df' = pixloc_df, 'landscape_plot' = landscape_plot, "p_bounds" = v_property, "c_bounds" = v_county)
   return(outputs)
   
 }
