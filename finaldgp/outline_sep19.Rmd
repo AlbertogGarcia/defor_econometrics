@@ -25,9 +25,14 @@ header-includes:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+#landscape maps
+source('landscape_maps.R')
+
 #binary fcns
 source('quickmontey.R')
+source('quickmontey_did.R')
 source('binary_coeffdist_fcn.R')
 source('funcform.R')
 
@@ -39,7 +44,6 @@ source('county_sims.R')
 source('aggregation_method.R')
 source('weightingarea.R')
 
-source('xy_ATT.R')
 source('xy_agg_ATT.R')
 source('xy_proppert.R')
 
@@ -51,21 +55,20 @@ Define universal parameters
 ```{r parameters}
 set.seed(930)
 
-base_0 = .08
-base_1 = .12
-trend = .00
-#trend = .02
-ATT = -.06
+base_0 = .01
+base_1 = .05
+trend = .02
+ATT = -.05
 
-std_a = .1
+std_a = 0.1
 std_v = 0.2
 years = 3
 nobs = 10000
-n = 100
+n = 200
 
 cellsize = 10
-ppoints = 40
-std_p = 0.15
+ppoints = 50
+std_p = 0
 cpoints = 20
 
 ```
@@ -210,18 +213,31 @@ We begin by allowing the outcome to vary between 0 and 1 across time periods.  W
 ```{r DIDyplot, results='hide', warning = FALSE}
 DID_y$plot
 
+ggsave(path = "figs", filename = "fig1.png", height = 3, width = 6, dpi = 300)
+
 ```
+
+
+```{r DIDy1, results='hide', warning = FALSE}
+DID_keep <- quickmontey_did(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "defor")
+```
+
+```{r DIDy1plot, results='hide', warning = FALSE}
+DID_keep$plot
+
+ggsave('figures/fig2.png', height = 3, width = 6, dpi = 300)
+
+```
+
+We will now drop pixels in the periods after they first become deforested. 
 
 ```{r DIDy_it, results='hide', warning = FALSE}
-DID_yit <- quickmontey(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y_it")
+#dropping obs from panel in periods after they first become deforested
+DID_drop <- quickmontey_did(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y_it")
 
-```
 
-We will now drop pixels in the periods after they first become deforested. The DID estimates are still biased here. It appears that the sign of the bias does not change, while the bias worsens slightly. The bias generated is `r mean(DID_yit$did_biases$V1)`, which represents `r abs(DID_yit$prop_ATT)*100`\% of the ATT. 
-
-```{r DIDy_it plot, results='hide', warning = FALSE}
-
-DID_yit$plot
+DID_drop$plot
+ggsave('figures/fig3.png', height = 3, width = 6, dpi = 300)
 
 ```
 
@@ -329,11 +345,10 @@ We now aggregate to the grid level. Below, we see the bias introduced by using d
  \hline
  number & outcome & additional covariates & model type & paper \\ 
  \hline
- 1 & $\frac{F_{it-1} - F_{it}}{F_{it-1}} $ & & Two-way FE& Busch et al. 2015; Carlson et al. 2018 \\ 
+ 1 & $\frac{F_{it-1} - F_{it}}{F_{it-1}} $ & & Two-way FE& Busch et al. 2015; Carlson et al. 2018, Shah and Baylis 2015 \\ 
  2 & $\frac{F_{i0} - F_{it}}{F_{i0}} $ &  & Two-way FE & Pfaff 1999
 \\ 
  3 & $\frac{F_{it-1} - F_{it}}{F_{i0}} $& & Two-way FE & \\ 
- 4 & $F_{it}$ & $F_{it-1}$ & Two-way FE & \\
  \hline
 \end{tabular}
 \end{center}
@@ -367,6 +382,14 @@ aggregation$plot
 ```
 
 
+```{r landscape maps, results = 'hide', warning=FALSE}
+landscape_map <- aggregation_method(nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+
+landscape_map$landscape_year4
+landscape_map$landscape_counter_year4
+
+```
+
 ## Weighting the regression
 
 Interestingly, we note that upon weighting the regression aggregated to the property level, the distribution is significantly wider. This also appears to happen with the regression aggregated to the county level, but not nearly to the same extent. Weighting the regression aggregated to the grid level has almost no impact. This makes intuitive sense, since the grids are all of equal size. We see a larger impact of weighting the regressions in the property and county cases, because there is more area heterogeneity across units. 
@@ -395,7 +418,7 @@ Property level aggregation also leads to roughly the expected coverage, while th
  county & clustered at county & `r weighting$county_clustercover` \\
  grid & classical & `r weighting$grid_cover` \\
  property & classical & `r weighting$prop_cover` \\
- weighted county & classical & `r weighting$county_cover` \\
+ county  & classical & `r weighting$county_cover` \\
  weighted grid & classical & `r weighting$wgrid_cover` \\
  weighted property & classical & `r weighting$wprop_cover` \\
  weighted county & classical & `r weighting$wcounty_cover` \\
@@ -404,32 +427,18 @@ Property level aggregation also leads to roughly the expected coverage, while th
 \end{center}
 
 
-```{r xy plot ATT, results = 'hide', warning=FALSE}
-min_ATT = -.1
-max_ATT = .1
-
-ATT_bias <- xy_ATT(n, nobs, years, min_ATT, max_ATT, base_0, base_1, trend, std_a, std_v, "y_it")
-
-ATT_bias$plot
-  
-```
-
-```{r xy agg plot ATT, results = 'hide', warning=FALSE}
-ATTagg_bias <- xy_agg_ATT(30, nobs, years, min_ATT, max_ATT, base_0, base_1, trend, std_a, std_v, std_p, cellsize, ppoints, cpoints)
-
-ATTagg_bias$plot
-  
-```
 
 ```{r xy prop_err plot, results = 'hide', warning=FALSE}
 
 min_std_p = 0
-max_std_p = .21
+max_std_p = .3
 interval = .03
 
-p_err_bias <- xy_proppert(30, nobs, years, ATT, base_0, base_1, trend, std_a, std_v, min_std_p, max_std_p, interval, cellsize, ppoints, cpoints)
+p_err_bias <- xy_proppert(50, nobs, years, ATT, base_0, base_1, trend, std_a, std_v, min_std_p, max_std_p, interval, cellsize, ppoints, cpoints)
 
 p_err_bias$plot
+
+p_err_bias$plot2
   
 ```
 
