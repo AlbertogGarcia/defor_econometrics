@@ -1,0 +1,24 @@
+﻿Authors,Method,Unit of analysis,Functional Form
+Alix-Garcia and Gibbs 2017,two-way FE,binary point/pixel,OLS
+Alix-Garcia et al 2018,two-way FE,binary point/pixel,OLS
+Anderson et al. 2018,matched DID,binary point/pixel,OLS
+Araujo et al. 2009,two-way FE using instrument,state,OLS
+Arriagada et al. 2012,matched DID,farm,OLS
+Baylis et al. 2012,DID,grid cell,OLS
+Baylis et al. 2015,matched regression,grid cell,OLS
+Blackman 2015,matched regression,binary point/pixel,probit
+Blackman et al 2017 pnas,two-way FE,community,OLS
+Blackman et al. 2018,matched two-way FE,forest magagement unit (FMU),OLS
+Busch et al. 2015,matched two-way FE,grid cell,poisson
+Carlson et al. 2018,matched two-way FE,plantation,poisson
+Heilmayr and Lambin 2016 pnas,matched DID,property,OLS
+Herrera et al. 2019,matched regression,binary point/pixel,OLS
+Holland et al. 2017,matched two-way FE,landowner parcel/ predio,OLS
+Jones et al. 2017,matched two-way FE,household,OLS
+Oliviera Fiorini et al. ,matched regression,binary point/pixel,WLS
+Pfaff 1999,regression,county,OLS
+Sanchez-Azofeifa et al 2007,regression,grid cells,OLS
+Sims and Alix-Garcia,two-way FE,locality,OLS
+Tabor et al. 2017,two-way FE,fokontany(administarative unit within communities),OLS
+Wendland et al. 2015,matched two-way FE,binary point/pixel,OLS
+Koch et al. ,matched DID,municipality,OLS
