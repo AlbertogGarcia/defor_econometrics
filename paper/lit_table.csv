@@ -20,5 +20,5 @@ Oliviera Fiorini et al. 2020,matched regression,binary point/pixel,WLS
 Pfaff 1999,regression,county,OLS
 Sanchez-Azofeifa et al 2007,regression,grid cells,OLS
 Sims and Alix-Garcia 2017,two-way FE,locality,OLS
-Tabor et al. 2017,two-way FE,fokontany(administarative unit within communities),OLS
+Tabor et al. 2017,two-way FE,fokontany,OLS
 Wendland et al. 2015,matched two-way FE,binary point/pixel,OLS
