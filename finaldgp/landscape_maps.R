@@ -58,13 +58,13 @@ landscape_maps <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
     
     #need to determine which year deforestation occurred
     year_df <- panels %>%
-      select(pixels, year, y) %>%
+      dplyr::select(pixels, year, y) %>%
       dcast(pixels ~ year , value.var = "y")
     
     rownames(year_df) <- year_df$pixels
     
     year_df <- year_df %>%
-      select(- pixels)
+      dplyr::select(- pixels)
     
     #creating variable for the year a pixel is deforested
     not_defor <- rowSums(year_df)<1 *1
@@ -74,7 +74,7 @@ landscape_maps <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
     names(defor_df)[1] <- paste("pixels")
     
     panels <- defor_df %>%
-      select(pixels, defor_year) %>%
+      dplyr::select(pixels, defor_year) %>%
       inner_join(panels, by = "pixels")
     
     cols.num <- c("pixels", "grid", "property", "county", "year")
@@ -91,13 +91,13 @@ landscape_maps <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
   
   ######################################################################
   year_counterfactual <- panels_counterfactual %>%
-    select(pixels, year, y_counterfactual) %>%
-    dcast(pixels ~ year , value.var = "y_counterfactual")
+      dplyr::select(pixels, year, y_counterfactual) %>%
+      dcast(pixels ~ year , value.var = "y_counterfactual")
   
   rownames(year_counterfactual) <- year_counterfactual$pixels
   
   year_counterfactual <- year_counterfactual %>%
-    select(- pixels)
+    dplyr::select(- pixels)
   
   #creating variable for the year a pixel is deforested
   not_defor_counterfactual <- rowSums(year_counterfactual)<1 *1
@@ -107,7 +107,7 @@ landscape_maps <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
   names(defor_counterfactual)[1] <- paste("pixels")
   
   panels_counterfactual <- defor_counterfactual %>%
-    select(pixels, defor_year_counterfactual) %>%
+    dplyr::select(pixels, defor_year_counterfactual) %>%
     inner_join(panels_counterfactual, by = "pixels")
   
   cols.num <- c("pixels", "grid", "property", "county", "year")
@@ -121,10 +121,10 @@ landscape_maps <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
   panels_counterfactual$defor_counter <- as.factor(panels_counterfactual$defor_counter)
   
   panel_extra <- panels %>%
-    select(pixels, year, defor)
+    dplyr::select(pixels, year, defor)
   
   extra_defor <- panels_counterfactual %>%
-    select(pixels, year, treat, defor_counter, geometry) %>%
+    dplyr::select(pixels, year, treat, defor_counter, geometry) %>%
     inner_join(panel_extra, by = c("pixels", "year")) 
   
   extra_defor$defor_counter <- as.numeric(as.character(extra_defor$defor_counter))
@@ -138,7 +138,7 @@ landscape_maps <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
   fills <- c("intervention area" = "#a1d76a", 
              "control area" = "light blue", 
              "deforested pixel" = "white", 
-             "counterfactual deforestation" = "gray50")
+             "counterfactual deforestation" = "gray30")
   
   colors <- c("county boundaries" = "black", 
               "property boundaries" = "gray50")
@@ -147,14 +147,14 @@ landscape_maps <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
   
   plot_df_period1 <- panels %>%
     st_as_sf() %>%
-    select(pixels, year, treat, defor) %>%
+    dplyr::select(pixels, year, treat, defor) %>%
     filter(year == 1  & defor == 1)
   
   landscape_period1 <- 
     ggplot() + 
     geom_sf(data = intervention_area, aes(fill = "intervention area"), color = "#a1d76a") +
     geom_sf(data = control_area, aes(fill = "control area"), color = "lightblue")+
-    geom_sf(data = plot_df_period1, aes(fill = "deforested pixel"), color = "NA", shape = 22, alpha = .9, size = 1.9)+
+    geom_sf(data = plot_df_period1, aes(fill = "deforested pixel"), color = "NA", shape = 22, alpha = .9, size = 1.5)+
     geom_sf(data = p_bounds, aes(color = "property boundaries"), fill = "NA")+
     geom_sf(data = c_bounds, aes(color = "county boundaries"), size = 1, fill = "NA")+
     scale_color_manual(values = colors) +
@@ -162,19 +162,21 @@ landscape_maps <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
     theme(panel.grid.major = element_blank(), 
           panel.grid.minor = element_blank(), 
           panel.background = element_rect(fill = "gray95"), 
+          legend.title = element_blank(),
           axis.text = element_blank(),
-          axis.ticks = element_blank())
+          axis.ticks = element_blank(),
+          legend.position = "none")
   
   plot_df_period2 <- panels %>%
     st_as_sf() %>%
-    select(pixels, year, treat, defor) %>%
+    dplyr::select(pixels, year, treat, defor) %>%
     filter(year == (years+1)  & defor == 1)
   
   landscape_period2 <- 
     ggplot() + 
     geom_sf(data = intervention_area, aes(fill = "intervention area"), color = "#a1d76a") +
     geom_sf(data = control_area, aes(fill = "control area"), color = "lightblue")+
-    geom_sf(data = plot_df_period2, aes(fill = "deforested pixel"), color = "NA", shape = 22, alpha = .9, size = 1.9)+
+    geom_sf(data = plot_df_period2, aes(fill = "deforested pixel"), color = "NA", shape = 22, alpha = .9, size = 1.5)+
     geom_sf(data = p_bounds, aes(color = "property boundaries"), fill = "NA")+
     geom_sf(data = c_bounds, aes(color = "county boundaries"), size = 1, fill = "NA")+
     scale_color_manual(values = colors) +
@@ -182,8 +184,18 @@ landscape_maps <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
     theme(panel.grid.major = element_blank(), 
           panel.grid.minor = element_blank(), 
           panel.background = element_rect(fill = "gray95"), 
+          legend.title = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank())
+  
+  landscape_period2_nolegend <- landscape_period2 +
+    theme(panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(), 
+          panel.background = element_rect(fill = "gray95"), 
+          legend.title = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          legend.position = "none")
   
   extra_period2 <- extra_defor %>%
     mutate(extra = defor_counter - defor) %>%
@@ -192,10 +204,10 @@ landscape_maps <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
   extra_period2$extra<- as.factor(extra_period2$extra)
   
   landscape_period2_counter <- landscape_period2 +
-    geom_sf(data = extra_period2, aes(fill = "counterfactual deforestation"), color = "NA", shape = 22, alpha = .9, size = 1.9)
+    geom_sf(data = extra_period2, aes(fill = "counterfactual deforestation"), color = "NA", shape = 22, alpha = .9, size = 1.5)
     
   ######################################################################
-  outputs = list("landscape_period1" = landscape_period1, "landscape_period2" = landscape_period2, "landscape_period2_counter" = landscape_period2_counter)
+  outputs = list("landscape_period1" = landscape_period1, "landscape_period2" = landscape_period2, "landscape_period2_nolegend" = landscape_period2_nolegend, "landscape_period2_counter" = landscape_period2_counter)
   return(outputs)
   
   #end function  

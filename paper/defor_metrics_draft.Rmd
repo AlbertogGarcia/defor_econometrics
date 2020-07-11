@@ -4,11 +4,15 @@ title: Practical guidance for conservation impact evaluation using remotely sens
 author: "Alberto Garcia and Robert Heilmayr"
 date: "April 22, 2020"
 output:
-  pdf_document: default
+  pdf_document:
+    number_sections: no
+    toc: no
   html_document: default
+  documentclass: article
 bibliography: deforestation_econometrics.bib
 header-includes: 
   \usepackage{bbm}  
+  \usepackage{graphicx}
 ---
 
 ```{r setup, include=FALSE}
@@ -18,6 +22,7 @@ library(kableExtra)
 
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
 
 ## Abstract
 Conservation practitioners need rigorous evidence measuring the effectiveness of proposed policy interventions. In response, scientists are increasingly combining methods of impact evaluation with remotely sensed data on land use change to assess conservation effectiveness. Here we review this burgeoning literature to develop practical guidance for the design of econometric models quantifying conservation policy effectiveness. Using Monte Carlo simulations and analytical proofs, we demonstrate that many of the models employed for conservation impact evaluation suffer from significant bias - the significance, magnitude and even direction of estimated effects from many studies may be incorrect. These errors threaten to undermine the evidence base that is increasingly used to inform conservation policy adoption. To address this concern, we provide clear guidance to help scientists minimize the bias of their impact evaluations by carefully designing the structure of their econometric model, their unit of observation and their method and scale of data aggregation.
@@ -42,21 +47,88 @@ we have plenty to cover, and hope the right reviewers won't need to see this to 
 <!-- I think we want an introductory section that serves as a review of the approach. This section should: -->
 <!-- 1) Introduce data setting: Use a simple diagram of a small landscape with deforestation and a conservation initiative. Show counterfactual vs observed to demonstrate PO framework -->
 
+We consider the case in which a researcher would like to quantify the impact that an intervention has had on deforestation rates. We assume that the intervention has clearly defined boundaries (e.g. a protected area, certified concession, or indigenous territory), and that the researcher has access to spatially explicit observations of forest cover and forest loss spanning the periods before and after the intervention was adopted. The researcher's goal is to measure the Average Treatment Effect on the Treated $(ATT)$, which quantifies the change in deforestation occurring inside treated units when compared to an unobservable counterfactual world in which no conservation intervention was adopted (Figure 1). The fundamental problem of causal inference is that, for every treated unit, we fail to observe the value that the outcome would have taken in the absence of treatment (@holland1986). Figure 1 displays this problem in the context of our simulated conservation intervention. Assuming that the intervention reduced deforestation, we do not observe the counterfactual deforestation that would have ocurred in the intervention area in the absence of the intervention. This general setting describes a broad array of research studies that apply panel methods to remotely sensed data (Table XX). 
+
+* need to add Holland, Paul W. 1986. “Statistics and causal inference.” Journal of the American statistical
+Association 81 (396): 945–960.
+
+```{r, echo=FALSE,out.width="49%", fig.cap="Left: deforestation observed in the period after the policy has been implemented in the intervention area; Right: deforestation that would have ocurred in the absence of the conservation intervention. Deforestation in the control area is the same in both cases, since no intervention ocurred.", fig.show='hold', fig.align='center'}
+knitr::include_graphics(c("landscape_figs/period2_nolegend.png","landscape_figs/counterfactual.png"))
+```
+
 
 <!-- 2) Describe the traditional DiD and FE models -->
-Two methods in particular are often used to measure the ATT in impact evaluations with panel data settings: Difference-in-Differences (DID) and Two-way Fixed Effects (FE) regression models [@blackman2013; @jones2015].
+In panel data settings, two methods in particular are often used to measure the impact of conservation interventions: Difference-in-Differences (DID) and Two-way Fixed Effects (FE) regression models [@blackman2013; @jones2015].
 
-The typical DID regression model includes a dummy equal to one for units in the treatment group, a dummy equal to one for observations in the period after the intervention, and their interaction. Conceptually, the DiD estimator calculates the treatment effect as the difference between the differences of the treated and non-treated observations before and after treatment [@butsic2017]. In our example, this is the difference between post and pre-treatment deforestation rates in the counties with the policy, minus the difference between post and pre-treatment deforestation rates in the counties without the policy. 
+The typical DID regression model includes a dummy equal to one for units in the treatment group, a dummy equal to one for observations in the period after the intervention, and their interaction. Conceptually, the DiD estimator calculates the treatment effect as the difference between the differences of the treated and non-treated observations before and after treatment [@butsic2017]. In our example, this is the difference between post and pre-treatment deforestation rates in observations with the policy, minus the difference between post and pre-treatment deforestation rates in the observations without the policy. 
 
 FE regression models are often used to apply DID methods to multiple groups or treatment periods. This amounts to estimating a regression that controls for unit and time fixed effects. Intuitively, this can be thought of as including a dummy variable for each unit of analysis and each time period. The fixed effects account for any unobservable confounding variables that may vary across units or through time. In the case of two groups and two time periods, the FE regression should give an estimate equivalent to that of the DID model [@wooldridge]. Because FE regression models are often used to generalize the DID method, they are used in a wider variety of settings. Settings in which units undergo treatment in more than two distinct time periods may be amenable to an FE regression, but not the standard DID method. For example, a researcher may use an FE regression model to examine the effectiveness of a network of protected areas, where the protected areas where created at different times or a payment for ecosystem services (PES) program, which enrolls properties in annual cohorts.  
 
+The DID and FE models identify the ATT in the two-period two-group case under one main assumption. This assumption is known as the common trends assumption, which amounts to assuming that both units in the intervention area and untreated units would have experienced the same average change in the outcome in the absence of treatment. 
+
 <!-- 3) Highlight the key parameters in the model, and introduce table illustrating how different researchers use a wide variety of parameterizations -->
+
+
+### Unit of analysis
+* unit of analysis and aggregation
+* Alix-Garcia and Gibbs 2017: We avoided two challenges by using the point as the analysis unit
+rather than an entire property or a grid cell of arbitrary size. The first
+was that results could be interpreted directly as the average effect
+across the landscape rather than the effect for a property with average
+characteristics, without re-weighting by property size. This was useful
+for assessing the full avoided deforestation impacts rather than property-
+level responses to policy. The second advantage came in the assignment
+of property boundaries to the points – each point had an easily
+attributable first year of application to the CAR. This is not the case
+with properties, which can potentially have shifts or overlaps in
+boundaries over time that make it difficult to assign a unique date of
+first application to a property.
+
+* Carlson et al. 2018: We conducted our analysis at the plantation level to match the
+scale at which many plantation management decisions occur
+* Alix-Garcia and Wolff 2014: Indirectly addressing slippage, Arriagada et al. (2012) conduct a whole-farm
+analysis of Costa Rica’s PES program. By including the entire area owned by an individual
+farmer, rather than just the area enrolled in the program, the authors can implicitly measure
+the program impact net of leakage.
+* Blackman et al. 2018: Our FMU-level analysis has advantages and disadvantages. The disadvantage is that we are not able to measure effects that occur only inside harvest zones. The advantage is that we control for spatial spillover effects that occur when
+forest management certification on one part of an FMU spurs deforestation on other parts
+* We had property boundaries from a cadastral survey of
+all titled households in our study area; thus, our unit of
+analysis represented the household decision-making unit
+* Jones and Lewis 2015: Since PES is a household-level program, the ideal unit of analysis is the household parcel. spatial boundaries of household parcels are available for this study area from a cadastral survey conducted by the Government of Ecuador. If this information were not available then it would be difficult to rigorously evaluate the impact without collecting property boundaries using GPS, even though some evaluations of PES have used pixels, or grid cells, for evaluation [36], these do not represent the decision-making unit
+*  JL 15: a plot is removed from the dataset once change occurs so that forest disturbed on this plot—the outcome variable—is not double counted
+
+
+### calculating deforestation rates
+
+
+
+
+#### area weights
+
+* papers weight the regression or outcome to account for units of analysis that are heterogeneous in size
+* ex: 
+
+### Functional form
+* Busch 15 pnas: Poisson is theoretically consistent with forest cover loss within a 3 km x 3 km grid cell being the count of many independent, discrete binary observations of forest cover loss or maintenance at the level of 30m x 30 m remote sensing data. A Poisson QMLE model tolerates zero values, and generates a distribution of predicted values that fits the distribution of observed data, which is concentrated nearest to zero deforestation and diminishes toward greater levels of deforestation
+
+* Carlson 18 Since our four outcome variables were all nonnegative, include zero, and not overdispersed, we used a Poisson model to assess the impact of certification on deforestation and fire activity
+
+* Mohebalian and Aguilar 2018: We chose logit models, over probit regression, because the former
+provides similar results but can be more easily interpreted as odd
+ratios and can be more robust at either bounds of a probabilistic distribution
+curve
+
+* Many papers, ex: Blackman 2015, do not justify use of non-linear functional form. Most default to OLS or simply check that their estimates are robust to different functional forms. 
+
+* Wendland et al. : We choose a linear probability model over non-linear Probit or Logit models for two reasons. First, plot fixed effects cannot be easily included in non-linear discrete-choice models in a flexible manner. Fixed plot effects cannot be included in a Probit model due to the incidental parameters problem, and fixed effects Logit models do not allow for calculation of marginal effects since marginal effects are non-linear functions of the un-estimated fixed effects (see Wooldridge 2010, Ch. 15).
+### standard error structure
+JL15: For cross-sectional and fixed effects regressions we use cluster robust standard errors to control for spatial autocorrelation. Clustering standard errors relaxes the assumption of no correlation across observations within the spatial unit used for clustering.
+
 
 <!-- I think all this belongs outside of the methods. If we're shooting for a review article, this deserves its own dedicated section with lots of references to highlight how different researchers have made these decisions. -->
 
-We consider the case in which a researcher would like to quantify the impact that an intervention has had on deforestation rates. We assume that the intervention has clearly defined boundaries (e.g. a protected area, certified concession, or indigenous territory), and that the researcher has access to spatially explicit observations of forest cover and forest loss spanning the periods before and after the intervention was adopted. The researcher's goal is to measure the Average Treatment Effect on the Treated $(ATT)$, which quantifies the change in deforestation occurring inside treated units when compared to an unobservable counterfactual world in which no conservation intervention was adopted (Figure XX). This general setting describes a broad array of research studies that apply panel methods to remotely sensed data (Table XX). 
 
-The DID and FE models identify the ATT in the two-period two-group case under one main assumption. This assumption is known as the common trends assumption, which amounts to assuming that both untreated and treated units would have experienced the same average change in the outcome in the absence of treatment. 
 
 <!-- ** 
 Robert - Maybe better to move tables into csvs that are loaded and formatted into markdown using kable?
@@ -67,25 +139,10 @@ Especially for the simulation results below, this will allow us to create an eas
 
 <!-- #lit_table <- read.csv(url("")) -->
 
-<!-- #kable(locust.stats, format = "latex",   -->
+<!-- #kable(lit_table, format = "latex", -->
 <!-- #      caption = "Table of common methods in the literature") -->
 
 <!-- ``` -->
-
-
-
-### Unit of analysis
-* unit of analysis and aggregation
-
-### Functional form
-* Busch 15 pnas: Poisson is theoretically consistent with forest cover loss within a 3 km x 3 km grid cell being the count of many independent, discrete binary observations of forest cover loss or maintenance at the level of 30m x 30 m remote sensing data. A Poisson QMLE model tolerates zero values, and generates a distribution of predicted values that fits the distribution of observed data, which is concentrated nearest to zero deforestation and diminishes toward greater levels of deforestation
-
-* Carlson 18 Since our four outcome variables were all nonnegative, include zero, and not overdispersed, we used a Poisson model to assess the impact of certification on deforestation and fire activity
-
-* Many papers, ex: Blackman 2015, do not justify use of non-linear functional form. Most default to OLS or simply check that their estimates are robust to different functional forms. 
-### Method of aggregation
-
-
 
 
 ## Methods
@@ -140,7 +197,7 @@ Figure 2 demonstrates the magnitude and direction of the bias incurred from keep
 
 
 
-#### Issue with FE using pixel unit of analysis
+#### Issue with FE using pixel as unit of analysis
 Despite widespread use of pixel level analyses, they are problematic in the context of FE regression models. In fact, the FE model yields the post-treatment difference in outcomes (single difference), rather than the desired ATT. We provide two forms of evidence to support this claim: (1) an analytical proof and (2) evidence from our Monte Carlo simulations. The result arises from the fact that the FE regression is only able to identify off of pixels that are not dropped in the panel. Thus the pre-treatment period deforestation rates are not accounted for in the FE estimates. 
 
 In Figure 3, we see Monte Carlo Outcomes for four econometric model specifications with a binary outcome: (1) FE dropping deforested pixels from the panel for the periods after they are first realized as deforested; (2) DID dropping deforested pixels from the panel for the periods after they are first realized as deforested; (3) DID keeping deforested pixels in the panel for the length of the study period; and (4) FE keeping deforested pixels in the panel for the length of the study period. We see that specifications (3) and (4) are identical, showing that DID and FE regression models are generally identical in the two-group, two-period case. As described above, we again see the bias resulting from leaving deforested pixels in the panel for the duration of the study period in specifications (3) and (4). 
@@ -219,14 +276,121 @@ Does this apply beyond our example deforestation case?
 ## Acknowledgements and data
 
 ## References
-
+<div id="refs"></div>
 
 ## Appendix
 
 ### Initial parameter to $\beta$ coefficient mapping
 
+The researcher sets the following four parameters:
+
+\begin{align*}
+baseline_0 &= E[y_{it}(0) |  t<t_0, D_i=0]\\
+baseline_1 &= E[y_{it}(0) |  t<t_0, D_i=1]\\
+trend &= E[y_{it}(0) |  t\geq t_0, D_i=0] - E[y_{it}(0) |  t<t_0, D_i=0]\\
+ATT &= E[y_{it}(1) - y_{it}(0) |  t\geq t_0, D_i=1]\\
+\end{align*}
+
+Note the following constraints on the parameters:
+\begin{align*}
+E[y_{it}(0) |  t \geq t_0, D_i=0] \geq 0\\
+E[y_{it}(1) |  t \geq t_0, D_i=1] \geq 0
+\end{align*}
+
+The parameters can be expressed as follows:
+
+\begin{align*}
+ATT =& E[y_{it}(1) - y_{it}(0) |  t\geq t_0, D_i=1] \\
+=& E[ y_{it}(1) |  t\geq t_0, D_i=1] - E[y_{it}(0) |  t\geq t_0, D_i=1]\\
+=& P(y_{it}(1) = 1 | t\geq t_0, D_i=1) - P(y_{it}(0) = 1 | t\geq t_0, D_i=1)\\
+=& P(y_{it}^* (1) >0 | t\geq t_0, D_i=1) - P(y_{it}^*(0) >0 | t\geq t_0, D_i=1)\\
+=& P(\beta_0 + \beta_1 +\beta_2 +\beta_3 + \alpha_i +u_{it} > 0) - P(\beta_0 + \beta_1 +\beta_2 + \alpha_i +u_{it} > 0)\\
+=& P(-\alpha_i -u_{it} < \beta_0 + \beta_1 +\beta_2 +\beta_3) - P(-\alpha_i -u_{it} < \beta_0 + \beta_1 +\beta_2)\\
+=& F(\beta_0 + \beta_1 +\beta_2 +\beta_3) - F(\beta_0 + \beta_1 +\beta_2)
+\end{align*}
+
+
+\begin{align*}
+trend =& E[y_{it}(0) |  t\geq t_0, D_i=0] - E[y_{it}(0) |  t<t_0, D_i=0]\\
+=& P(y_{it}(0)=1 |  t\geq t_0, D_i=0) - P(y_{it}(0)=1 |  t<t_0, D_i=0)\\
+=& P(y^*_{it}(0)>0 |  t\geq t_0, D_i=0) - P(y^*_{it}(0)>0 |  t<t_0, D_i=0)\\
+=& P(-\alpha_i -u_{it} < \beta_0 +\beta_2) - P(-\alpha_i -u_{it} < \beta_0 )\\
+=& F(\beta_0 + \beta_2) - F(\beta_0)
+\end{align*}
+
+\begin{align*}
+baseline_0 =& E[y_{it}(0) |  t<t_0, D_i=0]\\
+=& P(y_{it}(0)=1 |  t< t_0, D_i=0)\\
+=& P(y^*_{it}(0)>0 | t<t_0, D_i=0)\\
+=& P(-\alpha_i -u_{it} < \beta_0 ) \\
+=& F(\beta_0)
+\end{align*}
+
+\begin{align*}
+baseline_1 =& E[y_{it}(0) |  t<t_0, D_i=1]\\
+=& P(y_{it}(0)=1 |  t< t_0, D_i=1)\\
+=& P(y^*_{it}(0)>0 | t<t_0, D_i=1)\\
+=& P(-\alpha_i -u_{it} < \beta_0 +\beta_1) \\
+=& F(\beta_0+\beta_1)
+\end{align*}
+
+
+, Where $F()$ is the CDF of a $N(0, \sigma^2_a + \sigma^2_u)$
+
+
+
+Now solving for the $\beta$ coefficients:
+
+solving for $\beta_0$
+\begin{align*}
+& baseline_0= F(\beta_0) \\
+\Leftrightarrow \\
+& \beta_0 = F^{-1}(baseline_0)
+\end{align*}
+
+solving for $\beta_1$
+\begin{align*}
+& baseline_1= F(\beta_0 + \beta_1) \\
+\Leftrightarrow \\
+& \beta_1 = F^{-1}(baseline_1) - \beta_0
+\end{align*}
+
+solving for $\beta_2$
+\begin{align*}
+&trend= F(\beta_0 + \beta_2 ) - F(\beta_0) \\
+\Leftrightarrow \\
+&trend + baseline_0 =F( \beta_0 + \beta_2)\\
+\Leftrightarrow \\
+&F^{-1}(trend + baseline_0 ) =\beta_0 + \beta_2\\
+\Leftrightarrow \\
+&\beta_2 = F^{-1}(trend + baseline_0 ) - \beta_0 
+\end{align*}
+
+solving for $\beta_3$
+\begin{align*}
+&ATT= F(\beta_0 + \beta_1 +\beta_2 +\beta_3) - F(\beta_0 + \beta_1 +\beta_2)\\
+\Leftrightarrow \\
+&ATT + F(\beta_0 + \beta_1 +\beta_2) = F(\beta_0 + \beta_1 +\beta_2 +\beta_3) \\
+\Leftrightarrow \\
+&F^{-1}(ATT + F(\beta_0 + \beta_1 +\beta_2) )= \beta_0 + \beta_1 +\beta_2 +\beta_3\\
+\Leftrightarrow \\
+&\beta_3 = F^{-1}(ATT + F(\beta_0 + \beta_1 +\beta_2) )- (\beta_0 + \beta_1 +\beta_2)\\
+\end{align*}
+
+
 ### Bias inherent to binary deforestation DGP
 
-### Bias from including deforested pixels in the panel beyond year of initial deforestation event
+This bias can be represented by the difference between the DID estimand and the ATT parameter of interest:
+
+\begin{align*}
+&DID_{estimand} - ATT \\
+\Leftrightarrow \\
+&E[y_{it}(1)  |  t\geq t_0, D_i=1] - E[y_{it}(0)  |  t< t_0, D_i=1] - (E[y_{it}(0)  |  t\geq t_0, D_i=0] - E[y_{it}(0)  |  t< t_0, D_i=0])\\ &- E[y_{it}(1) - y_{it}(0) |  t\geq t_0, D_i=1]\\
+\Leftrightarrow \\
+&F(\beta_0 + \beta_1 +\beta_2 +\beta_3) - F(\beta_0 +\beta_2) - (F(\beta_0 + \beta_1 ) - F(\beta_0 )) \\&- (F(\beta_0 + \beta_1 +\beta_2 +\beta_3) - F(\beta_0 + \beta_1 +\beta_2))\\
+\Leftrightarrow \\
+&F(\beta_0 + \beta_1 +\beta_2) + F(\beta_0 )) - (F(\beta_0 +\beta_2) + F(\beta_0 + \beta_1 )) 
+\end{align*}
+
 
 ### Two-way fixed effects proof

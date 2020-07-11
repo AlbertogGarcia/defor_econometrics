@@ -9,6 +9,7 @@ library(plm)
 library(Metrics)
 library(DataCombine)
 library(dplyr)
+library(tidyverse)
 library(tictoc)
 source('county_scapegen.R')
 
@@ -30,40 +31,36 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     tic("loop")
     Nobs <- length(pixloc$treat)  
     panels <- fabricate(
-      pixels = add_level(N = Nobs, a_i = rnorm(N, 0, sd = std_a), treat = pixloc$treat),
+      pixels = add_level(N = Nobs, a_i = rnorm(N, 0, std_a), treat = pixloc$treat),
       year = add_level(N = (years*2), nest = FALSE),
       obs = cross_levels(
         by = join(pixels, year),
         post = ifelse(year > years, 1, 0),
-        v_it = rnorm(N, 0, sd = std_v),
-        ystar = b0 + b1*treat + b2*post + b3*treat*post + a_i + v_it,
-        ystar_counterfactual = b0 + b1*treat + b2*post + a_i + v_it
+        v_it = rnorm(N, 0, std_v),
+        ystar = b0 + b1*treat + b2*post + b3*treat*post + a_i + v_it
       )
     )
     
     #generate random 
-    error_table <- data.frame(property = as.character(unique(pixloc$property)), p_err = rnorm(length(unique(pixloc$property)), 0, sd = std_p))
+    error_table <- data.frame(property = as.character(unique(pixloc$property)), p_err = rnorm(length(unique(pixloc$property)), 0, std_p))
     
     panels$pixels <- gsub("(?<![0-9])0+", "", panels$pixels, perl = TRUE)
     
     panels <- panels %>%
       inner_join(pixloc, by = c("pixels", "treat")) %>%
       inner_join(error_table, by = "property") %>%
-      mutate(ystar = ystar + p_err, 
-             y = (ystar > 0)*1, 
-             y_counterfactual = (ystar_counterfactual > 0)*1) 
-    
-    panels_counterfactual <- panels
+      mutate(ystar = ystar + p_err) %>%
+      mutate(y = (ystar > 0)*1 )
     
     #need to determine which year deforestation occurred
     year_df <- panels %>%
-      select(pixels, year, y) %>%
+      dplyr::select(pixels, year, y) %>%
       dcast(pixels ~ year , value.var = "y")
     
     rownames(year_df) <- year_df$pixels
     
     year_df <- year_df %>%
-      select(- pixels)
+      dplyr::select(- pixels)
     
     #creating variable for the year a pixel is deforested
     not_defor <- rowSums(year_df)<1 *1
@@ -73,17 +70,18 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     names(defor_df)[1] <- paste("pixels")
     
     panels <- defor_df %>%
-      select(pixels, defor_year) %>%
+      dplyr::select(pixels, defor_year) %>%
       inner_join(panels, by = "pixels")
+    
+    
     
     cols.num <- c("pixels", "grid", "property", "county", "year")
     panels[cols.num] <- sapply(panels[cols.num],as.numeric)
     
     panels <- panels %>%
       mutate(indic = year - defor_year) %>%
-      mutate(defor = ifelse(indic > 0, 1, y)) %>%
-      mutate(y_it = ifelse(indic > 0, NA, y) )  
-               
+      mutate(defor = ifelse(indic > 0, 1, y))%>%
+      mutate(y_it = ifelse(indic > 0, NA, y))
     
     # aggregate up to county in each year 
     suppressWarnings(
@@ -149,10 +147,6 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     countylevel_df <- 
       countylevel_df %>% 
       filter_all(all_vars(!is.infinite(.)))
-    
-    
-    
-    
     
     
     DID1 <- plm(deforrate ~  post*treat, 

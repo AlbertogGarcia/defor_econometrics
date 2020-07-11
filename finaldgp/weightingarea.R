@@ -54,13 +54,13 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
     
     #need to determine which year deforestation occurred
     year_df <- panels %>%
-      select(pixels, year, y) %>%
+      dplyr::select(pixels, year, y) %>%
       dcast(pixels ~ year , value.var = "y")
     
     rownames(year_df) <- year_df$pixels
     
     year_df <- year_df %>%
-      select(- pixels)
+      dplyr::select(- pixels)
     
     #creating variable for the year a pixel is deforested
     not_defor <- rowSums(year_df)<1 *1
@@ -70,7 +70,7 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
     names(defor_df)[1] <- paste("pixels")
     
     panels <- defor_df %>%
-      select(pixels, defor_year) %>%
+      dplyr::select(pixels, defor_year) %>%
       inner_join(panels, by = "pixels")
     
     
@@ -186,9 +186,6 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
                 index  = c("grid", "year")
     )
     
-    DID7 <- lm(y_it ~  post*treat, 
-                data   = panels) 
-               
     
     # run two-way fixed effects with outcome 1 
     DID5 <- plm(deforrate ~  post*treat, 
@@ -206,6 +203,10 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
                 effect = "twoway", #county and year fixed effects
                 index  = c("county", "year")
     )
+    
+    DID7 <- lm(y_it ~  post*treat, 
+               data   = panels) 
+    
     
     #calculating bias from each aggregation method
     coeffmatrix[i,1] <- DID1$coefficients - DID_estimand
@@ -291,12 +292,32 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
   wcounty_cover <- mean(covermat[,9])
   
   pix_cover <- mean(covermat[,10]) 
+  
+  aggregation <- c('grid', 
+                  'property',
+                  'county',
+                  'grid',
+                  'property',
+                  'county',
+                  'weighted grid',
+                  'weighted property',
+                  'weighted county',
+                  'pixel')
+  
+  std_error <- c('clustered', 
+                  'clustered',
+                  'clustered',
+                 'classical',
+                 'classical',
+                 'classical',
+                 'classical',
+                 'classical',
+                 'classical',
+                 'classical')
+  coverages_df <- data.frame(aggregation, std_error, coverage = colMeans(covermat)) 
  
   outputs = list("plot" = plot, "biases" = coeff_bias, 
-                 "grid_cover" = grid_cover, "prop_cover" = prop_cover, "county_cover" = county_cover, 
-                 "grid_clustercover" = grid_clustercover, "prop_clustercover" = prop_clustercover, "county_clustercover" = county_clustercover, 
-                 "wgrid_cover" = wgrid_cover, "wprop_cover" = wprop_cover, "wcounty_cover" = wcounty_cover
-                 )
+                 "coverages_df" = coverages_df)
   
   return(outputs)
   

@@ -46,7 +46,7 @@ xy_proppert <- function(n, nobs, years, ATT, base_0, base_1, trend, std_a = 0.1,
     countyscape = county_scapegen(nobs, cellsize, ppoints, cpoints)
     pixloc_df = countyscape$pixloc_df
     
-    pixloc <- pixloc_df[order(pixloc_df$pixels),]
+    pixloc <- pixloc_df#[order(pixloc_df$pixels),]
     
     
     
@@ -76,13 +76,13 @@ xy_proppert <- function(n, nobs, years, ATT, base_0, base_1, trend, std_a = 0.1,
       
       #need to determine which year deforestation occurred
       year_df <- panels %>%
-        select(pixels, year, y) %>%
+        dplyr::select(pixels, year, y) %>%
         dcast(pixels ~ year , value.var = "y")
       
       rownames(year_df) <- year_df$pixels
       
       year_df <- year_df %>%
-        select(- pixels)
+        dplyr::select(- pixels)
       
       #creating variable for the year a pixel is deforested
       not_defor <- rowSums(year_df)<1 *1
@@ -92,7 +92,7 @@ xy_proppert <- function(n, nobs, years, ATT, base_0, base_1, trend, std_a = 0.1,
       names(defor_df)[1] <- paste("pixels")
       
       panels <- defor_df %>%
-        select(pixels, defor_year) %>%
+        dplyr::select(pixels, defor_year) %>%
         inner_join(panels, by = "pixels")
       
       
