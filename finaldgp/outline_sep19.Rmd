@@ -55,16 +55,16 @@ Define universal parameters
 ```{r parameters}
 set.seed(930)
 
-base_0 = .01
+base_0 = .02
 base_1 = .05
 trend = .02
-ATT = -.05
+ATT = -.04
 
 std_a = 0.1
-std_v = 0.2
+std_v = 0.25
 years = 3
 nobs = 10000
-n = 200
+n = 2
 
 cellsize = 10
 ppoints = 50
@@ -213,7 +213,7 @@ We begin by allowing the outcome to vary between 0 and 1 across time periods.  W
 ```{r DIDyplot, results='hide', warning = FALSE}
 DID_y$plot
 
-ggsave(path = "figs", filename = "fig1.png", height = 3, width = 6, dpi = 300)
+ggsave(path = "figs", filename = "fig1.png", dpi = 500)
 
 ```
 
@@ -225,7 +225,7 @@ DID_keep <- quickmontey_did(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "defor
 ```{r DIDy1plot, results='hide', warning = FALSE}
 DID_keep$plot
 
-ggsave('figures/fig2.png', height = 3, width = 6, dpi = 300)
+ggsave(path = "figs", filename = "fig2.png", dpi = 500)
 
 ```
 
@@ -237,7 +237,8 @@ DID_drop <- quickmontey_did(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y_it"
 
 
 DID_drop$plot
-ggsave('figures/fig3.png', height = 3, width = 6, dpi = 300)
+
+ggsave(path = "figs", filename = "fig3.png", dpi = 500)
 
 ```
 
@@ -248,6 +249,9 @@ We'll now address the use of two-way fixed effects and the dropping of observati
 ```{r FE, results='hide', warning = FALSE}
 twowayFE <- binary_coeffdist_fcn(n, nobs, years, b0, b1, b2, b3, std_a, std_v)
 twowayFE$plot
+
+ggsave(path = "figs", filename = "twowayFE.png", dpi = 500)
+
 ```
 
 ## Two way FE proof
@@ -329,6 +333,9 @@ Then,
 ```{r functionalforms, results='hide', warning = FALSE}
 functionalform <- funcform(n, nobs, years, b0, b1, b2, b3, std_a, std_v)
 functionalform$plot
+
+ggsave(path = "figs", filename = "functionalform.png", dpi = 500)
+
 ```
 
 The above plot shows the DID bias depending on functional form decisions. 
@@ -356,6 +363,9 @@ We now aggregate to the grid level. Below, we see the bias introduced by using d
 ```{r outcomes, results='hide', warning = FALSE}
 outcomes <- outcome_comparison(n, nobs, years, b0, b1, b2, b3, std_a, std_v, cellsize)
 outcomes$plot
+
+ggsave(path = "figs", filename = "outcomes.png", dpi = 500)
+
 ```
 
 
@@ -379,14 +389,36 @@ b3 = qnorm( pnorm(b0+b1+b2, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_a
 aggregation <- aggregation_method(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
 aggregation$plot
 
+ggsave(path = "figs", filename = "aggregation.png", dpi = 500)
+
+
 ```
 
 
-```{r landscape maps, results = 'hide', warning=FALSE}
-landscape_map <- aggregation_method(nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+```{r landscape maps period one, warning=FALSE}
+landscape_map <- landscape_maps(nobs, years = 1, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
 
-landscape_map$landscape_year4
-landscape_map$landscape_counter_year4
+landscape_map$landscape_period1
+ggsave(path = "landscape_figs", filename = "period1.png", dpi = 500)
+
+
+```
+
+```{r landscape maps period two, warning=FALSE}
+landscape_map$landscape_period2
+ggsave(path = "landscape_figs", filename = "period2.png", dpi = 500)
+
+```
+
+```{r landscape maps counterfactual, warning=FALSE}
+landscape_map$landscape_period2_counter
+
+ggsave(path = "landscape_figs", filename = "counterfactual.png", dpi = 500)
+
+```
+```{r landscape maps period two nolegend, warning=FALSE}
+landscape_map$landscape_period2_nolegend
+ggsave(path = "landscape_figs", filename = "period2_nolegend.png", dpi = 500)
 
 ```
 
@@ -397,6 +429,9 @@ Interestingly, we note that upon weighting the regression aggregated to the prop
 ```{r weighting, results='hide', warning=FALSE}
 weighting <- weightingarea(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
 weighting$plot
+
+ggsave(path = "figs", filename = "weighting.png", dpi = 500)
+
 ```
 
 
@@ -434,11 +469,11 @@ min_std_p = 0
 max_std_p = .3
 interval = .03
 
-p_err_bias <- xy_proppert(50, nobs, years, ATT, base_0, base_1, trend, std_a, std_v, min_std_p, max_std_p, interval, cellsize, ppoints, cpoints)
+#p_err_bias <- xy_proppert(50, nobs, years, ATT, base_0, base_1, trend, std_a, std_v, min_std_p, max_std_p, interval, cellsize, ppoints, cpoints)
 
-p_err_bias$plot
+#p_err_bias$plot
 
-p_err_bias$plot2
+#p_err_bias$plot2
   
 ```
 
