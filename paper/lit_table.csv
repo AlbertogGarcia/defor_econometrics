@@ -5,7 +5,6 @@ Anderson et al. 2018,matched DID,binary point/pixel,OLS
 Araujo et al. 2009,two-way FE using instrument,state,OLS
 Arriagada et al. 2012,matched DID,farm,OLS
 Baylis et al. 2012,DID,grid cell,OLS
-Baylis et al. 2015,matched regression,grid cell,OLS
 Blackman 2015,matched regression,binary point/pixel,probit
 Blackman et al 2017,two-way FE,community,OLS
 Blackman et al. 2018,matched two-way FE,forest magagement unit,OLS
