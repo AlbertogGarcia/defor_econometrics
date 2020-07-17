@@ -57,14 +57,14 @@ set.seed(930)
 
 base_0 = .02
 base_1 = .05
-trend = .02
-ATT = -.04
+trend = .01
+ATT = -.015
 
 std_a = 0.1
 std_v = 0.25
 years = 3
 nobs = 10000
-n = 2
+n = 500
 
 cellsize = 10
 ppoints = 50
@@ -238,7 +238,7 @@ DID_drop <- quickmontey_did(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y_it"
 
 DID_drop$plot
 
-ggsave(path = "figs", filename = "fig3.png", dpi = 500)
+#ggsave(path = "figs", filename = "fig3.png", dpi = 500)
 
 ```
 
@@ -250,7 +250,7 @@ We'll now address the use of two-way fixed effects and the dropping of observati
 twowayFE <- binary_coeffdist_fcn(n, nobs, years, b0, b1, b2, b3, std_a, std_v)
 twowayFE$plot
 
-ggsave(path = "figs", filename = "twowayFE.png", dpi = 500)
+#ggsave(path = "figs", filename = "twowayFE.png", dpi = 500)
 
 ```
 
@@ -469,11 +469,11 @@ min_std_p = 0
 max_std_p = .3
 interval = .03
 
-#p_err_bias <- xy_proppert(50, nobs, years, ATT, base_0, base_1, trend, std_a, std_v, min_std_p, max_std_p, interval, cellsize, ppoints, cpoints)
+p_err_bias <- xy_proppert(100, nobs, years, ATT, base_0, base_1, trend, std_a, std_v, min_std_p, max_std_p, interval, cellsize, ppoints, cpoints)
 
-#p_err_bias$plot
+p_err_bias$plot
 
-#p_err_bias$plot2
+p_err_bias$plot2
   
 ```
 

@@ -100,7 +100,7 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     gridlevel_df <- gridlevel_df %>%
       mutate(deforrate1 = (forsharelag - forshare) / forsharelag) %>%
       mutate(deforrate2 = (forsharelag - forshare) / forshare0) %>%
-      mutate(deforrate3 = (forshare0 - forshare) / forshare0)
+      mutate(deforrate3 = log(forsharelag / forshare))
       
     
     #remove any infinite values

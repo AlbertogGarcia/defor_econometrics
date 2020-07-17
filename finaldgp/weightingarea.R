@@ -279,19 +279,6 @@ weightingarea <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0
                                     ) 
     )
   
-  grid_clustercover <- mean(covermat[,1]) 
-  prop_clustercover <- mean(covermat[,2])
-  county_clustercover <- mean(covermat[,3])  
-  
-  grid_cover <- mean(covermat[,4]) 
-  prop_cover <- mean(covermat[,5])
-  county_cover <- mean(covermat[,6]) 
-  
-  wgrid_cover <- mean(covermat[,7]) 
-  wprop_cover <- mean(covermat[,8])
-  wcounty_cover <- mean(covermat[,9])
-  
-  pix_cover <- mean(covermat[,10]) 
   
   aggregation <- c('grid', 
                   'property',

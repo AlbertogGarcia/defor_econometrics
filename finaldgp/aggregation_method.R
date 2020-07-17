@@ -14,7 +14,7 @@ library(tictoc)
 source('county_scapegen.R')
 
 #begin function
-aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, std_p = .1, cellsize, ppoints, cpoints){
+aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, std_p = 0.0, cellsize, ppoints, cpoints){
   
   countyscape = county_scapegen(nobs, cellsize, ppoints, cpoints)
   pixloc_df = countyscape$pixloc_df
@@ -24,7 +24,8 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
                    - (pnorm(b0+b2, 0, (std_a^2+std_v^2+std_p^2)^.5) - pnorm(b0, 0, (std_a^2+std_v^2+std_p^2)^.5)) )
   
   pixloc <- pixloc_df#[order(pixloc_df$pixels),]
-
+  
+  covermat <- matrix(nrow = n, ncol = 7)
   coeffmatrix <- matrix(nrow = n, ncol = 4)
   
   for(i in 1:n){
@@ -185,6 +186,28 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     coeffmatrix[i,4] <- DID4$coefficients[4] - DID_estimand
     
     
+    
+    #calculating standard errors and whether att is within CI
+    
+    # clustering standard errors at group level
+    cluster_se1    <- sqrt(diag(vcovHC(DID1, type = "HC0", cluster = "group")))
+    cluster_se2    <- sqrt(diag(vcovHC(DID2, type = "HC0", cluster = "group")))
+    cluster_se3    <- sqrt(diag(vcovHC(DID3, type = "HC0", cluster = "group")))
+    covermat[i,1] <- between(DID_estimand, DID1$coefficients - 1.96 * cluster_se1, DID1$coefficients + 1.96 * cluster_se1)*1
+    covermat[i,2] <- between(DID_estimand, DID2$coefficients - 1.96 * cluster_se2, DID2$coefficients + 1.96 * cluster_se2)*1
+    covermat[i,3] <- between(DID_estimand, DID3$coefficients - 1.96 * cluster_se3, DID3$coefficients + 1.96 * cluster_se3)*1
+    
+    # classical standard errors
+    se1 <- sqrt(DID1$vcov)
+    se2 <- sqrt(DID2$vcov)
+    se3 <- sqrt(DID3$vcov)
+    se4 <- sqrt(diag(vcovHC(DID4)))[4]
+    covermat[i,4] <- between(DID_estimand, DID1$coefficients - 1.96 * se1, DID1$coefficients + 1.96 * se1)*1
+    covermat[i,5] <- between(DID_estimand, DID2$coefficients - 1.96 * se2, DID2$coefficients + 1.96 * se2)*1
+    covermat[i,6] <- between(DID_estimand, DID3$coefficients - 1.96 * se3, DID3$coefficients + 1.96 * se3)*1
+    covermat[i,7] <- between(DID_estimand, DID4$coefficients[4] - 1.96 * se4, DID4$coefficients[4] + 1.96 * se4)*1
+    
+    
     print(i)
     toc()
   }
@@ -218,7 +241,29 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
                                     ", RMSE:", round(rmse(actual, coeff_bias$pixel), digits = 4)) 
     )
  
-  outputs = list("plot" = plot, "biases" = coeff_bias)
+  aggregation <- c('grid', 
+                   'property',
+                   'county',
+                   'grid',
+                   'property',
+                   'county',
+                   'pixel')
+  
+  std_error <- c('clustered', 
+                 'clustered',
+                 'clustered',
+                 'classical',
+                 'classical',
+                 'classical',
+                 'classical')
+
+  coverages_df <- data.frame(aggregation, std_error, coverage = colMeans(covermat)) 
+  
+  
+  
+  
+  
+  outputs = list("plot" = plot, "biases" = coeff_bias, "coverages_df" = coverages_df)
   return(outputs)
   
   #end function  
