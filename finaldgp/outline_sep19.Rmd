@@ -357,7 +357,7 @@ We now aggregate to the grid level. Below, we see the bias introduced by using d
 
 ```{r outcomes, results='hide', warning = FALSE}
 
-outcomes <- outcome_comparison(30, nobs, years, b0, b1, b2, b3, std_a, std_v, cellsize)
+outcomes <- outcome_comparison(n, nobs, years, b0, b1, b2, b3, std_a, std_v, cellsize)
 outcomes$plot
 
 #ggsave(path = "figs", filename = "outcomes.png", dpi = 500)
@@ -375,12 +375,14 @@ Moving forward, we use the first outcome from above, as it generated the least b
 aggregation <- aggregation_method(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
 aggregation$plot
 
-ggsave(path = "figs", filename = "aggregation.png", dpi = 500)
+#ggsave(path = "figs", filename = "aggregation.png", dpi = 500)
 
 agg_biases <- aggregation$biases
-coverages_df <- aggregation$coverages_df
+#write.csv(agg_biases, "agg_biases.csv")
 
-write.csv(coverages_df, "coverages.csv")
+
+coverages_df <- aggregation$coverages_df
+#write.csv(coverages_df, "coverages.csv")
 ```
 
 
@@ -409,7 +411,7 @@ prop_aggreg$plot
 
 coverages_properror_df <- prop_aggreg$coverages_df
 
-write.csv(coverages_properror_df, "coveragesp_15.csv")
+write.csv(coverages_properror_df, "coverages_p15.csv")
 ```
 
 

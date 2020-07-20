@@ -113,14 +113,14 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
       filter_all(all_vars(!is.infinite(.)))
     
     # run two-way fixed effects with outcome 1 
-    coeffmatrix[i,2] <- plm(deforrate1 ~  post*treat, 
+    coeffmatrix[i,1] <- plm(deforrate1 ~  post*treat, 
                             data   = gridlevel_df, 
                             method = "within", #fixed effects model
                             effect = "twoway", #grid and year fixed effects
                             index  = c("grid", "year")
     )$coefficients - DID_estimand
     
-    coeffmatrix[i,1] <- plm(deforrate2 ~  post*treat, 
+    coeffmatrix[i,2] <- plm(deforrate2 ~  post*treat, 
                             data   = gridlevel_df, 
                             method = "within", #fixed effects model
                             effect = "twoway", #grid and year fixed effects
