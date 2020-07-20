@@ -25,7 +25,7 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
   
   pixloc <- pixloc_df#[order(pixloc_df$pixels),]
   
-  covermat <- matrix(nrow = n, ncol = 7)
+  covermat <- matrix(nrow = n, ncol = 8)
   coeffmatrix <- matrix(nrow = n, ncol = 4)
   
   for(i in 1:n){
@@ -129,7 +129,7 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     
     # aggregate up to county in each year 
     suppressWarnings(
-      countylevel_df <-  aggregate(panels, by = list(panels$county, panels$treat, panels$year), FUN = mean, drop = TRUE)[c("county", "treat", "post", "year","defor", "carea")]
+      countylevel_df <-  aggregate(panels, by = list(panels$county, panels$treat, panels$year), FUN = mean, drop = TRUE)[c("county", "property", "treat", "post", "year","defor", "carea")]
     )
     
     
@@ -208,6 +208,10 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     covermat[i,7] <- between(DID_estimand, DID4$coefficients[4] - 1.96 * se4, DID4$coefficients[4] + 1.96 * se4)*1
     
     
+    # property clusters
+    cluster_prop_pix    <- sqrt(diag(vcovCR(DID4, panels$property, type="CR1")))[4]
+    covermat[i,8] <- between(DID_estimand, DID4$coefficients[4] - 1.96 * cluster_prop_pix, DID4$coefficients[4] + 1.96 * cluster_prop_pix)*1
+    
     print(i)
     toc()
   }
@@ -247,15 +251,19 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
                    'grid',
                    'property',
                    'county',
-                   'pixel')
+                   'pixel',
+                   'pixel'
+                   )
   
-  std_error <- c('clustered', 
-                 'clustered',
-                 'clustered',
+  std_error <- c('clustered at grid', 
+                 'clustered at property',
+                 'clustered at county',
                  'classical',
                  'classical',
                  'classical',
-                 'classical')
+                 'classical'
+                 , 'clustered at property'
+                 )
 
   coverages_df <- data.frame(aggregation, std_error, coverage = colMeans(covermat)) 
   
