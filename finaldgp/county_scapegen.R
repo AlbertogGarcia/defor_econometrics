@@ -95,19 +95,19 @@ county_scapegen <- function(nobs, cellsize, ppoints, cpoints){
     inner_join(careas, by = "county") %>%
     inner_join(pareas, by = "property")
 
-  county_plot <- st_as_sf(v_county) %>%
+  intervention_plot <- st_as_sf(v_county) %>%
     tibble::rownames_to_column("county") 
-  county_plot$county <- as.integer(county_plot$county)
-  county_plot <- county_plot %>%
-    inner_join(treatcounty, by = "county")
-  county_plot$treat <- as.factor(county_plot$treat)
+  intervention_plot$county <- as.integer(intervention_plot$county)
+  intervention_plot <- intervention_plot %>%
+    inner_join(treatcounty, by = "county") 
+  intervention_plot$treat <- as.factor(intervention_plot$treat)
   
-  landscape_plot <- 
-    ggplot() + 
-    geom_sf(data = v_property, color = "white", fill = "gray80") +
-    geom_sf(data = county_plot, aes(fill = treat), alpha = .3) + scale_fill_manual(values=c("#a1d76a", "#ef8a62")) 
+  intervention_area <- intervention_plot %>%
+    filter( treat == 1)
+  control_area <- intervention_plot %>%
+    filter( treat == 0)
   
-  outputs = list('pixloc_df' = pixloc_df, 'landscape_plot' = landscape_plot)
+  outputs = list('pixloc_df' = pixloc_df, 'control_area' = control_area, 'intervention_area' = intervention_area, "p_bounds" = v_property, "c_bounds" = v_county)
   return(outputs)
   
 }

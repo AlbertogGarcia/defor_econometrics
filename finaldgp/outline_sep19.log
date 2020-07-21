@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 2.9.7380 64-bit) (preloaded format=pdflatex 2020.3.30)  22 APR 2020 23:14
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 2.9.7380 64-bit) (preloaded format=pdflatex 2020.3.30)  9 JUL 2020 14:01
 entering extended mode
 **./outline_sep19.tex
 (outline_sep19.tex
@@ -677,115 +677,179 @@ File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
 LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <10.95> not available
 (Font)              Font shape `T1/lmtt/b/n' tried instead on input line 118.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10.95> on input line 144.
-LaTeX Font Info:    Trying to load font information for U+bbm on input line 144
+(Font)              <10.95> on input line 157.
+[1
+
+{C:/Users/garci/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
+LaTeX Font Info:    Trying to load font information for U+bbm on input line 172
 .
 ("C:\Users\garci\AppData\Local\Programs\MiKTeX 2.9\tex/latex/bbm\ubbm.fd"
 File: ubbm.fd 1999/03/15 V 1.2 Font definition for bbm font - TH
-) [1
+)
+LaTeX Font Info:    Calculating math sizes for size <11> on input line 191.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <11> on input line 191.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <7.69997> on input line 191.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <5.5> on input line 191.
 
-{C:/Users/garci/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
-<outline_sep19_files/figure-latex/DIDy-1.pdf, id=23, 469.755pt x 325.215pt>
-File: outline_sep19_files/figure-latex/DIDy-1.pdf Graphic file (type pdf)
-<use outline_sep19_files/figure-latex/DIDy-1.pdf>
-Package pdftex.def Info: outline_sep19_files/figure-latex/DIDy-1.pdf  used on i
-nput line 200.
+LaTeX Font Warning: Font shape `U/bbm/m/n' in size <5.5> not available
+(Font)              size <5> substituted on input line 191.
+
+[2] [3]
+<outline_sep19_files/figure-latex/DIDyplot-1.pdf, id=39, 469.755pt x 325.215pt>
+
+File: outline_sep19_files/figure-latex/DIDyplot-1.pdf Graphic file (type pdf)
+<use outline_sep19_files/figure-latex/DIDyplot-1.pdf>
+Package pdftex.def Info: outline_sep19_files/figure-latex/DIDyplot-1.pdf  used 
+on input line 291.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
-[2]
-<outline_sep19_files/figure-latex/DIDy_it-1.pdf, id=32, 469.755pt x 325.215pt>
+<outline_sep19_files/figure-latex/DIDy1plot-1.pdf, id=40, 469.755pt x 325.215pt
+>
+File: outline_sep19_files/figure-latex/DIDy1plot-1.pdf Graphic file (type pdf)
+<use outline_sep19_files/figure-latex/DIDy1plot-1.pdf>
+Package pdftex.def Info: outline_sep19_files/figure-latex/DIDy1plot-1.pdf  used
+ on input line 311.
+(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
+[4 <./outline_sep19_files/figure-latex/DIDyplot-1.pdf>]
+<outline_sep19_files/figure-latex/DIDy_it-1.pdf, id=56, 469.755pt x 325.215pt>
 File: outline_sep19_files/figure-latex/DIDy_it-1.pdf Graphic file (type pdf)
 <use outline_sep19_files/figure-latex/DIDy_it-1.pdf>
 Package pdftex.def Info: outline_sep19_files/figure-latex/DIDy_it-1.pdf  used o
-n input line 213.
+n input line 326.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
-[3 <./outline_sep19_files/figure-latex/DIDy-1.pdf>]
-<outline_sep19_files/figure-latex/FE-1.pdf, id=45, 469.755pt x 325.215pt>
+[5 <./outline_sep19_files/figure-latex/DIDy1plot-1.pdf>]
+<outline_sep19_files/figure-latex/FE-1.pdf, id=70, 469.755pt x 325.215pt>
 File: outline_sep19_files/figure-latex/FE-1.pdf Graphic file (type pdf)
 <use outline_sep19_files/figure-latex/FE-1.pdf>
 Package pdftex.def Info: outline_sep19_files/figure-latex/FE-1.pdf  used on inp
-ut line 235.
+ut line 348.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
-[4 <./outline_sep19_files/figure-latex/DIDy_it-1.pdf>] [5 <./outline_sep19_file
-s/figure-latex/FE-1.pdf>] [6]
-<outline_sep19_files/figure-latex/functionalforms-1.pdf, id=81, 469.755pt x 325
-.215pt>
+[6 <./outline_sep19_files/figure-latex/DIDy_it-1.pdf>] [7 <./outline_sep19_file
+s/figure-latex/FE-1.pdf>] [8]
+<outline_sep19_files/figure-latex/functionalforms-1.pdf, id=107, 469.755pt x 32
+5.215pt>
 File: outline_sep19_files/figure-latex/functionalforms-1.pdf Graphic file (type
  pdf)
 <use outline_sep19_files/figure-latex/functionalforms-1.pdf>
 Package pdftex.def Info: outline_sep19_files/figure-latex/functionalforms-1.pdf
-  used on input line 333.
+  used on input line 437.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 
-Overfull \hbox (10.91109pt too wide) in paragraph at lines 351--362
+Overfull \hbox (120.92749pt too wide) in paragraph at lines 455--465
  [] 
  []
 
-[7 <./outline_sep19_files/figure-latex/functionalforms-1.pdf>]
-<outline_sep19_files/figure-latex/outcomes-1.pdf, id=102, 469.755pt x 325.215pt
+<outline_sep19_files/figure-latex/outcomes-1.pdf, id=108, 469.755pt x 325.215pt
 >
 File: outline_sep19_files/figure-latex/outcomes-1.pdf Graphic file (type pdf)
 <use outline_sep19_files/figure-latex/outcomes-1.pdf>
 Package pdftex.def Info: outline_sep19_files/figure-latex/outcomes-1.pdf  used 
-on input line 380.
+on input line 474.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
-<outline_sep19_files/figure-latex/aggregate-1.pdf, id=103, 469.755pt x 325.215p
+[9 <./outline_sep19_files/figure-latex/functionalforms-1.pdf>]
+<outline_sep19_files/figure-latex/aggregate-1.pdf, id=128, 469.755pt x 325.215p
 t>
 File: outline_sep19_files/figure-latex/aggregate-1.pdf Graphic file (type pdf)
 <use outline_sep19_files/figure-latex/aggregate-1.pdf>
 Package pdftex.def Info: outline_sep19_files/figure-latex/aggregate-1.pdf  used
- on input line 418.
+ on input line 503.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
-[8 <./outline_sep19_files/figure-latex/outcomes-1.pdf>]
-<outline_sep19_files/figure-latex/weighting-1.pdf, id=118, 469.755pt x 325.215p
+[10 <./outline_sep19_files/figure-latex/outcomes-1.pdf>]
+<outline_sep19_files/figure-latex/landscape maps period one-1.pdf, id=143, 469.
+755pt x 325.215pt>
+File: outline_sep19_files/figure-latex/landscape maps period one-1.pdf Graphic 
+file (type pdf)
+<use outline_sep19_files/figure-latex/landscape maps period one-1.pdf>
+Package pdftex.def Info: outline_sep19_files/figure-latex/landscape maps period
+ one-1.pdf  used on input line 513.
+(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
+[11 <./outline_sep19_files/figure-latex/aggregate-1.pdf>]
+<outline_sep19_files/figure-latex/landscape maps period two-1.pdf, id=156, 469.
+755pt x 325.215pt>
+File: outline_sep19_files/figure-latex/landscape maps period two-1.pdf Graphic 
+file (type pdf)
+<use outline_sep19_files/figure-latex/landscape maps period two-1.pdf>
+Package pdftex.def Info: outline_sep19_files/figure-latex/landscape maps period
+ two-1.pdf  used on input line 527.
+(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
+[12 <./outline_sep19_files/figure-latex/landscape maps period one-1.pdf>]
+<outline_sep19_files/figure-latex/landscape maps counterfactual-1.pdf, id=169, 
+469.755pt x 325.215pt>
+File: outline_sep19_files/figure-latex/landscape maps counterfactual-1.pdf Grap
+hic file (type pdf)
+<use outline_sep19_files/figure-latex/landscape maps counterfactual-1.pdf>
+Package pdftex.def Info: outline_sep19_files/figure-latex/landscape maps counte
+rfactual-1.pdf  used on input line 541.
+(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
+[13 <./outline_sep19_files/figure-latex/landscape maps period two-1.pdf>]
+<outline_sep19_files/figure-latex/landscape maps period two nolegend-1.pdf, id=
+183, 469.755pt x 325.215pt>
+File: outline_sep19_files/figure-latex/landscape maps period two nolegend-1.pdf
+ Graphic file (type pdf)
+<use outline_sep19_files/figure-latex/landscape maps period two nolegend-1.pdf>
+
+Package pdftex.def Info: outline_sep19_files/figure-latex/landscape maps period
+ two nolegend-1.pdf  used on input line 555.
+(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
+[14 <./outline_sep19_files/figure-latex/landscape maps counterfactual-1.pdf>]
+<outline_sep19_files/figure-latex/weighting-1.pdf, id=196, 469.755pt x 325.215p
 t>
 File: outline_sep19_files/figure-latex/weighting-1.pdf Graphic file (type pdf)
 <use outline_sep19_files/figure-latex/weighting-1.pdf>
 Package pdftex.def Info: outline_sep19_files/figure-latex/weighting-1.pdf  used
- on input line 455.
+ on input line 582.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
-[9 <./outline_sep19_files/figure-latex/aggregate-1.pdf>]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 491.
-[10 <./outline_sep19_files/figure-latex/weighting-1.pdf>]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 491.
+[15 <./outline_sep19_files/figure-latex/landscape maps period two nolegend-1.pd
+f>] [16 <./outline_sep19_files/figure-latex/weighting-1.pdf>]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 632.
+[17]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 632.
 (outline_sep19.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 491.
-Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 491.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 632.
+Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 632.
+
+LaTeX Font Warning: Size substitutions with differences
+(Font)              up to 0.5pt have occurred.
+
  ) 
 Here is how much of TeX's memory you used:
- 14256 strings out of 480932
- 214799 string characters out of 2899905
- 507941 words of memory out of 3000000
- 29791 multiletter control sequences out of 15000+200000
- 582805 words of font info for 84 fonts, out of 3000000 for 9000
+ 14352 strings out of 480932
+ 217983 string characters out of 2899905
+ 510215 words of memory out of 3000000
+ 29865 multiletter control sequences out of 15000+200000
+ 595017 words of font info for 101 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 41i,13n,42p,814b,351s stack positions out of 5000i,500n,10000p,200000b,50000s
-{C:/Users/garci/AppData/Local/Programs/MiKTeX 2.9/fonts/enc/dvips/lm/lm-ec.en
-c}{C:/Users/garci/AppData/Local/Programs/MiKTeX 2.9/fonts/enc/dvips/lm/lm-rm.en
+ 41i,13n,42p,814b,364s stack positions out of 5000i,500n,10000p,200000b,50000s
+{C:/Users/garci/AppData/Local/Programs/MiKTeX 2.9/fonts/enc/dvips/lm/lm-rm.en
 c}{C:/Users/garci/AppData/Local/Programs/MiKTeX 2.9/fonts/enc/dvips/lm/lm-maths
 y.enc}{C:/Users/garci/AppData/Local/Programs/MiKTeX 2.9/fonts/enc/dvips/lm/lm-m
 athit.enc}{C:/Users/garci/AppData/Local/Programs/MiKTeX 2.9/fonts/enc/dvips/lm/
+lm-ec.enc}{C:/Users/garci/AppData/Local/Programs/MiKTeX 2.9/fonts/enc/dvips/lm/
 lm-mathex.enc} <C:\Users\garci\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/public/
 bbm/dpi657\bbm10.pk><C:/Users/garci/AppData/Local/Programs/MiKTeX 2.9/fonts/typ
 e1/public/lm/lmbx12.pfb><C:/Users/garci/AppData/Local/Programs/MiKTeX 2.9/fonts
 /type1/public/lm/lmex10.pfb><C:/Users/garci/AppData/Local/Programs/MiKTeX 2.9/f
 onts/type1/public/lm/lmmi10.pfb><C:/Users/garci/AppData/Local/Programs/MiKTeX 2
-.9/fonts/type1/public/lm/lmmi6.pfb><C:/Users/garci/AppData/Local/Programs/MiKTe
-X 2.9/fonts/type1/public/lm/lmmi8.pfb><C:/Users/garci/AppData/Local/Programs/Mi
-KTeX 2.9/fonts/type1/public/lm/lmr10.pfb><C:/Users/garci/AppData/Local/Programs
-/MiKTeX 2.9/fonts/type1/public/lm/lmr17.pfb><C:/Users/garci/AppData/Local/Progr
-ams/MiKTeX 2.9/fonts/type1/public/lm/lmr6.pfb><C:/Users/garci/AppData/Local/Pro
-grams/MiKTeX 2.9/fonts/type1/public/lm/lmr8.pfb><C:/Users/garci/AppData/Local/P
-rograms/MiKTeX 2.9/fonts/type1/public/lm/lmsy10.pfb><C:/Users/garci/AppData/Loc
-al/Programs/MiKTeX 2.9/fonts/type1/public/lm/lmsy6.pfb><C:/Users/garci/AppData/
-Local/Programs/MiKTeX 2.9/fonts/type1/public/lm/lmsy8.pfb><C:/Users/garci/AppDa
-ta/Local/Programs/MiKTeX 2.9/fonts/type1/public/lm/lmtk10.pfb><C:/Users/garci/A
-ppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/lm/lmtt10.pfb><C:/Users/gar
-ci/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/lm/lmtti10.pfb><C:/User
-s/garci/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/symbols/m
-sam10.pfb>
-Output written on outline_sep19.pdf (10 pages, 367918 bytes).
+.9/fonts/type1/public/lm/lmmi12.pfb><C:/Users/garci/AppData/Local/Programs/MiKT
+eX 2.9/fonts/type1/public/lm/lmmi6.pfb><C:/Users/garci/AppData/Local/Programs/M
+iKTeX 2.9/fonts/type1/public/lm/lmmi8.pfb><C:/Users/garci/AppData/Local/Program
+s/MiKTeX 2.9/fonts/type1/public/lm/lmr10.pfb><C:/Users/garci/AppData/Local/Prog
+rams/MiKTeX 2.9/fonts/type1/public/lm/lmr17.pfb><C:/Users/garci/AppData/Local/P
+rograms/MiKTeX 2.9/fonts/type1/public/lm/lmr6.pfb><C:/Users/garci/AppData/Local
+/Programs/MiKTeX 2.9/fonts/type1/public/lm/lmr8.pfb><C:/Users/garci/AppData/Loc
+al/Programs/MiKTeX 2.9/fonts/type1/public/lm/lmsy10.pfb><C:/Users/garci/AppData
+/Local/Programs/MiKTeX 2.9/fonts/type1/public/lm/lmsy6.pfb><C:/Users/garci/AppD
+ata/Local/Programs/MiKTeX 2.9/fonts/type1/public/lm/lmsy8.pfb><C:/Users/garci/A
+ppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/lm/lmtk10.pfb><C:/Users/gar
+ci/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/lm/lmtt10.pfb><C:/Users
+/garci/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/lm/lmtti10.pfb><C:/
+Users/garci/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/symbo
+ls/msam10.pfb>
+Output written on outline_sep19.pdf (17 pages, 431631 bytes).
 PDF statistics:
- 250 PDF objects out of 1000 (max. 8388607)
- 33 named destinations out of 1000 (max. 500000)
- 8316 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 344 PDF objects out of 1000 (max. 8388607)
+ 46 named destinations out of 1000 (max. 500000)
+ 8365 words of extra memory for PDF output out of 10000 (max. 10000000)
 

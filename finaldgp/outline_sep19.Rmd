@@ -17,17 +17,22 @@ header-includes:
   \usepackage{multirow,array}
   \usepackage{makecell}
   \usepackage{amsmath}
-  \usepackage{amsfonts}
+  \usepackage{amsfonts} 
   \usepackage{amssymb} 
-  \usepackage{graphicx}
-  \usepackage{float}
-  \usepackage{bbm}
+  \usepackage{graphicx} 
+  \usepackage{float} 
+  \usepackage{bbm} 
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+#landscape maps
+source('landscape_maps.R')
+
 #binary fcns
 source('quickmontey.R')
+source('quickmontey_did.R')
 source('binary_coeffdist_fcn.R')
 source('funcform.R')
 
@@ -39,7 +44,6 @@ source('county_sims.R')
 source('aggregation_method.R')
 source('weightingarea.R')
 
-source('xy_ATT.R')
 source('xy_agg_ATT.R')
 source('xy_proppert.R')
 
@@ -51,21 +55,20 @@ Define universal parameters
 ```{r parameters}
 set.seed(930)
 
-base_0 = .08
-base_1 = .12
-trend = .00
-#trend = .02
-ATT = -.06
+base_0 = .02
+base_1 = .04
+trend = -.005
+ATT = -.01
 
-std_a = .1
-std_v = 0.2
+std_a = 0.1
+std_v = 0.25
 years = 3
 nobs = 10000
-n = 100
+n = 500
 
 cellsize = 10
-ppoints = 40
-std_p = 0.15
+ppoints = 50
+std_p = 0
 cpoints = 20
 
 ```
@@ -203,25 +206,34 @@ F^{-1}(ATT + F(\beta_0 + \beta_1 +\beta_2) )= \beta_0 + \beta_1 +\beta_2 +\beta_
 ```{r DIDy, results='hide', warning = FALSE}
 DID_y <- quickmontey(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y")
 
+DID_y$plot
+
+ggsave(path = "figs", filename = "fig1.png", dpi = 500)
+
 ```
 
 We begin by allowing the outcome to vary between 0 and 1 across time periods.  We see a slight bias in the DID estimates of the ATT when there exist both a time trend and a group difference in the baseline deforestation rates. This result stems from the fact that the DID estimand does not identify the ATT with the nonlinearity introduced in the DGP. The bias generated is on average `r mean(DID_y$did_biases$V1)`, which represents a bias of `r abs(DID_y$prop_ATT)*100` \% of the ATT. 
 
-```{r DIDyplot, results='hide', warning = FALSE}
-DID_y$plot
 
+
+```{r DIDy1, results='hide', warning = FALSE}
+DID_keep <- quickmontey_did(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "defor")
+DID_keep$plot
+
+ggsave(path = "figs", filename = "fig2.png", dpi = 500)
 ```
+
+
+We will now drop pixels in the periods after they first become deforested. 
 
 ```{r DIDy_it, results='hide', warning = FALSE}
-DID_yit <- quickmontey(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y_it")
+#dropping obs from panel in periods after they first become deforested
+DID_drop <- quickmontey_did(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y_it")
 
-```
 
-We will now drop pixels in the periods after they first become deforested. The DID estimates are still biased here. It appears that the sign of the bias does not change, while the bias worsens slightly. The bias generated is `r mean(DID_yit$did_biases$V1)`, which represents `r abs(DID_yit$prop_ATT)*100`\% of the ATT. 
+DID_drop$plot
 
-```{r DIDy_it plot, results='hide', warning = FALSE}
-
-DID_yit$plot
+ggsave(path = "figs", filename = "fig3.png", dpi = 500)
 
 ```
 
@@ -232,6 +244,9 @@ We'll now address the use of two-way fixed effects and the dropping of observati
 ```{r FE, results='hide', warning = FALSE}
 twowayFE <- binary_coeffdist_fcn(n, nobs, years, b0, b1, b2, b3, std_a, std_v)
 twowayFE$plot
+
+ggsave(path = "figs", filename = "twowayFE.png", dpi = 500)
+
 ```
 
 ## Two way FE proof
@@ -313,6 +328,9 @@ Then,
 ```{r functionalforms, results='hide', warning = FALSE}
 functionalform <- funcform(n, nobs, years, b0, b1, b2, b3, std_a, std_v)
 functionalform$plot
+
+ggsave(path = "figs", filename = "functionalform.png", dpi = 500)
+
 ```
 
 The above plot shows the DID bias depending on functional form decisions. 
@@ -329,18 +347,21 @@ We now aggregate to the grid level. Below, we see the bias introduced by using d
  \hline
  number & outcome & additional covariates & model type & paper \\ 
  \hline
- 1 & $\frac{F_{it-1} - F_{it}}{F_{it-1}} $ & & Two-way FE& Busch et al. 2015; Carlson et al. 2018 \\ 
+ 1 & $\frac{F_{it-1} - F_{it}}{F_{it-1}} $ & & Two-way FE& Busch et al. 2015; Carlson et al. 2018, Shah and Baylis 2015 \\ 
  2 & $\frac{F_{i0} - F_{it}}{F_{i0}} $ &  & Two-way FE & Pfaff 1999
 \\ 
  3 & $\frac{F_{it-1} - F_{it}}{F_{i0}} $& & Two-way FE & \\ 
- 4 & $F_{it}$ & $F_{it-1}$ & Two-way FE & \\
  \hline
 \end{tabular}
 \end{center}
 
 ```{r outcomes, results='hide', warning = FALSE}
+
 outcomes <- outcome_comparison(n, nobs, years, b0, b1, b2, b3, std_a, std_v, cellsize)
 outcomes$plot
+
+#ggsave(path = "figs", filename = "outcomes.png", dpi = 500)
+
 ```
 
 
@@ -348,9 +369,30 @@ outcomes$plot
  
 Moving forward, we use the first outcome from above, as it generated the least bias. We consider three possible aggregation methods: county, property, and grid level in order to look at the distribution of the estimates. At this point we also introduce property level perturbations into the DGP. 
 
-```{r generating parameters with std_p, results = 'hide', warning=FALSE}
 
-std_avp = (std_a^2 + std_v^2 + std_p)^.5
+
+```{r aggregate, results = 'hide', warning=FALSE}
+aggregation <- aggregation_method(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+aggregation$plot
+
+#ggsave(path = "figs", filename = "aggregation.png", dpi = 500)
+
+agg_biases <- aggregation$biases
+#write.csv(agg_biases, "agg_biases.csv")
+
+
+coverages_df <- aggregation$coverages_df
+#write.csv(coverages_df, "coverages.csv")
+```
+
+
+
+
+
+```{r generating parameters with std_p, results = 'hide', warning=FALSE}
+std_p1 = 0.15
+  
+std_avp = (std_a^2 + std_v^2 + std_p1)^.5
 b0 = qnorm(base_0, mean = 0, sd = std_avp)
 b1 = qnorm(base_1, mean = 0, sd = std_avp) - b0
 b2 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
@@ -360,12 +402,45 @@ b3 = qnorm( pnorm(b0+b1+b2, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_a
 
 
 
-```{r aggregate, results = 'hide', warning=FALSE}
-aggregation <- aggregation_method(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
-aggregation$plot
+
+```{r property unobservables, results = 'hide', warning=FALSE}
+prop_aggreg <- aggregation_method(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p1, cellsize, ppoints, cpoints)
+prop_aggreg$plot
+
+#ggsave(path = "figs", filename = "aggregation.png", dpi = 500)
+
+coverages_properror_df <- prop_aggreg$coverages_df
+
+write.csv(coverages_properror_df, "coverages_p15.csv")
+```
+
+
+```{r landscape maps period one, warning=FALSE}
+landscape_map <- landscape_maps(nobs, years = 1, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+
+landscape_map$landscape_period1
+ggsave(path = "landscape_figs", filename = "period1.png", dpi = 500)
+
 
 ```
 
+```{r landscape maps period two, warning=FALSE}
+landscape_map$landscape_period2
+ggsave(path = "landscape_figs", filename = "period2.png", dpi = 500)
+
+```
+
+```{r landscape maps counterfactual, warning=FALSE}
+landscape_map$landscape_period2_counter
+
+ggsave(path = "landscape_figs", filename = "counterfactual.png", dpi = 500)
+
+```
+```{r landscape maps period two nolegend, warning=FALSE}
+landscape_map$landscape_period2_nolegend
+ggsave(path = "landscape_figs", filename = "period2_nolegend.png", dpi = 500)
+
+```
 
 ## Weighting the regression
 
@@ -374,6 +449,9 @@ Interestingly, we note that upon weighting the regression aggregated to the prop
 ```{r weighting, results='hide', warning=FALSE}
 weighting <- weightingarea(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
 weighting$plot
+
+ggsave(path = "figs", filename = "weighting.png", dpi = 500)
+
 ```
 
 
@@ -385,51 +463,18 @@ Property level aggregation also leads to roughly the expected coverage, while th
 
 
 
-\begin{center}
-\begin{tabular}{ |c|c|c| } 
- \hline
- level of aggregation & std. errors & coverage probability\\ 
- \hline
- grid & clustered at grid & `r weighting$grid_clustercover` \\
- property & clustered at property & `r weighting$prop_clustercover` \\
- county & clustered at county & `r weighting$county_clustercover` \\
- grid & classical & `r weighting$grid_cover` \\
- property & classical & `r weighting$prop_cover` \\
- weighted county & classical & `r weighting$county_cover` \\
- weighted grid & classical & `r weighting$wgrid_cover` \\
- weighted property & classical & `r weighting$wprop_cover` \\
- weighted county & classical & `r weighting$wcounty_cover` \\
- \hline
-\end{tabular}
-\end{center}
-
-
-```{r xy plot ATT, results = 'hide', warning=FALSE}
-min_ATT = -.1
-max_ATT = .1
-
-ATT_bias <- xy_ATT(n, nobs, years, min_ATT, max_ATT, base_0, base_1, trend, std_a, std_v, "y_it")
-
-ATT_bias$plot
-  
-```
-
-```{r xy agg plot ATT, results = 'hide', warning=FALSE}
-ATTagg_bias <- xy_agg_ATT(30, nobs, years, min_ATT, max_ATT, base_0, base_1, trend, std_a, std_v, std_p, cellsize, ppoints, cpoints)
-
-ATTagg_bias$plot
-  
-```
 
 ```{r xy prop_err plot, results = 'hide', warning=FALSE}
 
-min_std_p = 0
-max_std_p = .21
-interval = .03
-
-p_err_bias <- xy_proppert(30, nobs, years, ATT, base_0, base_1, trend, std_a, std_v, min_std_p, max_std_p, interval, cellsize, ppoints, cpoints)
-
-p_err_bias$plot
+# min_std_p = 0
+# max_std_p = .25
+# interval = .05
+# 
+# p_err_bias <- xy_proppert(100, nobs, years, ATT, base_0, base_1, trend, std_a, std_v, min_std_p, max_std_p, interval, cellsize, ppoints, cpoints)
+# 
+# p_err_bias$plot
+# 
+# p_err_bias$plot2
   
 ```
 

@@ -19,9 +19,9 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
   DID_estimand <- (pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2)^.5) - pnorm(b0+b1, 0, (std_a^2+std_v^2)^.5)
                    - (pnorm(b0+b2, 0, (std_a^2+std_v^2)^.5) - pnorm(b0, 0, (std_a^2+std_v^2)^.5)) )
   
-  pixloc <- pixloc_df[order(pixloc_df$pixels),]
+  pixloc <- pixloc_df#[order(pixloc_df$pixels),]
   
-  coeffmatrix <- matrix(nrow = n, ncol = 4)
+  coeffmatrix <- matrix(nrow = n, ncol = 3)
   
   for(i in 1:n){
     tic("loop")
@@ -38,6 +38,10 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
         y = (ystar > 0)*1
       )
     )
+    
+    panels$year <- as.numeric(panels$year)
+    panels <- panels %>%
+      mutate(post = ifelse(year > years, 1, 0))
     
     #need to determine which year deforestation occurred
     year_df <- subset(panels, select = c(pixels, year, y))
@@ -100,7 +104,7 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     gridlevel_df <- gridlevel_df %>%
       mutate(deforrate1 = (forsharelag - forshare) / forsharelag) %>%
       mutate(deforrate2 = (forsharelag - forshare) / forshare0) %>%
-      mutate(deforrate3 = (forshare0 - forshare) / forshare0)
+      mutate(deforrate3 = log(forsharelag / forshare))
       
     
     #remove any infinite values
@@ -130,12 +134,12 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
                             index  = c("grid", "year")
     )$coefficients - DID_estimand
     
-    coeffmatrix[i,4] <- plm(forshare ~  post*treat + forsharelag, 
-                            data   = gridlevel_df, 
-                            method = "within", #fixed effects model
-                            effect = "twoway", #grid and year fixed effects
-                            index  = c("grid", "year")
-    )$coefficients[2] - DID_estimand
+    # coeffmatrix[i,4] <- plm(forshare ~  post*treat + forsharelag, 
+    #                         data   = gridlevel_df, 
+    #                         method = "within", #fixed effects model
+    #                         effect = "twoway", #grid and year fixed effects
+    #                         index  = c("grid", "year")
+    # )$coefficients[2] - DID_estimand
     
     print(i)
     toc()
@@ -147,10 +151,10 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
   names(coeff_bias)[1] <- paste("outcome1")
   names(coeff_bias)[2] <- paste("outcome2")
   names(coeff_bias)[3] <- paste("outcome3")
-  names(coeff_bias)[4] <- paste("outcome4")
+  #names(coeff_bias)[4] <- paste("outcome4")
 
-  cbias <- coeff_bias %>%
-    select(outcome1, outcome2, outcome3)
+  cbias <- coeff_bias #%>%
+    #select(outcome1, outcome2, outcome3)
   
   suppressWarnings(cbias <- melt(cbias, value.name = "bias"))
   

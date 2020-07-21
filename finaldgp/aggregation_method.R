@@ -9,40 +9,41 @@ library(plm)
 library(Metrics)
 library(DataCombine)
 library(dplyr)
+library(tidyverse)
 library(tictoc)
 source('county_scapegen.R')
 
 #begin function
-aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, std_p = .1, cellsize, ppoints, cpoints){
+aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, std_p = 0.0, cellsize, ppoints, cpoints){
   
   countyscape = county_scapegen(nobs, cellsize, ppoints, cpoints)
   pixloc_df = countyscape$pixloc_df
-  landscape_plot = countyscape$landscape_plot
   
   ATT <- pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) - pnorm(b0+b1+b2, 0, (std_a^2+std_v^2 + std_p^2)^.5)
   DID_estimand <- (pnorm(b0+b1+b2+b3, 0, (std_a^2+std_v^2+std_p^2)^.5) - pnorm(b0+b1, 0, (std_a^2+std_v^2+std_p^2)^.5)
                    - (pnorm(b0+b2, 0, (std_a^2+std_v^2+std_p^2)^.5) - pnorm(b0, 0, (std_a^2+std_v^2+std_p^2)^.5)) )
   
   pixloc <- pixloc_df#[order(pixloc_df$pixels),]
-
+  
+  covermat <- matrix(nrow = n, ncol = 8)
   coeffmatrix <- matrix(nrow = n, ncol = 4)
   
   for(i in 1:n){
     tic("loop")
     Nobs <- length(pixloc$treat)  
     panels <- fabricate(
-      pixels = add_level(N = Nobs, a_i = rnorm(N, 0, sd = std_a), treat = pixloc$treat),
+      pixels = add_level(N = Nobs, a_i = rnorm(N, 0, std_a), treat = pixloc$treat),
       year = add_level(N = (years*2), nest = FALSE),
       obs = cross_levels(
         by = join(pixels, year),
         post = ifelse(year > years, 1, 0),
-        v_it = rnorm(N, 0, sd = std_v),
+        v_it = rnorm(N, 0, std_v),
         ystar = b0 + b1*treat + b2*post + b3*treat*post + a_i + v_it
       )
     )
     
     #generate random 
-    error_table <- data.frame(property = as.character(unique(pixloc$property)), p_err = rnorm(length(unique(pixloc$property)), 0, sd = std_p))
+    error_table <- data.frame(property = as.character(unique(pixloc$property)), p_err = rnorm(length(unique(pixloc$property)), 0, std_p))
     
     panels$pixels <- gsub("(?<![0-9])0+", "", panels$pixels, perl = TRUE)
     
@@ -54,13 +55,13 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     
     #need to determine which year deforestation occurred
     year_df <- panels %>%
-      select(pixels, year, y) %>%
+      dplyr::select(pixels, year, y) %>%
       dcast(pixels ~ year , value.var = "y")
     
     rownames(year_df) <- year_df$pixels
     
     year_df <- year_df %>%
-      select(- pixels)
+      dplyr::select(- pixels)
     
     #creating variable for the year a pixel is deforested
     not_defor <- rowSums(year_df)<1 *1
@@ -70,17 +71,18 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     names(defor_df)[1] <- paste("pixels")
     
     panels <- defor_df %>%
-      select(pixels, defor_year) %>%
+      dplyr::select(pixels, defor_year) %>%
       inner_join(panels, by = "pixels")
+    
+    
     
     cols.num <- c("pixels", "grid", "property", "county", "year")
     panels[cols.num] <- sapply(panels[cols.num],as.numeric)
     
     panels <- panels %>%
       mutate(indic = year - defor_year) %>%
-      mutate(defor = ifelse(indic > 0, 1, y)) %>%
-      mutate(y_it = ifelse(indic > 0, NA, y) )  
-               
+      mutate(defor = ifelse(indic > 0, 1, y))%>%
+      mutate(y_it = ifelse(indic > 0, NA, y))
     
     # aggregate up to county in each year 
     suppressWarnings(
@@ -127,7 +129,7 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     
     # aggregate up to county in each year 
     suppressWarnings(
-      countylevel_df <-  aggregate(panels, by = list(panels$county, panels$treat, panels$year), FUN = mean, drop = TRUE)[c("county", "treat", "post", "year","defor", "carea")]
+      countylevel_df <-  aggregate(panels, by = list(panels$county, panels$treat, panels$year), FUN = mean, drop = TRUE)[c("county", "property", "treat", "post", "year","defor", "carea")]
     )
     
     
@@ -146,10 +148,6 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     countylevel_df <- 
       countylevel_df %>% 
       filter_all(all_vars(!is.infinite(.)))
-    
-    
-    
-    
     
     
     DID1 <- plm(deforrate ~  post*treat, 
@@ -188,6 +186,32 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
     coeffmatrix[i,4] <- DID4$coefficients[4] - DID_estimand
     
     
+    
+    #calculating standard errors and whether att is within CI
+    
+    # clustering standard errors at group level
+    cluster_se1    <- sqrt(diag(vcovHC(DID1, type = "HC0", cluster = "group")))
+    cluster_se2    <- sqrt(diag(vcovHC(DID2, type = "HC0", cluster = "group")))
+    cluster_se3    <- sqrt(diag(vcovHC(DID3, type = "HC0", cluster = "group")))
+    covermat[i,1] <- between(DID_estimand, DID1$coefficients - 1.96 * cluster_se1, DID1$coefficients + 1.96 * cluster_se1)*1
+    covermat[i,2] <- between(DID_estimand, DID2$coefficients - 1.96 * cluster_se2, DID2$coefficients + 1.96 * cluster_se2)*1
+    covermat[i,3] <- between(DID_estimand, DID3$coefficients - 1.96 * cluster_se3, DID3$coefficients + 1.96 * cluster_se3)*1
+    
+    # classical standard errors
+    se1 <- sqrt(DID1$vcov)
+    se2 <- sqrt(DID2$vcov)
+    se3 <- sqrt(DID3$vcov)
+    se4 <- sqrt(diag(vcovHC(DID4)))[4]
+    covermat[i,4] <- between(DID_estimand, DID1$coefficients - 1.96 * se1, DID1$coefficients + 1.96 * se1)*1
+    covermat[i,5] <- between(DID_estimand, DID2$coefficients - 1.96 * se2, DID2$coefficients + 1.96 * se2)*1
+    covermat[i,6] <- between(DID_estimand, DID3$coefficients - 1.96 * se3, DID3$coefficients + 1.96 * se3)*1
+    covermat[i,7] <- between(DID_estimand, DID4$coefficients[4] - 1.96 * se4, DID4$coefficients[4] + 1.96 * se4)*1
+    
+    
+    # property clusters
+    cluster_prop_pix    <- sqrt(diag(vcovCR(DID4, panels$property, type="CR1")))[4]
+    covermat[i,8] <- between(DID_estimand, DID4$coefficients[4] - 1.96 * cluster_prop_pix, DID4$coefficients[4] + 1.96 * cluster_prop_pix)*1
+    
     print(i)
     toc()
   }
@@ -199,6 +223,9 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
   names(coeff_bias)[3] <- paste("county")
   names(coeff_bias)[4] <- paste("pixel")
   suppressWarnings(cbias <- melt(coeff_bias, value.name = "bias"))
+  
+  ##################################################################
+  ###### Bias distribution Plots #######
   
   plot <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
     geom_density(alpha = .2) +
@@ -217,27 +244,34 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
                                     "Mean pixel:", round(mean(coeff_bias$pixel), digits = 4),
                                     ", RMSE:", round(rmse(actual, coeff_bias$pixel), digits = 4)) 
     )
+ 
+  aggregation <- c('grid', 
+                   'property',
+                   'county',
+                   'grid',
+                   'property',
+                   'county',
+                   'pixel',
+                   'pixel'
+                   )
   
-  panels$defor <- as.factor(panels$defor)
+  std_error <- c('clustered at grid', 
+                 'clustered at property',
+                 'clustered at county',
+                 'classical',
+                 'classical',
+                 'classical',
+                 'classical'
+                 , 'clustered at property'
+                 )
+
+  coverages_df <- data.frame(aggregation, std_error, coverage = colMeans(covermat)) 
   
-  plot_df_year1 <- panels %>%
-    st_as_sf() %>%
-    select(pixels, year, treat, defor) %>%
-    filter(year == 1  & defor == 1)
-  
-  plot_df_year6 <- panels %>%
-    st_as_sf() %>%
-    select(pixels, year, treat, defor) %>%
-    filter(year == 6  & defor == 1)
   
   
-  landscape_year1_plot <- landscape_plot +
-    geom_sf(data = plot_df_year1, aes(fill = defor), shape = 15, alpha = .9, size = 3, color = "white")
   
-  landscape_year6_plot <- landscape_plot +
-    geom_sf(data = plot_df_year6, aes(fill = defor), shape = 15, alpha = .9, size = 3,color = "white")
   
-  outputs = list("plot" = plot, "biases" = coeff_bias, "landscape_year1" = landscape_year1_plot, "landscape_year6" = landscape_year6_plot)
+  outputs = list("plot" = plot, "biases" = coeff_bias, "coverages_df" = coverages_df)
   return(outputs)
   
   #end function  
