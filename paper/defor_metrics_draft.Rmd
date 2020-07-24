@@ -78,7 +78,6 @@ estimate the $ATT$ under the standard common trends assumption [@deChaisemartin2
 Several key decisions must be made by the researcher in the design of the econometric model for causal inference. We outline some of the key design decisions including the choice between DID and FE models, the unit of analysis, functional form, and calculation of deforestation rates. Studies have made these decisions, and minimal guidance exists on how to think about these decisions.  
 
 #### Unit of analysis
-
 Analyses using a binary pixel or plot are common in the literature [@jones2015]. One benefit of a pixel level analysis is that results can be interpreted directly as the average effect across the landscape [@alix-garcia2017]. This may be preferable in contexts where there is no clear alternative unit of interest. For example, @anderson2018 explore how overlapping land allocations impact deforestation. Here, the estimated effect from a pixel-level analysis is more intuitive than would be generated from an "overlap" level analysis, where the coefficient could be interpreted as the average effect on a representative "overlap". Pixel level analyses often times requires the researcher to sample points in the interest of computational feasibility [e.g. @alix-garcia2018; @anderson2018]. 
 
 Sampling pixels from the landscape may ignore important spatial dependencies or relationships that would be captured with aggregation. Some papers, as a result, choose to aggregate pixels to the grid level. This maintains the landscape-scale interpretation provided by pixel level analyses, while allowing the author to include every pixel in the analysis within a manageable number of grid cells. In exchange for fine-scale spatial specificity, using coarser-resolution cells rather than pixels has the benefits of diluting the effects of possible spatial misalignments between datasets, enabling easier interpolation of missing data within cells, and subsuming localized spatial correlation [@busch2015]. Although not necessarily an issue, one consideration of using grid cell aggregation is the potential for the grid cell to overlap two or more administrative units. In this case, the treatment variable will be continuous, or the researcher must make a decision as to how treatment should be assigned. 
@@ -119,14 +118,7 @@ The decision of functional form is another often overlooked decison, particularl
 
 While non-linear functional forms may be theoretically preferable to OLS, this is often times more complicated to implement in practice. In order to obtain an interpretable estimate of the $ATT$, researchers using non-linear functional forms generally need to compute marginal or average partial effects from the estimated coefficients. These methods can also be more computationally demanding. It has been noted in the impact evaluation literature that fixed effects cannot typically be used in most non-linear methods due to the incidental parameters problem [e.g. @jones2015; @wendland2015], favoring the use of OLS in regression models containing fixed effects. @fernandez-val2016 show that a bias correction is needed to get asymptotically unbiased estimates logit, probit, and poisson regression models with individual and time fixed effects. These bias corrections are available in various statistical packages and are necessary in order to get unbiased estimates when using fixed effects with non-linear functional forms. 
 
-<!-- I think all this belongs outside of the methods. If we're shooting for a review article, this deserves its own dedicated section with lots of references to highlight how different researchers have made these decisions. -->
 
-
-
-<!-- ** 
-Robert - Maybe better to move tables into csvs that are loaded and formatted into markdown using kable?
-Especially for the simulation results below, this will allow us to create an easy output file that then gets dynamically loaded in this script.
--->
 \renewcommand{\arraystretch}{1.5}
 ```{r table1, echo = FALSE, results = "asis", fig.show='hold'}
 
@@ -149,37 +141,40 @@ kable(lit_table, format = "latex",
 
 ## Methods
 ### Monte Carlo simulations
-<!-- ** 
-Return to simple diagram from previous section but here, instead of showing counterfactual vs reality, highlight two time periods to illustrate DiD method.
--->
+We employ a series of Monte Carlo simulations to (1) generate synthetic landscapes with known policy effectiveness and (2) analyze the performance of different econometric models in estimating the policy's known impact. Our landscape consists of administrative units that are either untreated $(D=0)$ or are assigned to a conservation treatment $(D=1)$. We observe deforestation in two, even-length periods, a pre-treatment $(t < t_{0})$ and a post-treatment $(t \ge t_{0})$ period. The data generating process underlying our Monte Carlo simulations begins with the assignment of four parameters: The mean, pre-treatment period deforestation rate for untreated units, $baseline_0$; the mean, pre-treatment period deforestation rate for treated units, $baseline_1$; untreated units' mean change in deforestation rates occurring between the pre- and post-treatment periods, $trend$; and lastly, the average treatment effect of the policy on the treated units, $ATT$. The ATT is the primary parameter the researcher is interested in estimating. 
 
-To study how choices pertaining to model selection influence estimates of conservation program effectiveness, we employ a set of Monte Carlo simulations to generate and analyze data. To begin, consider a setting in which a policy is implemented to reduce deforestation at a discrete point in time. The researcher observes treatment and control units in two time periods, before and after the implementation of the policy. Forest cover outcome data is obtained at the pixel resolution, where pixels are determined to either be forested or deforested for a given time period.
-
-The data generating process underlying our Monte Carlo simulations begins with the assignment of four parameters: The pre-treatment period deforestation rate for untreated units, $baseline_0$; the pre-treatment period deforestation rate for treated units, $baseline_1$; the difference in the deforestation rate between the period in which the treatment has been implemented and the pre-treatment period for the untreated units, $trend$; and lastly, the average treatment effect of the policy on the untreated units, $ATT$. The ATT is the primary parameter the researcher is interested in estimating. 
-
-We then define the latent variable,
+Rather than directly observing each unit's deforestation rate in each time period, the researcher observes annualized maps depicting pixel-level, binary deforestation $(y_{it}\ \epsilon \ 0, 1)$. We follow XX and assume that these binary observations of deforestation reflect each pixel's unobservable value along a continuous, latent variable indicating the pixel's suitability for deforestation. We define this latent variable as:
 \begin{align}
 y^*_{it} = \beta_0 + \beta_1 \mathbbm{1}\{  D_i = 1  \} +\beta_2 \mathbbm{1}\{  t \geq t_0  \} +\beta_3 \mathbbm{1}\{  D_i = 1  \} \mathbbm{1}\{  t \geq t_0  \} + \alpha_i +u_{it}
 \end{align}
-The $\beta$ coefficients are derived from the above four parameters assigned by the researcher (see appendix 1). The treatment variable, $D_i$, is equal to 1 when pixel $i$ is treated. The period in which the treatment is implemented is denoted $t_0$. The pixel specific parameter is generated according to $\alpha_i \sim N(0, .1^2)$ and the error term is generated according to $u_{it} \sim N(0, .25^2)$. This latent variable encaptures the underlying spatial processes determining the policy's impact on deforestation within the area represented by a given pixel. This is unobservable to the researcher in its current form. 
+The $\beta$ coefficients can be defined as functions of the four parameters assigned by the researcher (Appendix 1). A pixel-specific random disturbance is generated according to $\alpha_i \sim N(0, .1^2)$ and the error term is generated according to $u_{it} \sim N(0, .25^2)$. 
+
+<!-- ** 
+Robert - Do we need to assume specific variance for alpha and mu at this point? Think it would be preferable to keep everything as general as possible, and then to assign all arbitrary parameters in one location.
+-->
 
 The mapping from the latent to observed variable $y_{it}$ is
 \begin{align}
  y_{it} = \begin{cases} 
       1 & y^*_{it} > 0  \\
-      0 & else
+      0 & y^*_{it} \le 0
    \end{cases}
 \end{align}
-Here, the observed outcome variable, $y_{it}$, is equal to 1 if pixel $i$ is observed as deforested in time $t$ and 0 otherwise. The observed variable is the binary outcome visible to the researcher. It tells the researcher whether the pixel is classified as deforested or forested. The area represented by a pixel may not be entirely deforested but may still be classified as deforested using the binary outcome metric. For each monte carlo simulation, we simulate 500 datasets of 10,000 pixels according to the above DGP. We observe the landscape for 6 years, 3 each pre- and post-intervention. 
+Here, the observed outcome variable, $y_{it}$, is equal to 1 if pixel $i$ is observed as deforested in time $t$ and 0 otherwise. The observed variable is the binary outcome visible to the researcher, but it reflects a more complex data generating process that reflects the pre-defined effectiveness of the policy $(ATT)$ as well as temporal trends in deforestation $(trend)$, pre-treatment differences in deforestation probabilities $(baseline_1)$, unobservable random errors $(u_{it})$ as well as pixel-specific determinants of deforestation $(\alpha_i)$.The area represented by a pixel may not be entirely deforested but may still be classified as deforested using the binary outcome metric.
 
 
 ### Set up and evaluation measures
+For each monte carlo simulation, we simulate 500 datasets of 10,000 pixels according to the above DGP. We observe the landscape for 6 years, 3 each pre- and post-intervention. 
 
 The range of estimated treatment effects varies in the conservation impact evaluation literature using quasi-experimental methods. It is not uncommon to see annual treatment effects amounting to less than a 1% reduction in the annual deforestation rate [e.g. @robalino2013; @jones2017]. These modest reductions in the annual deforestation rate, however, can amount to large effects over the course of the study period. For example, @alix-garcia2018 find that environmental land registration in Brazil’s Amazonian states of Mato Grosso and Para reduced the annual deforestation rate by an average 0.5 percentage points, which has  amounted to an overall deforestation reduction of 10\%. 
 
 We have parameterized a guiding example, representative of an impactful intervention, to explore for the remainder of the paper. We have set our simulation to correspond to a landscape with the following characteristics: a pre-treatment deforestation rate of 2\% in the control area ($baseline_0 = 0.02$); a pre-treatment deforestation rate of 4\% in the intervention area ($baseline_1 = 0.04$); a decrease in the deforestation rate of .5\% between the first and second period in the control area ($trend = -0.005$); and an average reduction of 1\% in the deforestation rate in treated units due to the intervention ($ATT = -0.01$). 
 
-The primary criteria we use to evaluate different methods are bias and coverage probability. Using our Monte Carlo simulations, we determine bias by computing the difference between the mean of the coefficient estimates from a given regression model and the $ATT$ parameter. Coverage probability is defined as the proportion of simulations in which the true $ATT$ lies within the simulation's 95\% confidence interval (CI). As such, we would expect the $ATT$ to lie within this CI 95\% of the time, however, factors such as the bias of the estimates, their distribution, and treatment of standard errors may impact coverage. If the estimator is biased, for example, it is ex-ante less likely that the true parameter falls within the CI. 
+<!-- ** 
+Would it be useful to convert most of the above three paragraphs to a table of parameters? Depending on word count / figure limit of our target journal it might be worthwhile.
+-->
+
+The primary criteria we use to compare econometric models are the bias and coverage probability of their estimate of the $ATT$ parameter. Using our Monte Carlo simulations, we determine bias by computing the difference between each model's estimate of the ATT and the known $ATT$ parameter. Coverage probability is defined as the proportion of simulations in which the true $ATT$ lies within the simulation's 95\% confidence interval (CI). As such, we would expect the $ATT$ to lie within this CI 95\% of the time, however, factors such as the bias of the estimates, their distribution, and treatment of standard errors may impact coverage. If the estimator is biased, for example, it is ex-ante less likely that the true parameter falls within the CI. 
 
 ## Results
 
