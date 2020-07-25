@@ -38,7 +38,7 @@ Conservation impact evaluation increasingly makes use of panel data thanks, in l
 However, many of these remotely sensed metrics have structural differences from the data used in more traditional applications of causal inference. These differences include the underlying error structure of generated data products and unique properties of the ecological processes being studied. Here we demonstrate that, as a result of these differences, many of the econometric models used in this growing literature are likely biased - significance, magnitude and even direction of estimated effects might be incorrect. These biases arise even when researchers follow common guidance to adopt "rigorous" research designs with valid counterfactuals [@blackman2013; @jones2015]. Based on a review of the existing literature, we identify key model design decisions that researchers need to make. Using Monte Carlo simulations and analytical proofs, we show how these design decisions affect the validity of causal inference in these settings. Lastly, we illustrate ways in which scientists can tailor these design decisions to minimize bias and better understand the implications of their impact evaluations.
 
 ## Key considerations for impact evaluations of deforestation
-We consider the case in which a researcher would like to quantify the impact that an intervention has had on deforestation rates. We assume that the intervention has clearly defined boundaries (e.g. a protected area, certified concession, or indigenous territory), and that the researcher has access to spatially explicit observations of forest cover and forest loss spanning the periods before and after the intervention was adopted. The fundamental problem of causal inference is that, for every treated unit, we fail to observe the value that the outcome would have taken in the absence of treatment [@holland1986]. Figure 1 displays this problem in the context of our simulated conservation intervention --- Panel A depicts the landscape as observed by the researcher, while Panel B depicts the unobservable counterfactual of what would have happened if the conservation intervention had not been adopted. The researcher's goal is to measure the Average Treatment Effect on the Treated $(ATT)$, which quantifies the avoided deforestation occurring inside treated units. This general setting describes a broad array of research studies that apply panel methods to remotely sensed data (Table 1). 
+We focus on the case in which a researcher would like to quantify the impact that an intervention has had on deforestation rates. We assume that the intervention has clearly defined boundaries (e.g. a protected area, certified concession, or indigenous territory), and that the researcher has access to spatially explicit observations of forest cover and forest loss spanning the periods before and after the intervention was adopted. The fundamental problem of causal inference is that, for every treated unit, we fail to observe the value that the outcome would have taken in the absence of treatment [@holland1986]. Figure 1 displays this problem in the context of our simulated conservation intervention --- Panel A depicts the landscape as observed by the researcher, while Panel B depicts the unobservable counterfactual of what would have happened if the conservation intervention had not been adopted. The researcher's goal is to measure the Average Treatment Effect on the Treated $(ATT)$, which quantifies the avoided deforestation occurring inside treated units. This general setting describes a broad array of research studies that apply panel methods to remotely sensed data (Table 1). 
 
 
 ```{r, echo=FALSE,out.width="49%", fig.cap="Left: deforestation observed in the period after the policy has been implemented in the intervention area; Right: deforestation that would have ocurred in the absence of the conservation intervention. Deforestation in the control area is the same in both cases, since no intervention ocurred.", fig.show='hold', fig.align='center'}
@@ -54,7 +54,6 @@ knitr::include_graphics(c("landscape_figs/period2_nolegend.png","landscape_figs/
 
 
 
-<!-- 2) Describe the traditional DiD and FE models -->
 In panel data settings, two broad methods are often used to measure the impact of conservation interventions: Difference-in-Differences (DID) and Two-way Fixed Effects (TWFE) regression models [@blackman2013; @jones2015]. The typical DID regression model includes a dummy variable equal to one for units in the treatment group, a dummy variable equal to one for observations in the period after the intervention, and their interaction. Conceptually, the DiD estimator calculates the treatment effect as the difference between the differences of the treated and untreated observations before and after treatment [@butsic2017]. The DID estimator identifies the ATT under one main assumption, known as the common trends assumption. It amounts to assuming that both units in the intervention area and untreated units would have experienced the same average change in the outcome in the absence of the intervention. While fundamentally untestable, ensuring that deforestation rates in the intervention area and the control area followed parallel trajectories prior to the date of the intervention can give creedence to this assumption [@butsic2017]. 
 
 Figure 2 shows the intuition behind the DID estimator in two time periods. Deforestation rates in the control area changed between the first and second period. The common trends assumption amounts to assuming that the deforestation rate in the intervention area would have changed by the same amount in the absence of the intervention. In our example, the DID estimator is the difference between post and pre-treatment deforestation rates in units with the intervention, minus the difference between post and pre-treatment deforestation rates in units without. 
@@ -70,8 +69,6 @@ knitr::include_graphics(c("landscape_figs/period1.png","landscape_figs/period2.p
 
 TWFE regression models are often used to apply DID methods to multiple groups or treatment periods. This amounts to estimating a regression that controls for unit and time fixed effects. Intuitively, this can be thought of as including a dummy variable for each unit of analysis and each time period. The fixed effects account for any unobservable confounding variables that may vary across units or through time. When the treatment effect is constant across groups and over time, FE regressions
 estimate the $ATT$ under the standard common trends assumption [@deChaisemartin2019]. Because FE regression models are often used to generalize the DID method, they are used in a wider variety of settings. Settings in which units undergo treatment in more than two distinct time periods may be amenable to an FE regression, but not the standard DID method. For example, a researcher may use an FE regression model to examine the effectiveness of a network of protected areas, where the protected areas where created at different times or a payment for ecosystem services (PES) program, which enrolls properties in annual cohorts. In the case of two groups and two time periods, the FE regression should give an estimate equivalent to that of the DID model [@wooldridge]. This flexibility has led to FE regression models becoming commonplace in the literature. 
-
-<!-- 3) Highlight the key parameters in the model, and introduce table illustrating how different researchers use a wide variety of parameterizations -->
 
 ### Key model parameterizations in the literature
 
@@ -150,17 +147,17 @@ y^*_{it} = \beta_0 + \beta_1 \mathbbm{1}\{  D_i = 1  \} +\beta_2 \mathbbm{1}\{  
 The $\beta$ coefficients can be defined as functions of the four parameters assigned by the researcher (Appendix 1). A pixel-specific random disturbance is generated according to $\alpha_i \sim N(0, .1^2)$ and the error term is generated according to $u_{it} \sim N(0, .25^2)$. 
 
 <!-- ** 
-Robert - Do we need to assume specific variance for alpha and mu at this point? Think it would be preferable to keep everything as general as possible, and then to assign all arbitrary parameters in one location.
+Do we need to assume specific variance for alpha and mu at this point? Think it would be preferable to keep everything as general as possible, and then to assign all arbitrary parameters in one location.
 -->
 
 The mapping from the latent to observed variable $y_{it}$ is
 \begin{align}
  y_{it} = \begin{cases} 
       1 & y^*_{it} > 0  \\
-      0 & y^*_{it} \le 0
+      0 & otherwise
    \end{cases}
 \end{align}
-Here, the observed outcome variable, $y_{it}$, is equal to 1 if pixel $i$ is observed as deforested in time $t$ and 0 otherwise. The observed variable is the binary outcome visible to the researcher, but it reflects a more complex data generating process that reflects the pre-defined effectiveness of the policy $(ATT)$ as well as temporal trends in deforestation $(trend)$, pre-treatment differences in deforestation probabilities $(baseline_1)$, unobservable random errors $(u_{it})$ as well as pixel-specific determinants of deforestation $(\alpha_i)$.The area represented by a pixel may not be entirely deforested but may still be classified as deforested using the binary outcome metric.
+Here, the observed outcome variable, $y_{it}$, is equal to 1 if pixel $i$ is observed as deforested in time $t$ and 0 otherwise. The observed variable is the binary outcome visible to the researcher, which represents the result of a more complex data generating process that reflects the pre-defined effectiveness of the policy $(ATT)$ as well as temporal trends in deforestation $(trend)$, pre-treatment differences in deforestation probabilities $(baseline_1)$, unobservable, pixel-specific determinants of deforestation $(\alpha_i)$ and time-varying, pixel-level disturbances $(u_{it})$. The area represented by a pixel may not be entirely deforested but may still be classified as deforested using the binary outcome metric.
 
 
 ### Set up and evaluation measures
@@ -180,6 +177,10 @@ The primary criteria we use to compare econometric models are the bias and cover
 
 ### Bias inherent to binary deforestation DGP
 Because of the data generating process inherent to remotely sensed metrics of deforestation as well as our framework, there is often bias. In the case of a binary pixel as in our DGP, the researcher does not observe the underlying spatial process of deforestation, but instead, a pixelated version according to a forest cover share cutoff. The area represented by a pixel may experience a decline in forest cover, but this deforestation will only be observable if it pushes the pixel's total forested share below the cutoff (expressed by equation (5)). 
+
+<!-- ** 
+Current framing seems to indicate that the latent variable is mapping %deforestation -> binary deforestation. While I think that's part of what's going on in the mapping, I don't think that captures all situations. The latent variable also allows for discontinuous clearing pressure - ie clearing of an entire pixel occurs when the value of clearing exceeds some specific threshold. This is similar to employment termination models, where an individual is fired if y*>0. Nicoletti and Rondinelli, 2010
+-->
 
 This is representative of many analyses using binary satellite measures of deforestation. Building the panel of binary outcomes based on a threshold tree cover level is prevalent in the literature. For example, @takahashi2013 and @southworth2004 determine a threshold value of NDVI and define pixels with NDVI values that are greater than the threshold as forested and areas with NDVI values below the threshold as non-forest. @holland2017 set a classification threshold of 50\% canopy cover to calculate percent loss of the baseline forest cover and annual percent change in forest, building from updated forest base estimates for each year. Several other papers use a threshold tree cover level or index value to aid in the generation of the outcome variable [e.g. @honey-roses2011; @bruggeman2015]. Even popular forest loss datasets such as [@hansen2013] that gauge deforestation by stand level disturbance may suffer from similar bias, since it is challenging to detect small-scale logging and deforestation, which may lead to an underestimate of forest loss [@burivalova2015]. If one wanted to analyze the impact of a new policy on
 forest cover loss, but the policy resulted only in small-scale deforestation, the systematic error in the forest change data product would lead to a severe underestimation of forest cover loss [@jain2020]. Any time the latent DGP has error generated according to a distribution with a nonlinear cumulative distribution function (e.g. normal, as in ours), this type of bias will arise. The magnitude and direction of the resulting bias depend largely on the $baseline_0$, $baseline_1$, $trend$, and $ATT$ parameters. Understanding at a minimum the likely direction of this bias will aid in proper inference. 
@@ -323,21 +324,13 @@ kable(coverage_table3, format = "latex", row.names = FALSE,
 ```
 
 
-## Discussion
 <!-- ** 
-Robert - I think this should be a really short summary of the key guiding principles.
-
-Guiding principles - If we were to give a researcher one paragraph to guide their model design, what would it be?
-Link to shiny app that gives researchers ability to visualize landscapes and quantify biases under different designs?
-
-Limitations - reference broader econometric literature that highlights considerations beyond the scope
-of this analysis. eg time-varying adoption under heterogeneous treatment effects.
-
-Implications - how does this change our interpretation of the existing literature?
-Why is it important that scientists follow our suggestions for future impact evaluation?
-Does this apply beyond our example deforestation case?
+One idea for a nice summary figure: I wonder if it's possible to create a variant of Ariel Ortiz-Boboa's regression specification chart to display all of the above models at once (https://twitter.com/arielortizbobea/status/1237518566598963200?lang=en)
+Imagine the boxes representing the bias distribution for each econometric model specification, the bottom boxplot illustrating deviation from 95% confidence interval, and the table below highlighting the specifications. This could be an amazing way to summarize the results of any model specification in one figure for the eventual shiny app. It'd also allow us to compare how sensitive our results are to different parametrizations. 
 -->
 
+
+## Discussion
 This paper seeks to leave researchers with a clear sense of the decisions that play a role in their choice of econometric specification. We discuss and show the benefits of conductiong the analysis at the level of the relevant decision making unit when it is of importance. Otherwise, while pixel-level analyses are not feasible in FE regression models, the grid-level is a viable substitute for comparable interpretation. Choice of functional form should be justified in the context of each institutional setting, taking into account the underlying DGP. Robustness checks should account for the possibility of alternative functional forms. Formulas in the calculation of the deforestation rate should be made explicit to avoid confusion. Ultimately, context plays a role in all of these decisions. There is no one size fits all econometric specification and researchers should make clear which decisions they have made as well as their reasoning. We have developed a shiny app available at .. so that researchers can explore the potential tradeoffs with choices of econometric model design.  
 
 Several econometric considerations relevant to model design and interpretation were not explored in this paper. FE regression models have received substantial attention in the econometrics literature recently regarding concerns surrounding their viability and interpretability [e.g. @kropko2020]. For example, properties of FE regression models that arise when the treatment effect is heterogeneous across groups or over time may lead to erroneous results [@deChaisemartin2019]. We largely abstract away from choices of scale with regards to grid size or unit of analysis, but biased estimates may result from scale choices that are too large or too small relative to the data generating process or decision unit [@avelino2016]. This makes choice of grid cell size a relevant but unexplored aspect of our study. We do not address more general considerations surrounding the use of satellite data including satellite sensor characteristics, atmospheric conditions, or the error structure of certain remotely sensed data products [@jain2020]. These considerations all play a role in the choice of econometric method, but are left for future exploration. Lastly, the benefits of pre-matching control and treatment units is not addressed, but they are well understood to be substantial [e.g. @jones2015; @blackman2013]. 
@@ -347,6 +340,7 @@ Without clear guidance on key econometric model design decisions, a wide variety
 
 
 ## Acknowledgements and data
+We thank the University of California, Santa Barbara's Academic Senate for a Faculty Research Grant that supported this work. This paper contributes to the global land programme.
 
 ## References
 <div id="refs"></div>
