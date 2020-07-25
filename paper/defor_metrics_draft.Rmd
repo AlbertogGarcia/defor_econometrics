@@ -47,7 +47,7 @@ However, many of the remotely sensed metrics used in these applications have str
 We consider the case in which a researcher would like to quantify the impact that an intervention has had on deforestation rates. We assume that the intervention has clearly defined boundaries (e.g. a protected area, certified concession, or indigenous territory), and that the researcher has access to spatially explicit observations of forest cover and forest loss spanning the periods before and after the intervention was adopted. The fundamental problem of causal inference is that, for every treated unit, we fail to observe the value that the outcome would have taken in the absence of treatment [@holland1986]. Figure 1 displays this problem in the context of our simulated conservation intervention. Assuming that the intervention reduced deforestation, we do not observe the counterfactual deforestation that would have ocurred in the landscape in the absence of the intervention. The researcher's goal is to measure the Average Treatment Effect on the Treated $(ATT)$, which quantifies the change in deforestation occurring inside treated units when compared to an unobservable counterfactual world in which no conservation intervention was adopted (Figure 1). This general setting describes a broad array of research studies that apply panel methods to remotely sensed data (Table 1). 
 
 
-```{r, echo=FALSE,out.width="49%", fig.cap="Left: deforestation observed in the period after the policy has been implemented in the intervention area; Right: deforestation that would have ocurred in the absence of the conservation intervention. Deforestation in the control area is the same in both cases, since no intervention ocurred.", fig.show='hold', fig.align='center'}
+```{r, echo=FALSE,out.width="49%", fig.pos = 'H', fig.cap="Left: deforestation observed in the period after the policy has been implemented in the intervention area; Right: deforestation that would have ocurred in the absence of the conservation intervention. Deforestation in the control area is the same in both cases, since no intervention ocurred.", fig.show='hold', fig.align='center'}
 knitr::include_graphics(c("landscape_figs/period2_nolegend.png","landscape_figs/counterfactual.png"))
 ```
 
@@ -353,6 +353,76 @@ Without clear guidance on key econometric model design decisions, a wide variety
 
 ## Appendix
 
+### Two-way fixed effects proof
+
+We can show that in the case where the binary outcome is dropped in periods after the outcome is realized as a 1, two-way fixed effects regressions typically do not identify the ATT, but the ATT + the group difference. 
+
+pf:
+
+Consider the regression
+$$ y_{it}=\alpha+\eta d2_t+\tau w_{it}+c_i+u_{it}, \text{ for } t=1,2 $$
+
+$y_{it}$ is the binary outcome; $w_{it}$ is a dummy equal to 1 when unit $i$ is treated in time $t$; $d2_t$ is a dummy for the second time period; $c_i$ is an observed effect for unit i.
+
+Jones and Lewis (2015) advise to drop unit $i$ in periods $t+1,..., T$ when $y_{it}=1$.
+
+In the two period case, we have 
+$$ y_{i1}=\alpha+\tau w_{i1}+c_i+u_{i1}$$
+\[y_{i2}= \begin{cases} 
+      \alpha+\eta d2_2+\tau w_{i2}+c_i+u_{i2} & y_{i1}= 0\\
+      NAN & y_{i1} \neq 0 
+   \end{cases}
+\]
+
+
+First differencing,
+
+\[y_{i2}-y_{i1}= \begin{cases} 
+  \alpha+\eta d2_2+\tau w_{i2}+c_i+u_{i2} - \alpha-\tau w_{i1}-c_i-u_{i1} & y_{i1}= 0\\
+      NAN & y_{i1} \neq 0 
+   \end{cases}
+\]
+
+ Focusing on the first case, where $y_{i1}=0$
+\begin{align*}
+y_{i2}-y_{i1}&=\alpha+\eta d2_2+\tau w_{i2}+c_i+u_{i2} - \alpha-\tau w_{i1}-c_i-u_{i1}\\
+&= \alpha+\eta d2_2+\tau w_{i2}+c_i+u_{i2} - \alpha-c_i-u_{i1}\\
+&= \eta d2_2+\tau w_{i2}+u_{i2}  -\tau w_{i1} -u_{i1}\\
+&=\eta +\tau w_{i2}+\Delta u_i
+\end{align*}
+
+Coming back to the general expression,
+
+\[y_{i2}-y_{i1}= \begin{cases} 
+ \eta +\tau w_{i2}+\Delta u_i & y_{i1}= 0\\
+      NAN & y_{i1} \neq 0 
+   \end{cases}
+\]
+
+(NAN - $(\alpha+\tau w_{i1}+c_i+u_{i1})$ is NAN)
+
+We have that with binary $w_{i2}$
+\begin{align*}
+\hat{\tau}&= \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i2} - \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i1} - (\frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i2} - \frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i1})
+\end{align*}
+
+, where $n_{ST}$ and $n_{SU}$ are the number of surviving treated and untreated units such that $y_{i1}=0$, respectively. 
+
+Note: Since this captures where $y_{i1}=0$, we have $\frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i1}=0$ and $\frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i1}=0$ 
+
+Then,   
+
+\begin{align*}
+\hat{\tau}&= \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i2} - 0 - (\frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i2} - 0)\\
+&= \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i2}(1) - \frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i2}(0)\\
+ &(\text{whether we see treated or untreated outcome})\\
+&=    \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i2}(1) - y_{i2}(0)  \\
++& \frac{1}{n_{ST}}\sum_{i:w_i=1}y_{i2}(0) - \frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i2}(0) \\
+&(\text{adding and subtracting $\frac{1}{n_{ST}}\sum_{i:w_i=1}y_{i2}(0)$})\\
+&= ATT+Diff\\
+\blacksquare &
+\end{align*}
+
 ### Initial parameter to $\beta$ coefficient mapping
 
 The researcher sets the following four parameters:
@@ -466,4 +536,5 @@ This bias can be represented by the difference between the DID estimand and the 
 \end{align*}
 
 
-### Two-way fixed effects proof
+
+
