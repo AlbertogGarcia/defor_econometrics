@@ -136,11 +136,11 @@ landscape_maps <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
   
   
   fills <- c("intervention area" = "#a1d76a", 
-             "control area" = "light blue", 
+             "untreated area" = "light blue", 
              "deforested pixel" = "white", 
              "counterfactual deforestation" = "gray30")
   
-  colors <- c("county boundaries" = "black", 
+  colors <- c("administrative unit boundaries" = "black", 
               "property boundaries" = "gray50")
   
   panels$defor <- as.factor(panels$defor)
