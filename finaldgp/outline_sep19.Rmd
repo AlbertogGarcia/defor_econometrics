@@ -73,7 +73,6 @@ cpoints = 20
 
 ```
 
-
 ```{r generating beta parameters, results='hide', warning = FALSE}
 
 std_av = (std_a^2+std_v^2)^.5
@@ -83,6 +82,29 @@ b2 = qnorm(trend + base_0, mean = 0, sd = std_av) - b0
 b3 = qnorm( pnorm(b0+b1+b2, mean = 0, sd = std_av) + ATT , mean = 0, sd = std_av) - (b0 + b1 + b2)
 
 ```
+
+```{r parameters csv, results='hide', warning = FALSE}
+
+parameter <- c('ATT', 
+                   'baseline_0',
+                   'baseline_1',
+                   'trend',
+                   'sigma_a',
+                   'sigma_v'
+                   )
+value <- c(ATT, base_0, base_1, trend, std_a, std_v)
+
+param_table <- data.frame(parameter, value)
+write.csv(param_table, "param_table.csv")
+
+
+expost_treat <- base_1+trend + ATT
+expost_untreat <- base_0+trend
+single_diff <- expost_treat-expost_untreat
+simple_table <- data.frame(expost_treat, expost_untreat, single_diff, ATT)
+write.csv(simple_table, "simple_table.csv")
+```
+
 # DGP
 
 ## Setting initial parameters
@@ -411,24 +433,19 @@ prop_aggreg$plot
 
 coverages_properror_df <- prop_aggreg$coverages_df
 
-write.csv(coverages_properror_df, "coverages_p15.csv")
+# write.csv(coverages_properror_df, "coverages_p15.csv")
 ```
 
 
 ```{r landscape maps period one, warning=FALSE}
 landscape_map <- landscape_maps(nobs, years = 1, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
 
-landscape_map$landscape_period1
-ggsave(path = "landscape_figs", filename = "period1.png", dpi = 500)
+landscape_map$landscape_time
+ggsave(path = "landscape_figs", filename = "landscape_did.png", dpi = 500)
 
 
 ```
 
-```{r landscape maps period two, warning=FALSE}
-landscape_map$landscape_period2
-ggsave(path = "landscape_figs", filename = "period2.png", dpi = 500)
-
-```
 
 ```{r landscape maps counterfactual, warning=FALSE}
 landscape_map$landscape_period2_counter

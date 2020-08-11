@@ -14,6 +14,7 @@ source('county_scapegen.R')
 #begin function
 landscape_maps <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, std_p = .1, cellsize, ppoints, cpoints){
   
+  years=1
   countyscape = county_scapegen(nobs, cellsize, ppoints, cpoints)
   pixloc_df = countyscape$pixloc_df
   control_area = countyscape$control_area
@@ -136,12 +137,18 @@ landscape_maps <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
   
   
   fills <- c("intervention area" = "#a1d76a", 
-             "untreated area" = "light blue", 
+             "untreated area" = "lightblue",
              "deforested pixel" = "white", 
              "counterfactual deforestation" = "gray30")
   
+  shapes_2 <- c("deforestation in first period" = "white", 
+              "deforestation in second period" = "gray30")
+  
   colors <- c("administrative unit boundaries" = "black", 
               "property boundaries" = "gray50")
+  
+  r <- c("deforestation in first period" = 22, 
+                "deforestation in second period" = 22)
   
   panels$defor <- as.factor(panels$defor)
   
@@ -150,43 +157,50 @@ landscape_maps <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
     dplyr::select(pixels, year, treat, defor) %>%
     filter(year == 1  & defor == 1)
   
-  landscape_period1 <- 
+  plot_df_period2 <- panels %>%
+    st_as_sf() %>%
+    dplyr::select(pixels, year, treat, defor) %>%
+    filter(year == (years+1)  & defor == 1)
+  
+  landscape_time <- 
     ggplot() + 
     geom_sf(data = intervention_area, aes(fill = "intervention area"), color = "#a1d76a") +
-    geom_sf(data = control_area, aes(fill = "control area"), color = "lightblue")+
-    geom_sf(data = plot_df_period1, aes(fill = "deforested pixel"), color = "NA", shape = 22, alpha = .9, size = 1.5)+
+    geom_sf(data = control_area, aes(fill = "untreated area"), color = "lightblue")+
+    geom_sf(data = plot_df_period2, aes(shape = "deforestation in second period"), color = "NA", fill = "gray30", size=1)+
+    geom_sf(data = plot_df_period1, aes(size = "deforestation in first period"), color = "NA", fill = "white", shape=22)+
     geom_sf(data = p_bounds, aes(color = "property boundaries"), fill = "NA")+
-    geom_sf(data = c_bounds, aes(color = "county boundaries"), size = 1, fill = "NA")+
+    geom_sf(data = c_bounds, aes(color = "administrative unit boundaries"), size = 1, fill = "NA")+
     scale_color_manual(values = colors) +
     scale_fill_manual(values= fills) +
+    scale_shape_manual(values = 22, name = "deforestation in secon period") +
+    scale_size_manual(values = 1, name = "deforestation in first period") +
+    theme(panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(), 
+          panel.background = element_rect(fill = "gray90"), 
+          legend.title = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          legend.spacing.y = unit(0.5, 'mm')
+          #legend.position = "none"
+          )
+  
+  landscape_period2 <- 
+    ggplot() + 
+    geom_sf(data = intervention_area, aes(fill = "intervention area"), color = "#a1d76a") +
+    geom_sf(data = control_area, aes(fill = "untreated area"), color = "lightblue")+
+    geom_sf(data = plot_df_period2, aes(shape = "deforested pixel"), color = "white", fill = "white", size = 1)+
+    geom_sf(data = p_bounds, aes(color = "property boundaries"), fill = "NA")+
+    geom_sf(data = c_bounds, aes(color = "administrative unit boundaries"), size = 1, fill = "NA")+
+    scale_color_manual(values = colors) +
+    scale_fill_manual(values= fills) +
+    scale_shape_manual(values = 22, name = "deforested pixel") +
     theme(panel.grid.major = element_blank(), 
           panel.grid.minor = element_blank(), 
           panel.background = element_rect(fill = "gray95"), 
           legend.title = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          legend.position = "none")
-  
-  plot_df_period2 <- panels %>%
-    st_as_sf() %>%
-    dplyr::select(pixels, year, treat, defor) %>%
-    filter(year == (years+1)  & defor == 1)
-  
-  landscape_period2 <- 
-    ggplot() + 
-    geom_sf(data = intervention_area, aes(fill = "intervention area"), color = "#a1d76a") +
-    geom_sf(data = control_area, aes(fill = "control area"), color = "lightblue")+
-    geom_sf(data = plot_df_period2, aes(fill = "deforested pixel"), color = "NA", shape = 22, alpha = .9, size = 1.5)+
-    geom_sf(data = p_bounds, aes(color = "property boundaries"), fill = "NA")+
-    geom_sf(data = c_bounds, aes(color = "county boundaries"), size = 1, fill = "NA")+
-    scale_color_manual(values = colors) +
-    scale_fill_manual(values= fills) +
-    theme(panel.grid.major = element_blank(), 
-          panel.grid.minor = element_blank(), 
-          panel.background = element_rect(fill = "gray95"), 
-          legend.title = element_blank(),
-          axis.text = element_blank(),
-          axis.ticks = element_blank())
+          legend.spacing.y = unit(0.5, 'mm'))
   
   landscape_period2_nolegend <- landscape_period2 +
     theme(panel.grid.major = element_blank(), 
@@ -204,10 +218,11 @@ landscape_maps <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
   extra_period2$extra<- as.factor(extra_period2$extra)
   
   landscape_period2_counter <- landscape_period2 +
-    geom_sf(data = extra_period2, aes(fill = "counterfactual deforestation"), color = "NA", shape = 22, alpha = .9, size = 1.5)
+    geom_sf(data = extra_period2, aes(size = "counterfactual deforestation"), fill = "gray30",  color = "gray30", shape = 22)+
+    scale_size_manual(values = 1, name = "counterfactual deforestation")
     
   ######################################################################
-  outputs = list("landscape_period1" = landscape_period1, "landscape_period2" = landscape_period2, "landscape_period2_nolegend" = landscape_period2_nolegend, "landscape_period2_counter" = landscape_period2_counter)
+  outputs = list("landscape_time" = landscape_time, "landscape_period2_nolegend" = landscape_period2_nolegend, "landscape_period2_counter" = landscape_period2_counter)
   return(outputs)
   
   #end function  

@@ -61,7 +61,7 @@ In panel data settings, two broad methods are often used to measure the impact o
 Figure 2 shows the intuition behind the DID estimator in two time periods. Deforestation rates in the control area changed between the first and second period. The common trends assumption amounts to assuming that the deforestation rate in the intervention area would have changed by the same amount in the absence of the intervention. In our example, the DID estimator is the difference between post and pre-treatment deforestation rates in units with the intervention, minus the difference between post and pre-treatment deforestation rates in units without. 
 
 ```{r, echo=FALSE,out.width="49%", fig.cap="Left: deforestation observed in the first period; Right: deforestation observed in the second period. Note that pixels deforested in the first period are still observed as deforested in the second", fig.show='hold', fig.align='center'}
-knitr::include_graphics(c("landscape_figs/period1.png","landscape_figs/period2.png"))
+knitr::include_graphics(c("landscape_figs/landscape_did.png"))
 ```
 <!-- FIGURE NOTES: 
 1) It might be easier to read if you collapsed the two panels into one - differentiating defor in T0 (white) and defor in T1 (black). 
@@ -156,9 +156,11 @@ The mapping from the latent to observed variable $y_{it}$ is
       0 & otherwise
    \end{cases}
 \end{align}
-Here, the observed outcome variable, $y_{it}$, is equal to 1 if pixel $i$ is observed as deforested in time $t$ and 0 otherwise. The observed variable is the binary outcome visible to the researcher, which represents the result of a more complex data generating process that reflects the pre-defined effectiveness of the policy $(ATT)$ as well as temporal trends in deforestation $(trend)$, pre-treatment differences in deforestation probabilities $(baseline_1)$, unobservable, pixel-specific determinants of deforestation $(\alpha_i)$ and time-varying, pixel-level disturbances $(u_{it})$. The area represented by a pixel may not be entirely deforested but may still be classified as deforested using the binary outcome metric.
+Here, the observed outcome variable, $y_{it}$, is equal to 1 if pixel $i$ is observed as deforested in time $t$ and 0 otherwise. The observed variable is the binary outcome visible to the researcher, which represents the result of a more complex data generating process that reflects the pre-defined effectiveness of the policy $(ATT)$ as well as temporal trends in deforestation $(trend)$, pre-treatment differences in deforestation probabilities $(baseline_1)$, unobservable, pixel-specific determinants of deforestation $(\alpha_i)$ and time-varying, pixel-level disturbances $(u_{it})$. The area represented by a pixel may not be entirely deforested but may still be classified as deforested using the binary outcome metric. 
 
-It is not uncommon to see annual treatment effects amounting to less than a 1% reduction in the annual deforestation rate [e.g. @robalino2013; @jones2017]. These modest reductions in the annual deforestation rate, however, can amount to large effects over the course of the study period. For example, @alix-garcia2018 find that environmental land registration in Brazil’s Amazonian states of Mato Grosso and Para reduced the annual deforestation rate by an average 0.5 percentage points, which has  amounted to an overall deforestation reduction of 10\%. We have parameterized a guiding example, representative of an impactful intervention, to explore for the remainder of the paper. 
+### Set up and evaluation
+
+Table XX shows the landscape characteristics and underlying parameters in our guiding example. 
 
 Number of pixels
 ATT
@@ -168,7 +170,10 @@ trend
 sigma 
 sigma
 
-caption: parameters for Monte Carlo simulation over 500 samples with 6 year observation period. The intervention begins halfway through the observation period. 
+caption: parameters for Monte Carlo simulation over 500 samples with 6 year observation period. The intervention begins halfway through the observation period.
+
+<!-- Removed for word count: It is not uncommon to see annual treatment effects amounting to less than a 1% reduction in the annual deforestation rate [e.g. @robalino2013; @jones2017]. These modest reductions in the annual deforestation rate, however, can amount to large effects over the course of the study period. For example, @alix-garcia2018 find that environmental land registration in Brazil’s Amazonian states of Mato Grosso and Para reduced the annual deforestation rate by an average 0.5 percentage points, which has  amounted to an overall deforestation reduction of 10\%. We have parameterized a guiding example, representative of an impactful intervention, to explore for the remainder of the paper.  -->
+
 <!-- We have set our simulation to correspond to a landscape with the following characteristics: a pre-treatment deforestation rate of 2\% in the control area ($baseline_0 = 0.02$); a pre-treatment deforestation rate of 4\% in the intervention area ($baseline_1 = 0.04$); a decrease in the deforestation rate of .5\% between the first and second period in the control area ($trend = -0.005$); and an average reduction of 1\% in the deforestation rate in treated units due to the intervention ($ATT = -0.01$). Lastly, we assign $\sigma_a = .25$ and $\sigma_u = .1$.  -->
 
 <!-- ** 
@@ -219,7 +224,7 @@ knitr::include_graphics("figs/twowayFE.png")
 
 In Figure 5, we see Monte Carlo Outcomes for four econometric model specifications with a binary outcome: (1) DID dropping deforested pixels from the panel for the periods after they are first realized as deforested; (2) TWFE dropping deforested pixels from the panel for the periods after they are first realized as deforested; (3) DID keeping deforested pixels in the panel for the length of the study period; and (4) TWFE keeping deforested pixels in the panel for the length of the study period. We see that estimate distributions from specifications (3) and (4) are identical, showing that DID and TWFE regression models are generally identical in the two-group, two-period case. As described above, we again see the bias resulting from leaving deforested pixels in the panel for the duration of the study period in specifications (3) and (4). 
 
-We now bring attention to the distinction between specifications (1) and (2). In both specifications, observations are dropped from the panel in the periods after they are first realized as deforested. As discussed and seen in Figure 4, this is preferable in terms of bias when using the pixel as the unit of analysis. The figure shows, however, that the TWFE model returns a biased measure of the ATT, and in fact, estimates an ex-post single difference. Table 3 shows this issue in the context of the guiding example. 
+We now bring attention to the distinction between specifications (1) and (2). In both specifications, observations are dropped from the panel in the periods after they are first realized as deforested. As discussed and seen in Figure 4, this is preferable in terms of bias when using the pixel as the unit of analysis. The figure shows, however, that the TWFE model returns a biased measure of the ATT, and in fact, estimates an ex-post single difference. Table 3 shows the resulting bias in the context of the guiding example. 
 
 <!-- I've also transitioned the below paragraph into a table in order to reduce word count -->
 
@@ -243,11 +248,8 @@ kable(simple_table, format = "latex",
 
 ```
 
-<!-- Ex-post untreated deforestation rate, Ex-post treated deforestation rate, Ex-post single difference, ATT -->
-<!-- .015, .025, .025-.015=.01, -.01 -->
 
-
-Thus, the ex-post single difference as well as the TWFE estimate, is biased positively by 2\%. In the guiding example, this also leads to a change in the direction of the estimated $ATT$, which could influence policymakers to avoid an effective policy design. This shows that TWFE models using the pixel as the unit of analysis are not a viable approach to estimate the $ATT$ in deforestation impact evaluations. In contrast, the DID regression model does not suffer from this severe bias, meaning that a pixel level analysis is feasible in the two-period, two-group case. 
+In the guiding example, the positive bias also leads to a change in the direction of the estimated $ATT$, which could influence policymakers to avoid an effective policy design. This shows that TWFE models using the pixel as the unit of analysis are not a viable approach to estimate the $ATT$ in deforestation impact evaluations. In contrast, the DID regression model does not suffer from this severe bias, meaning that a pixel level analysis is feasible in the two-period, two-group case. 
 
 ### Functional form
 
