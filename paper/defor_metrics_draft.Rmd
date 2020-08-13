@@ -160,24 +160,13 @@ Here, the observed outcome variable, $y_{it}$, is equal to 1 if pixel $i$ is obs
 
 ### Set up and evaluation
 
-Table XX shows the landscape characteristics and underlying parameters in our guiding example. 
 
-Number of pixels
-ATT
-baseline
-baseline1
-trend
-sigma 
-sigma
+It is not uncommon to see annual treatment effects amounting to less than a 1% reduction in the annual deforestation rate [e.g. @robalino2013; @jones2017]. These modest reductions in the annual deforestation rate, however, can amount to large effects over the course of the study period. For example, @alix-garcia2018 find that environmental land registration in Brazil’s Amazonian states of Mato Grosso and Para reduced the annual deforestation rate by an average 0.5 percentage points, which has  amounted to an overall deforestation reduction of 10\%. We have parameterized a guiding example, representative of an impactful intervention, to explore for the remainder of the paper. The results of two other examples are displayed in Table XX, however our general messages are consistent across landscape parameterizations. 
 
-caption: parameters for Monte Carlo simulation over 500 samples with 6 year observation period. The intervention begins halfway through the observation period.
-
-<!-- Removed for word count: It is not uncommon to see annual treatment effects amounting to less than a 1% reduction in the annual deforestation rate [e.g. @robalino2013; @jones2017]. These modest reductions in the annual deforestation rate, however, can amount to large effects over the course of the study period. For example, @alix-garcia2018 find that environmental land registration in Brazil’s Amazonian states of Mato Grosso and Para reduced the annual deforestation rate by an average 0.5 percentage points, which has  amounted to an overall deforestation reduction of 10\%. We have parameterized a guiding example, representative of an impactful intervention, to explore for the remainder of the paper.  -->
-
-<!-- We have set our simulation to correspond to a landscape with the following characteristics: a pre-treatment deforestation rate of 2\% in the control area ($baseline_0 = 0.02$); a pre-treatment deforestation rate of 4\% in the intervention area ($baseline_1 = 0.04$); a decrease in the deforestation rate of .5\% between the first and second period in the control area ($trend = -0.005$); and an average reduction of 1\% in the deforestation rate in treated units due to the intervention ($ATT = -0.01$). Lastly, we assign $\sigma_a = .25$ and $\sigma_u = .1$.  -->
+<!-- The initial simulated landscape has the following characteristics: a pre-treatment deforestation rate of 2\% in the control area ($baseline_0 = 0.02$); a pre-treatment deforestation rate of 4\% in the intervention area ($baseline_1 = 0.04$); a decrease in the deforestation rate of .5\% between the first and second period in the control area ($trend = -0.005$); and an average reduction of 1\% in the deforestation rate in treated units due to the intervention ($ATT = -0.01$). Lastly, we assign $\sigma_a = .25$ and $\sigma_u = .1$.  -->
 
 <!-- ** 
-Would it be useful to convert most of the above three paragraphs to a table of parameters? Depending on word count / figure limit of our target journal it might be worthwhile.
+Hoping to convert most of the above three paragraphs to a table of parameters
 --> 
 
 The primary criteria we use to compare econometric models are the bias and coverage probability of their estimate of the $ATT$ parameter. Using our Monte Carlo simulations, we determine bias by computing the difference between each model's estimate of the ATT and the known $ATT$ parameter. Coverage probability is defined as the proportion of simulations in which the true $ATT$ lies within the simulation's 95\% confidence interval (CI). As such, we would expect the $ATT$ to lie within this CI 95\% of the time, however, factors such as the bias of the estimates, their distribution, and treatment of standard errors may impact coverage. If the estimator is biased, for example, it is ex-ante less likely that the true parameter falls within the CI. 
@@ -186,17 +175,18 @@ The primary criteria we use to compare econometric models are the bias and cover
 
 ### Bias inherent to binary deforestation DGP
 
-Bias often arises because of the data generating process inherent to remotely sensed metrics of deforestation. In the case of a binary pixel, the researcher does not observe the underlying spatial process of deforestation. The pixel is realized as deforested only when clearing exceeds some specific threshold (expressed in equation (5)). This threshold may be determined in several fashions. For example, @takahashi2013 and @southworth2004 explicitly determine a threshold value of NDVI and define pixels with NDVI values that are greater than the threshold as forested. Here, a pixel may be subject to continuous clearing pressure but only be classified as deforested when the NDVI value drops below the threshold value. Alternatively, discontinuous clearing pressure may exist but will only be realized when a deforestation event causes the pixel to drop below the threshold. Even popular forest loss datasets such as [@hansen2013] that detect deforestation by stand level disturbance may suffer from similar bias, since small-scale logging and deforestation is less likely to be detected, potentially leading to an underestimate of forest loss [@burivalova2015].
+Bias often arises in the DID and TWFE models because of the data generating process inherent to remotely sensed metrics of deforestation. In the case of a binary pixel, the researcher does not observe the underlying spatial process of deforestation. The pixel is realized as deforested only when clearing exceeds some specific threshold (expressed in equation (5)). The use of NDVI or canopy cover thresholds to define a binary forest cover variable are prevalent in the literature [e.g. @holland2017, @honey-roses2011, @bruggeman2015]. For example, @takahashi2013 and @southworth2004 explicitly determine a threshold value of NDVI and define pixels with NDVI values that are greater than the threshold as forested. Here, a pixel may be subject to continuous clearing pressure but only be classified as deforested when the NDVI value drops below the threshold value. Alternatively, discontinuous clearing pressure may exist but will only be realized when a deforestation event causes the pixel to drop below the threshold. Even popular forest loss datasets [e.g. @hansen2013] that detect deforestation by stand level disturbance may suffer from similar bias, since a clearing event must exceed some threshold to be detected. Therefore, small-scale logging and deforestation events are less likely to be detected, potentially leading to an underestimate of forest loss [@burivalova2015]. Some level of misclassification error, and resulting bias, is extremely likely in the classification of pixels into a binary forest cover outcome. 
 
 
 
 
 <!-- This is representative of many analyses using binary satellite measures of deforestation. Building the panel of binary outcomes based on a threshold tree cover level is prevalent in the literature. For example, @takahashi2013 and @southworth2004 determine a threshold value of NDVI and define pixels with NDVI values that are greater than the threshold as forested and areas with NDVI values below the threshold as non-forest. @holland2017 set a classification threshold of 50\% canopy cover to calculate percent loss of the baseline forest cover and annual percent change in forest, building from updated forest base estimates for each year. Several other papers use a threshold tree cover level or index value to aid in the generation of the outcome variable [e.g. @honey-roses2011; @bruggeman2015]. Even popular forest loss datasets such as [@hansen2013] that gauge deforestation by stand level disturbance may suffer from similar bias, since it is challenging to detect small-scale logging and deforestation, which may lead to an underestimate of forest loss [@burivalova2015]. If one wanted to analyze the impact of a new policy on forest cover loss, but the policy resulted only in small-scale deforestation, the systematic error in the forest change data product would lead to a severe underestimation of forest cover loss [@jain2020]. 
 This bias is distinct from that which may arise from satellite sensor characteristics, satellite angle, or atmospheric conditions [@jain2020]. We do not explore the interaction of these two potential sources of bias in our paper, however, it is likely an important consideration.  
+
 Current framing seems to indicate that the latent variable is mapping %deforestation -> binary deforestation. While I think that's part of what's going on in the mapping, I don't think that captures all situations. The latent variable also allows for discontinuous clearing pressure - ie clearing of an entire pixel occurs when the value of clearing exceeds some specific threshold. This is similar to employment termination models, where an individual is fired if y*>0. Nicoletti and Rondinelli, 2010
 -->
 
-This bias will arise any time the latent variable has error generated according to a distribution with a nonlinear cumulative distribution function and is subsequently mapped to a binary observable outcome. In Figure 3, we can see this bias in the context of our guiding example. Allowing the outcome to vary between 0 and 1 across time periods allows us to see the bias due only to the disparity between the underlying spatial data generating process and the observed binary outcome. For the remainder of the paper, we net out this bias in order to focus on bias that arises from various model selection decisions. 
+Mathematically, this bias will arise any time the latent variable has error generated according to a distribution with a nonlinear cumulative distribution function. and is subsequently mapped to a binary observable outcome subject to a threshold. In Figure 3, we can see this bias in the context of our guiding example. Allowing the outcome to vary between 0 and 1 across time periods allows us to see the bias due only to the disparity between the underlying spatial data generating process and the observed binary outcome. We do not exolore the sensitivity of this bias to various thresholds, but bring attention to its existence. For the remainder of the paper, we net out this bias in order to focus on bias that arises from various model selection decisions.
 
 ```{r, echo=FALSE,out.width="75%", fig.cap="Inherently biased estimates due to nature of observed data", fig.pos='H', fig.align='center'}
 knitr::include_graphics("figs/fig1.png")
@@ -207,7 +197,7 @@ knitr::include_graphics("figs/fig1.png")
 #### Treatment of binary outcome
 Analyses at the pixel level are prevalent in the literature, as seen in Table 1. Further, it has often been promoted as the preferred unit of analysis in certain cases. The pixel is generally the level at which the researcher is able to observe the data and is assigned a binary outcome. Remotely sensed metrics of deforestation at the pixel level are often subject to the dynamics of forest disturbance and regrowth. After a deforestation event occurs, the deforested area is unlikely to revert to forest cover within the study period, as it takes several years for forest to regenerate to a detectable level. In the panel therefore, it is probable that in the periods after a pixel is first realized as deforested, subsequent observations of the pixel will also observe the pixel as deforested. 
 
-In order to account for these dynamics in the context of deforestation, it has been advised to drop deforested pixels in the periods after they first become deforested [@jones2015; @alix-garcia2017]. The logic for doing so is as follows. A forested pixel switches from its assigned value of 0 to a value of 1 following a discrete deforestation event. Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested may imply that it has actively been deforested in each subsequent time period. In fact, no new deforestation event has ocurred, but the area simply remains deforested from the prior event. These pixels, therefore, contribute positively towards the deforestation rate in each period they are left in the panel. Indeed, we see in our Monte Carlo simulations that regression models failing to drop deforested pixels in subsequent periods incur severe bias. 
+In order to account for these dynamics in the context of deforestation, it has been advised to drop deforested pixels in the periods after they first become deforested [@jones2015; @alix-garcia2017]. The logic for doing so is as follows. A forested pixel switches from its assigned value of 0 to a value of 1 following a discrete deforestation event. Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested may imply that it has actively been deforested in each subsequent time period. In fact, no new deforestation event has ocurred, but the area simply remains deforested from the prior event. These pixels, therefore, contribute positively towards the deforestation rate in each period they are left in the panel. Indeed, we see in our Monte Carlo simulations that DID regression models failing to drop deforested pixels in subsequent periods incur severe bias. 
 
 Figure 4 demonstrates the magnitude and direction of the bias incurred from keeping deforested pixels in the panel after they are first realized as deforested in the context of our guiding example. Pixels that were deforested prior to the implementation of the policy continued to contribute to the deforestation rate in the post period in both the treatment and control groups. Dropping the pixels in the periods after they are first observed as deforested mitigates this bias in the DID model, as seen in Figure 4. 
 
@@ -216,7 +206,7 @@ knitr::include_graphics(c("figs/fig2.png", "figs/fig3.png"))
 ```
 
 #### Issue with TWFE using pixel as unit of analysis
-Despite widespread use of pixel level analyses, they are problematic in the context of TWFE regression models. In fact, the TWFE model yields the post-treatment difference in outcomes (single difference), rather than the desired ATT. We provide two forms of evidence to support this claim: (1) evidence from our Monte Carlo simulations and (2) an analytical proof found in the appendix. The result arises from the fact that the TWFE regression is only able to identify off of pixels that are not dropped in the panel. Thus the pre-treatment period deforestation rates are not accounted for in the TWFE estimates. 
+Despite widespread use of pixel level analyses, they are problematic in the context of TWFE regression models. In fact, the TWFE model yields the post-treatment difference in outcomes (single difference), rather than the desired ATT. We provide two forms of evidence to support this claim: (1) evidence from our Monte Carlo simulations and (2) an analytical proof found in the appendix. The result stems from the fact that the TWFE regression is only able to identify off of pixels that are not dropped over the course of the observation period. Thus the pre-treatment period deforestation rates are not accounted for in the TWFE estimates. 
 
 ```{r, echo=FALSE,out.width="75%", fig.cap="Distribution of estimates produced depending on pixel level regression model", fig.pos='H', fig.align='center'}
 knitr::include_graphics("figs/twowayFE.png")
@@ -250,16 +240,6 @@ kable(simple_table, format = "latex",
 
 
 In the guiding example, the positive bias also leads to a change in the direction of the estimated $ATT$, which could influence policymakers to avoid an effective policy design. This shows that TWFE models using the pixel as the unit of analysis are not a viable approach to estimate the $ATT$ in deforestation impact evaluations. In contrast, the DID regression model does not suffer from this severe bias, meaning that a pixel level analysis is feasible in the two-period, two-group case. 
-
-### Functional form
-
-We consider the effect of using non-linear functional forms on the $ATT$ estimates. We use DID regression models in this section to avoid bias corrections that would be necessary with fixed effects regression models due to the incidental parameters problem as well as the aforementioned issues with FE models at the pixel level. Coefficient estimates are converted into the $ATT$ using the \textbf{mfx} package in R, which takes into account the binary nature of the treatment variable. 
-
-```{r, echo=FALSE,out.width="75%", fig.cap="Distribution of estimates produced by different functional form", fig.pos='H', fig.align='center'}
-knitr::include_graphics("figs/functionalform.png")
-```
-
-In the context of our guiding example, we see in Figure 6 that the OLS model outperforms the non-linear specifications. This, however, may not be the case in every situation. The underlying DGP and error structure play a role in determining which functional form leads to the least bias. One must also take into consideration the usual factors that impact functional form choice in causal inference. The researcher must think carefully about the context of their intervention and the functional form choice that aligns with the given institution. As is common in the literature already, we advise that authors check that the result is robust to different choices of functional form. 
 
 
 ### Calculating deforestation rates
@@ -364,6 +344,20 @@ One idea for a nice summary figure: I wonder if it's possible to create a varian
 Imagine the boxes representing the bias distribution for each econometric model specification, the bottom boxplot illustrating deviation from 95% confidence interval, and the table below highlighting the specifications. This could be an amazing way to summarize the results of any model specification in one figure for the eventual shiny app. It'd also allow us to compare how sensitive our results are to different parametrizations. 
 -->
 
+### Functional form
+
+We now seek to explore the effect of using non-linear functional forms. We use DID regression models at the pixel level in this section to avoid the aforementioned issues with FE models at the pixel level. We also reintroduce the bias due to classification error in the dgp in order to explore whether alternative functional forms may help to mitigate this bias. Coefficient estimates are converted into the $ATT$ using the \textbf{mfx} package in R, which takes into account the binary nature of the treatment variable. 
+
+```{r, echo=FALSE,out.width="75%", fig.cap="Distribution of estimates produced by different functional form", fig.pos='H', fig.align='center'}
+knitr::include_graphics("figs/functionalform.png")
+```
+
+We see in Figure 6 that the OLS model outperforms the non-linear specifications when not accounting for bias emerging from classification error. However, upon considering the bias resulting from the classification error, non-linear functional forms are preferable. The underlying DGP and error structure play a role in determining which functional form leads to the least bias in a given scenario. As is common in the literature already, we advise that authors check that the result is robust to different choices of functional form. 
+
+
+
+
+We leave a thourough discussion of the choice of functional form in the presence of non-classical measurement error to future work, but highlight the importance of this area of exploration.  
 
 ## Discussion
 This paper seeks to leave researchers with a clear sense of the decisions that play a role in their choice of econometric specification. We discuss and show the benefits of conductiong the analysis at the level of the relevant decision making unit when it is of importance. Choice of functional form should be justified in the context of each institutional setting, taking into account the underlying DGP. Robustness checks should account for the possibility of alternative functional forms. Formulas in the calculation of the deforestation rate should be made explicit to avoid confusion. Ultimately, context plays a role in all of these decisions. There is no one size fits all econometric specification and researchers should make clear which decisions they have made as well as their reasoning. We have developed a shiny app available at .. so that researchers can explore the potential tradeoffs with choices of econometric model design.  
