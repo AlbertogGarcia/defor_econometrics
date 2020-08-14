@@ -19,28 +19,28 @@ funcform <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25){
     # run DID dropping deforested pixels
     coeffmatrix[i,1]  <- lm(y_it ~  post*treat, 
                             data = panels
-    )$coefficients[4] - DID_estimand
+    )$coefficients[4] - ATT
     
     
     
     probit_me <- probitmfx(formula = y_it ~  post*treat, data = panels)$mfxest[3]
-    coeffmatrix[i,2] <- probit_me - DID_estimand
+    coeffmatrix[i,2] <- probit_me - ATT
     
     
     #run logit regression
     
     logit_me  <- logitmfx(formula = y_it ~  post*treat, data = panels)$mfxest[3]
-    coeffmatrix[i,3] <- logit_me - DID_estimand
+    coeffmatrix[i,3] <- logit_me - ATT
     
     
     poiss_me <- poissonmfx(formula = y_it ~  post*treat, data = panels)$mfxest[3]
-    coeffmatrix[i,4] <- poiss_me - DID_estimand
+    coeffmatrix[i,4] <- poiss_me - ATT
     
     
     #end for loop  
   }  
   
-  actual <- rep(DID_estimand, times = n)
+  actual <- rep(ATT, times = n)
   
   did_coeff <- as.data.frame(coeffmatrix)
   names(did_coeff)[1] <- paste("DID")
@@ -54,6 +54,7 @@ funcform <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25){
     guides(fill=guide_legend(title=NULL))+
     scale_fill_discrete(breaks=c("DID", "Probit", "Logit", "Poisson"))+
     geom_vline(xintercept = 0, linetype = "dashed")+
+    geom_vline(xintercept = (DID_estimand-ATT), linetype = "dashed", color = "red")+
     theme(plot.caption = element_text(hjust = 0.5))+
     labs(x= "bias", title = "DID bias based on functional form", 
          caption = paste("The mean and variance are:", "\n", 
@@ -64,8 +65,13 @@ funcform <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25){
                          )
     )
 
+  model <- c("Probit", "Logit", "Poisson")
+  bias <- c(colMeans(coeffmatrix)[2], colMeans(coeffmatrix)[3], colMeans(coeffmatrix)[4])
+  RMSE <- c(rmse(actual, coeffmatrix[2]), rmse(actual, coeffmatrix[3]), rmse(actual, coeffmatrix[4]))
+  func_results <- data.frame(model, bias, RMSE)
   
-  outputs = list("plot" = pdid, "did_biases" = did_coeff)
+  
+  outputs = list("plot" = pdid, "did_biases" = did_coeff, "func_results" = func_results)
   return(outputs)
   
   #end function  

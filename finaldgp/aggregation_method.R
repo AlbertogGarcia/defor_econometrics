@@ -262,16 +262,19 @@ aggregation_method <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
                  'classical',
                  'classical',
                  'classical'
-                 , 'clustered at property'
+                 ,'clustered at property'
                  )
 
   coverages_df <- data.frame(aggregation, std_error, coverage = colMeans(covermat)) 
   
+  model <- c("grid", "property", "county")
+  bias <- c(mean(coeff_bias$grid), mean(coeff_bias$property), mean(coeff_bias$county))
+  RMSE <- c(rmse(actual, coeff_bias$grid), rmse(actual, coeff_bias$property), rmse(actual, coeff_bias$county))
+  agg_results <- data.frame(model, bias, RMSE)
   
   
   
-  
-  outputs = list("plot" = plot, "biases" = coeff_bias, "coverages_df" = coverages_df)
+  outputs = list("plot" = plot, "biases" = coeff_bias, "coverages_df" = coverages_df, "agg_results" = agg_results)
   return(outputs)
   
   #end function  

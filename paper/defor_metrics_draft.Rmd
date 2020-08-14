@@ -346,18 +346,13 @@ Imagine the boxes representing the bias distribution for each econometric model 
 
 ### Functional form
 
-We now seek to explore the effect of using non-linear functional forms. We use DID regression models at the pixel level in this section to avoid the aforementioned issues with FE models at the pixel level. We also reintroduce the bias due to classification error in the dgp in order to explore whether alternative functional forms may help to mitigate this bias. Coefficient estimates are converted into the $ATT$ using the \textbf{mfx} package in R, which takes into account the binary nature of the treatment variable. 
+We explore the effect of using non-linear functional forms. We use DID regression models at the pixel level in this section to avoid the aforementioned issues with pixel level TWFE models . We also reintroduce the consideration of bias due to classification error in the dgp in order to explore whether alternative functional forms may help to mitigate this bias. Coefficient estimates are converted into the $ATT$ using the \textbf{mfx} package in R, which takes into account the binary nature of the treatment variable. 
 
 ```{r, echo=FALSE,out.width="75%", fig.cap="Distribution of estimates produced by different functional form", fig.pos='H', fig.align='center'}
-knitr::include_graphics("figs/functionalform.png")
+#knitr::include_graphics("figs/functionalform.png")
 ```
 
-We see in Figure 6 that the OLS model outperforms the non-linear specifications when not accounting for bias emerging from classification error. However, upon considering the bias resulting from the classification error, non-linear functional forms are preferable. The underlying DGP and error structure play a role in determining which functional form leads to the least bias in a given scenario. As is common in the literature already, we advise that authors check that the result is robust to different choices of functional form. 
-
-
-
-
-We leave a thourough discussion of the choice of functional form in the presence of non-classical measurement error to future work, but highlight the importance of this area of exploration.  
+The underlying DGP and error structure play a role in determining which functional form leads to the least bias in a given scenario. We find that alternative parameterizations do affect which functional form is optimal in a given circumstance, as seen in Table XX. Therefore, authors, regardless of the preferred specification, should justify their choice. As is common in the literature already, we advise that authors ensure the result is robust to different choices of functional form. We leave a thorough discussion of the choice of functional form in the presence of classification error to future work, but highlight the importance of this area for exploration.  
 
 ## Discussion
 This paper seeks to leave researchers with a clear sense of the decisions that play a role in their choice of econometric specification. We discuss and show the benefits of conductiong the analysis at the level of the relevant decision making unit when it is of importance. Choice of functional form should be justified in the context of each institutional setting, taking into account the underlying DGP. Robustness checks should account for the possibility of alternative functional forms. Formulas in the calculation of the deforestation rate should be made explicit to avoid confusion. Ultimately, context plays a role in all of these decisions. There is no one size fits all econometric specification and researchers should make clear which decisions they have made as well as their reasoning. We have developed a shiny app available at .. so that researchers can explore the potential tradeoffs with choices of econometric model design.  

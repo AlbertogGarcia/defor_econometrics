@@ -86,8 +86,11 @@ binary_coeffdist_fcn <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, st
                                                                         "2way FE keeping obs:",round(colMeans(coeffmatrix)[4], digits = 4) ,"RMSE:",round(rmse(actual, coeffmatrix[4]), digits = 5))
     )
   
-  
-  outputs = list("plot" = plot, "did_biases" = b_coeff)
+  model <- c("DID_drop", "TWFE_drop", "DID_keep", "TWFE_keep")
+  bias <- c(colMeans(coeffmatrix)[1], colMeans(coeffmatrix)[2], colMeans(coeffmatrix)[3], colMeans(coeffmatrix)[4])
+  RMSE <- c(rmse(actual, coeffmatrix[1]), rmse(actual, coeffmatrix[2]), rmse(actual, coeffmatrix[3]), rmse(actual, coeffmatrix[4]))
+  binary_results <- data.frame(model, bias, RMSE)
+  outputs = list("plot" = plot, "did_biases" = b_coeff, "binary_results" = binary_results)
   return(outputs)
   
 #end function  

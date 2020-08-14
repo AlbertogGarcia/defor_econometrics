@@ -64,7 +64,7 @@ std_a = 0.1
 std_v = 0.25
 years = 3
 nobs = 10000
-n = 500
+n = 100
 
 cellsize = 10
 ppoints = 50
@@ -85,14 +85,8 @@ b3 = qnorm( pnorm(b0+b1+b2, mean = 0, sd = std_av) + ATT , mean = 0, sd = std_av
 
 ```{r parameters csv, results='hide', warning = FALSE}
 
-parameter <- c('ATT', 
-                   'baseline_0',
-                   'baseline_1',
-                   'trend',
-                   'sigma_a',
-                   'sigma_v'
-                   )
-value <- c(ATT, base_0, base_1, trend, std_a, std_v)
+parameter <- c('ATT', 'baseline_0','baseline_1','trend')
+value <- c(ATT, base_0, base_1, trend)
 
 param_table <- data.frame(parameter, value)
 write.csv(param_table, "param_table.csv")
@@ -105,132 +99,16 @@ simple_table <- data.frame(expost_treat, expost_untreat, single_diff, ATT)
 write.csv(simple_table, "simple_table.csv")
 ```
 
-# DGP
 
-## Setting initial parameters
-
-The researcher sets the following four parameters:
-
-\begin{align*}
-baseline_0 &= E[y_{it}(0) |  t<t_0, D_i=0]\\
-baseline_1 &= E[y_{it}(0) |  t<t_0, D_i=1]\\
-trend &= E[y_{it}(0) |  t\geq t_0, D_i=0] - E[y_{it}(0) |  t<t_0, D_i=0]\\
-ATT &= E[y_{it}(1) - y_{it}(0) |  t\geq t_0, D_i=1]\\
-\end{align*}
-
-Note the following constraints on the parameters:
-\begin{align*}
-E[y_{it}(0) |  t \geq t_0, D_i=0] \geq 0\\
-E[y_{it}(1) |  t \geq t_0, D_i=1] \geq 0
-\end{align*}
-
-The initial DGP is now as follows. We define the latent variable, $y^*_{it}$,
-\begin{align*}
-y^*_{it} = \beta_0 + \beta_1 \mathbbm{1}\{  D_i = 1  \} +\beta_2 \mathbbm{1}\{  t \geq t_0  \} +\beta_3 \mathbbm{1}\{  D_i = 1  \} \mathbbm{1}\{  t \geq t_0  \} + \alpha_i +u_{it}
-\end{align*}
-, where the $\beta$ coefficients are derived from the four parameters assigned by the researcher. 
-
-The treatment variable is generated according to $D_i \sim bernoulli(.5)$. The period in which the treatment is implemented is denoted $t_0$. The pixel specific parameter is generated according to $\alpha_i \sim N(0, \sigma^2_a)$ and the error term is generated according to $u_{it} \sim N(0, \sigma^2_u)$. 
-
-The mapping from the latent to observed variable $y_{it}$ is
-
-\[ y_{it} = \begin{cases} 
-      1 & y^*_{it} > 0  \\
-      0 & else
-   \end{cases}
-\]
-
-## parameter to $\beta$ coefficient mapping
-
-\begin{align*}
-ATT =& E[y_{it}(1) - y_{it}(0) |  t\geq t_0, D_i=1] \\
-=& E[ y_{it}(1) |  t\geq t_0, D_i=1] - E[y_{it}(0) |  t\geq t_0, D_i=1]\\
-=& P(y_{it}(1) = 1 | t\geq t_0, D_i=1) - P(y_{it}(0) = 1 | t\geq t_0, D_i=1)\\
-=& P(y_{it}^* (1) >0 | t\geq t_0, D_i=1) - P(y_{it}^*(0) >0 | t\geq t_0, D_i=1)\\
-=& P(\beta_0 + \beta_1 +\beta_2 +\beta_3 + \alpha_i +u_{it} > 0) - P(\beta_0 + \beta_1 +\beta_2 + \alpha_i +u_{it} > 0)\\
-=& P(-\alpha_i -u_{it} < \beta_0 + \beta_1 +\beta_2 +\beta_3) - P(-\alpha_i -u_{it} < \beta_0 + \beta_1 +\beta_2)\\
-=& F(\beta_0 + \beta_1 +\beta_2 +\beta_3) - F(\beta_0 + \beta_1 +\beta_2)
-\end{align*}
-
-
-\begin{align*}
-trend =& E[y_{it}(0) |  t\geq t_0, D_i=0] - E[y_{it}(0) |  t<t_0, D_i=0]\\
-=& P(y_{it}(0)=1 |  t\geq t_0, D_i=0) - P(y_{it}(0)=1 |  t<t_0, D_i=0)\\
-=& P(y^*_{it}(0)>0 |  t\geq t_0, D_i=0) - P(y^*_{it}(0)>0 |  t<t_0, D_i=0)\\
-=& P(-\alpha_i -u_{it} < \beta_0 +\beta_2) - P(-\alpha_i -u_{it} < \beta_0 )\\
-=& F(\beta_0 + \beta_2) - F(\beta_0)
-\end{align*}
-
-\begin{align*}
-baseline_0 =& E[y_{it}(0) |  t<t_0, D_i=0]\\
-=& P(y_{it}(0)=1 |  t< t_0, D_i=0)\\
-=& P(y^*_{it}(0)>0 | t<t_0, D_i=0)\\
-=& P(-\alpha_i -u_{it} < \beta_0 ) \\
-=& F(\beta_0)
-\end{align*}
-
-\begin{align*}
-baseline_1 =& E[y_{it}(0) |  t<t_0, D_i=1]\\
-=& P(y_{it}(0)=1 |  t< t_0, D_i=1)\\
-=& P(y^*_{it}(0)>0 | t<t_0, D_i=1)\\
-=& P(-\alpha_i -u_{it} < \beta_0 +\beta_1) \\
-=& F(\beta_0+\beta_1)
-\end{align*}
-
-
-, Where $F()$ is the CDF of a $N(0, \sigma^2_a + \sigma^2_u)$
-
-
-
-## solving for the $\beta$ coefficients
-
-solving for $\beta_0$
-\begin{align*}
-baseline_0= F(\beta_0) \\
-\Leftrightarrow \\
-\beta_0 = F^{-1}(baseline_0)
-\end{align*}
-
-solving for $\beta_1$
-\begin{align*}
-baseline_1= F(\beta_0 + \beta_1) \\
-\Leftrightarrow \\
-\beta_1 = F^{-1}(baseline_1) - \beta_0
-\end{align*}
-
-solving for $\beta_2$
-\begin{align*}
-trend= F(\beta_0 + \beta_2 ) - F(\beta_0) \\
-\Leftrightarrow \\
-trend + baseline_0 =F( \beta_0 + \beta_2)\\
-\Leftrightarrow \\
-F^{-1}(trend + baseline_0 ) =\beta_0 + \beta_2\\
-\Leftrightarrow \\
-\beta_2 = F^{-1}(trend + baseline_0 ) - \beta_0 
-\end{align*}
-
-solving for $\beta_3$
-\begin{align*}
-ATT= F(\beta_0 + \beta_1 +\beta_2 +\beta_3) - F(\beta_0 + \beta_1 +\beta_2)\\
-\Leftrightarrow \\
-ATT + F(\beta_0 + \beta_1 +\beta_2) = F(\beta_0 + \beta_1 +\beta_2 +\beta_3) \\
-\Leftrightarrow \\
-F^{-1}(ATT + F(\beta_0 + \beta_1 +\beta_2) )= \beta_0 + \beta_1 +\beta_2 +\beta_3\\
-\Leftrightarrow \\
-\beta_3 = F^{-1}(ATT + F(\beta_0 + \beta_1 +\beta_2) )- (\beta_0 + \beta_1 +\beta_2)\\
-\end{align*}
-
-
-# DID and functional forms
 
 ## initial DID estimates
 
 ```{r DIDy, results='hide', warning = FALSE}
 DID_y <- quickmontey(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y")
-
 DID_y$plot
 
 ggsave(path = "figs", filename = "fig1.png", dpi = 500)
+
 
 ```
 
@@ -243,6 +121,8 @@ DID_keep <- quickmontey_did(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "defor
 DID_keep$plot
 
 ggsave(path = "figs", filename = "fig2.png", dpi = 500)
+
+
 ```
 
 
@@ -251,11 +131,10 @@ We will now drop pixels in the periods after they first become deforested.
 ```{r DIDy_it, results='hide', warning = FALSE}
 #dropping obs from panel in periods after they first become deforested
 DID_drop <- quickmontey_did(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y_it")
-
-
 DID_drop$plot
 
 ggsave(path = "figs", filename = "fig3.png", dpi = 500)
+
 
 ```
 
@@ -268,6 +147,8 @@ twowayFE <- binary_coeffdist_fcn(n, nobs, years, b0, b1, b2, b3, std_a, std_v)
 twowayFE$plot
 
 ggsave(path = "figs", filename = "twowayFE.png", dpi = 500)
+
+binary_results <- twowayFE$binary_results
 
 ```
 
@@ -353,6 +234,7 @@ functionalform$plot
 
 ggsave(path = "figs", filename = "functionalform.png", dpi = 500)
 
+func_results <- functionalform$func_results
 ```
 
 The above plot shows the DID bias depending on functional form decisions. 
@@ -405,6 +287,12 @@ agg_biases <- aggregation$biases
 
 coverages_df <- aggregation$coverages_df
 #write.csv(coverages_df, "coverages.csv")
+
+agg_results <- aggregation$agg_results
+
+
+results_df <- binary_results %>%
+  bind_rows(agg_results)
 ```
 
 
@@ -472,26 +360,56 @@ ggsave(path = "figs", filename = "weighting.png", dpi = 500)
 ```
 
 
-## Coverage based on aggregation and standard error
-
-We consider three possible aggregation methods: county, property, and grid level. We then compute the coverage probability of the ATT with a 95% CI. We first cluster standard errors at the group level and then, simply use White standard errors for comparison.
-
-Property level aggregation also leads to roughly the expected coverage, while the county and grid level aggregation results in under coverage. It is unclear how much of the issue is related to the bias rather than the standard errors themselves. The coverage seems to be the same whether we cluster the standard errors at the group level or simply use White standard errors. 
 
 
 
+```{r parameters2}
+set.seed(930)
 
-```{r xy prop_err plot, results = 'hide', warning=FALSE}
+base_0 = .05
+base_1 = .02
+trend = .005
+ATT = .01
 
-# min_std_p = 0
-# max_std_p = .25
-# interval = .05
-# 
-# p_err_bias <- xy_proppert(100, nobs, years, ATT, base_0, base_1, trend, std_a, std_v, min_std_p, max_std_p, interval, cellsize, ppoints, cpoints)
-# 
-# p_err_bias$plot
-# 
-# p_err_bias$plot2
-  
+
+std_av = (std_a^2+std_v^2)^.5
+b0 = qnorm(base_0, mean = 0, sd = std_av)
+b1 = qnorm(base_1, mean = 0, sd = std_av) - b0
+b2 = qnorm(trend + base_0, mean = 0, sd = std_av) - b0
+b3 = qnorm( pnorm(b0+b1+b2, mean = 0, sd = std_av) + ATT , mean = 0, sd = std_av) - (b0 + b1 + b2)
+
 ```
 
+```{r binary2, results='hide', warning = FALSE}
+twowayFE2 <- binary_coeffdist_fcn(n, nobs, years, b0, b1, b2, b3, std_a, std_v)
+twowayFE2$plot
+
+binary_results2 <- twowayFE2$binary_results
+```
+
+```{r functionalforms2, results='hide', warning = FALSE}
+functionalform2 <- funcform(n, nobs, years, b0, b1, b2, b3, std_a, std_v)
+
+func_results2 <- functionalform2$func_results
+
+```
+
+```{r aggregate, results = 'hide', warning=FALSE}
+aggregation2 <- aggregation_method(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+
+coverages_df2 <- aggregation2$coverages_df
+#write.csv(coverages_df, "coverages.csv")
+
+agg_results2 <- aggregation2$agg_results
+
+
+results_df2 <- binary_results2 %>%
+  bind_rows(agg_results2)
+```
+
+```{r property unobservables 2, results = 'hide', warning=FALSE}
+prop_aggreg2 <- aggregation_method(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p1, cellsize, ppoints, cpoints)
+
+coverages_properror_df2 <- prop_aggreg2$coverages_df
+
+```
