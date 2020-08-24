@@ -42,8 +42,10 @@ quickmontey_did <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v =
                                     ", RMSE:", round(rmse(actual, did_coeff$V1), digits = 4)) 
     )
   
-  outputs = list("plot" = plot, "did_biases" = did_coeff, "did_mean" = mean(did_coeff$V1), "did_RMSE" = rmse(actual, did_coeff$V1)
-                 )
+
+  
+  outputs = list("plot" = plot, "did_coeff" = did_coeff)
+                 
   return(outputs)
   
   #end function  

@@ -64,7 +64,7 @@ std_a = 0.1
 std_v = 0.25
 years = 3
 nobs = 10000
-n = 100
+n = 500
 
 cellsize = 10
 ppoints = 50
@@ -133,7 +133,7 @@ We will now drop pixels in the periods after they first become deforested.
 DID_drop <- quickmontey_did(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y_it")
 DID_drop$plot
 
-ggsave(path = "figs", filename = "fig3.png", dpi = 500)
+#ggsave(path = "figs", filename = "fig3.png", dpi = 500)
 
 
 ```
@@ -152,89 +152,19 @@ binary_results <- twowayFE$binary_results
 
 ```
 
-## Two way FE proof
-
-We can show that in the case where the binary outcome is dropped in periods after the outcome is realized as a 1, two-way fixed effects regressions typically do not identify the ATT, but the ATT + the group difference. 
-
-pf:
-
-Consider the regression
-$$ y_{it}=\alpha+\eta d2_t+\tau w_{it}+c_i+u_{it}, \text{ for } t=1,2 $$
-
-$y_{it}$ is the binary outcome; $w_{it}$ is a dummy equal to 1 when unit $i$ is treated in time $t$; $d2_t$ is a dummy for the second time period; $c_i$ is an observed effect for unit i.
-
-Jones and Lewis (2015) advise to drop unit $i$ in periods $t+1,..., T$ when $y_{it}=1$.
-
-In the two period case, we have 
-$$ y_{i1}=\alpha+\tau w_{i1}+c_i+u_{i1}$$
-\[y_{i2}= \begin{cases} 
-      \alpha+\eta d2_2+\tau w_{i2}+c_i+u_{i2} & y_{i1}= 0\\
-      NAN & y_{i1} \neq 0 
-   \end{cases}
-\]
-
-
-First differencing,
-
-\[y_{i2}-y_{i1}= \begin{cases} 
-  \alpha+\eta d2_2+\tau w_{i2}+c_i+u_{i2} - \alpha-\tau w_{i1}-c_i-u_{i1} & y_{i1}= 0\\
-      NAN & y_{i1} \neq 0 
-   \end{cases}
-\]
-
- Focusing on the first case, where $y_{i1}=0$
-\begin{align*}
-y_{i2}-y_{i1}&=\alpha+\eta d2_2+\tau w_{i2}+c_i+u_{i2} - \alpha-\tau w_{i1}-c_i-u_{i1}\\
-&= \alpha+\eta d2_2+\tau w_{i2}+c_i+u_{i2} - \alpha-c_i-u_{i1}\\
-&= \eta d2_2+\tau w_{i2}+u_{i2}  -\tau w_{i1} -u_{i1}\\
-&=\eta +\tau w_{i2}+\Delta u_i
-\end{align*}
-
-Coming back to the general expression,
-
-\[y_{i2}-y_{i1}= \begin{cases} 
- \eta +\tau w_{i2}+\Delta u_i & y_{i1}= 0\\
-      NAN & y_{i1} \neq 0 
-   \end{cases}
-\]
-
-(NAN - $(\alpha+\tau w_{i1}+c_i+u_{i1})$ is NAN)
-
-We have that with binary $w_{i2}$
-\begin{align*}
-\hat{\tau}&= \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i2} - \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i1} - (\frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i2} - \frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i1})
-\end{align*}
-
-, where $n_{ST}$ and $n_{SU}$ are the number of surviving treated and untreated units such that $y_{i1}=0$, respectively. 
-
-Note: Since this captures where $y_{i1}=0$, we have $\frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i1}=0$ and $\frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i1}=0$ 
-
-Then,   
-
-\begin{align*}
-\hat{\tau}&= \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i2} - 0 - (\frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i2} - 0)\\
-&= \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i2}(1) - \frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i2}(0)\\
- &(\text{whether we see treated or untreated outcome})\\
-&=    \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i2}(1) - y_{i2}(0)  \\
-+& \frac{1}{n_{ST}}\sum_{i:w_i=1}y_{i2}(0) - \frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i2}(0) \\
-&(\text{adding and subtracting $\frac{1}{n_{ST}}\sum_{i:w_i=1}y_{i2}(0)$})\\
-&= ATT+Diff\\
-\blacksquare &
-\end{align*}
-
-
-
 
 ## functional form test (logit, probit, vs. DID)
 
 
 ```{r functionalforms, results='hide', warning = FALSE}
 functionalform <- funcform(n, nobs, years, b0, b1, b2, b3, std_a, std_v)
-functionalform$plot
+#functionalform$plot
 
-ggsave(path = "figs", filename = "functionalform.png", dpi = 500)
+#ggsave(path = "figs", filename = "functionalform.png", dpi = 500)
+  
+func_results <- functionalform$func_results 
+write.csv(func_results, "func_results.csv")
 
-func_results <- functionalform$func_results
 ```
 
 The above plot shows the DID bias depending on functional form decisions. 
@@ -261,10 +191,12 @@ We now aggregate to the grid level. Below, we see the bias introduced by using d
 
 ```{r outcomes, results='hide', warning = FALSE}
 
-outcomes <- outcome_comparison(n, nobs, years, b0, b1, b2, b3, std_a, std_v, cellsize)
+outcomes <- outcome_comparison(100, nobs, years, b0, b1, b2, b3, std_a, std_v, cellsize)
 outcomes$plot
 
 #ggsave(path = "figs", filename = "outcomes.png", dpi = 500)
+outcome_results <- outcomes$outcome_results 
+write.csv(outcome_results, "outcome_results.csv")
 
 ```
 
@@ -311,8 +243,6 @@ b3 = qnorm( pnorm(b0+b1+b2, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_a
 ```
 
 
-
-
 ```{r property unobservables, results = 'hide', warning=FALSE}
 prop_aggreg <- aggregation_method(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p1, cellsize, ppoints, cpoints)
 prop_aggreg$plot
@@ -334,13 +264,13 @@ ggsave(path = "landscape_figs", filename = "landscape_did.png", dpi = 500)
 
 ```
 
-
 ```{r landscape maps counterfactual, warning=FALSE}
 landscape_map$landscape_period2_counter
 
 ggsave(path = "landscape_figs", filename = "counterfactual.png", dpi = 500)
 
 ```
+
 ```{r landscape maps period two nolegend, warning=FALSE}
 landscape_map$landscape_period2_nolegend
 ggsave(path = "landscape_figs", filename = "period2_nolegend.png", dpi = 500)
@@ -358,10 +288,6 @@ weighting$plot
 ggsave(path = "figs", filename = "weighting.png", dpi = 500)
 
 ```
-
-
-
-
 
 ```{r parameters2}
 set.seed(930)
@@ -387,11 +313,23 @@ twowayFE2$plot
 binary_results2 <- twowayFE2$binary_results
 ```
 
+```{r outcomes2, results='hide', warning = FALSE}
+
+outcomes2 <- outcome_comparison(100, nobs, years, b0, b1, b2, b3, std_a, std_v, cellsize)
+outcomes2$plot
+
+#ggsave(path = "figs", filename = "outcomes.png", dpi = 500)
+outcome_results2 <- outcomes2$outcome_results 
+write.csv(outcome_results2, "outcome_results2.csv")
+```
+
 ```{r functionalforms2, results='hide', warning = FALSE}
 functionalform2 <- funcform(n, nobs, years, b0, b1, b2, b3, std_a, std_v)
 
-func_results2 <- functionalform2$func_results
+#dropping obs from panel in periods after they first become deforested
 
+func_results2 <- functionalform2$func_results 
+write.csv(func_results2, "func_results2.csv")
 ```
 
 ```{r aggregate, results = 'hide', warning=FALSE}
@@ -413,3 +351,71 @@ prop_aggreg2 <- aggregation_method(n, nobs, years, b0, b1, b2, b3, std_a, std_v,
 coverages_properror_df2 <- prop_aggreg2$coverages_df
 
 ```
+
+
+```{r parameters3}
+set.seed(930)
+
+base_0 = .02
+base_1 = .05
+trend = .01
+ATT = -.03
+
+
+std_av = (std_a^2+std_v^2)^.5
+b0 = qnorm(base_0, mean = 0, sd = std_av)
+b1 = qnorm(base_1, mean = 0, sd = std_av) - b0
+b2 = qnorm(trend + base_0, mean = 0, sd = std_av) - b0
+b3 = qnorm( pnorm(b0+b1+b2, mean = 0, sd = std_av) + ATT , mean = 0, sd = std_av) - (b0 + b1 + b2)
+
+```
+
+
+```{r binary3, results='hide', warning = FALSE}
+twowayFE3 <- binary_coeffdist_fcn(n, nobs, years, b0, b1, b2, b3, std_a, std_v)
+twowayFE3$plot
+
+binary_results3 <- twowayFE3$binary_results
+```
+
+```{r outcomes3, results='hide', warning = FALSE}
+
+outcomes3 <- outcome_comparison(100, nobs, years, b0, b1, b2, b3, std_a, std_v, cellsize)
+outcomes3$plot
+
+#ggsave(path = "figs", filename = "outcomes.png", dpi = 500)
+outcome_results3 <- outcomes3$outcome_results 
+write.csv(outcome_results3, "outcome_results3.csv")
+```
+
+
+```{r functionalforms3, results='hide', warning = FALSE}
+functionalform3 <- funcform(n, nobs, years, b0, b1, b2, b3, std_a, std_v)
+
+#dropping obs from panel in periods after they first become deforested
+
+func_results3 <- functionalform3$func_results 
+write.csv(func_results3, "func_results3.csv")
+```
+
+```{r aggregate3, results = 'hide', warning=FALSE}
+aggregation3 <- aggregation_method(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+
+coverages_df3 <- aggregation3$coverages_df
+#write.csv(coverages_df, "coverages.csv")
+
+agg_results3 <- aggregation3$agg_results
+
+
+results_df3 <- binary_results3 %>%
+  bind_rows(agg_results3)
+```
+
+```{r property unobservables 2, results = 'hide', warning=FALSE}
+prop_aggreg3 <- aggregation_method(n, nobs, years, b0, b1, b2, b3, std_a, std_v, std_p1, cellsize, ppoints, cpoints)
+
+coverages_properror_df3 <- prop_aggreg2$coverages_df
+
+```
+
+

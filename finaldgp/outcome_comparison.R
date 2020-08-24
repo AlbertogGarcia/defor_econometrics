@@ -177,9 +177,12 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_
                                     ) 
     )
   
+  Outcome <- c("1", "2", "3")
+  bias <- c(mean(coeff_bias$outcome1), mean(coeff_bias$outcome2), mean(coeff_bias$outcome3))
+  RMSE <- c(rmse(actual, coeff_bias$outcome1), rmse(actual, coeff_bias$outcome2), rmse(actual, coeff_bias$outcome3))
+  outcome_results <- data.frame(Outcome, bias, RMSE)
   
-  
-  outputs = list("plot" = plot, "biases" = coeff_bias)
+  outputs = list("plot" = plot, "biases" = coeff_bias, "outcome_results" = outcome_results)
   return(outputs)
   
   #end function  

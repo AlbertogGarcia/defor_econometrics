@@ -5,6 +5,7 @@ author: "Alberto Garcia and Robert Heilmayr"
 date: "July 20, 2020"
 output:
   pdf_document:
+    latex_engine: xelatex
     number_sections: no
     toc: no
   html_document: default
@@ -13,6 +14,8 @@ bibliography: deforestation_econometrics.bib
 header-includes: 
   \usepackage{bbm}  
   \usepackage{graphicx}
+  \usepackage{amsmath}
+  \usepackage{amssymb}
 ---
 
 ```{r setup, include=FALSE}
@@ -20,6 +23,7 @@ library(knitr)
 library(ggplot2)
 library(kableExtra)
 library(tidyr)
+
 
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -60,7 +64,7 @@ In panel data settings, two broad methods are often used to measure the impact o
 
 Figure 2 shows the intuition behind the DID estimator in two time periods. Deforestation rates in the control area changed between the first and second period. The common trends assumption amounts to assuming that the deforestation rate in the intervention area would have changed by the same amount in the absence of the intervention. In our example, the DID estimator is the difference between post and pre-treatment deforestation rates in units with the intervention, minus the difference between post and pre-treatment deforestation rates in units without. 
 
-```{r, echo=FALSE,out.width="49%", fig.cap="Left: deforestation observed in the first period; Right: deforestation observed in the second period. Note that pixels deforested in the first period are still observed as deforested in the second", fig.show='hold', fig.align='center'}
+```{r, echo=FALSE,out.width="49%", fig.cap="Left: deforestation observed in the first vs. second period in treated and untreated units", fig.show='hold', fig.align='center'}
 knitr::include_graphics(c("landscape_figs/landscape_did.png"))
 ```
 <!-- FIGURE NOTES: 
@@ -88,7 +92,7 @@ Property level analyses have been promoted in the context of PES programs, but s
 Some researchers choose to use a larger administrative boundary as the unit of analysis such as the state, municipality, or county in order to address the level at which the intervention is applied. Again, this may mitigate concerns over bias emerging from local spillovers within an administrative unit [@sims2017]. 
 
 
-#### calculating deforestation rates and outcomes
+#### Calculating deforestation rates
 
 Upon choosing an aggregated unit of analysis, the researcher must compute the deforestaion rate. This varies thoughout the literature, and many authors do not explicitly define the formula used. Different names are used to describe the calculation of the annual deforestation rate, which generates further confusion [@puyravaud2003]. 
 
@@ -161,7 +165,7 @@ Here, the observed outcome variable, $y_{it}$, is equal to 1 if pixel $i$ is obs
 ### Set up and evaluation
 
 
-It is not uncommon to see annual treatment effects amounting to less than a 1% reduction in the annual deforestation rate [e.g. @robalino2013; @jones2017]. These modest reductions in the annual deforestation rate, however, can amount to large effects over the course of the study period. For example, @alix-garcia2018 find that environmental land registration in Brazil’s Amazonian states of Mato Grosso and Para reduced the annual deforestation rate by an average 0.5 percentage points, which has  amounted to an overall deforestation reduction of 10\%. We have parameterized a guiding example, representative of an impactful intervention, to explore for the remainder of the paper. The results of two other examples are displayed in Table XX, however our general messages are consistent across landscape parameterizations. 
+It is not uncommon to see annual treatment effects amounting to less than a 1% reduction in the annual deforestation rate [e.g. @robalino2013; @jones2017]. These modest reductions in the annual deforestation rate, however, can amount to large effects over the course of the study period. For example, @alix-garcia2018 find that environmental land registration in Brazil’s Amazonian states of Mato Grosso and Para reduced the annual deforestation rate by an average 0.5 percentage points, which has  amounted to an overall deforestation reduction of 10\%. We have parameterized a guiding example, representative of an impactful intervention, to explore for the remainder of the paper. 
 
 <!-- The initial simulated landscape has the following characteristics: a pre-treatment deforestation rate of 2\% in the control area ($baseline_0 = 0.02$); a pre-treatment deforestation rate of 4\% in the intervention area ($baseline_1 = 0.04$); a decrease in the deforestation rate of .5\% between the first and second period in the control area ($trend = -0.005$); and an average reduction of 1\% in the deforestation rate in treated units due to the intervention ($ATT = -0.01$). Lastly, we assign $\sigma_a = .25$ and $\sigma_u = .1$.  -->
 
@@ -186,7 +190,7 @@ This bias is distinct from that which may arise from satellite sensor characteri
 Current framing seems to indicate that the latent variable is mapping %deforestation -> binary deforestation. While I think that's part of what's going on in the mapping, I don't think that captures all situations. The latent variable also allows for discontinuous clearing pressure - ie clearing of an entire pixel occurs when the value of clearing exceeds some specific threshold. This is similar to employment termination models, where an individual is fired if y*>0. Nicoletti and Rondinelli, 2010
 -->
 
-Mathematically, this bias will arise any time the latent variable has error generated according to a distribution with a nonlinear cumulative distribution function. and is subsequently mapped to a binary observable outcome subject to a threshold. In Figure 3, we can see this bias in the context of our guiding example. Allowing the outcome to vary between 0 and 1 across time periods allows us to see the bias due only to the disparity between the underlying spatial data generating process and the observed binary outcome. We do not exolore the sensitivity of this bias to various thresholds, but bring attention to its existence. For the remainder of the paper, we net out this bias in order to focus on bias that arises from various model selection decisions.
+Mathematically, this bias will arise any time the latent variable has error generated according to a distribution with a nonlinear cumulative distribution function and is subsequently mapped to a binary observable outcome subject to a threshold. In Figure 3, we can see this bias in the context of our guiding example. Allowing the outcome to vary between 0 and 1 across time periods allows us to see the bias due only to the disparity between the underlying spatial data generating process and the observed binary outcome. We do not exolore the sensitivity of this bias to various thresholds, but bring attention to its existence. For the remainder of the paper, we net out this bias in order to focus on bias that arises from various model selection decisions.
 
 ```{r, echo=FALSE,out.width="75%", fig.cap="Inherently biased estimates due to nature of observed data", fig.pos='H', fig.align='center'}
 knitr::include_graphics("figs/fig1.png")
@@ -262,9 +266,7 @@ Upon aggregating data, the researcher must determine how to calculate deforestat
 knitr::include_graphics("figs/outcomes.png")
 ```
 
-As seen in Figure 7, outcome 1 results in the least bias in our guiding example. The other outcomes result in relatively greater bias, although this difference seems minimal in our guiding example. 
-
-We express some concern surrounding the use of the initial baseline forest cover in analyses, as in formula (2). In settings with high deforestation rates, this outcome may overestimate the deforestation rate. As the rate is calculated in periods far away from the baseline, the deforestation rate will be increasingly high. This may impact the viability of the analysis, as the rate becomes artificially inflated in later years. 
+As seen in Figure 7, outcome 1 results in the least bias in our guiding example. The other outcomes result in relatively greater bias, although this difference seems minimal. We express concern surrounding the use of the initial observed baseline forest cover in the calculation of deforestation rates, as in formula (2). In settings with high deforestation rates, this outcome may overestimate the deforestation rate. As the rate is calculated in periods far away from the baseline, the deforestation rate will be increasingly high. This may impact the viability of the analysis, as the rate becomes artificially inflated in later years. As seen in Appendix T2, outcome two is the least robust to alternate landscape parameterizations. 
 
 Regardless of authors' choice of formula, we advise that this formula be explicitly stated in the paper. This will help to avoid confusion as to which formula was used and help researchers understand which methods are the standard within the literature. Moving forward in our paper, all specifications using aggregated data use outcome 1. In our guiding example, it resulted in the least bias, and it is currently the most common deforestation rate calculation used in the literature. 
 
@@ -354,6 +356,31 @@ We explore the effect of using non-linear functional forms. We use DID regressio
 
 The underlying DGP and error structure play a role in determining which functional form leads to the least bias in a given scenario. We find that alternative parameterizations do affect which functional form is optimal in a given circumstance, as seen in Table XX. Therefore, authors, regardless of the preferred specification, should justify their choice. As is common in the literature already, we advise that authors ensure the result is robust to different choices of functional form. We leave a thorough discussion of the choice of functional form in the presence of classification error to future work, but highlight the importance of this area for exploration.  
 
+```{r outcome table, echo = FALSE, results = "asis", fig.show='hold'}
+
+func_table <- read.csv("func_results.csv")[,2:4] %>%
+  cbind(read.csv("func_results2.csv")[,3:4])%>%
+  cbind(read.csv("func_results3.csv")[,3:4])
+  
+
+kable(func_table, format = "latex", row.names = FALSE,
+      caption = "functional form across landscape parameterizations"
+      #, booktabs = TRUE
+      #col.names = c("unit of analysis")
+) %>% 
+  add_header_above(c("", "$trend = -0.005$" = 2, "$trend = 0.005$" = 2, "$trend = 0.01$" = 2), escape = FALSE, line =FALSE) %>%
+  add_header_above(c("", "$baseline_1 = 0.04$" = 2, "$baseline_1 = 0.02$" = 2, "$baseline_1 = 0.05$" = 2), escape = FALSE, line = FALSE) %>%
+  add_header_above(c("", "$baseline_0 = 0.02$" = 2, "$baseline_0 = 0.05$" = 2, "$baseline_0 = 0.02$" = 2), escape = FALSE, line =FALSE) %>%
+  add_header_above(c("", "$ATT = -0.01$" = 2, "$ATT = 0.01$" = 2, "$ATT = -0.03$" = 2), escape = FALSE, line = FALSE) %>%
+  add_header_above(c("", "500 datasets of 10,000 pixels, $\\\\sigma_a=0.1$, $\\\\sigma_v=0.25$" = 6), escape = FALSE, line = FALSE) %>%
+  row_spec(0,bold=TRUE) %>% 
+  kable_styling(font_size = 10, latex_options = c("HOLD_position"),
+                #full_width = TRUE
+                position = "center"
+                )
+
+```
+
 ## Discussion
 This paper seeks to leave researchers with a clear sense of the decisions that play a role in their choice of econometric specification. We discuss and show the benefits of conductiong the analysis at the level of the relevant decision making unit when it is of importance. Choice of functional form should be justified in the context of each institutional setting, taking into account the underlying DGP. Robustness checks should account for the possibility of alternative functional forms. Formulas in the calculation of the deforestation rate should be made explicit to avoid confusion. Ultimately, context plays a role in all of these decisions. There is no one size fits all econometric specification and researchers should make clear which decisions they have made as well as their reasoning. We have developed a shiny app available at .. so that researchers can explore the potential tradeoffs with choices of econometric model design.  
 
@@ -377,6 +404,32 @@ We can show that in the case where the binary outcome is dropped in periods afte
 
 proof:
 
+### deforestation rate calculation robustness to alternate parameterizations
+
+```{r func table, echo = FALSE, results = "asis", fig.show='hold'}
+
+outcome_table <- read.csv("outcome_results.csv")[,2:4] %>%
+  cbind(read.csv("outcome_results2.csv")[,3:4])%>%
+  cbind(read.csv("outcome_results3.csv")[,3:4])
+  
+
+kable(outcome_table, format = "latex", row.names = FALSE,
+      caption = "outcome calculation across landscape parameterizations"
+      #, booktabs = TRUE
+      #col.names = c("unit of analysis")
+) %>% 
+  add_header_above(c("", "$trend = -0.005$" = 2, "$trend = 0.005$" = 2, "$trend = 0.01$" = 2), escape = FALSE, line =FALSE) %>%
+  add_header_above(c("", "$baseline_1 = 0.04$" = 2, "$baseline_1 = 0.02$" = 2, "$baseline_1 = 0.05$" = 2), escape = FALSE, line = FALSE) %>%
+  add_header_above(c("", "$baseline_0 = 0.02$" = 2, "$baseline_0 = 0.05$" = 2, "$baseline_0 = 0.02$" = 2), escape = FALSE, line =FALSE) %>%
+  add_header_above(c("", "$ATT = -0.01$" = 2, "$ATT = 0.01$" = 2, "$ATT = -0.03$" = 2), escape = FALSE, line = FALSE) %>%
+  add_header_above(c("", "500 datasets of 10,000 pixels, $\\\\sigma_a=0.1$, $\\\\sigma_v=0.25$" = 6), escape = FALSE, line = FALSE) %>%
+  row_spec(0,bold=TRUE) %>% 
+  kable_styling(font_size = 10, latex_options = c("HOLD_position"),
+                #full_width = TRUE
+                position = "center"
+                )
+
+```
 
 ### Initial parameter to $\beta$ coefficient mapping
 

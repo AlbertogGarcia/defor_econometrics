@@ -65,9 +65,9 @@ funcform <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25){
                          )
     )
 
-  model <- c("Probit", "Logit", "Poisson")
-  bias <- c(colMeans(coeffmatrix)[2], colMeans(coeffmatrix)[3], colMeans(coeffmatrix)[4])
-  RMSE <- c(rmse(actual, coeffmatrix[2]), rmse(actual, coeffmatrix[3]), rmse(actual, coeffmatrix[4]))
+  model <- c("DID", "Probit", "Logit", "Poisson")
+  bias <- c(colMeans(coeffmatrix)[1], colMeans(coeffmatrix)[2], colMeans(coeffmatrix)[3], colMeans(coeffmatrix)[4])
+  RMSE <- c(rmse(actual, coeffmatrix[1]), rmse(actual, coeffmatrix[2]), rmse(actual, coeffmatrix[3]), rmse(actual, coeffmatrix[4]))
   func_results <- data.frame(model, bias, RMSE)
   
   
