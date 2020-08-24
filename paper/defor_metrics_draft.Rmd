@@ -50,22 +50,14 @@ We focus on the case in which a researcher would like to quantify the impact tha
 ```{r, echo=FALSE,out.width="49%", fig.pos = 'H', fig.cap="Left: deforestation observed in the period after the policy has been implemented in the intervention area; Right: deforestation that would have ocurred in the absence of the conservation intervention at the same point in time. Note that deforestation in the control area is the same in both cathe realized and counterfactual cases, since no intervention ocurred.", fig.show='hold', fig.align='center'}
 knitr::include_graphics(c("landscape_figs/period2_nolegend.png","landscape_figs/counterfactual.png"))
 ```
-<!-- FIGURE NOTES: 
-1) Probably want to make clear that figures both represent the landscape at the same point in time, ie the end of the observation period 
-2) XX Maybe rename "counties" as "Administrative unit" to make them more globally relevant?
-3) XX Maybe rename "control area" as "Untreated area" since some methods would drop some counties
-4) Group control area and intervention area labels; separate from deforested pixel / counterfactual deforestation
-5) Maybe add a table on the side that illustrates a simple calculation of the ATT? ie - Mean observed deforestation: XX; Mean counterfactual deforestation: XX; ATT: XX. Or maybe it'd be better to just integrate this into the caption?
--->
-
 
 
 In panel data settings, two broad methods are often used to measure the impact of conservation interventions: Difference-in-Differences (DID) and Two-way Fixed Effects (TWFE) regression models [@blackman2013; @jones2015]. The typical DID regression model includes a dummy variable equal to one for units in the treatment group, a dummy variable equal to one for observations in the period after the intervention, and their interaction. Conceptually, the DiD estimator calculates the treatment effect as the difference between the differences of the treated and untreated observations before and after treatment [@butsic2017]. The DID estimator identifies the ATT under one main assumption, known as the common trends assumption. It amounts to assuming that both units in the intervention area and untreated units would have experienced the same average change in the outcome in the absence of the intervention. While fundamentally untestable, ensuring that deforestation rates in the intervention area and the control area followed parallel trajectories prior to the date of the intervention can give creedence to this assumption [@butsic2017]. 
 
 Figure 2 shows the intuition behind the DID estimator in two time periods. Deforestation rates in the control area changed between the first and second period. The common trends assumption amounts to assuming that the deforestation rate in the intervention area would have changed by the same amount in the absence of the intervention. In our example, the DID estimator is the difference between post and pre-treatment deforestation rates in units with the intervention, minus the difference between post and pre-treatment deforestation rates in units without. 
 
-```{r, echo=FALSE,out.width="49%", fig.cap="Left: deforestation observed in the first vs. second period in treated and untreated units", fig.show='hold', fig.align='center'}
-knitr::include_graphics(c("landscape_figs/landscape_did.png"))
+```{r, echo=FALSE,out.width="49%", fig.cap="deforestation observed in the first vs. second period in treated and untreated units", fig.show='hold', fig.align='center'}
+knitr::include_graphics(c("landscape_figs/landscape_did.png", "landscape_figs/barchart.png"))
 ```
 <!-- FIGURE NOTES: 
 1) It might be easier to read if you collapsed the two panels into one - differentiating defor in T0 (white) and defor in T1 (black). 
@@ -169,8 +161,26 @@ It is not uncommon to see annual treatment effects amounting to less than a 1% r
 
 <!-- The initial simulated landscape has the following characteristics: a pre-treatment deforestation rate of 2\% in the control area ($baseline_0 = 0.02$); a pre-treatment deforestation rate of 4\% in the intervention area ($baseline_1 = 0.04$); a decrease in the deforestation rate of .5\% between the first and second period in the control area ($trend = -0.005$); and an average reduction of 1\% in the deforestation rate in treated units due to the intervention ($ATT = -0.01$). Lastly, we assign $\sigma_a = .25$ and $\sigma_u = .1$.  -->
 
+```{r parameterization table, echo = FALSE, results = "asis", fig.show='hold'}
+
+param_table <- read.csv("param_table.csv")[,2:3]
+
+kable(param_table[1:4,], format = "latex", row.names = FALSE,
+      caption = "guiding example parameterization"
+      , booktabs = TRUE
+      #col.names = c("unit of analysis")
+) %>% 
+  add_header_above(c("$\\\\sigma_a=0.1$, $\\\\sigma_v=0.25$" = 2 ), escape = FALSE, line = FALSE) %>%
+  row_spec(0,bold=TRUE) %>% 
+  kable_styling(font_size = 10, latex_options = c("HOLD_position"),
+                #full_width = TRUE
+                position = "center"
+                )
+
+```
+
 <!-- ** 
-Hoping to convert most of the above three paragraphs to a table of parameters
+Hoping to convert most of the above paragraphs to a table of parameters
 --> 
 
 The primary criteria we use to compare econometric models are the bias and coverage probability of their estimate of the $ATT$ parameter. Using our Monte Carlo simulations, we determine bias by computing the difference between each model's estimate of the ATT and the known $ATT$ parameter. Coverage probability is defined as the proportion of simulations in which the true $ATT$ lies within the simulation's 95\% confidence interval (CI). As such, we would expect the $ATT$ to lie within this CI 95\% of the time, however, factors such as the bias of the estimates, their distribution, and treatment of standard errors may impact coverage. If the estimator is biased, for example, it is ex-ante less likely that the true parameter falls within the CI. 

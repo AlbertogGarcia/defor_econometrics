@@ -1,0 +1,7 @@
+"","parameter","value"
+"1","ATT",-0.01
+"2","baseline_0",0.02
+"3","baseline_1",0.04
+"4","trend",-0.005
+"5","sigma_a",0.1
+"6","sigma_v",0.25
