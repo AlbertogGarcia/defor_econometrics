@@ -97,6 +97,25 @@ expost_untreat <- base_0+trend
 single_diff <- expost_treat-expost_untreat
 simple_table <- data.frame(expost_treat, expost_untreat, single_diff, ATT)
 write.csv(simple_table, "simple_table.csv")
+
+
+treatment <- c("intervention area", "intervention area", "untreated area", "untreated area")
+period <- factor(c("pre-intervention", "post-intervention", "pre-intervention", "post-intervention"), levels = c("pre-intervention", "post-intervention"))
+defor <- c(base_1,
+           (base_1+trend+ATT),
+           base_0,
+           (base_0+trend)
+)
+bar_df <- data.frame(treatment, period, defor)
+bar_df$lab <- paste(bar_df$defor, paste("(",bar_df$defor*100,"%)",sep=""),sep=" ")
+
+ggplot(bar_df, aes(fill=period, y=lab, x=treatment)) + 
+  geom_bar(stat="identity", position=position_dodge2(reverse = TRUE))+
+  #geom_text(aes(x = treatment, y=lab,label=lab),vjust=0) +
+  theme(legend.title = element_blank()) +
+  ylab("Annual deforestation rate (%)") + xlab("")
+ggsave(path = "landscape_figs", filename = "barchart.png", dpi = 500)
+
 ```
 
 
