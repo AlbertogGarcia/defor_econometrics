@@ -306,7 +306,7 @@ knitr::include_graphics("figs/aggregation.png")
 We find little evidence that any one level of aggregation is consistently preferrable in terms of bias, meaning that coverage probability plays a larger role as an evaluation metric. We explore the bias and coverage probabilities corresponding to different levels of aggregation in the context of our guiding example. Figure 8 shows that the bias of the estimates is not critically different depending on level of aggregation, however, the distributions are varied. Notice that the distribution of estimates when aggregating to the property level is wider than the others. This is likely due to heterogeneity in property size. The distribution of the estimates, bias, and standard error structure will affect the coverage probabilities. We compare coverage at each level of aggregation in Table 2 using classical standard errors. We have not yet introduced any structure into the DGP that would warrant clustering. Despite the clear differences in the distributions of estimates, both pixel and property-level analyses yield the desired 95\% coverage probabilities. 
 
 
-<!-- Albert: Should RMSE be discussed here to say that the narrower distributions are preferable when coverage is still ok? -->
+<!-- Albert: Should RMSE be discussed here to say that the narrower distributions are preferable when coverage is the same? -->
 
 
 
