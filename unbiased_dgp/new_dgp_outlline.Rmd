@@ -1,0 +1,212 @@
+---
+title: "deforestation econometrics data generating process"
+#author: "Alberto Garcia"
+output:
+  pdf_document:
+    number_sections: yes
+    toc: no
+fontsize: 11pt    
+documentclass: article
+geometry: margin=1in
+header-includes: 
+  \usepackage{sectsty}
+  \usepackage{enumitem}
+  \usepackage{comment}
+  \usepackage{multirow,array}
+  \usepackage{makecell}
+  \usepackage{amsmath}
+  \usepackage{amsfonts} 
+  \usepackage{amssymb} 
+  \usepackage{graphicx} 
+  \usepackage{float} 
+  \usepackage{bbm} 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+#binary fcns
+source('quickmonte.R')
+source('TWFE_fcn.R')
+source('functionalform.R')
+
+```
+
+# DGP 
+
+In order to enforce parallel trends, I allow the treated and untreated group to have different $\beta_2$ parameters. This gives enough flexibility to make sure that each group's $\beta_2 (t \ge t_{0})$ parameter results in a trend that would be the same in the absence of treatment. It appears that all of the major conclusions from the paper carry over to this framewok (dropping obs, TWFE, etc. ), while eliminating the intial bias in the case where the binary outcome can vary between 0 and 1 across periods
+
+## altered text for draft
+
+We employ a series of Monte Carlo simulations to (1) generate synthetic landscapes with known policy effectiveness and (2) analyze the performance of different econometric models in estimating the policy's known impact. Our landscape consists of administrative units that are either untreated $(D=0)$ or are assigned to a conservation treatment $(D=1)$. We observe deforestation in two, even-length periods, a pre-treatment $(t < t_{0})$ and a post-treatment $(t \ge t_{0})$ period. 
+
+The data generating process underlying our Monte Carlo simulations begins with the assignment of five parameters: The mean, pre-treatment period deforestation rate for untreated units, $baseline_0$; the mean, pre-treatment period deforestation rate for treated units, $baseline_1$; untreated units' mean change in deforestation rates occurring between the pre- and post-treatment periods, $trend_0$; treated units' mean counterfactual change in deforestation rates occurring between the pre- and post-treatment periods in the absence of treatment, $trend_1$; and lastly, the average treatment effect of the policy on the treated units, $ATT$. The researcher's primary goal is to estimate ATT. We define the five parameters as follows:
+
+\begin{align*}
+baseline_0 &= E[y_{it}(0) |  t<t_0, D_i=0]\\
+baseline_1 &= E[y_{it}(0) |  t<t_0, D_i=1]\\
+trend_0 &= E[y_{it}(0) |  t\geq t_0, D_i=0] - E[y_{it}(0) |  t<t_0, D_i=0]\\
+trend_1 &= E[y_{it}(0) |  t\geq t_0, D_i=1] - E[y_{it}(0) |  t<t_0, D_i=1]\\
+ATT &= E[y_{it}(1) - y_{it}(0) |  t\geq t_0, D_i=1]\\
+\end{align*}
+<!-- Not needed in draft text -->
+
+In all  of our simulations, we impose parallel trends (ie. set $trend_0 = trend_1$). 
+
+Rather than directly observing each unit's <!-- "unit" is a bit ambiguous here. What should the reader be imagining at this point? Properties, counties, parcels, an individual tree? --> deforestation rate in each time period, the researcher observes annualized maps depicting pixel-level, binary deforestation $(y_{ivt}\ \epsilon \ 0, 1)$. We follow [@kerr; @pfaff2004] and model these binary deforestation events as a function of each pixel's unobservable value along a continuous, latent variable $(y^*_{ivt})$ indicating the utility of deforesting pixel $i$, in property $v$, in year $t$. We define this latent variable as:
+
+$$y^*_{ivt} = \beta_0 + \beta_1 \mathbbm{1}\{  D_i = 1  \} +$$ 
+$$\beta_{2,0} \mathbbm{1}\{  t \geq t_0  \} (1 - \mathbbm{1}\{  D_i = 1  \})+\beta_{2,1} \mathbbm{1}\{  t \geq t_0  \} \mathbbm{1}\{  D_i = 1  \} +$$
+$$\beta_3 \mathbbm{1}\{  D_i = 1  \} \mathbbm{1}\{  t \geq t_0  \} + \alpha_i + u_{it} + \rho_{v}$$
+
+The $\beta$ coefficients dictate how the utility of deforestation evolves over the two time periods $(\mathbbm{1}\{  t \geq t_0  \})$, across the control and treated units $(\mathbbm{1}\{  D_i = 1  \})$. These coefficients can be defined as a transformation of the five parameters assigned by the researcher ($baseline_0$, $baseline_1$, $trend_0$, $trend_1$, $ATT$; derivation provided in Appendix 1). In addition, we assume that the value of deforestation is influenced by time-invariant random disturbances at the scale of individual pixels ($\alpha_i \sim N(0, \sigma_a^2)$) or properties ($\rho_v \sim N(0, \sigma_p^2)$), as well as time-varying, pixel-scale disturbances ($u_{it} \sim N(0, \sigma_u^2)$). These disturbances can represent a variety of spatial and temporal processes including, for example, the biophysical characteristics of a location, or the preferences of a property owner. 
+
+We assume that pixels with a positive utility of deforestation are cleared, resulting in the following mapping from the latent $y^*_{ivt}$ to the observed $y_{ivt}$ variable:
+\begin{align}
+ y_{ivt} = \begin{cases} 
+      1 & y^*_{ivt} > 0  \\
+      0 & otherwise
+   \end{cases}
+\end{align}
+
+Here, the observed outcome variable, $y_{it}$, is equal to 1 if pixel $i$ is observed as deforested in time $t$ and 0 otherwise. The observed variable is the binary outcome visible to the researcher, which represents the result of a more complex data generating process that reflects the pre-defined effectiveness of the policy $(ATT)$ as well as temporal trends in deforestation $(trend)$, pre-treatment differences in deforestation probabilities $(baseline_1)$, unobservable, pixel-specific determinants of deforestation $(\alpha_i)$ and time-varying, pixel-level disturbances $(u_{it})$. 
+
+## Example 1
+
+Here are some examples of our simulations to show that this gives generally unbiased or expected results when we impose common trends. Here, we set:
+\begin{align*}
+baseline_0 &= 0.02\\
+baseline_1 &= 0.05\\
+trend_0 &= -0.005\\
+trend_1 &= -0.005\\
+ATT &= -0.01
+\end{align*}
+
+
+
+```{r generating beta parameters, results='hide'}
+
+base_0 = .02
+base_1 = .05
+trend = -.005
+ATT = -.01
+
+std_a = 0.1
+std_v = 0.25
+years = 3
+nobs = 10000
+n = 100
+
+std_av = (std_a^2+std_v^2)^.5
+b0 = qnorm(base_0, mean = 0, sd = std_av)
+b1 = qnorm(base_1, mean = 0, sd = std_av) - b0
+b2_0 = qnorm(trend + base_0, mean = 0, sd = std_av) - b0
+b2_1 = qnorm(trend + base_1, mean = 0, sd = std_av) - b0 - b1
+b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_av) + ATT , mean = 0, sd = std_av) - (b0 + b1 + b2_1)
+
+```
+
+### DID allowing outcome to vary between 0 and 1 across periods
+
+```{r did y, results='hide'}
+
+DID_y <- quickmonte(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, "y")
+
+DID_y$plot
+
+```
+
+```{r functionalform, results='hide'}
+
+func <- functionalform(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
+
+func$plot
+
+```
+
+## Example 2 (with higher deforestation rates)
+
+Here are some examples of our simulations to show that this gives generally unbiased or expected results when we impose common trends. Here, we set:
+\begin{align*}
+baseline_0 &= 0.07\\
+baseline_1 &= 0.10\\
+trend_0 &= 0.02\\
+trend_1 &= 0.02\\
+ATT &= -0.04
+\end{align*}
+
+
+
+```{r generating beta parameters 2, results='hide'}
+
+base_0 = .07
+base_1 = .10
+trend = 0.02
+ATT = -.04
+
+std_av = (std_a^2+std_v^2)^.5
+b0 = qnorm(base_0, mean = 0, sd = std_av)
+b1 = qnorm(base_1, mean = 0, sd = std_av) - b0
+b2_0 = qnorm(trend + base_0, mean = 0, sd = std_av) - b0
+b2_1 = qnorm(trend + base_1, mean = 0, sd = std_av) - b0 - b1
+b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_av) + ATT , mean = 0, sd = std_av) - (b0 + b1 + b2_1)
+
+```
+
+### DID allowing outcome to vary between 0 and 1 across periods
+
+```{r did y 2, results='hide'}
+
+DID_y2 <- quickmonte(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, "y")
+
+DID_y2$plot
+
+```
+
+
+## Example 3 (with lower deforestation rates)
+
+Here are some examples of our simulations to show that this gives generally unbiased or expected results when we impose common trends. Here, we set:
+\begin{align*}
+baseline_0 &= 0.007\\
+baseline_1 &= 0.01\\
+trend_0 &= 0.002\\
+trend_1 &= 0.002\\
+ATT &= -0.004
+\end{align*}
+
+
+
+```{r generating beta parameters 3, results='hide'}
+
+base_0 = .007
+base_1 = .01
+trend = 0.00
+ATT = -.01
+
+std_av = (std_a^2+std_v^2)^.5
+b0 = qnorm(base_0, mean = 0, sd = std_av)
+b1 = qnorm(base_1, mean = 0, sd = std_av) - b0
+b2_0 = qnorm(trend + base_0, mean = 0, sd = std_av) - b0
+b2_1 = qnorm(trend + base_1, mean = 0, sd = std_av) - b0 - b1
+b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_av) + ATT , mean = 0, sd = std_av) - (b0 + b1 + b2_1)
+
+```
+
+### DID allowing outcome to vary between 0 and 1 across periods
+
+```{r did y 3, results='hide'}
+
+DID_y2 <- quickmonte(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, "y")
+
+DID_y2$plot
+
+```
+
+```{r did y 2, results='hide'}
+
+func3 <- functionalform(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
+
+func3$plot
+
+```

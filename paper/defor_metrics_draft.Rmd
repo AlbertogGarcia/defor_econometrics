@@ -142,27 +142,38 @@ kable(lit_table, format = "latex",
 
 ## Methods
 ### Monte Carlo simulations
-We employ a series of Monte Carlo simulations to (1) generate synthetic landscapes with known policy effectiveness and (2) analyze the performance of different econometric models in estimating the policy's known impact. Our landscape consists of administrative units that are either untreated $(D=0)$ or are assigned to a conservation treatment $(D=1)$. We observe deforestation in two, even-length periods, a pre-treatment $(t < t_{0})$ and a post-treatment $(t \ge t_{0})$ period. The data generating process underlying our Monte Carlo simulations begins with the assignment of four parameters: The mean, pre-treatment period deforestation rate for untreated units, $baseline_0$; the mean, pre-treatment period deforestation rate for treated units, $baseline_1$; untreated units' mean change in deforestation rates occurring between the pre- and post-treatment periods, $trend$; and lastly, the average treatment effect of the policy on the treated units, $ATT$. The researcher's primary goal is to estimate ATT. 
-<!-- Robert: Should "trend" apply to both treatment and control units? I.e., are we assuming parallel trends in the absence of treatment, or do we need to add a further parameter to capture this source of confounding? Current model structure leaves this ambiguous... -->
+We employ a series of Monte Carlo simulations to (1) generate synthetic landscapes with known policy effectiveness and (2) analyze the performance of different econometric models in estimating the policy's known impact. Our landscape consists of administrative units that are either untreated $(D=0)$ or are assigned to a conservation treatment $(D=1)$. We observe deforestation in two, even-length periods, a pre-treatment $(t < t_{0})$ and a post-treatment $(t \ge t_{0})$ period. 
 
-Rather than directly observing each unit's <!-- "unit" is a bit ambiguous here. What should the reader be imagining at this point? Properties, counties, parcels, an individual tree? --> deforestation rate in each time period, the researcher observes annualized maps depicting pixel-level, binary deforestation $(y_{it}\ \epsilon \ 0, 1)$. We follow [@kerr; @pfaff2004] and model these binary deforestation events as a function of each pixel's unobservable value along a continuous, latent variable $(y^*_{it})$ indicating the utility of deforesting pixel $i$, in property $v$, in year $t$. We define this latent variable as:
-<!-- Robert: I tried to revise to clarify that the latent deforestation suitability influences actual deforestation, and isn't an attempt to determine whether the binary event is detected. I think there are several places where the paper conflates the latent variable (suitability for deforestation) with detectability (amount of deforestation occurring in a pixel before binary metric flips to one). For example, I've highlighted another area where this is an issue in the first paragraph of the results. -->
+The data generating process underlying our Monte Carlo simulations begins with the assignment of five parameters: The mean, pre-treatment period deforestation rate for untreated units, $baseline_0$; the mean, pre-treatment period deforestation rate for treated units, $baseline_1$; untreated units' mean change in deforestation rates occurring between the pre- and post-treatment periods, $trend_0$; treated units' mean counterfactual change in deforestation rates occurring between the pre- and post-treatment periods in the absence of treatment, $trend_1$; and lastly, the average treatment effect of the policy on the treated units, $ATT$. The researcher's primary goal is to estimate ATT. We define the five parameters as follows:
 
+\begin{align*}
+baseline_0 &= E[y_{it}(0) |  t<t_0, D_i=0]\\
+baseline_1 &= E[y_{it}(0) |  t<t_0, D_i=1]\\
+trend_0 &= E[y_{it}(0) |  t\geq t_0, D_i=0] - E[y_{it}(0) |  t<t_0, D_i=0]\\
+trend_1 &= E[y_{it}(0) |  t\geq t_0, D_i=1] - E[y_{it}(0) |  t<t_0, D_i=1]\\
+ATT &= E[y_{it}(1) - y_{it}(0) |  t\geq t_0, D_i=1]\\
+\end{align*}
+<!-- Not needed in draft text -->
+
+In all of our simulations, we impose parallel trends (ie. set $trend_0 = trend_1$). 
+
+Rather than directly observing each unit's <!-- "unit" is a bit ambiguous here. What should the reader be imagining at this point? Properties, counties, parcels, an individual tree? --> deforestation rate in each time period, the researcher observes annualized maps depicting pixel-level, binary deforestation $(y_{ivt}\ \epsilon \ 0, 1)$. We follow [@kerr; @pfaff2004] and model these binary deforestation events as a function of each pixel's unobservable value along a continuous, latent variable $(y^*_{ivt})$ indicating the utility of deforesting pixel $i$, in property $v$, in year $t$. We define this latent variable as:
+
+$$y^*_{ivt} = \beta_0 + \beta_1 \mathbbm{1}\{  D_i = 1  \} +$$ 
+$$\beta_{2,0} \mathbbm{1}\{  t \geq t_0  \} (1 - \mathbbm{1}\{  D_i = 1  \})+\beta_{2,1} \mathbbm{1}\{  t \geq t_0  \} \mathbbm{1}\{  D_i = 1  \} +$$
+$$\beta_3 \mathbbm{1}\{  D_i = 1  \} \mathbbm{1}\{  t \geq t_0  \} + \alpha_i + u_{it} + \rho_{v}$$
+
+The $\beta$ coefficients dictate how the utility of deforestation evolves over the two time periods $(\mathbbm{1}\{  t \geq t_0  \})$, across the control and treated units $(\mathbbm{1}\{  D_i = 1  \})$. These coefficients can be defined as a transformation of the five parameters assigned by the researcher ($baseline_0$, $baseline_1$, $trend_0$, $trend_1$, $ATT$; derivation provided in Appendix 1). In addition, we assume that the value of deforestation is influenced by time-invariant random disturbances at the scale of individual pixels ($\alpha_i \sim N(0, \sigma_a^2)$) or properties ($\rho_v \sim N(0, \sigma_p^2)$), as well as time-varying, pixel-scale disturbances ($u_{it} \sim N(0, \sigma_u^2)$). These disturbances can represent a variety of spatial and temporal processes including, for example, the biophysical characteristics of a location, or the preferences of a property owner. 
+
+We assume that pixels with a positive utility of deforestation are cleared, resulting in the following mapping from the latent $y^*_{ivt}$ to the observed $y_{ivt}$ variable:
 \begin{align}
-y^*_{ivt} = \beta_0 + \beta_1 \mathbbm{1}\{  D_i = 1  \} +\beta_2 \mathbbm{1}\{  t \geq t_0  \} +\beta_3 \mathbbm{1}\{  D_i = 1  \} \mathbbm{1}\{  t \geq t_0  \} + \gamma_v + \alpha_i +u_{it}
-\end{align}
-
-The four $\beta$ coefficients dictate how the utility of deforestation evolves over the two time periods $(\mathbbm{1}\{  t \geq t_0  \})$, across the control and treated units $(\mathbbm{1}\{  D_i = 1  \})$. These coefficients can be defined as a transformation of the four parameters assigned by the researcher ($baseline_0$, $baseline_1$, $trend$, $ATT$, derivation provided in Appendix 1). In addition, we assume that the value of deforestation is influenced by time-invariant random disturbances at the scale of individual pixels ($\alpha_i \sim N(0, \sigma_a^2)$) or properties ($\gamma_v \sim N(0, \sigma_v^2)$), as well as time-varying, pixel-scale disturbances ($u_{it} \sim N(0, \sigma_u^2)$). These disturbances can represent a variety of spatial and temporal processes including, for example, the biophysical characteristics of a location, or the preferences of a property owner. 
-
-
-We assume that pixels with a positive utility of deforestation are cleared, resulting in the following mapping from the latent $y^*_{it}$ to the observed $y_{it}$ variable:
-\begin{align}
- y_{it} = \begin{cases} 
-      1 & y^*_{it} > 0  \\
+ y_{ivt} = \begin{cases} 
+      1 & y^*_{ivt} > 0  \\
       0 & otherwise
    \end{cases}
 \end{align}
-Here, the observed outcome variable, $y_{it}$, is equal to 1 if pixel $i$ is observed as deforested in time $t$ and 0 otherwise. The observed variable is the binary outcome visible to the researcher, which represents the result of a more complex data generating process that reflects the pre-defined effectiveness of the policy $(ATT)$ as well as temporal trends in deforestation $(trend)$, pre-treatment differences in deforestation probabilities $(baseline_1)$, unobservable, pixel-specific determinants of deforestation $(\alpha_i)$ and time-varying, pixel-level disturbances $(u_{it})$. <!-- CUT? The area represented by a pixel may not be entirely deforested but may still be classified as deforested using the binary outcome metric. -->
+
+Here, the observed outcome variable, $y_{it}$, is equal to 1 if pixel $i$ is observed as deforested in time $t$ and 0 otherwise. The observed variable is the binary outcome visible to the researcher, which represents the result of a more complex data generating process that reflects the pre-defined effectiveness of the policy $(ATT)$ as well as temporal trends in deforestation $(trend)$, pre-treatment differences in deforestation probabilities $(baseline_1)$, unobservable, pixel-specific determinants of deforestation $(\alpha_i)$ and time-varying, pixel-level disturbances $(u_{it})$. 
 
 ### Set up and evaluation
 It is not uncommon to see annual treatment effects amounting to less than a 1% reduction in the annual deforestation rate [e.g. @robalino2013; @jones2017]. These modest reductions in the annual deforestation rate, however, can amount to large effects over the course of the study period. For example, @alix-garcia2018 find that environmental land registration in Brazil’s Amazonian states of Mato Grosso and Para reduced the annual deforestation rate by an average 0.5 percentage points, which has  amounted to an overall deforestation reduction of 10\%. We have parameterized a guiding example, representative of an impactful intervention, to explore for the remainder of the paper. 
@@ -195,9 +206,13 @@ Should RMSE be discussed further as a metric? Currently, there isn't much discus
 
 ## Results
 
-### Bias inherent to binary deforestation DGP
+<!-- ### Bias inherent to binary deforestation DGP -->
 
-Bias often arises in the DID and TWFE models because of the data generating process inherent to remotely sensed metrics of deforestation. In the case of a binary pixel, the researcher does not observe the underlying spatial process of deforestation. The pixel is realized as deforested only when clearing exceeds some specific threshold (expressed in equation (5)). <!-- Not sure this is actually what the latent variable is trying to capture. Its not that detection only happens when area of deforestation > threshold, it's that deforestation doesn't occur until suitability > threshold - no? --> The use of NDVI or canopy cover thresholds to define a binary forest cover variable are prevalent in the literature [e.g. @holland2017, @honey-roses2011, @bruggeman2015]. For example, @takahashi2013 and @southworth2004 explicitly determine a threshold value of NDVI and define pixels with NDVI values that are greater than the threshold as forested. Here, a pixel may be subject to continuous clearing pressure but only be classified as deforested when the NDVI value drops below the threshold value. Alternatively, discontinuous clearing pressure may exist but will only be realized when a deforestation event causes the pixel to drop below the threshold. Even popular forest loss datasets [e.g. @hansen2013] that detect deforestation by stand level disturbance may suffer from similar bias, since a clearing event must exceed some threshold to be detected. Therefore, small-scale logging and deforestation events are less likely to be detected, potentially leading to an underestimate of forest loss [@burivalova2015]. Some level of misclassification error, and resulting bias, is extremely likely in the classification of pixels into a binary forest cover outcome. 
+<!-- Bias often arises in the DID and TWFE models because of the data generating process inherent to remotely sensed metrics of deforestation. In the case of a binary pixel, the researcher does not observe the underlying spatial process of deforestation. The pixel is realized as deforested only when clearing exceeds some specific threshold (expressed in equation (5)).  -->
+
+<!-- Not sure this is actually what the latent variable is trying to capture. Its not that detection only happens when area of deforestation > threshold, it's that deforestation doesn't occur until suitability > threshold - no? --> 
+
+<!-- The use of NDVI or canopy cover thresholds to define a binary forest cover variable are prevalent in the literature [e.g. @holland2017, @honey-roses2011, @bruggeman2015]. For example, @takahashi2013 and @southworth2004 explicitly determine a threshold value of NDVI and define pixels with NDVI values that are greater than the threshold as forested. Here, a pixel may be subject to continuous clearing pressure but only be classified as deforested when the NDVI value drops below the threshold value. Alternatively, discontinuous clearing pressure may exist but will only be realized when a deforestation event causes the pixel to drop below the threshold. Even popular forest loss datasets [e.g. @hansen2013] that detect deforestation by stand level disturbance may suffer from similar bias, since a clearing event must exceed some threshold to be detected. Therefore, small-scale logging and deforestation events are less likely to be detected, potentially leading to an underestimate of forest loss [@burivalova2015]. Some level of misclassification error, and resulting bias, is extremely likely in the classification of pixels into a binary forest cover outcome.  -->
 
 
 <!-- Albert: I commented out all of the papers I had previously referenced here, just to have easy access to the thoughts, however, I've tried to distill this into a simpler argument above -->
@@ -210,11 +225,11 @@ This bias is distinct from that which may arise from satellite sensor characteri
 Robert: Current framing seems to indicate that the latent variable is mapping %deforestation -> binary deforestation. While I think that's part of what's going on in the mapping, I don't think that captures all situations. The latent variable also allows for discontinuous clearing pressure - ie clearing of an entire pixel occurs when the value of clearing exceeds some specific threshold. This is similar to employment termination models, where an individual is fired if y*>0. Nicoletti and Rondinelli, 2010
 -->
 
-Mathematically, this bias will arise any time the latent variable has error generated according to a distribution with a nonlinear cumulative distribution function and is subsequently mapped to a binary observable outcome subject to a threshold. In Figure 3, we can see this bias in the context of our guiding example. Allowing the outcome to vary between 0 and 1 across time periods allows us to see the bias due only to the disparity between the underlying spatial data generating process and the observed binary outcome. We do not explore the sensitivity of this bias to various thresholds, but bring attention to its existence. For the remainder of the paper, we net out this bias in order to focus on bias that arises from various model selection decisions.
+<!-- Mathematically, this bias will arise any time the latent variable has error generated according to a distribution with a nonlinear cumulative distribution function and is subsequently mapped to a binary observable outcome subject to a threshold. In Figure 3, we can see this bias in the context of our guiding example. Allowing the outcome to vary between 0 and 1 across time periods allows us to see the bias due only to the disparity between the underlying spatial data generating process and the observed binary outcome. We do not explore the sensitivity of this bias to various thresholds, but bring attention to its existence. For the remainder of the paper, we net out this bias in order to focus on bias that arises from various model selection decisions. -->
 
-```{r, echo=FALSE,out.width="75%", fig.cap="Inherently biased estimates due to nature of observed data", fig.pos='H', fig.align='center'}
-knitr::include_graphics("figs/fig1.png")
-```
+<!-- ```{r, echo=FALSE,out.width="75%", fig.cap="Inherently biased estimates due to nature of observed data", fig.pos='H', fig.align='center'} -->
+<!-- knitr::include_graphics("figs/fig1.png") -->
+<!-- ``` -->
 
 ### Unit of analysis
 
