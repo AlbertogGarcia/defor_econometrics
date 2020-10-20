@@ -14,7 +14,7 @@ library(tictoc)
 source('full_landscape.R')
 
 #begin function
-aggregation_method <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v = 0.25, std_p = 0.0, cellsize, ppoints, cpoints){
+aggregation_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v = 0.25, std_p = 0.0, cellsize, ppoints, cpoints){
   
   countyscape = full_landscape(nobs, cellsize, ppoints, cpoints)
   pixloc_df = countyscape$pixloc_df

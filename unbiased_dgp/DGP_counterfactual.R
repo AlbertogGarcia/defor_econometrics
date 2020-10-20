@@ -1,0 +1,84 @@
+library(DeclareDesign)
+library(reshape2)  
+DGP_counterfactual <- function(nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v){
+  
+  ATT <- pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2)^.5) - pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2)^.5)
+  
+  panels <- fabricate(
+    pixels = add_level(N = nobs, a_i = rnorm(N, 0, std_a), treat = rbinom(N, 1, 0.5)),
+    year = add_level(N = (years*2), nest = FALSE),
+    obs = cross_levels(
+      by = join(pixels, year),
+      post = ifelse(year > years, 1, 0),
+      v_it = rnorm(N, 0, std_v),
+      ystar = b0 + b1*treat + b2_0*post*(1-treat) + b2_1*post*treat + b3*treat*post + a_i + v_it,
+      y = (ystar > 0)*1,
+      ystar_cf = b0 + b1*treat + b2_0*post*(1-treat) + b2_1*post*treat + a_i + v_it,
+      y_cf = (ystar_cf > 0)*1
+    )
+  )
+  
+  #need to determine which year deforestation occurred
+  year_df <- subset(panels, select = c(pixels, year, y))
+  year_df <- dcast(year_df, pixels ~ year , value.var = "y")
+  rownames(year_df) <- year_df$pixels
+  year_df <- subset(year_df, select = -c(pixels))
+  
+  #creating variable for the year a pixel is deforested
+  not_defor <- rowSums(year_df)<1 *1
+  defor_year <- max.col(year_df, ties.method = "first") 
+  defor_df <- transform(year_df, defor_year = ifelse(not_defor==1, years*2+1, defor_year))
+  defor_df <- tibble::rownames_to_column(defor_df)
+  names(defor_df)[1] <- paste("pixels")
+  defor_df <- subset(defor_df, select = c(pixels, defor_year))
+  panels <- merge(defor_df, panels, by = "pixels")
+  
+  
+  # creating three outcome variables for each possible situation
+  ### y: allows the outcome to switch between 0 and 1 across years
+  ### y_it: outcome is dropped in years after pixel is first deforested
+  ### defor: outcome is set to 1 in each year after the pixel is deforested
+  panels$year <- as.numeric(panels$year)
+  panels$indic <- (panels$year - panels$defor_year)
+  panels$y_it <- ifelse(panels$indic > 0 , NA, panels$y)
+  panels$defor <- ifelse(panels$indic > 0 , 1, panels$y_it)
+  panels <- subset(panels, select = -c(indic))
+  
+  
+  ############### Counterfactual #############################################
+  #need to determine which year deforestation occurred
+  year_cf <- subset(panels, select = c(pixels, year, y_cf))
+  year_cf <- dcast(year_cf, pixels ~ year , value.var = "y_cf")
+  rownames(year_cf) <- year_cf$pixels
+  year_cf <- subset(year_cf, select = -c(pixels))
+  
+  #creating variable for the year a pixel is deforested
+  not_defor_cf <- rowSums(year_cf)<1 *1
+  defor_year_cf <- max.col(year_cf, ties.method = "first") 
+  defor_cf <- transform(year_cf, defor_year_cf = ifelse(not_defor_cf==1, years*2+1, defor_year_cf))
+  defor_cf <- tibble::rownames_to_column(defor_cf)
+  names(defor_cf)[1] <- paste("pixels")
+  defor_cf <- subset(defor_cf, select = c(pixels, defor_year_cf))
+  panels_cf <- merge(defor_cf, panels, by = "pixels")
+  
+  
+  # creating three outcome variables for each possible situation
+  ### y: allows the outcome to switch between 0 and 1 across years
+  ### y_it: outcome is dropped in years after pixel is first deforested
+  ### defor: outcome is set to 1 in each year after the pixel is deforested
+  panels_cf$year <- as.numeric(panels_cf$year)
+  panels_cf$indic <- (panels_cf$year - panels_cf$defor_year)
+  panels_cf$y_it <- ifelse(panels_cf$indic > 0 , NA, panels_cf$y)
+  panels_cf$defor <- ifelse(panels_cf$indic > 0 , 1, panels_cf$y_it)
+  panels_cf <- subset(panels_cf, select = -c(indic))
+  
+  ##############################################################################
+  
+  
+  outputs = list("panels" = panels, "ATT" = ATT, "panels_cf" = panels_cf)
+  # assign('panels',panels, envir=.GlobalEnv)
+  # assign('ATT',ATT, envir=.GlobalEnv)
+  return(outputs)
+}
+
+
