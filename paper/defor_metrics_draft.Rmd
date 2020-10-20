@@ -2,7 +2,7 @@
 title: Practical guidance for conservation impact evaluation using remotely sensed
   data
 author: "Alberto Garcia and Robert Heilmayr"
-date: "July 20, 2020"
+date: "October 14, 2020"
 output:
   pdf_document:
     latex_engine: xelatex
@@ -22,11 +22,25 @@ header-includes:
 library(knitr)
 library(ggplot2)
 library(kableExtra)
-library(tidyr)
+library(tidyverse)
+
 
 
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+
+To do:
+\begin{itemize}
+\item figure captions/legends (did labels, twfe colors, year and rate graphs)
+\item citations
+\item characteristics of pixel level satellite data that create bias
+\item property level unobservable section
+\item functional form graph and discussion
+\item why we settled on the decisions we did and move more technical discussion to appendix
+\item advice and key takeaways section
+
+\end{itemize}
 
 
 ## Abstract
@@ -47,17 +61,19 @@ We focus on the case in which a researcher would like to quantify the impact tha
 
 
 ```{r, echo=FALSE,out.width="49%", fig.pos = 'H', fig.cap="Left: deforestation observed in the period after the policy has been implemented in the intervention area; Right: deforestation that would have ocurred in the absence of the conservation intervention at the same point in time. Note that deforestation in the control area is the same in both the realized and counterfactual cases, since no intervention ocurred.", fig.show='hold', fig.align='center'}
-knitr::include_graphics(c("landscape_figs/period2_nolegend.png","landscape_figs/counterfactual.png"))
+knitr::include_graphics(c("figs/period2_nolegend.png","figs/counterfactual.png"))
 ```
 
 
 In panel data settings, two broad methods are often used to measure the impact of conservation interventions: Difference-in-Differences (DID) and Two-way Fixed Effects (TWFE) regression models [@blackman2013; @jones2015]. The typical DID regression model includes a dummy variable equal to one for units in the treatment group, a dummy variable equal to one for observations in the period after the intervention, and their interaction. Conceptually, the DiD estimator calculates the treatment effect as the difference between the differences of the treated and untreated observations before and after treatment [@butsic2017]. The DID estimator identifies the ATT under one main assumption, known as the common trends assumption. It amounts to assuming that both units in the intervention area and untreated units would have experienced the same average change in the outcome in the absence of the intervention. While fundamentally untestable, ensuring that deforestation rates in the intervention area and the control area followed parallel trajectories prior to the date of the intervention can give creedence to this assumption [@butsic2017]. 
 
-Figure 2 shows the intuition behind the DID estimator in two time periods. Deforestation rates in the control area changed between the first and second period. The common trends assumption amounts to assuming that the deforestation rate in the intervention area would have changed by the same amount in the absence of the intervention. In our example, the DID estimator is the difference between post and pre-treatment deforestation rates in units with the intervention, minus the difference between post and pre-treatment deforestation rates in units without. 
+Figure 2 shows the intuition behind the DID estimator in two time periods. Deforestation rates in the control area changed between the first and second period. The common trends assumption amounts to assuming that the deforestation rate in the intervention area would have changed by the same amount in the absence of the intervention. In our example, the DID estimator is the difference between post and pre-treatment deforestation rates in units with the intervention, minus the difference between post and pre-treatment deforestation rates in units without.
 
-```{r, echo=FALSE,out.width="49%", fig.cap="deforestation observed in the first vs. second period in treated and untreated units", fig.show='hold', fig.align='center'}
-knitr::include_graphics(c("landscape_figs/landscape_did.png", "landscape_figs/barchart.png"))
+```{r, echo=FALSE,out.width="49%", fig.cap="Difference-in-Differences intuition", fig.show='hold', fig.align='center'}
+knitr::include_graphics(c("figs/trends.png"))#, "landscape_figs/landscape_did.png"))
 ```
+
+
 <!-- FIGURE NOTES: 
 I will adjust the boxplot colors, but does this plot get at the did well enough?
 
@@ -116,10 +132,6 @@ The decision of functional form is another often overlooked decison, particularl
 
 While non-linear functional forms may be theoretically preferable to OLS, this is often times more complicated to implement in practice. In order to obtain an interpretable estimate of the $ATT$, researchers using non-linear functional forms generally need to compute marginal or average partial effects from the estimated coefficients. It has been noted in the impact evaluation literature that fixed effects cannot typically be used in most non-linear methods due to the incidental parameters problem [e.g. @jones2015; @wendland2015], favoring the use of OLS in regression models containing fixed effects. @fernandez-val2016 show that a bias correction is needed to get asymptotically unbiased estimates logit, probit, and poisson TWFE models. These bias corrections are available in various statistical packages and are necessary in order to get unbiased estimates when using fixed effects with non-linear functional forms. 
 
-<!-- Albert:
-unclear whether functional form might have to do with the bias inherent to the did. This might be something worth discussing below, but I'm not sure of any intuition behind why it would or wouldn't -->
-
-
 \renewcommand{\arraystretch}{1.5}
 ```{r table1, echo = FALSE, results = "asis", fig.show='hold'}
 
@@ -144,7 +156,7 @@ kable(lit_table, format = "latex",
 ### Monte Carlo simulations
 We employ a series of Monte Carlo simulations to (1) generate synthetic landscapes with known policy effectiveness and (2) analyze the performance of different econometric models in estimating the policy's known impact. Our landscape consists of administrative units that are either untreated $(D=0)$ or are assigned to a conservation treatment $(D=1)$. We observe deforestation in two, even-length periods, a pre-treatment $(t < t_{0})$ and a post-treatment $(t \ge t_{0})$ period. 
 
-The data generating process underlying our Monte Carlo simulations begins with the assignment of five parameters: The mean, pre-treatment period deforestation rate for untreated units, $baseline_0$; the mean, pre-treatment period deforestation rate for treated units, $baseline_1$; untreated units' mean change in deforestation rates occurring between the pre- and post-treatment periods, $trend_0$; treated units' mean counterfactual change in deforestation rates occurring between the pre- and post-treatment periods in the absence of treatment, $trend_1$; and lastly, the average treatment effect of the policy on the treated units, $ATT$. The researcher's primary goal is to estimate ATT. We define the five parameters as follows:
+The data generating process underlying our Monte Carlo simulations begins with the assignment of five parameters: The mean, pre-treatment period deforestation rate for untreated units, $baseline_0$; the mean, pre-treatment period deforestation rate for treated units, $baseline_1$; untreated units' mean change in deforestation rates occurring between the pre- and post-treatment periods, $trend_0$; treated units' mean counterfactual change in deforestation rates occurring between the pre- and post-treatment periods in the absence of treatment, $trend_1$; and lastly, the average treatment effect of the policy on the treated units, $ATT$. The researcher's primary goal is to estimate ATT. In all of our simulations, we impose parallel trends (i.e. set $trend_0 = trend_1$). We define the five parameters as follows:
 
 \begin{align*}
 baseline_0 &= E[y_{it}(0) |  t<t_0, D_i=0]\\
@@ -153,15 +165,12 @@ trend_0 &= E[y_{it}(0) |  t\geq t_0, D_i=0] - E[y_{it}(0) |  t<t_0, D_i=0]\\
 trend_1 &= E[y_{it}(0) |  t\geq t_0, D_i=1] - E[y_{it}(0) |  t<t_0, D_i=1]\\
 ATT &= E[y_{it}(1) - y_{it}(0) |  t\geq t_0, D_i=1]\\
 \end{align*}
-<!-- Not needed in draft text -->
 
-In all of our simulations, we impose parallel trends (ie. set $trend_0 = trend_1$). 
-
-Rather than directly observing each unit's <!-- "unit" is a bit ambiguous here. What should the reader be imagining at this point? Properties, counties, parcels, an individual tree? --> deforestation rate in each time period, the researcher observes annualized maps depicting pixel-level, binary deforestation $(y_{ivt}\ \epsilon \ 0, 1)$. We follow [@kerr; @pfaff2004] and model these binary deforestation events as a function of each pixel's unobservable value along a continuous, latent variable $(y^*_{ivt})$ indicating the utility of deforesting pixel $i$, in property $v$, in year $t$. We define this latent variable as:
+Rather than directly observing deforestation rates across the landscape in each time period, the researcher observes annualized maps depicting pixel-level, binary deforestation $(y_{ivt}\ \epsilon \ 0, 1)$. We follow [@kerr; @pfaff2004] and model these binary deforestation events as a function of each pixel's unobservable value along a continuous, latent variable $(y^*_{ivt})$ indicating the utility of deforesting pixel $i$, in property $v$, in year $t$. We define this latent variable as:
 
 $$y^*_{ivt} = \beta_0 + \beta_1 \mathbbm{1}\{  D_i = 1  \} +$$ 
 $$\beta_{2,0} \mathbbm{1}\{  t \geq t_0  \} (1 - \mathbbm{1}\{  D_i = 1  \})+\beta_{2,1} \mathbbm{1}\{  t \geq t_0  \} \mathbbm{1}\{  D_i = 1  \} +$$
-$$\beta_3 \mathbbm{1}\{  D_i = 1  \} \mathbbm{1}\{  t \geq t_0  \} + \alpha_i + u_{it} + \rho_{v}$$
+$$\beta_3 \mathbbm{1}\{  D_i = 1  \} \mathbbm{1}\{  t \geq t_0  \} +$$ $$\alpha_i + u_{it} + \rho_{v}$$
 
 The $\beta$ coefficients dictate how the utility of deforestation evolves over the two time periods $(\mathbbm{1}\{  t \geq t_0  \})$, across the control and treated units $(\mathbbm{1}\{  D_i = 1  \})$. These coefficients can be defined as a transformation of the five parameters assigned by the researcher ($baseline_0$, $baseline_1$, $trend_0$, $trend_1$, $ATT$; derivation provided in Appendix 1). In addition, we assume that the value of deforestation is influenced by time-invariant random disturbances at the scale of individual pixels ($\alpha_i \sim N(0, \sigma_a^2)$) or properties ($\rho_v \sim N(0, \sigma_p^2)$), as well as time-varying, pixel-scale disturbances ($u_{it} \sim N(0, \sigma_u^2)$). These disturbances can represent a variety of spatial and temporal processes including, for example, the biophysical characteristics of a location, or the preferences of a property owner. 
 
@@ -173,128 +182,93 @@ We assume that pixels with a positive utility of deforestation are cleared, resu
    \end{cases}
 \end{align}
 
-Here, the observed outcome variable, $y_{it}$, is equal to 1 if pixel $i$ is observed as deforested in time $t$ and 0 otherwise. The observed variable is the binary outcome visible to the researcher, which represents the result of a more complex data generating process that reflects the pre-defined effectiveness of the policy $(ATT)$ as well as temporal trends in deforestation $(trend)$, pre-treatment differences in deforestation probabilities $(baseline_1)$, unobservable, pixel-specific determinants of deforestation $(\alpha_i)$ and time-varying, pixel-level disturbances $(u_{it})$. 
+Here, the observed outcome variable, $y_{ivt}$, is equal to 1 if pixel $i$ in property $v$ is observed as deforested in time $t$ and 0 otherwise. The observed variable is the binary outcome visible to the researcher, which represents the result of a more complex data generating process that reflects the pre-defined effectiveness of the policy $(ATT)$ as well as temporal trends in deforestation $(trend)$, pre-treatment differences in deforestation probabilities $(baseline_1)$, unobservable, pixel-specific determinants of deforestation $(\alpha_i)$ and time-varying, pixel-level disturbances $(u_{it})$. Figure 3 demonstrates that DID estimates are unbiased using our DGP allowing the outcome variable $y_{ivt}$ to vary between 0 and 1 across periods. 
+
+```{r, echo=FALSE,out.width="49%", fig.cap="DID estimates when outcome is allowed to vary across periods", fig.pos = 'H', fig.show='hold', fig.align='center'}
+knitr::include_graphics("figs/did_y.png")
+```
 
 ### Set up and evaluation
 It is not uncommon to see annual treatment effects amounting to less than a 1% reduction in the annual deforestation rate [e.g. @robalino2013; @jones2017]. These modest reductions in the annual deforestation rate, however, can amount to large effects over the course of the study period. For example, @alix-garcia2018 find that environmental land registration in Brazil’s Amazonian states of Mato Grosso and Para reduced the annual deforestation rate by an average 0.5 percentage points, which has  amounted to an overall deforestation reduction of 10\%. We have parameterized a guiding example, representative of an impactful intervention, to explore for the remainder of the paper. 
 
-<!-- The initial simulated landscape has the following characteristics: a pre-treatment deforestation rate of 2\% in the control area ($baseline_0 = 0.02$); a pre-treatment deforestation rate of 4\% in the intervention area ($baseline_1 = 0.04$); a decrease in the deforestation rate of .5\% between the first and second period in the control area ($trend = -0.005$); and an average reduction of 1\% in the deforestation rate in treated units due to the intervention ($ATT = -0.01$). Lastly, we assign $\sigma_a = .25$ and $\sigma_u = .1$.  -->
-
-```{r parameterization table, echo = FALSE, results = "asis", fig.show='hold'}
-
-param_table <- read.csv("param_table.csv")[,2:3]
-
-kable(param_table[1:4,], format = "latex", row.names = FALSE,
-      caption = "guiding example parameterization"
-      , booktabs = TRUE
-      #col.names = c("unit of analysis")
-) %>% 
-  add_header_above(c("$\\\\sigma_a=0.1$, $\\\\sigma_v=0.25$" = 2 ), escape = FALSE, line = FALSE) %>%
-  row_spec(0,bold=TRUE) %>% 
-  kable_styling(font_size = 10, latex_options = c("HOLD_position"),
-                #full_width = TRUE
-                position = "center"
-                )
-
-```
+The initial simulated landscape has the following characteristics: a pre-treatment deforestation rate of 2\% in the control area ($baseline_0 = 0.02$); a pre-treatment deforestation rate of 5\% in the intervention area ($baseline_1 = 0.05$); a decrease in the deforestation rate of .5\% between the first and second period in the absence of treatment ($trend_0 = trend_1 = -0.005$); and an average reduction of 1\% in the deforestation rate in treated units due to the intervention ($ATT = -0.01$). Lastly, we assign $\sigma_a = .25$, $\sigma_p = 0$, and $\sigma_u = .1$ to begin.
 
 
-The primary criteria we use to compare econometric models are the bias and coverage probability of their estimate of the $ATT$ parameter. Using our Monte Carlo simulations, we determine bias by computing the difference between each model's estimate of the ATT and the known $ATT$ parameter. Coverage probability is defined as the proportion of simulations in which the true $ATT$ lies within the simulation's 95\% confidence interval (CI). As such, we would expect the $ATT$ to lie within this CI 95\% of the time, however, factors such as the bias of the estimates, their distribution, and treatment of standard errors may impact coverage. If the estimator is biased, for example, it is ex-ante less likely that the true parameter falls within the CI. 
-
-<!-- Albert: 
-Should RMSE be discussed further as a metric? Currently, there isn't much discussion about it, but it might be beneficial for discussing the distribution widths for some estimators -->
+We use three primary criteria to compare econometric models: bias, RMSE, and coverage probability of their estimate of the $ATT$ parameter. Using our Monte Carlo simulations, we determine bias by computing the difference between each model's mean estimate of the ATT and the known $ATT$ parameter. RMSE addresses the distribution of the estimates around the true $ATT$. Coverage probability is defined as the proportion of simulations in which the true $ATT$ lies within the simulation's 95\% confidence interval (CI). As such, we would expect the $ATT$ to lie within this CI 95\% of the time, however, factors such as the bias of the estimates, their distribution, and treatment of standard errors may impact coverage. If the estimator is biased, for example, it is ex-ante less likely that the true parameter falls within the CI. We largely rely on the bias of the estimators to evaluate their performance, but RMSE and coverage probability play an important role when bias is comparable across estimators. 
 
 ## Results
 
-<!-- ### Bias inherent to binary deforestation DGP -->
+### Binary Unit of Analysis
 
-<!-- Bias often arises in the DID and TWFE models because of the data generating process inherent to remotely sensed metrics of deforestation. In the case of a binary pixel, the researcher does not observe the underlying spatial process of deforestation. The pixel is realized as deforested only when clearing exceeds some specific threshold (expressed in equation (5)).  -->
+Analyses at the pixel level are prevalent in the literature, as seen in Table 1. Further, it has often been promoted as the preferred unit of analysis in certain cases. The pixel is generally the level at which the researcher is able to observe the data and is assigned a binary outcome. Remotely sensed metrics of deforestation at the pixel level are often subject to the dynamics of forest disturbance and regrowth. After a deforestation event occurs, the deforested area is unlikely to revert to forest cover within the study period, as it takes several years for forest to regenerate to a detectable level. In the panel therefore, it is probable that in the periods after a pixel is first realized as deforested, subsequent observations of the pixel will also observe the pixel as deforested. 
 
-<!-- Not sure this is actually what the latent variable is trying to capture. Its not that detection only happens when area of deforestation > threshold, it's that deforestation doesn't occur until suitability > threshold - no? --> 
-
-<!-- The use of NDVI or canopy cover thresholds to define a binary forest cover variable are prevalent in the literature [e.g. @holland2017, @honey-roses2011, @bruggeman2015]. For example, @takahashi2013 and @southworth2004 explicitly determine a threshold value of NDVI and define pixels with NDVI values that are greater than the threshold as forested. Here, a pixel may be subject to continuous clearing pressure but only be classified as deforested when the NDVI value drops below the threshold value. Alternatively, discontinuous clearing pressure may exist but will only be realized when a deforestation event causes the pixel to drop below the threshold. Even popular forest loss datasets [e.g. @hansen2013] that detect deforestation by stand level disturbance may suffer from similar bias, since a clearing event must exceed some threshold to be detected. Therefore, small-scale logging and deforestation events are less likely to be detected, potentially leading to an underestimate of forest loss [@burivalova2015]. Some level of misclassification error, and resulting bias, is extremely likely in the classification of pixels into a binary forest cover outcome.  -->
-
-
-<!-- Albert: I commented out all of the papers I had previously referenced here, just to have easy access to the thoughts, however, I've tried to distill this into a simpler argument above -->
-
-
-
-<!-- This is representative of many analyses using binary satellite measures of deforestation. Building the panel of binary outcomes based on a threshold tree cover level is prevalent in the literature. For example, @takahashi2013 and @southworth2004 determine a threshold value of NDVI and define pixels with NDVI values that are greater than the threshold as forested and areas with NDVI values below the threshold as non-forest. @holland2017 set a classification threshold of 50\% canopy cover to calculate percent loss of the baseline forest cover and annual percent change in forest, building from updated forest base estimates for each year. Several other papers use a threshold tree cover level or index value to aid in the generation of the outcome variable [e.g. @honey-roses2011; @bruggeman2015]. Even popular forest loss datasets such as [@hansen2013] that gauge deforestation by stand level disturbance may suffer from similar bias, since it is challenging to detect small-scale logging and deforestation, which may lead to an underestimate of forest loss [@burivalova2015]. If one wanted to analyze the impact of a new policy on forest cover loss, but the policy resulted only in small-scale deforestation, the systematic error in the forest change data product would lead to a severe underestimation of forest cover loss [@jain2020]. 
-This bias is distinct from that which may arise from satellite sensor characteristics, satellite angle, or atmospheric conditions [@jain2020]. We do not explore the interaction of these two potential sources of bias in our paper, however, it is likely an important consideration.  
-
-Robert: Current framing seems to indicate that the latent variable is mapping %deforestation -> binary deforestation. While I think that's part of what's going on in the mapping, I don't think that captures all situations. The latent variable also allows for discontinuous clearing pressure - ie clearing of an entire pixel occurs when the value of clearing exceeds some specific threshold. This is similar to employment termination models, where an individual is fired if y*>0. Nicoletti and Rondinelli, 2010
--->
-
-<!-- Mathematically, this bias will arise any time the latent variable has error generated according to a distribution with a nonlinear cumulative distribution function and is subsequently mapped to a binary observable outcome subject to a threshold. In Figure 3, we can see this bias in the context of our guiding example. Allowing the outcome to vary between 0 and 1 across time periods allows us to see the bias due only to the disparity between the underlying spatial data generating process and the observed binary outcome. We do not explore the sensitivity of this bias to various thresholds, but bring attention to its existence. For the remainder of the paper, we net out this bias in order to focus on bias that arises from various model selection decisions. -->
-
-<!-- ```{r, echo=FALSE,out.width="75%", fig.cap="Inherently biased estimates due to nature of observed data", fig.pos='H', fig.align='center'} -->
-<!-- knitr::include_graphics("figs/fig1.png") -->
-<!-- ``` -->
-
-### Unit of analysis
+This bias is unrelated to that which may arise from satellite sensor characteristics, satellite angle, or atmospheric conditions [@jain2020]. We do not explore the interaction of these two potential sources of bias in our paper, however, it is likely an important consideration.  
 
 #### Treatment of binary outcome
-Analyses at the pixel level are prevalent in the literature, as seen in Table 1. Further, it has often been promoted as the preferred unit of analysis in certain cases. The pixel is generally the level at which the researcher is able to observe the data and is assigned a binary outcome. Remotely sensed metrics of deforestation at the pixel level are often subject to the dynamics of forest disturbance and regrowth. After a deforestation event occurs, the deforested area is unlikely to revert to forest cover within the study period, as it takes several years for forest to regenerate to a detectable level. In the panel therefore, it is probable that in the periods after a pixel is first realized as deforested, subsequent observations of the pixel will also observe the pixel as deforested.
 
 In order to account for these dynamics in the context of deforestation, it has been advised to drop deforested pixels in the periods after they first become deforested [@jones2015; @alix-garcia2017]. The logic for doing so is as follows. A forested pixel switches from its assigned value of 0 to a value of 1 following a discrete deforestation event. Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested may imply that it has actively been deforested in each subsequent time period. In fact, no new deforestation event has ocurred, but the area simply remains deforested from the prior event. These pixels, therefore, contribute positively towards the deforestation rate in each period they are left in the panel. Indeed, we see in our Monte Carlo simulations that DID regression models failing to drop deforested pixels in subsequent periods incur severe bias. 
 
 Figure 4 demonstrates the magnitude and direction of the bias incurred from keeping deforested pixels in the panel after they are first realized as deforested in the context of our guiding example. Pixels that were deforested prior to the implementation of the policy continued to contribute to the deforestation rate in the post period in both the treatment and control groups. Dropping the pixels in the periods after they are first observed as deforested mitigates this bias in the DID model, as seen in Figure 4. 
 
 ```{r, echo=FALSE,out.width="49%", fig.cap="Left: distribution of DID estimates leaving deforested pixels in the panel; Right: DID estimates dropping deforested pixels", fig.pos = 'H', fig.show='hold', fig.align='center'}
-knitr::include_graphics(c("figs/fig2.png", "figs/fig3.png"))
+knitr::include_graphics(c("figs/did_defor.png", "figs/did_yit.png"))
 ```
 
 #### Issue with TWFE using pixel as unit of analysis
 
-<!-- Albert: I this this section addresses the issue well, but we could emphasize the importance of this finding or the prevalence in the literature to make more exciting if we feel it is needed -->
-
-Despite widespread use of pixel level analyses, they are problematic in the context of TWFE regression models. In fact, the TWFE model yields the post-treatment difference in outcomes (single difference), rather than the desired ATT. We provide two forms of evidence to support this claim: (1) evidence from our Monte Carlo simulations and (2) an analytical proof found in the appendix. The result stems from the fact that the TWFE regression is only able to identify off of pixels that are not dropped over the course of the observation period. <!-- Robert: I don't quite understand the preceding sentence. Problem is really just the pixels that are dropped prior to treatment, right? --> Thus the pre-treatment period deforestation rates are not accounted for in the TWFE estimates. 
+Despite widespread use of pixel level analyses, they are problematic in the context of TWFE regression models. In fact, the TWFE model yields the post-treatment difference in outcomes (single difference), rather than the desired ATT. We provide two forms of evidence to support this claim: (1) evidence from our Monte Carlo simulations and (2) an analytical proof found in the appendix. The result stems from the fact that the TWFE regression is not able to identify off of pixels that are dropped in the first period. Thus the pre-treatment period deforestation rates are not accounted for in the TWFE estimates. 
 
 ```{r, echo=FALSE,out.width="75%", fig.cap="Distribution of estimates produced depending on pixel level regression model", fig.pos='H', fig.align='center'}
-knitr::include_graphics("figs/twowayFE.png")
+knitr::include_graphics("figs/twoway.png")
 ```
 
 In Figure 5, we see Monte Carlo Outcomes for four econometric model specifications with a binary outcome: (1) DID dropping deforested pixels from the panel for the periods after they are first realized as deforested; (2) TWFE dropping deforested pixels from the panel for the periods after they are first realized as deforested; (3) DID keeping deforested pixels in the panel for the length of the study period; and (4) TWFE keeping deforested pixels in the panel for the length of the study period. We see that estimate distributions from specifications (3) and (4) are identical, showing that DID and TWFE regression models are generally identical in the two-group, two-period case. As described above, we again see the bias resulting from leaving deforested pixels in the panel for the duration of the study period in specifications (3) and (4). 
 
-<!-- ALbert: We could also get rid of the estimates keeping the observations if that would make things more clear. I do like that it shows they are generally equivalent though 
-Robert: Maybe add textures to the plot to make it easier to see the overlap between the last two groups?
+<!-- make overlapping distributions the same color to make more clear they are overlapping
 -->
 
 We now bring attention to the distinction between specifications (1) and (2). In both specifications, observations are dropped from the panel in the periods after they are first realized as deforested. As discussed and seen in Figure 4, this is preferable in terms of bias when using the pixel as the unit of analysis. The figure shows, however, that the TWFE model returns a biased measure of the ATT, and in fact, estimates an ex-post single difference. Table 3 shows the resulting bias in the context of the guiding example. 
 
-<!-- I've also transitioned the below paragraph into a table in order to reduce word count -->
+In our guiding example, the ex-post single difference is 0.01 (the $ATT$ plus the pre-treatment group difference in deforestation rates), which would seem to indicate a increase of 1\% in the deforestation rate due to the intervention, when it actually led to a 1\% decrease in the deforestation rate. Thus, the ex-post single difference as well as the TWFE estimate, is biased positively by 2\%, as evidenced both in Figure 5 and the analytical proof found in the appendix. In the context of our guiding example, this also leads to a change in the direction of the estimated $ATT$, which could influence policymakers to avoid an effective policy design. This shows that TWFE models using the pixel as the unit of analysis are not a viable approach to estimate the $ATT$ in deforestation impact evaluations. In contrast, the DID regression model does not suffer from this severe bias. While pixel-level analyses are not feasible in TWFE regression models, the grid-level is a viable substitute for comparable interpretation. In cases where the researcher has two groups and two distinct time periods, a pixel level analysis is still feasible using the simple DID model.
 
-<!-- In our guiding example, the ex-post single difference is 0.01 (the $ATT$ plus the pre-treatment group difference in deforestation rates), which would seem to indicate a increase of 1\% in the deforestation rate due to the intervention, when it actually led to a 1\% decrease in the deforestation rate. Thus, the ex-post single difference as well as the TWFE estimate, is biased positively by 2\%, as evidenced both in Figure 5 and the analytical proof found in the appendix. In the context of our guiding example, this also leads to a change in the direction of the estimated $ATT$, which could influence policymakers to avoid an effective policy design. This shows that TWFE models using the pixel as the unit of analysis are not a viable approach to estimate the $ATT$ in deforestation impact evaluations. In contrast, the DID regression model does not suffer from this severe bias. While pixel-level analyses are not feasible in TWFE regression models, the grid-level is a viable substitute for comparable interpretation. In cases where the researcher has two groups and two distinct time periods, a pixel level analysis is still feasible using the simple DID model.  -->
+<!-- ```{r simple table, echo = FALSE, results = "asis", fig.show='hold'} -->
 
-```{r simple table, echo = FALSE, results = "asis", fig.show='hold'}
+<!-- simple_table <- read.csv("simple_table.csv")[,2:5] -->
 
-simple_table <- read.csv("simple_table.csv")[,2:5]
+<!-- kable(simple_table, format = "latex", -->
+<!--       caption = "ATT versus ex-post single difference (difference in treated and untreated deforestation rates after intervention) in guiding example", -->
+<!--       col.names = c("treated ex-post", -->
+<!--                     "untreated ex-post", -->
+<!--                     "ex-post single difference", -->
+<!--                     "true ATT")) %>% -->
+<!--   row_spec(0,bold=TRUE) %>% -->
+<!--   kable_styling(font_size = 10, latex_options = c("HOLD_position") -->
+<!--                 #full_width = TRUE -->
+<!--                 #position = "left" -->
+<!--                 ) -->
 
-kable(simple_table, format = "latex",
-      caption = "ATT versus ex-post single difference (difference in treated and untreated deforestation rates after intervention) in guiding example",
-      col.names = c("treated ex-post",
-                    "untreated ex-post",
-                    "ex-post single difference",
-                    "true ATT")) %>%
-  row_spec(0,bold=TRUE) %>%
-  kable_styling(font_size = 10, latex_options = c("HOLD_position")
-                #full_width = TRUE
-                #position = "left"
-                )
-
-```
+<!-- ``` -->
 <!-- Robert: Table might need more clarification -->
 
 
-In the guiding example, the positive bias also leads to a change in the direction of the estimated $ATT$, which could influence policymakers to avoid an effective policy design. This shows that TWFE models using the pixel as the unit of analysis are not a viable approach to estimate the $ATT$ in deforestation impact evaluations. In contrast, the DID regression model does not suffer from this severe bias, meaning that a pixel level analysis is feasible in the two-period, two-group case. 
+<!-- In the guiding example, the positive bias also leads to a change in the direction of the estimated $ATT$, which could influence policymakers to avoid an effective policy design. This shows that TWFE models using the pixel as the unit of analysis are not a viable approach to estimate the $ATT$ in deforestation impact evaluations. In contrast, the DID regression model does not suffer from this severe bias, meaning that a pixel level analysis is feasible in the two-period, two-group case.  -->
 
+### Functional Form
 
-### Calculating deforestation rates
+We explore the effect of using non-linear functional forms. We use DID regression models at the pixel level in this section to avoid the aforementioned issues with pixel level TWFE models. Coefficient estimates are converted into the $ATT$ using the \textbf{mfx} package in R, which takes into account the binary nature of the treatment variable. We also explore how functional form choice may depend on the deforestation rates in a given setting, sice functional form choice may have more of an impact in low event probability scenarios. 
 
-Upon aggregating data, the researcher must determine how to calculate deforestation rates in the outcome. With no clear guidance on how this deforestation rate should be computed, there have been a variety of techniques used. We examine the three methods outlined in section 2.  
+```{r, echo=FALSE,out.width="75%", fig.cap="Distribution of estimates produced by different functional forms", fig.pos='H', fig.align='center'}
+knitr::include_graphics("figs/func1.png")
+```
 
-\begin{center}
+The underlying DGP and error structure play a role in determining which functional form leads to the least bias in a given scenario. Alternative parameterizations may affect which functional form is optimal in a given circumstance. Therefore, authors, regardless of the preferred specification, should justify their choice. As is common in the literature already, we advise that authors ensure the result is robust to different choices of functional form. 
+
+### Calculating Deforestation Rates
+
+Upon aggregating data, the researcher must determine how to calculate deforestation rates in the outcome. With no clear guidance on how this deforestation rate should be computed, there have been a variety of techniques used. We examine the three methods outlined in section 2.
+```{=latex}
 \begin{table}[H]
+\begin{center}
 \begin{tabular}{cc}
 \cline{1-2}
 & \textbf{Outcome}  \\ \cline{1-2}
@@ -302,24 +276,24 @@ Upon aggregating data, the researcher must determine how to calculate deforestat
 (2) & $\frac{F_{i0} - F_{it}}{F_{i0}}$\\ \cline{1-2}
 (3) & $log(F_{i,t-1}/F_{it}) $ \\ \cline{1-2}
 \end{tabular}
-\end{table}
 \end{center}
-
-```{r, echo=FALSE,out.width="75%", fig.cap="Distribution of estimates produced by different outcome variable formulae", fig.pos='H', fig.align='center'}
-knitr::include_graphics("figs/outcomes.png")
+\end{table}
 ```
 
-As seen in Figure 7, outcome 1 results in the least bias in our guiding example. The other outcomes result in relatively greater bias, although this difference seems minimal. We express concern surrounding the use of the initial observed baseline forest cover in the calculation of deforestation rates, as in formula (2). In settings with high deforestation rates, this outcome may overestimate the deforestation rate. As the rate is calculated in periods far away from the baseline, the deforestation rate will be increasingly high. This may impact the viability of the analysis, as the rate becomes artificially inflated in later years. As seen in Appendix T2, outcome two is the least robust to alternate landscape parameterizations. 
+```{r, echo=FALSE,out.width="75%", fig.cap="Distribution of estimates produced by different outcome variable formulae", fig.pos='H', fig.align='center'}
+knitr::include_graphics("figs/outcome.png")
+```
 
-<!-- Albert: Regarding formula 2, maybe we could show the rate inflating as deforestation becomes higher somehow, to back up the claim that it may be inflted 
-Robert: Yes, I like that idea. Maybe three panels in which you show the same figure, but for different deforestation rates? -->
+As seen in Figure 7, outcome 1 results in the least bias in our guiding example. The other outcomes result in relatively greater bias, although this difference seems minimal. 
 
-Regardless of authors' choice of formula, we advise that this formula be explicitly stated in the paper. This will help to avoid confusion as to which formula was used and help researchers understand which methods are the standard within the literature. Moving forward in our paper, all specifications using aggregated data use outcome 1. In our guiding example, it resulted in the least bias, and it is currently the most common deforestation rate calculation used in the literature. 
+We express concern surrounding the use of the initial observed baseline forest cover in the calculation of deforestation rates, as in formula (2). As the rate is calculated in periods further away from the baseline, the deforestation rate will be increasingly high. This may impact the viability of the analysis, as the rate becomes artificially inflated in later years and differentially affect the calculation in groups with different baseline rates. We explore this issue in the Appendix, and indeed, formula (2) is the least robust to changes in the length of observation period. As the observation period grows, formula (2) progressively under(over)estimates deforestation rates in the group with a lower baseline deforestation rate relative to the other group. 
 
+<!-- Albert: Do you think the exercise in the appendix should be brought to the main text? -->
 
+Regardless of authors' choice of formula, we advise that this formula be explicitly stated in the paper. This will help to avoid confusion as to which formula was used and help researchers understand which methods are the standard within the literature. Moving forward in our paper, all specifications using aggregated data use outcome 1. In our guiding example, it resulted in the least bias and lowest RMSE, and it is currently the most common deforestation rate calculation used in the literature. 
 
+### Aggregated Outcomes
 
-#### Aggregated Outcomes
 Since pixel level analyses are not feasible in the context of TWFE regressions, researchers should be aware of the tradeoffs using aggregated units of analysis. The following results apply to both DID and TWFE regression models, as both are equivalent in the two-period, two-group example. We now opt to use TWFE regression models when aggregating data, and DID regression models for pixel level analyses due to the aforementioned issues with TWFE regressions at the pixel level. 
 
 For simplicity, we assume the researcher can choose between three levels at which to aggregate the data: grid cell, county, and property. Grid cells are uniform grids layered over the study area and may have a treatment value between 0 and 1 following aggregation of pixels. Counties are heterogeneous administrative units at which we now assign the treatment. Lastly, properties are smaller administrative units within a county. 
@@ -329,115 +303,56 @@ For simplicity, we assume the researcher can choose between three levels at whic
 knitr::include_graphics("figs/aggregation.png")
 ```
 
-We find little evidence that any one level of aggregation is consistently preferrable in terms of bias, meaning that coverage probability plays a larger role as an evaluation metric. We explore the bias and coverage probabilities corresponding to different levels of aggregation in the context of our guiding example. Figure 8 shows that the bias of the estimates is not critically different depending on level of aggregation, however, the distributions are varied. Notice that the distribution of estimates when aggregating to the property level is wider than the others. This is likely due to heterogeneity in property size. The distribution of the estimates, bias, and standard error structure will affect the coverage probabilities. We compare coverage at each level of aggregation in Table 2 using classical standard errors. We have not yet introduced any structure into the DGP that would warrant clustering. Despite the clear differences in the distributions of estimates, both pixel and property-level analyses yield the desired 95\% coverage probabilities. 
+We find little evidence that any one level of aggregation is consistently preferrable in terms of bias, meaning that RMSE and coverage probability play a larger role as an evaluation metric. We explore the bias, RMSE, and coverage probabilities corresponding to different levels of aggregation in the context of our guiding example. Figure 8 shows that the bias of the estimates is not critically different depending on level of aggregation, however, the distributions are varied. RMSE is highest with property level aggregation due to the heterogeneity in property sizes. 
 
-
-<!-- Albert: Should RMSE be discussed here to say that the narrower distributions are preferable when coverage is the same? 
-Robert: I think that's a good idea, but then we'd probably want to describe it in the methods discussion of evaluation?
--->
-
+Coverage probabilities are impacted by the distribution of the estimates, bias, and standard error structure. We compare coverage at each level of aggregation in Table 2. We have not yet introduced any structure into the DGP that would warrant clustering. This is demonstrated by the coverage probabilities when $\sigma_p = 0$. Despite the clear differences in the distributions of estimates, both pixel and property-level analyses yield the desired 95\% coverage probabilities when $\sigma_p = 0$. When the desired coverage probability is achieved, it is preferable to use models with a lower RMSE. 
 
 
 ```{r table2, echo = FALSE, results = "asis", fig.show='hold'}
 
-coverage_table <- read.csv("coverages.csv")[,2:4]
+coverage_table <- read.csv("coverages.csv")[4:7,]
 
-kable(coverage_table[4:7,], format = "latex", row.names = FALSE,
-      caption = "Table of coverage based on unit of analysis",
-      col.names = c("unit of analysis",
-                    "standard error structure",
-                    "coverage probability")) %>% 
-  row_spec(0,bold=TRUE) %>% 
-  kable_styling(font_size = 10, latex_options = c("HOLD_position"),
-                #full_width = TRUE
-                position = "center"
-                )
+kable(coverage_table[,2:4], format = "latex", row.names = FALSE, 
+      caption = "Table of coverage in the absence of property level unobservables ($\\sigma_p = 0$)", 
+      col.names = NULL, escape = FALSE) %>% 
+  add_header_above(c("unit of analysis"=1, "standard error structure"=1, "coverage probability" = 1), escape = FALSE, line =TRUE, bold = TRUE)%>%
+  kable_styling(font_size = 10, latex_options = c("HOLD_position"),bootstrap_options = c("striped", "hover", "condensed", "responsive"),#full_width = TRUE
+                position = "center")
 ```
 
 
 
-#### Property level unobservables
-Property level unobservables may impact both treatment effect estimates and coverage probabilities. This is likely to be a factor when land use decisions are made at the property level or the intervention seeks to alter underlying landowner incentives. We introduce an additional error term to the initial DGP that varies at the property level in order to account for these unobservables. This property level error term is generated according to $\rho_{ip} \sim N(0, .15^2)$. Table 3 shows that property level unobservables negatively impact coverage at every level without clustering standard errors. The property level analyses suffer the least from this reduced coverage probability. 
+#### Property Level Unobservables
+Property level unobservables may impact both treatment effect estimates and coverage probabilities. This is likely to be a factor when land use decisions are made at the property level or the intervention seeks to alter underlying landowner incentives. We introduce an additional error term to the initial DGP that varies at the property level in order to account for these unobservables. We explore the cases when the property level disturbances are generated according to $\rho_{ip} \sim N(0, .05^2)$, $N(0, .15^2)$, and $ N(0, .25^2)$. Table 3 shows that property level unobservables negatively impact coverage at every level with classical standard errors. The property level analyses suffer the least from this reduced coverage probability. 
+
+As property level unobservables play a larger role, the treatment of standard errors also becomes more important. Almost all studies in the literature use clustered standard errors for inference. The clustering problem is caused by the presence of a common unobserved random shock at the group level that will lead to correlation between all observations within a group [@hansen2007]. We have introduced the random shock at the property level in our guiding example to represent the decision-making unit. As such, correlation within grids and counties will also be introduced, since they contain multiple pixels within a property. Clustering standard errors relaxes the assumption of no correlation across observations within the spatial unit used for clustering [@jones2015]. Examining the below table shows that clustering to the respective level of aggregation does indeed improve the coverage probability in the presence of property level unobservables. Property level aggregation leads to relatively preferred coverage probabilities, regardless of the standard error structure. These results highlight the benefit of using the relevant decision-making unit as the unit of analysis as well as clustering standard errors at that level. 
 
 ```{r table3, echo = FALSE, results = "asis", fig.show='hold'}
 
-coverage_table2 <- read.csv("coverages_p15.csv")[,2:4]
+coverage_perr <- read.csv("coverages.csv") %>%
+  mutate(p.5 = read.csv("coverages_p5.csv")[,4],
+         p.15 = read.csv("coverages_p15.csv")[,4],
+         p.25 = read.csv("coverages_p25.csv")[,4])%>%
+  arrange(desc(aggregation), std_error)
+
   
 
-kable(coverage_table2[4:7,], format = "latex", row.names = FALSE,
-      caption = "Table of coverage in presence of property level unobservables",
-      col.names = c("unit of analysis",
-                    "standard error structure",
-                    "coverage probability")) %>% 
-  row_spec(0,bold=TRUE) %>% 
-  kable_styling(font_size = 10, latex_options = c("HOLD_position"),
-                #full_width = TRUE
-                position = "center"
-                )
+kable(coverage_perr[,2:7], format = "latex", row.names = FALSE, 
+      caption = "Table of coverage in presence of property level unobservables", 
+      col.names = NULL) %>% 
+  add_header_above(c("unit of analysis"=1, "standard error structure"=1, "coverage probability" = 4), escape = FALSE, line =TRUE, bold = TRUE)%>%
+  add_header_above(c(" "=1, " "=1, "$\\sigma_p = 0$"=1, "$\\sigma_p = 0.05$" = 1, "$\\sigma_p = 0.15$" = 1, "$\\sigma_p = 0.25$" = 1), escape = FALSE, line =TRUE, bold =TRUE)%>%
+  kable_styling(font_size = 10, latex_options = c("HOLD_position"),bootstrap_options = c("striped", "hover", "condensed", "responsive"),#full_width = TRUE
+                position = "center")
+
 ```
 
-As property level unobservables play a larger role, the treatment of standard errors also becomes more important. Almost all studies in the literature use clustered standard errors for inference. The clustering problem is caused by the presence of a common unobserved random shock at the group level that will lead to correlation between all observations within a group [@hansen2007]. We have introduced the random shock at the property level in our guiding example to represent the decision-making unit. As such, correlation within grids and counties will also be introduced, since they contain multiple pixels within a property. Clustering standard errors relaxes the assumption of no correlation across observations within the spatial unit used for clustering [@jones2015]. Examining the below table shows that clustering to the respective level of aggregation does indeed improve the coverage probability. Property level aggregation leads to relatively preferred coverage probabilities, regardless of the standard error structure. These results highlight the benefit of using the relevant decision-making unit as the unit of analysis as well as clustering standard errors at that level. 
-
-
-```{r table4, echo = FALSE, results = "asis", fig.show='hold'}
-
-coverage_table3 <- coverage_table2[1:3,] %>%
-  rbind(coverage_table2[8,])
-
-kable(coverage_table3, format = "latex", row.names = FALSE,
-      caption = "Table of coverage in presence of property level unobservables",
-      col.names = c("unit of analysis",
-                    "standard error structure",
-                    "coverage probability")) %>% 
-  row_spec(0,bold=TRUE) %>% 
-  kable_styling(font_size = 10, latex_options = c("HOLD_position"),
-                #full_width = TRUE
-                position = "center"
-                )
-```
-
+## Recommendations
 
 <!-- ** 
 One idea for a nice summary figure: I wonder if it's possible to create a variant of Ariel Ortiz-Boboa's regression specification chart to display all of the above models at once (https://twitter.com/arielortizbobea/status/1237518566598963200?lang=en)
 Imagine the boxes representing the bias distribution for each econometric model specification, the bottom boxplot illustrating deviation from 95% confidence interval, and the table below highlighting the specifications. This could be an amazing way to summarize the results of any model specification in one figure for the eventual shiny app. It'd also allow us to compare how sensitive our results are to different parametrizations. 
 -->
-
-### Functional form
-
-<!-- Albert: I've moved the functional form section below the others in order to reintroduce consideration of the "classification" bias. I did this because in Alix-Garcia's presentation, certain functional forms performed better. There is no consistently better functional form here, but I wanted to try to address that potential at least briefly. The con is that it is perhaps out of place and I wonder if it highlights the question of why we netted it out in the other sections -->
-
-We explore the effect of using non-linear functional forms. We use DID regression models at the pixel level in this section to avoid the aforementioned issues with pixel level TWFE models . We also reintroduce the consideration of bias due to classification error in the dgp in order to explore whether alternative functional forms may help to mitigate this bias. Coefficient estimates are converted into the $ATT$ using the \textbf{mfx} package in R, which takes into account the binary nature of the treatment variable. 
-
-```{r, echo=FALSE,out.width="75%", fig.cap="Distribution of estimates produced by different functional form", fig.pos='H', fig.align='center'}
-#knitr::include_graphics("figs/functionalform.png")
-```
-
-The underlying DGP and error structure play a role in determining which functional form leads to the least bias in a given scenario. We find that alternative parameterizations do affect which functional form is optimal in a given circumstance, as seen in Table XX. Therefore, authors, regardless of the preferred specification, should justify their choice. As is common in the literature already, we advise that authors ensure the result is robust to different choices of functional form. We leave a thorough discussion of the choice of functional form in the presence of classification error to future work, but highlight the importance of this area for exploration.  
-
-```{r outcome table, echo = FALSE, results = "asis", fig.show='hold'}
-
-func_table <- read.csv("func_results.csv")[,2:4] %>%
-  cbind(read.csv("func_results2.csv")[,3:4])%>%
-  cbind(read.csv("func_results3.csv")[,3:4])
-  
-
-kable(func_table, format = "latex", row.names = FALSE,
-      caption = "functional form across landscape parameterizations"
-      #, booktabs = TRUE
-      #col.names = c("unit of analysis")
-) %>% 
-  add_header_above(c("", "$trend = -0.005$" = 2, "$trend = 0.005$" = 2, "$trend = 0.01$" = 2), escape = FALSE, line =FALSE) %>%
-  add_header_above(c("", "$baseline_1 = 0.04$" = 2, "$baseline_1 = 0.02$" = 2, "$baseline_1 = 0.05$" = 2), escape = FALSE, line = FALSE) %>%
-  add_header_above(c("", "$baseline_0 = 0.02$" = 2, "$baseline_0 = 0.05$" = 2, "$baseline_0 = 0.02$" = 2), escape = FALSE, line =FALSE) %>%
-  add_header_above(c("", "$ATT = -0.01$" = 2, "$ATT = 0.01$" = 2, "$ATT = -0.03$" = 2), escape = FALSE, line = FALSE) %>%
-  add_header_above(c("", "500 datasets of 10,000 pixels, $\\\\sigma_a=0.1$, $\\\\sigma_v=0.25$" = 6), escape = FALSE, line = FALSE) %>%
-  row_spec(0,bold=TRUE) %>% 
-  kable_styling(font_size = 10, latex_options = c("HOLD_position"),
-                #full_width = TRUE
-                position = "center"
-                )
-
-```
 
 ## Discussion
 This paper seeks to leave researchers with a clear sense of the decisions that play a role in their choice of econometric specification. We discuss and show the benefits of conductiong the analysis at the level of the relevant decision making unit when it is of importance. Choice of functional form should be justified in the context of each institutional setting, taking into account the underlying DGP. Robustness checks should account for the possibility of alternative functional forms. Formulas in the calculation of the deforestation rate should be made explicit to avoid confusion. Ultimately, context plays a role in all of these decisions. There is no one size fits all econometric specification and researchers should make clear which decisions they have made as well as their reasoning. We have developed a shiny app available at .. so that researchers can explore the potential tradeoffs with choices of econometric model design.  
@@ -462,32 +377,7 @@ We can show that in the case where the binary outcome is dropped in periods afte
 
 proof:
 
-### deforestation rate calculation robustness to alternate parameterizations
 
-```{r func table, echo = FALSE, results = "asis", fig.show='hold'}
-
-outcome_table <- read.csv("outcome_results.csv")[,2:4] %>%
-  cbind(read.csv("outcome_results2.csv")[,3:4])%>%
-  cbind(read.csv("outcome_results3.csv")[,3:4])
-  
-
-kable(outcome_table, format = "latex", row.names = FALSE,
-      caption = "outcome calculation across landscape parameterizations"
-      #, booktabs = TRUE
-      #col.names = c("unit of analysis")
-) %>% 
-  add_header_above(c("", "$trend = -0.005$" = 2, "$trend = 0.005$" = 2, "$trend = 0.01$" = 2), escape = FALSE, line =FALSE) %>%
-  add_header_above(c("", "$baseline_1 = 0.04$" = 2, "$baseline_1 = 0.02$" = 2, "$baseline_1 = 0.05$" = 2), escape = FALSE, line = FALSE) %>%
-  add_header_above(c("", "$baseline_0 = 0.02$" = 2, "$baseline_0 = 0.05$" = 2, "$baseline_0 = 0.02$" = 2), escape = FALSE, line =FALSE) %>%
-  add_header_above(c("", "$ATT = -0.01$" = 2, "$ATT = 0.01$" = 2, "$ATT = -0.03$" = 2), escape = FALSE, line = FALSE) %>%
-  add_header_above(c("", "500 datasets of 10,000 pixels, $\\\\sigma_a=0.1$, $\\\\sigma_v=0.25$" = 6), escape = FALSE, line = FALSE) %>%
-  row_spec(0,bold=TRUE) %>% 
-  kable_styling(font_size = 10, latex_options = c("HOLD_position"),
-                #full_width = TRUE
-                position = "center"
-                )
-
-```
 
 ### Initial parameter to $\beta$ coefficient mapping
 
@@ -520,11 +410,19 @@ ATT =& E[y_{it}(1) - y_{it}(0) |  t\geq t_0, D_i=1] \\
 
 
 \begin{align*}
-trend =& E[y_{it}(0) |  t\geq t_0, D_i=0] - E[y_{it}(0) |  t<t_0, D_i=0]\\
+trend_0 =& E[y_{it}(0) |  t\geq t_0, D_i=0] - E[y_{it}(0) |  t<t_0, D_i=0]\\
 =& P(y_{it}(0)=1 |  t\geq t_0, D_i=0) - P(y_{it}(0)=1 |  t<t_0, D_i=0)\\
-=& P(y^*_{it}(0)>0 |  t\geq t_0, D_i=0) - P(y^*_{it}(0)>0 |  t<t_0, D_i=0)\\
+=& P(y^*_{it}(0)>0 |  t \geq t_0, D_i=0) - P(y^*_{it}(0)>0 |  t<t_0, D_i=0)\\
 =& P(-\alpha_i -u_{it} < \beta_0 +\beta_2) - P(-\alpha_i -u_{it} < \beta_0 )\\
 =& F(\beta_0 + \beta_2) - F(\beta_0)
+\end{align*}
+
+\begin{align*}
+trend_1 =& E[y_{it}(0) |  t\geq t_0, D_i=1] - E[y_{it}(0) |  t<t_0, D_i=1]\\
+=& P(y_{it}(0)=1 |  t\geq t_0, D_i=1) - P(y_{it}(0)=1 |  t<t_0, D_i=1)\\
+=& P(y^*_{it}(0) > 0 |  t \geq t_0, D_i=0) - P(y^*_{it}(0)>0 |  t<t_0, D_i=0)\\
+=& P(-\alpha_i -u_{it} < \beta_0 +\beta_1+\beta_2) - P(-\alpha_i -u_{it} < \beta_0+\beta_1 )\\
+=& F(\beta_0 ++\beta_1+ \beta_2) - F(\beta_0+\beta_1)
 \end{align*}
 
 \begin{align*}
@@ -564,43 +462,37 @@ solving for $\beta_1$
 & \beta_1 = F^{-1}(baseline_1) - \beta_0
 \end{align*}
 
-solving for $\beta_2$
+solving for $\beta_{20}$
 \begin{align*}
-&trend= F(\beta_0 + \beta_2 ) - F(\beta_0) \\
+&trend= F(\beta_0 + \beta_{20} ) - F(\beta_0) \\
 \Leftrightarrow \\
-&trend + baseline_0 =F( \beta_0 + \beta_2)\\
+&trend + baseline_0 =F( \beta_0 + \beta_{20})\\
 \Leftrightarrow \\
-&F^{-1}(trend + baseline_0 ) =\beta_0 + \beta_2\\
+&F^{-1}(trend + baseline_0 ) =\beta_0 + \beta_{20}\\
 \Leftrightarrow \\
-&\beta_2 = F^{-1}(trend + baseline_0 ) - \beta_0 
+&\beta_{20} = F^{-1}(trend + baseline_0 ) - \beta_0 
+\end{align*}
+
+solving for $\beta_{21}$
+\begin{align*}
+&trend= F(\beta_0 + \beta_{1}+\beta_{21} ) - F(\beta_0 + \beta_1) \\
+\Leftrightarrow \\
+&trend + baseline_1 =F( \beta_0 +\beta_1+ \beta_{21})\\
+\Leftrightarrow \\
+&F^{-1}(trend + baseline_1 ) =\beta_0 + +\beta_1+ \beta_{21}\\
+\Leftrightarrow \\
+&\beta_{21} = F^{-1}(trend + baseline_1 ) - \beta_0 -\beta_1
 \end{align*}
 
 solving for $\beta_3$
 \begin{align*}
-&ATT= F(\beta_0 + \beta_1 +\beta_2 +\beta_3) - F(\beta_0 + \beta_1 +\beta_2)\\
+&ATT= F(\beta_0 + \beta_1 +\beta_{21} +\beta_3) - F(\beta_0 + \beta_1 +\beta_{21})\\
 \Leftrightarrow \\
-&ATT + F(\beta_0 + \beta_1 +\beta_2) = F(\beta_0 + \beta_1 +\beta_2 +\beta_3) \\
+&ATT + F(\beta_0 + \beta_1 +\beta_{21}) = F(\beta_0 + \beta_1 +\beta_{21} +\beta_3) \\
 \Leftrightarrow \\
-&F^{-1}(ATT + F(\beta_0 + \beta_1 +\beta_2) )= \beta_0 + \beta_1 +\beta_2 +\beta_3\\
+&F^{-1}(ATT + F(\beta_0 + \beta_1 +\beta_{21}) )= \beta_0 + \beta_1 +\beta_{21} +\beta_3\\
 \Leftrightarrow \\
-&\beta_3 = F^{-1}(ATT + F(\beta_0 + \beta_1 +\beta_2) )- (\beta_0 + \beta_1 +\beta_2)\\
+&\beta_3 = F^{-1}(ATT + F(\beta_0 + \beta_1 +\beta_{21}) )- (\beta_0 + \beta_1 +\beta_{21})\\
 \end{align*}
-
-
-### Bias inherent to binary deforestation DGP
-
-This bias can be represented by the difference between the DID estimand and the ATT parameter of interest:
-
-\begin{align*}
-&DID_{estimand} - ATT \\
-\Leftrightarrow \\
-&E[y_{it}(1)  |  t\geq t_0, D_i=1] - E[y_{it}(0)  |  t< t_0, D_i=1] - (E[y_{it}(0)  |  t\geq t_0, D_i=0] - E[y_{it}(0)  |  t< t_0, D_i=0])\\ &- E[y_{it}(1) - y_{it}(0) |  t\geq t_0, D_i=1]\\
-\Leftrightarrow \\
-&F(\beta_0 + \beta_1 +\beta_2 +\beta_3) - F(\beta_0 +\beta_2) - (F(\beta_0 + \beta_1 ) - F(\beta_0 )) \\&- (F(\beta_0 + \beta_1 +\beta_2 +\beta_3) - F(\beta_0 + \beta_1 +\beta_2))\\
-\Leftrightarrow \\
-&F(\beta_0 + \beta_1 +\beta_2) + F(\beta_0 )) - (F(\beta_0 +\beta_2) + F(\beta_0 + \beta_1 )) 
-\end{align*}
-
-
 
 

@@ -1,0 +1,9 @@
+"","aggregation","std_error","coverage"
+"1","grid","clustered at grid",0.945
+"2","property","clustered at property",0.94
+"3","county","clustered at county",0.945
+"4","grid","classical",0.945
+"5","property","classical",0.945
+"6","county","classical",0.96
+"7","pixel","classical",0.885
+"8","pixel","clustered at property",0.925
