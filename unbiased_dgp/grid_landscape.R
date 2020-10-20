@@ -5,7 +5,7 @@ library(ggplot2)
 library(rlist)
 library(tidyverse)
 
-grid_scapegen <- function(nobs, cellsize){
+grid_landscape <- function(nobs, cellsize){
   
   
   rootn <- ceiling(sqrt(nobs))

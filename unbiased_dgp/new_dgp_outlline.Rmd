@@ -24,11 +24,19 @@ header-includes:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+# plots
+source('did_trends.R')
 
 #binary fcns
 source('quickmonte.R')
 source('TWFE_fcn.R')
 source('functionalform.R')
+
+source('outcome_fcn.R')
+source('aggregation_fcn.R')
+
+source('vary_outcome_defor.R')
+source('vary_outcome_yr.R')
 
 ```
 
@@ -95,14 +103,29 @@ std_a = 0.1
 std_v = 0.25
 years = 3
 nobs = 10000
-n = 100
+n = 200
 
-std_av = (std_a^2+std_v^2)^.5
-b0 = qnorm(base_0, mean = 0, sd = std_av)
-b1 = qnorm(base_1, mean = 0, sd = std_av) - b0
-b2_0 = qnorm(trend + base_0, mean = 0, sd = std_av) - b0
-b2_1 = qnorm(trend + base_1, mean = 0, sd = std_av) - b0 - b1
-b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_av) + ATT , mean = 0, sd = std_av) - (b0 + b1 + b2_1)
+cellsize = 10
+ppoints = 50
+std_p = 0
+cpoints = 20
+
+std_avp = (std_a^2+std_v^2+std_p^2)^.5
+b0 = qnorm(base_0, mean = 0, sd = std_avp)
+b1 = qnorm(base_1, mean = 0, sd = std_avp) - b0
+b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
+b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
+b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
+
+```
+
+```{r did trends, results='hide'}
+
+# trends <- did_trends(1000000, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
+#   
+# trends$plot  
+# 
+# ggsave(path = "figs", filename = "trends.png", dpi = 500)
 
 ```
 
@@ -114,57 +137,160 @@ DID_y <- quickmonte(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, "y")
 
 DID_y$plot
 
+ggsave(path = "figs", filename = "did_y.png", dpi = 500)
+
 ```
 
-```{r functionalform, results='hide'}
+```{r did yit, results='hide'}
+
+DID_yit <- quickmonte(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, "y_it")
+
+DID_yit$plot
+
+#ggsave(path = "figs", filename = "did_yit.png", dpi = 500)
+
+```
+
+
+```{r did defor, results='hide'}
+
+DID_defor <- quickmonte(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, "defor")
+
+DID_defor$plot
+
+#ggsave(path = "figs", filename = "did_defor.png", dpi = 500)
+
+```
+
+```{r functionalform 1, results='hide'}
+
 
 func <- functionalform(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
 
 func$plot
 
-```
-
-## Example 2 (with higher deforestation rates)
-
-Here are some examples of our simulations to show that this gives generally unbiased or expected results when we impose common trends. Here, we set:
-\begin{align*}
-baseline_0 &= 0.07\\
-baseline_1 &= 0.10\\
-trend_0 &= 0.02\\
-trend_1 &= 0.02\\
-ATT &= -0.04
-\end{align*}
-
-
-
-```{r generating beta parameters 2, results='hide'}
-
-base_0 = .07
-base_1 = .10
-trend = 0.02
-ATT = -.04
-
-std_av = (std_a^2+std_v^2)^.5
-b0 = qnorm(base_0, mean = 0, sd = std_av)
-b1 = qnorm(base_1, mean = 0, sd = std_av) - b0
-b2_0 = qnorm(trend + base_0, mean = 0, sd = std_av) - b0
-b2_1 = qnorm(trend + base_1, mean = 0, sd = std_av) - b0 - b1
-b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_av) + ATT , mean = 0, sd = std_av) - (b0 + b1 + b2_1)
+#ggsave(path = "figs", filename = "func1.png", dpi = 500)
 
 ```
 
-### DID allowing outcome to vary between 0 and 1 across periods
+```{r TWFE, results='hide'}
 
-```{r did y 2, results='hide'}
+twoway <- TWFE_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
 
-DID_y2 <- quickmonte(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, "y")
+twoway$plot
 
-DID_y2$plot
+#ggsave(path = "figs", filename = "twoway.png", dpi = 500)
+
+```
+
+```{r functionalform 1, results='hide'}
+
+outcome <- outcome_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, cellsize)
+
+outcome$plot
+
+ggsave(path = "figs", filename = "outcome.png", dpi = 500)
+
+```
+
+```{r aggregate, results = 'hide', warning=FALSE}
+aggregation <- aggregation_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+aggregation$plot
+
+#ggsave(path = "figs", filename = "aggregation.png", dpi = 500)
+
+agg_biases <- aggregation$biases
+#write.csv(agg_biases, "agg_biases.csv")
+
+
+coverages_df <- aggregation$coverages_df
+write.csv(coverages_df, "coverages.csv")
+
+```
+
+```{r aggregate p_err5, results = 'hide', warning=FALSE}
+std_p = 0.05
+std_avp = (std_a^2+std_v^2+std_p^2)^.5
+b0 = qnorm(base_0, mean = 0, sd = std_avp)
+b1 = qnorm(base_1, mean = 0, sd = std_avp) - b0
+b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
+b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
+b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
+
+aggregation_5 <- aggregation_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+#aggregation_5$plot
+#ggsave(path = "figs", filename = "aggregation.png", dpi = 500)
+
+
+coverages5 <- aggregation_5$coverages_df
+write.csv(coverages5, "coverages_p5.csv")
+
+```
+
+```{r aggregate p_err15, results = 'hide', warning=FALSE}
+std_p = 0.15
+std_avp = (std_a^2+std_v^2+std_p^2)^.5
+b0 = qnorm(base_0, mean = 0, sd = std_avp)
+b1 = qnorm(base_1, mean = 0, sd = std_avp) - b0
+b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
+b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
+b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
+
+aggregation_15 <- aggregation_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+#aggregation_5$plot
+#ggsave(path = "figs", filename = "aggregation.png", dpi = 500)
+
+
+coverages15 <- aggregation_15$coverages_df
+write.csv(coverages15, "coverages_p15.csv")
+
+```
+
+```{r aggregate p_err25, results = 'hide', warning=FALSE}
+std_p = 0.25
+std_avp = (std_a^2+std_v^2+std_p^2)^.5
+b0 = qnorm(base_0, mean = 0, sd = std_avp)
+b1 = qnorm(base_1, mean = 0, sd = std_avp) - b0
+b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
+b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
+b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
+
+aggregation_25 <- aggregation_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+
+
+coverages25 <- aggregation_25$coverages_df
+write.csv(coverages25, "coverages_p25.csv")
+
 
 ```
 
 
-## Example 3 (with lower deforestation rates)
+```{r outcome by yr, results = 'hide', warning=FALSE}
+base_0 = .02
+base_1 = .04
+trend = 0
+ATT = 0
+n = 100
+years_min = 2
+years_max = 8
+
+yr_outcome1 <- vary_outcome_yr(n, nobs, years_min, years_max, ATT, trend, base_0, base_1, std_a, std_v, cellsize)
+yr_outcome1$plot
+ggsave(path = "figs", filename = "outcome_byyr1.png", dpi = 500)
+
+yr_outcome2 <- vary_outcome_yr(n, nobs, years_min, years_max, ATT, trend, base_1, base_0, std_a, std_v, cellsize)
+yr_outcome2$plot
+
+ggsave(path = "figs", filename = "outcome_byyr2.png", dpi = 500)
+
+```
+
+
+
+
+
+
+## Example 2 (with lower deforestation rates; for outcome comparison and funcform)
 
 Here are some examples of our simulations to show that this gives generally unbiased or expected results when we impose common trends. Here, we set:
 \begin{align*}
@@ -179,10 +305,10 @@ ATT &= -0.004
 
 ```{r generating beta parameters 3, results='hide'}
 
-base_0 = .007
-base_1 = .01
-trend = 0.00
-ATT = -.01
+base_0 = .003
+base_1 = .007
+trend = -0.002
+ATT = -.002
 
 std_av = (std_a^2+std_v^2)^.5
 b0 = qnorm(base_0, mean = 0, sd = std_av)
@@ -193,15 +319,7 @@ b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_av) + ATT , mean = 0, sd = std_
 
 ```
 
-### DID allowing outcome to vary between 0 and 1 across periods
 
-```{r did y 3, results='hide'}
-
-DID_y2 <- quickmonte(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, "y")
-
-DID_y2$plot
-
-```
 
 ```{r did y 2, results='hide'}
 

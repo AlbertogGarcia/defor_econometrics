@@ -9,7 +9,7 @@ library(tictoc)
 source('grid_landscape.R')
 
 #begin function
-outcome_comparison <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v = 0.25, cellsize){
+outcome_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v = 0.25, cellsize){
   
   gridscape = grid_landscape(nobs, cellsize)
   pixloc_df = gridscape$pixloc_df
@@ -145,7 +145,7 @@ outcome_comparison <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
   
   
   coeff_bias <- as.data.frame(coeffmatrix)
-  actual <- rep(DID_estimand, times = n)
+  actual <- rep(0, times = n)
   names(coeff_bias)[1] <- paste("outcome1")
   names(coeff_bias)[2] <- paste("outcome2")
   names(coeff_bias)[3] <- paste("outcome3")
