@@ -37,6 +37,7 @@ source('aggregation_fcn.R')
 
 source('vary_outcome_defor.R')
 source('vary_outcome_yr.R')
+source('vary_rate_funcform.R')
 
 ```
 
@@ -61,7 +62,7 @@ ATT &= E[y_{it}(1) - y_{it}(0) |  t\geq t_0, D_i=1]\\
 
 In all  of our simulations, we impose parallel trends (ie. set $trend_0 = trend_1$). 
 
-Rather than directly observing each unit's <!-- "unit" is a bit ambiguous here. What should the reader be imagining at this point? Properties, counties, parcels, an individual tree? --> deforestation rate in each time period, the researcher observes annualized maps depicting pixel-level, binary deforestation $(y_{ivt}\ \epsilon \ 0, 1)$. We follow [@kerr; @pfaff2004] and model these binary deforestation events as a function of each pixel's unobservable value along a continuous, latent variable $(y^*_{ivt})$ indicating the utility of deforesting pixel $i$, in property $v$, in year $t$. We define this latent variable as:
+Rather than directly observing each pixel's deforestation in each time period, the researcher observes annualized maps depicting pixel-level, binary deforestation $(y_{ivt}\ \epsilon \ 0, 1)$. We follow [@kerr; @pfaff2004] and model these binary deforestation events as a function of each pixel's unobservable value along a continuous, latent variable $(y^*_{ivt})$ indicating the utility of deforesting pixel $i$, in property $v$, in year $t$. We define this latent variable as:
 
 $$y^*_{ivt} = \beta_0 + \beta_1 \mathbbm{1}\{  D_i = 1  \} +$$ 
 $$\beta_{2,0} \mathbbm{1}\{  t \geq t_0  \} (1 - \mathbbm{1}\{  D_i = 1  \})+\beta_{2,1} \mathbbm{1}\{  t \geq t_0  \} \mathbbm{1}\{  D_i = 1  \} +$$
@@ -122,10 +123,13 @@ b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std
 ```{r did trends, results='hide'}
 
 # trends <- did_trends(1000000, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
-#   
-# trends$plot  
+# 
+# trends$plot
 # 
 # ggsave(path = "figs", filename = "trends.png", dpi = 500)
+
+landscape_period2
+ggsave(path = "figs", filename = "landscape_2period.png", dpi = 500)
 
 ```
 
@@ -208,6 +212,18 @@ write.csv(coverages_df, "coverages.csv")
 
 ```
 
+```{r varying func, results = 'hide', warning=FALSE}
+ATT_start = ATT
+base_0_start = base_0
+base_1_start = base_1
+trend_start = trend
+
+vary_func <- vary_rate_funcform(60, nobs, years, base_0_start, base_1_start, trend_start, ATT_start, std_a, std_v )
+vary_func$plot
+ggsave(path = "figs", filename = "vary_func.png", dpi = 500)
+
+```
+
 ```{r aggregate p_err5, results = 'hide', warning=FALSE}
 std_p = 0.05
 std_avp = (std_a^2+std_v^2+std_p^2)^.5
@@ -267,10 +283,10 @@ write.csv(coverages25, "coverages_p25.csv")
 
 ```{r outcome by yr, results = 'hide', warning=FALSE}
 base_0 = .02
-base_1 = .04
+base_1 = .05
 trend = 0
 ATT = 0
-n = 100
+n = 50
 years_min = 2
 years_max = 8
 

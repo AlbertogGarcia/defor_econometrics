@@ -1,7 +1,7 @@
 library(ggplot2)
 library(clubSandwich)
 library(matrixStats)
-library(ggplot2)
+library(ggpubr)
 library(plm)
 library(Metrics)
 source('DGP_counterfactual.R')
@@ -36,8 +36,7 @@ did_trends <- function(nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v =
           panel.grid.minor = element_blank(), 
           panel.background = element_rect(fill = "gray95"), 
           legend.title = element_blank()
-          )+
-    labs(x ="Year", y = "Deforestation Rate")
+          )
   
   outputs = list("plot" = plot)
   return(outputs)
