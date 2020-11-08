@@ -32,8 +32,8 @@ functionalform <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
     coeffmatrix[i,3] <- logit_me - ATT
     
     
-    poiss_me <- poissonmfx(formula = y_it ~  post*treat, data = panels)$mfxest[3]
-    coeffmatrix[i,4] <- poiss_me - ATT
+    # poiss_me <- poissonmfx(formula = y_it ~  post*treat, data = panels)$mfxest[3]
+    # coeffmatrix[i,4] <- poiss_me - ATT
     
     
     #end for loop  
@@ -42,7 +42,7 @@ functionalform <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
   actual <- rep(0, times = n)
   
   did_coeff <- as.data.frame(coeffmatrix)
-  names(did_coeff)[1] <- paste("DID")
+  names(did_coeff)[1] <- paste("LPM")
   names(did_coeff)[2] <- paste("Probit")
   names(did_coeff)[3] <- paste("Logit")
   names(did_coeff)[4] <- paste("Poisson")
@@ -51,15 +51,15 @@ functionalform <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
   pdid <- ggplot(data = did_coeff, aes(x = bias, fill=variable)) +
     geom_density(alpha = .2) +
     guides(fill=guide_legend(title=NULL))+
-    scale_fill_discrete(breaks=c("DID", "Probit", "Logit", "Poisson"))+
+    scale_fill_discrete(breaks=c("LPM", "Probit", "Logit"))+
     geom_vline(xintercept = 0, linetype = "dashed")+
     theme(plot.caption = element_text(hjust = 0.5))+
     labs(x= "bias", title = "DID bias based on functional form", 
          caption = paste("The mean and variance are:", "\n", 
-                         "DID:"    , round(colMeans(coeffmatrix)[1], digits = 4), "RMSE:", round(rmse(actual, coeffmatrix[1]), digits = 5), "\n",  
+                         "LPM:"    , round(colMeans(coeffmatrix)[1], digits = 4), "RMSE:", round(rmse(actual, coeffmatrix[1]), digits = 5), "\n",  
                          "Probit:" , round(colMeans(coeffmatrix)[2], digits = 4), "RMSE:", round(rmse(actual, coeffmatrix[2]), digits = 5), "\n",  
                          "Logit:"  , round(colMeans(coeffmatrix)[3], digits = 4), "RMSE:", round(rmse(actual, coeffmatrix[3]), digits = 5)
-                         , "\n", "Poisson:", round(colMeans(coeffmatrix)[4], digits = 4), "RMSE:", round(rmse(actual, coeffmatrix[4]), digits = 5)
+                         #, "\n", "Poisson:", round(colMeans(coeffmatrix)[4], digits = 4), "RMSE:", round(rmse(actual, coeffmatrix[4]), digits = 5)
          )
     )
   

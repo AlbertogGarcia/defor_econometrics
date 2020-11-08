@@ -23,7 +23,7 @@ aggregation_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1,
   
   pixloc <- pixloc_df
   
-  covermat <- matrix(nrow = n, ncol = 8)
+  covermat <- matrix(nrow = n, ncol = 9)
   coeffmatrix <- matrix(nrow = n, ncol = 4)
   
   for(i in 1:n){
@@ -210,6 +210,12 @@ aggregation_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1,
     cluster_prop_pix    <- sqrt(diag(vcovCR(DID4, panels$property, type="CR1")))[4]
     covermat[i,8] <- between(ATT, DID4$coefficients[4] - 1.96 * cluster_prop_pix, DID4$coefficients[4] + 1.96 * cluster_prop_pix)*1
     
+    cluster_grid_pix    <- sqrt(diag(vcovCR(DID4, panels$grid, type="CR1")))[4]
+    covermat[i,9] <- between(ATT, DID4$coefficients[4] - 1.96 * cluster_grid_pix, DID4$coefficients[4] + 1.96 * cluster_grid_pix)*1
+    
+    # cluster_county_pix    <- sqrt(diag(vcovCR(DID4, panels$county, type="CR1")))[4]
+    # covermat[i,10] <- between(ATT, DID4$coefficients[4] - 1.96 * cluster_county_pix, DID4$coefficients[4] + 1.96 * cluster_county_pix)*1
+    # 
     print(i)
     toc()
   }
@@ -250,6 +256,8 @@ aggregation_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1,
                    'property',
                    'county',
                    'pixel',
+                   'pixel',
+                   #'pixel',
                    'pixel'
   )
   
@@ -260,13 +268,12 @@ aggregation_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1,
                  'classical',
                  'classical',
                  'classical'
-                 , 'clustered at property'
+                 , 'clustered at property',
+                 'clustered at grid'
+                # , 'clustered at county'
   )
   
   coverages_df <- data.frame(aggregation, std_error, coverage = colMeans(covermat)) 
-  
-  
-  
   
   
   outputs = list("plot" = plot, "biases" = coeff_bias, "coverages_df" = coverages_df)

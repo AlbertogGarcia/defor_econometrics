@@ -30,14 +30,18 @@ source('did_trends.R')
 #binary fcns
 source('quickmonte.R')
 source('TWFE_fcn.R')
+source('DID_keep.R')
 source('functionalform.R')
+source('functionalform_agg.R')
 
 source('outcome_fcn.R')
 source('aggregation_fcn.R')
+source('pixelcluster_fcn.R')
 
 source('vary_outcome_defor.R')
 source('vary_outcome_yr.R')
 source('vary_rate_funcform.R')
+source('vary_rate_funcform_agg.R')
 
 ```
 
@@ -122,14 +126,14 @@ b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std
 
 ```{r did trends, results='hide'}
 
-# trends <- did_trends(1000000, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
+# trends <- did_trends(years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
 # 
 # trends$plot
 # 
 # ggsave(path = "figs", filename = "trends.png", dpi = 500)
 
-landscape_period2
-ggsave(path = "figs", filename = "landscape_2period.png", dpi = 500)
+# landscape_period2
+# ggsave(path = "figs", filename = "landscape_2period.png", dpi = 500)
 
 ```
 
@@ -173,7 +177,18 @@ func <- functionalform(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
 
 func$plot
 
-#ggsave(path = "figs", filename = "func1.png", dpi = 500)
+ggsave(path = "figs", filename = "func1.png", dpi = 500)
+
+```
+
+```{r functionalform  agg, results='hide'}
+
+
+func_agg <- functionalform_agg(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, cellsize)
+
+func_agg$plot
+
+ggsave(path = "figs", filename = "func_agg.png", dpi = 500)
 
 ```
 
@@ -183,7 +198,17 @@ twoway <- TWFE_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
 
 twoway$plot
 
-#ggsave(path = "figs", filename = "twoway.png", dpi = 500)
+ggsave(path = "figs", filename = "twoway.png", dpi = 500)
+
+```
+
+```{r did keep and drop, results='hide'}
+
+did_keep <- DID_keep(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
+
+did_keep$plot
+
+ggsave(path = "figs", filename = "DID_keep.png", dpi = 500)
 
 ```
 
@@ -201,26 +226,40 @@ ggsave(path = "figs", filename = "outcome.png", dpi = 500)
 aggregation <- aggregation_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
 aggregation$plot
 
-#ggsave(path = "figs", filename = "aggregation.png", dpi = 500)
+ggsave(path = "figs", filename = "aggregation.png", dpi = 500)
 
 agg_biases <- aggregation$biases
 #write.csv(agg_biases, "agg_biases.csv")
 
 
 coverages_df <- aggregation$coverages_df
-write.csv(coverages_df, "coverages.csv")
+#write.csv(coverages_df, "coverages.csv")
 
 ```
 
+
+
 ```{r varying func, results = 'hide', warning=FALSE}
+# ATT_start = ATT
+# base_0_start = base_0
+# base_1_start = base_1
+# trend_start = trend
+# 
+# vary_func <- vary_rate_funcform(60, nobs, years, base_0_start, base_1_start, trend_start, ATT_start, std_a, std_v )
+# vary_func$plot
+# ggsave(path = "figs", filename = "vary_func.png", dpi = 500)
+
+```
+
+```{r varying func poisson, results = 'hide', warning=FALSE}
 ATT_start = ATT
 base_0_start = base_0
 base_1_start = base_1
 trend_start = trend
 
-vary_func <- vary_rate_funcform(60, nobs, years, base_0_start, base_1_start, trend_start, ATT_start, std_a, std_v )
-vary_func$plot
-ggsave(path = "figs", filename = "vary_func.png", dpi = 500)
+vary_func_agg <- vary_rate_funcform_agg(60, nobs, years, base_0_start, base_1_start, trend_start, ATT_start, std_a, std_v, cellsize)
+vary_func_agg$plot
+ggsave(path = "figs", filename = "vary_func_agg.png", dpi = 500)
 
 ```
 
@@ -234,9 +273,11 @@ b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
 aggregation_5 <- aggregation_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
-#aggregation_5$plot
+aggregation_5$plot
 #ggsave(path = "figs", filename = "aggregation.png", dpi = 500)
 
+agg_biases_5 <- aggregation_5$biases
+write.csv(agg_biases_5, "agg_biases_5.csv")
 
 coverages5 <- aggregation_5$coverages_df
 write.csv(coverages5, "coverages_p5.csv")
@@ -253,14 +294,17 @@ b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
 aggregation_15 <- aggregation_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
-#aggregation_5$plot
+aggregation_5$plot
 #ggsave(path = "figs", filename = "aggregation.png", dpi = 500)
 
+agg_biases_15 <- aggregation_15$biases
+write.csv(agg_biases_15, "agg_biases_15.csv")
 
 coverages15 <- aggregation_15$coverages_df
 write.csv(coverages15, "coverages_p15.csv")
 
 ```
+
 
 ```{r aggregate p_err25, results = 'hide', warning=FALSE}
 std_p = 0.25
@@ -271,12 +315,67 @@ b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
 b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
-aggregation_25 <- aggregation_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+# aggregation_25 <- aggregation_fcn(50, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+# aggregation_25$plot
 
+# agg_biases_25 <- aggregation_25$biases
+# write.csv(agg_biases_25, "agg_biases_25.csv")
 
-coverages25 <- aggregation_25$coverages_df
-write.csv(coverages25, "coverages_p25.csv")
+# coverages25 <- aggregation_25$coverages_df
+# write.csv(coverages25, "coverages_p25.csv")
 
+pixelcounty_25 <- pixelcluster_fcn(50, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+
+cover_pixelcounty_25 <- pixelcounty_25$covermat
+
+```
+
+```{r agg bias and rmse, results = 'hide', warning=FALSE}
+
+# creating RMSE csv
+RMSE <- function (x) sqrt(mean((x-0)^2))
+rmse_p <- data.frame(
+  "0" = unlist(lapply(agg_biases, FUN = RMSE)),
+  "0.05" = unlist(lapply(agg_biases_5, FUN = RMSE)),
+  "0.15" = unlist(lapply(agg_biases_15, FUN = RMSE)),
+  "0.25" = unlist(lapply(agg_biases_25, FUN = RMSE))
+  , check.names = FALSE
+)
+write.csv(rmse_p, "rmse_p.csv")
+
+# creating bias csv
+biases_p <- data.frame("0" = colMeans(agg_biases) , "0.05" = colMeans(agg_biases_5), "0.15" = colMeans(agg_biases_15), "0.25" = colMeans(agg_biases_25) ,check.names = FALSE)
+write.csv(rmse_p, "bias_p.csv")
+
+```
+
+```{r plot rmse, results = 'hide', warning=FALSE}
+
+rmse_plot_df <- rmse_p %>%
+  rownames_to_column(var = "aggregation") %>%
+  melt(variable.name = "sigma_p", value.name = "RMSE" )
+
+plot_rmse = ggplot(data = rmse_plot_df, aes(x = as.numeric(as.character(sigma_p)), y = RMSE, colour = aggregation)) +
+    geom_line(size = 1.2) +
+  geom_hline(yintercept = 0, linetype = "dashed")+
+    theme(plot.caption = element_text(hjust = 0.5))+
+    labs(x= "standard error of property level disturbances")
+plot_rmse
+
+ggsave(path = "figs", filename = "rmse_p.png", dpi = 500)
+
+bias_plot_df <- biases_p %>%
+  rownames_to_column(var = "aggregation") %>%
+  melt(variable.name = "sigma_p", value.name = "bias" )
+
+plot_bias = ggplot(data = bias_plot_df, aes(x = as.numeric(as.character(sigma_p)), y = bias, colour = aggregation)) +
+    geom_line(size = 1.2) +
+  geom_hline(yintercept = 0, linetype = "dashed")+
+    theme(plot.caption = element_text(hjust = 0.5))+
+    labs(x= "standard error of property level disturbances")
+plot_bias
+
+ggsave(path = "figs", filename = "bias_p.png", dpi = 500)
 
 ```
 
