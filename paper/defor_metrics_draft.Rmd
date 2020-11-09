@@ -323,21 +323,38 @@ While dropping pixels in the periods after they first become cleared does genera
 
 ## Two-way fixed effects proof
 
-We can show that in the case where the binary outcome is dropped in periods after the outcome is realized as a 1, two-way fixed effects regressions typically do not identify the ATT, but the ATT + the group difference. 
+In settings with a binary and unrepeatable outcome variable, the commonly used pixel level TWFE model yields the post-treatment difference in outcomes (single difference), rather than the desired estimand (average treatment effect on the treated).
 
 proof:
 
-Consider the regression
-$$ y_{it}=\alpha+\eta d2_t+\tau w_{it}+c_i+u_{it}, \text{ for } t=1,2 $$
+Consider a two-period setting $(t=1,2)$ with multiple pixels indexed by $i$. We observe $y_{it}$, the realized deforestation occurring in each pixel in each time period. Some units are exposed to a policy treatment in the second time period $(w_{i,2}=1)$. Using the potential outcomes framework, we consider the potential outcomes for each observation as $y_{i,2}(w_{i,2})$. In this notation, the treatment effect for unit $i$ can be defined as
 
-$y_{it}$ is the binary outcome; $w_{it}$ is a dummy equal to 1 when unit $i$ is treated in time $t$; $d2_t$ is a dummy for the second time period; $c_i$ is an observed effect for unit i.
+$$\tau_i = y_{i,2}(1) - y_{i,2}(0) $$
 
-Jones and Lewis (2015) advise to drop unit $i$ in periods $t+1,..., T$ when $y_{it}=1$.
+<!-- We are interested in estimating the average treatment effect on the treated (ATT), which can be defined as: -->
 
-In the two period case, we have 
+In many deforestation maps generated through remote sensing, deforestation is represented as a binary indicator. Furthermore, deforestation is only observed once for a given location since these data products typically do not monitor the timing of reforestation. Given these constraints, deforestation is typically (@alix-garciaandgibbs2017; @jones2015) represented as a binary, unrepeatable variable taking the following values: 
+
 $$ y_{i1}=\alpha+\tau w_{i1}+c_i+u_{i1}$$
+\[y_{it}= \begin{cases} 
+      0 & \text{the pixel has never been deforested}\\
+      1 & \text{the pixel was deforested in year }t\\
+      NAN & \text{the pixel was deforested in a year }<t\\
+   \end{cases}
+\]
+
+The traditional two-way fixed effects model seeks to estimate this effect using the following regression specification:
+
+$$ y_{it}=\alpha+\beta w_{it}+\gamma_i+\eta_t+u_{it}, \text{ for } t=1,2 $$
+
+Taking into account the data structure of $y_{it}$ and our two-period case, we are left with:
+
+$$ y_{i1}=\alpha+\gamma_i+u_{i1}$$
+
+and
+
 \[y_{i2}= \begin{cases} 
-      \alpha+\eta d2_2+\tau w_{i2}+c_i+u_{i2} & y_{i1}= 0\\
+      \alpha+\beta w_{i2}+\gamma_i+\eta_{t=2} + u_{i2} & y_{i1}= 0\\
       NAN & y_{i1} \neq 0 
    \end{cases}
 \]
@@ -346,47 +363,57 @@ $$ y_{i1}=\alpha+\tau w_{i1}+c_i+u_{i1}$$
 First differencing,
 
 \[y_{i2}-y_{i1}= \begin{cases} 
-  \alpha+\eta d2_2+\tau w_{i2}+c_i+u_{i2} - \alpha-\tau w_{i1}-c_i-u_{i1} & y_{i1}= 0\\
+      (\alpha+\beta w_{i2}+\gamma_i+\eta_{t=2} + u_{i2}) - (\alpha+\gamma_i+u_{i1}) & y_{i1}= 0\\
       NAN & y_{i1} \neq 0 
    \end{cases}
 \]
+
+
+Consider the regression
+$$ y_{it}=\alpha+\eta d2_t+\tau w_{it}+c_i+u_{it}, \text{ for } t=1,2 $$
+
 
  Focusing on the first case, where $y_{i1}=0$
 \begin{align*}
-y_{i2}-y_{i1}&=\alpha+\eta d2_2+\tau w_{i2}+c_i+u_{i2} - \alpha-\tau w_{i1}-c_i-u_{i1}\\
-&= \alpha+\eta d2_2+\tau w_{i2}+c_i+u_{i2} - \alpha-c_i-u_{i1}\\
-&= \eta d2_2+\tau w_{i2}+u_{i2}  -\tau w_{i1} -u_{i1}\\
-&=\eta +\tau w_{i2}+\Delta u_i
+(\alpha+\beta w_{i2}+\gamma_i+\eta_{t=2} + u_{i2}) - (\alpha+\gamma_i+u_{i1})\\
+&=\beta w_{i2} + \eta_{t=2} + \Delta u_{i}
 \end{align*}
 
-Coming back to the general expression,
+
+The general expression can be restated as:
 
 \[y_{i2}-y_{i1}= \begin{cases} 
- \eta +\tau w_{i2}+\Delta u_i & y_{i1}= 0\\
+ \beta w_{i2} + \eta_{t=2} + \Delta u_{i} & y_{i1}= 0\\
       NAN & y_{i1} \neq 0 
    \end{cases}
 \]
 
-(NAN - $(\alpha+\tau w_{i1}+c_i+u_{i1})$ is NAN)
+With binary treatment ($w_{it}$), $\hat{\beta}$, the regression’s estimate of $\beta$ can be expressed as the double difference in mean outcomes across treated / untreated units, and across the two time periods:
 
-We have that with binary $w_{i2}$
+
 \begin{align*}
-\hat{\tau}&= \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i2} - \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i1} - (\frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i2} - \frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i1})
+\hat{\beta}&= \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i2} - \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i1} - (\frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i2} - \frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i1})
 \end{align*}
 
 , where $n_{ST}$ and $n_{SU}$ are the number of surviving treated and untreated units such that $y_{i1}=0$, respectively. 
 
-Note: Since this captures where $y_{i1}=0$, we have $\frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i1}=0$ and $\frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i1}=0$ 
+Since this captures where $y_{i1}=0$, we have $\frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i1}=0$ and $\frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i1}=0$ 
 
-Then,   
+Then restating the expression:   
 
 \begin{align*}
-\hat{\tau}&= \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i2} - 0 - (\frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i2} - 0)\\
+\hat{\beta}&= \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i2} - 0 - (\frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i2} - 0)\\
+\end{align*}
+
+Applying the potential outcomes to indicate whether we see the treated or untreated outcome:
+\begin{align*}
 &= \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i2}(1) - \frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i2}(0)\\
- &(\text{whether we see treated or untreated outcome})\\
+\end{align*}
+
+Finally, adding and subtracting $\frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i2}(0)$ gives:
+\begin{align*}
 &=    \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i2}(1) - y_{i2}(0)  \\
 +& \frac{1}{n_{ST}}\sum_{i:w_i=1}y_{i2}(0) - \frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i2}(0) \\
-&(\text{adding and subtracting $\frac{1}{n_{ST}}\sum_{i:w_i=1}y_{i2}(0)$})\\
 &= ATT+Diff\\
 \blacksquare &
 \end{align*}
