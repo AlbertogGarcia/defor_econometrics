@@ -77,7 +77,7 @@ Figure 2 displays intuition behind the DID estimator in the context of our simul
 
 <!-- Albert: I tried to incorporate most of the information that was in this paragraph to the figure caption -->
 
-```{r, echo=FALSE,out.width="49%", fig.cap="Left: Deforestation across two time periods in the landscape; Right: The DID estimator ("estimated $ATT$") amounts to the difference in pre-treatment deforestation rates ("pre-treatment difference") minus the post-treatment difference in deforestation rates ("post-treatment difference") between units with and without the intervention.", fig.show='hold', fig.pos = 'H'}
+```{r, echo=FALSE,out.width="49%", fig.cap="Left: Deforestation across two time periods in the landscape; Right: The DID estimator (estimated ATT) amounts to the difference in pre-treatment deforestation rates (pre-treatment difference) minus the post-treatment difference in deforestation rates (post-treatment difference) between units with and without the intervention.", fig.show='hold', fig.pos = 'H'}
 knitr::include_graphics(c("figs/twoperiod_landscape.png","figs/did_trends.png"))
 ```
 
