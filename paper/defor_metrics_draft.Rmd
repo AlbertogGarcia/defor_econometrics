@@ -35,11 +35,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 <!-- To do: -->
-<!-- - figure captions/legends (did labels annd brackets, legends, and figure 2 alignment) -->
 <!-- - citations -->
 <!-- - functional form: emphasize disciplinary differences in approaches -->
 <!-- - motivate advantages of TWFE in TWFE section -->
 <!-- - give grid cell and property size some context -->
+<!-- - summary figure for specifications -->
 
 <!-- Possible extensions: -->
 <!-- - weighting possibilities -->
@@ -236,7 +236,7 @@ Table 3 shows that property level unobservables negatively impact coverage at ev
 
 Upon examining Table 3, we see that clustering to the respective level of aggregation does indeed improve the coverage probability in the presence of property level unobservables. Property level aggregation leads to preferred coverage probabilities, regardless of the standard error structure. When using the pixel as the unit of analysis, clustering standard errors at the property level leads to improved coverage probability, however, as mentioned above, the pixel level analyses suffer from increased bias and RMSE. These results highlight the benefit of using the relevant decision-making unit as the unit of analysis as well as clustering standard errors at that level. 
 
-In many instances, researchers do not have access to geospatial boundaries of the relevant decision-making unit. We see in Figure 6 that county and grid cell level aggregation lead to lower levels of bias and RMSE than pixel level specifications when property unobservables are present. County level aggregation leads to the best coverage in the absence of property boundaries, meaning that a larger, alternative administrative unit containing the relevant decision-making units may be the best alternative when an adequate number of observations are available. 
+In many instances, researchers do not have access to geospatial boundaries of the relevant decision-making unit. We see in Figure 6 that county and grid cell level aggregation lead to lower levels of bias and RMSE than pixel level specifications when property unobservables are present. County level aggregation leads to the best coverage in the absence of property boundaries, meaning that a larger, alternative administrative unit containing the relevant decision-making units may be the best alternative when an adequate number of observations are available. If a pixel level analysis is used (potentially due to constraints on geospatial boundary access), we see that coverage is improved when standard errors are clustered to a higher level of aggregation such as the grid cell. 
 
 ```{r table3, echo = FALSE, results = "asis", fig.show='hold'}
 
