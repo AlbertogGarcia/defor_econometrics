@@ -23,7 +23,7 @@ aggregation_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1,
   
   pixloc <- pixloc_df
   
-  covermat <- matrix(nrow = n, ncol = 9)
+  covermat <- matrix(nrow = n, ncol = 10)
   coeffmatrix <- matrix(nrow = n, ncol = 4)
   
   for(i in 1:n){
@@ -148,34 +148,45 @@ aggregation_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1,
       filter_all(all_vars(!is.infinite(.)))
     
     
-    DID1 <- plm(deforrate ~  post*treat, 
-                data   = gridlevel_df, 
-                #weights=(gridlevel_df$garea),
-                method = "within", #fixed effects model
-                effect = "twoway", #property and year fixed effects
-                index  = c("grid", "year")
-    )
+    # DID1 <- plm(deforrate ~  post*treat,
+    #             data   = gridlevel_df,
+    #             #weights=(gridlevel_df$garea),
+    #             method = "within", #fixed effects model
+    #             effect = "twoway", #property and year fixed effects
+    #             index  = c("grid", "year")
+    # )
+    
+    DID1 <- feols(deforrate ~  post*treat|year+grid, data = gridlevel_df)
     
     # run two-way fixed effects with outcome 1 
-    DID2 <- plm(deforrate ~  post*treat, 
-                data   = proplevel_df, 
-                #weights=(proplevel_df$parea),
-                method = "within", #fixed effects model
-                effect = "twoway", #property and year fixed effects
-                index  = c("property", "year")
-    )
+    # DID2 <- plm(deforrate ~  post*treat, 
+    #             data   = proplevel_df, 
+    #             #weights=(proplevel_df$parea),
+    #             method = "within", #fixed effects model
+    #             effect = "twoway", #property and year fixed effects
+    #             index  = c("property", "year")
+    # )
     
-    DID3 <- plm(deforrate ~  post*treat, 
-                data   = countylevel_df, 
-                #weights=(countylevel_df$carea),
-                method = "within", #fixed effects model
-                effect = "twoway", #county and year fixed effects
-                index  = c("county", "year")
-    )
+    DID2 <- feols(deforrate ~  post*treat|year+property, data = proplevel_df)
     
-    DID4 <- lm(y_it ~  post*treat, 
-               data   = panels
-    )
+    
+    # DID3 <- plm(deforrate ~  post*treat, 
+    #             data   = countylevel_df, 
+    #             #weights=(countylevel_df$carea),
+    #             method = "within", #fixed effects model
+    #             effect = "twoway", #county and year fixed effects
+    #             index  = c("county", "year")
+    # )
+    
+    DID3 <- feols(deforrate ~  post*treat|year+county, data = countylevel_df)
+    
+    
+    # DID4 <- lm(y_it ~  post*treat, 
+    #            data   = panels
+    # )
+    
+    DID4 <- feols(y_it ~  post*treat, data = panels)
+    
     
     #calculating bias from each aggregation method
     coeffmatrix[i,1] <- DID1$coefficients - ATT
@@ -183,39 +194,40 @@ aggregation_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1,
     coeffmatrix[i,3] <- DID3$coefficients - ATT
     coeffmatrix[i,4] <- DID4$coefficients[4] - ATT
     
+    # classical standard errors
+    se1 <- summary(DID1)$se[1]
+    se2 <- summary(DID2)$se[1]
+    se3 <- summary(DID3)$se[1]
+    se4 <- summary(DID4)$se[4]
     
+    #clustering at group level for aggragated analyses
+    cluster_se1    <- summary(DID1, cluster = ~grid)$se[1]
+    cluster_se2    <- summary(DID2, cluster = ~property)$se[1]
+    cluster_se3    <- summary(DID3, cluster = ~county)$se[1]
     
-    #calculating standard errors and whether att is within CI
+    # clustered pixel level standard errors
+    cluster_prop_pix  <- summary(DID4, cluster = ~property)$se[4]
+    cluster_grid_pix <- summary(DID4, cluster = ~grid)$se[4]
+    cluster_county_pix <- summary(DID4, cluster = ~county)$se[4]
     
-    # clustering standard errors at group level
-    cluster_se1    <- sqrt(diag(vcovHC(DID1, type = "HC0", cluster = "group")))
-    cluster_se2    <- sqrt(diag(vcovHC(DID2, type = "HC0", cluster = "group")))
-    cluster_se3    <- sqrt(diag(vcovHC(DID3, type = "HC0", cluster = "group")))
+    #whether att is within CI
+    
+    # coverage with clustered standard errors at group level
     covermat[i,1] <- between(ATT, DID1$coefficients - 1.96 * cluster_se1, DID1$coefficients + 1.96 * cluster_se1)*1
     covermat[i,2] <- between(ATT, DID2$coefficients - 1.96 * cluster_se2, DID2$coefficients + 1.96 * cluster_se2)*1
     covermat[i,3] <- between(ATT, DID3$coefficients - 1.96 * cluster_se3, DID3$coefficients + 1.96 * cluster_se3)*1
     
     # classical standard errors
-    se1 <- sqrt(DID1$vcov)
-    se2 <- sqrt(DID2$vcov)
-    se3 <- sqrt(DID3$vcov)
-    se4 <- sqrt(diag(vcovHC(DID4)))[4]
     covermat[i,4] <- between(ATT, DID1$coefficients - 1.96 * se1, DID1$coefficients + 1.96 * se1)*1
     covermat[i,5] <- between(ATT, DID2$coefficients - 1.96 * se2, DID2$coefficients + 1.96 * se2)*1
     covermat[i,6] <- between(ATT, DID3$coefficients - 1.96 * se3, DID3$coefficients + 1.96 * se3)*1
     covermat[i,7] <- between(ATT, DID4$coefficients[4] - 1.96 * se4, DID4$coefficients[4] + 1.96 * se4)*1
     
-    
-    # property clusters
-    cluster_prop_pix    <- sqrt(diag(vcovCR(DID4, panels$property, type="CR1")))[4]
+    # coverage with pixel level analyses clustered at different levels
     covermat[i,8] <- between(ATT, DID4$coefficients[4] - 1.96 * cluster_prop_pix, DID4$coefficients[4] + 1.96 * cluster_prop_pix)*1
-    
-    cluster_grid_pix    <- sqrt(diag(vcovCR(DID4, panels$grid, type="CR1")))[4]
     covermat[i,9] <- between(ATT, DID4$coefficients[4] - 1.96 * cluster_grid_pix, DID4$coefficients[4] + 1.96 * cluster_grid_pix)*1
+    covermat[i,10] <- between(ATT, DID4$coefficients[4] - 1.96 * cluster_county_pix, DID4$coefficients[4] + 1.96 * cluster_county_pix)*1
     
-    # cluster_county_pix    <- sqrt(diag(vcovCR(DID4, panels$county, type="CR1")))[4]
-    # covermat[i,10] <- between(ATT, DID4$coefficients[4] - 1.96 * cluster_county_pix, DID4$coefficients[4] + 1.96 * cluster_county_pix)*1
-    # 
     print(i)
     toc()
   }
@@ -257,7 +269,7 @@ aggregation_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1,
                    'county',
                    'pixel',
                    'pixel',
-                   #'pixel',
+                   'pixel',
                    'pixel'
   )
   
@@ -270,7 +282,7 @@ aggregation_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1,
                  'classical'
                  , 'clustered at property',
                  'clustered at grid'
-                # , 'clustered at county'
+                 , 'clustered at county'
   )
   
   coverages_df <- data.frame(aggregation, std_error, coverage = colMeans(covermat)) 
