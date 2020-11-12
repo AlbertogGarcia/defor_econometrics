@@ -162,7 +162,7 @@ vary_rate_funcform_agg <- function(n, nobs, years, base_0_start, base_1_start, t
   outbias_df4 <- as.data.frame(cbind(colMeans(out_matrix4), multipliers)) 
   outbias_df5 <- as.data.frame(cbind(colMeans(out_matrix5), multipliers)) 
   
-  colors <- c("Grid Level Linear Model" = "red", 
+  colors <- c("Grid Level Linear Model" = "green", 
               "Grid Level Poisson" = "purple",
               "Binary Linear Probability Model" = "red", 
               "Binary Probit" = "yellow",

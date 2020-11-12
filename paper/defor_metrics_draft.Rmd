@@ -2,7 +2,7 @@
 title: Practical guidance for conservation impact evaluation using remotely sensed
   data
 author: "Alberto Garcia and Robert Heilmayr"
-date: "October 23, 2020"
+date: "November 10, 2020"
 output:
   pdf_document:
     latex_engine: xelatex
@@ -234,9 +234,9 @@ knitr::include_graphics(c("figs/bias_p.png", "figs/rmse_p.png"))
 
 Table 3 shows that property level unobservables negatively impact coverage at every level if classical standard errors are used. As property level unobservables play a larger role, the treatment of standard errors also becomes more important. Almost all studies in the literature use clustered standard errors for inference. The clustering problem is caused by the presence of a common unobserved random shock at the group level that will lead to correlation between all observations within a group [@hansen2007]. We have introduced the random shock at the property level in our guiding example to represent individual landowner preferences or property characteristics. As such, correlation within grids and counties will also be introduced, since they contain multiple pixels within a property. Clustering standard errors relaxes the assumption of no correlation across observations within the spatial unit used for clustering [@jones2015]. 
 
-Upon examining Table 3, we see that clustering to the respective level of aggregation does indeed improve the coverage probability in the presence of property level unobservables. Property level aggregation leads to preferred coverage probabilities, regardless of the standard error structure. When using the pixel as the unit of analysis, clustering standard errors at the property level leads to improved coverage probability, however, as mentioned above, the pixel level analyses suffer from increased bias and RMSE. These results highlight the benefit of using the relevant decision-making unit as the unit of analysis as well as clustering standard errors at that level. 
+Upon examining Table 3, we see that clustering to the respective level of aggregation does indeed improve the coverage probability in the presence of property level unobservables. Property level aggregation generally leads to preferred coverage probabilities, regardless of the standard error structure. These results highlight the benefit of using the relevant decision-making unit as the unit of analysis as well as clustering standard errors at that level. 
 
-In many instances, researchers do not have access to geospatial boundaries of the relevant decision-making unit. We see in Figure 6 that county and grid cell level aggregation lead to lower levels of bias and RMSE than pixel level specifications when property unobservables are present. County level aggregation leads to the best coverage in the absence of property boundaries, meaning that a larger, alternative administrative unit containing the relevant decision-making units may be the best alternative when an adequate number of observations are available. If a pixel level analysis is used (potentially due to constraints on geospatial boundary access), we see that coverage is improved when standard errors are clustered to a higher level of aggregation such as the grid cell. 
+In many instances, researchers do not have access to geospatial boundaries of the relevant decision-making unit. We see in Figure 6 that county and grid cell level aggregation lead to lower levels of bias and RMSE than pixel level specifications when property unobservables are present. County level aggregation leads to the best coverage in the absence of property boundaries, meaning that a larger, alternative administrative unit containing the relevant decision-making units may be the best alternative when an adequate number of observations are available. If a pixel level analysis is used (potentially due to constraints on geospatial boundary access), we see that coverage is greatly improved when standard errors are clustered to a higher level of aggregation such as the coounty.  
 
 ```{r table3, echo = FALSE, results = "asis", fig.show='hold'}
 

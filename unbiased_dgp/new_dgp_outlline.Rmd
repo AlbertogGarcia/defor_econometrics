@@ -224,16 +224,16 @@ ggsave(path = "figs", filename = "outcome.png", dpi = 500)
 
 ```{r aggregate, results = 'hide', warning=FALSE}
 aggregation <- aggregation_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
-aggregation$plot
+#aggregation$plot
 
-ggsave(path = "figs", filename = "aggregation.png", dpi = 500)
+#ggsave(path = "figs", filename = "aggregation.png", dpi = 500)
 
 agg_biases <- aggregation$biases
 #write.csv(agg_biases, "agg_biases.csv")
 
 
 coverages_df <- aggregation$coverages_df
-#write.csv(coverages_df, "coverages.csv")
+write.csv(coverages_df, "coverages.csv")
 
 ```
 
@@ -273,11 +273,11 @@ b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
 aggregation_5 <- aggregation_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
-aggregation_5$plot
+#aggregation_5$plot
 #ggsave(path = "figs", filename = "aggregation.png", dpi = 500)
 
 agg_biases_5 <- aggregation_5$biases
-write.csv(agg_biases_5, "agg_biases_5.csv")
+#write.csv(agg_biases_5, "agg_biases_5.csv")
 
 coverages5 <- aggregation_5$coverages_df
 write.csv(coverages5, "coverages_p5.csv")
@@ -294,11 +294,11 @@ b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
 aggregation_15 <- aggregation_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
-aggregation_5$plot
+#aggregation_5$plot
 #ggsave(path = "figs", filename = "aggregation.png", dpi = 500)
 
 agg_biases_15 <- aggregation_15$biases
-write.csv(agg_biases_15, "agg_biases_15.csv")
+#write.csv(agg_biases_15, "agg_biases_15.csv")
 
 coverages15 <- aggregation_15$coverages_df
 write.csv(coverages15, "coverages_p15.csv")
@@ -315,18 +315,18 @@ b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
 b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
-# aggregation_25 <- aggregation_fcn(50, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+aggregation_25 <- aggregation_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
 # aggregation_25$plot
 
-# agg_biases_25 <- aggregation_25$biases
+agg_biases_25 <- aggregation_25$biases
 # write.csv(agg_biases_25, "agg_biases_25.csv")
 
-# coverages25 <- aggregation_25$coverages_df
-# write.csv(coverages25, "coverages_p25.csv")
+coverages25 <- aggregation_25$coverages_df
+write.csv(coverages25, "coverages_p25.csv")
 
-pixelcounty_25 <- pixelcluster_fcn(50, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
-
-cover_pixelcounty_25 <- pixelcounty_25$covermat
+# pixelcounty_25 <- pixelcluster_fcn(100, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+# 
+# cover_pixelcounty_25 <- pixelcounty_25$covermat
 
 ```
 
