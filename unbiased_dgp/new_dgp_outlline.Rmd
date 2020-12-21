@@ -36,7 +36,7 @@ source('functionalform_agg.R')
 
 source('outcome_fcn.R')
 source('aggregation_fcn.R')
-source('pixelcluster_fcn.R')
+#source('pixelcluster_fcn.R')
 
 source('vary_outcome_defor.R')
 source('vary_outcome_yr.R')
@@ -228,7 +228,7 @@ aggregation <- aggregation_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, st
 
 #ggsave(path = "figs", filename = "aggregation.png", dpi = 500)
 
-agg_biases <- aggregation$biases
+#agg_biases <- aggregation$biases
 #write.csv(agg_biases, "agg_biases.csv")
 
 
@@ -280,7 +280,7 @@ agg_biases_5 <- aggregation_5$biases
 #write.csv(agg_biases_5, "agg_biases_5.csv")
 
 coverages5 <- aggregation_5$coverages_df
-write.csv(coverages5, "coverages_p5.csv")
+#write.csv(coverages5, "coverages_p5.csv")
 
 ```
 

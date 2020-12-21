@@ -11,6 +11,7 @@ library(DataCombine)
 library(dplyr)
 library(tidyverse)
 library(tictoc)
+library(fixest)
 source('full_landscape.R')
 
 #begin function
@@ -195,10 +196,10 @@ aggregation_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1,
     coeffmatrix[i,4] <- DID4$coefficients[4] - ATT
     
     # classical standard errors
-    se1 <- summary(DID1)$se[1]
-    se2 <- summary(DID2)$se[1]
-    se3 <- summary(DID3)$se[1]
-    se4 <- summary(DID4)$se[4]
+    se1 <- summary(DID1, se = "hetero")$se[1]
+    se2 <- summary(DID2, se = "hetero")$se[1]
+    se3 <- summary(DID3, se = "hetero")$se[1]
+    se4 <- summary(DID4, se = "hetero")$se[4]
     
     #clustering at group level for aggragated analyses
     cluster_se1    <- summary(DID1, cluster = ~grid)$se[1]
