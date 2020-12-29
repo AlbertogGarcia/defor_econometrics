@@ -51,10 +51,12 @@ knitr::opts_chunk$set(echo = FALSE, warnings = FALSE, messages = FALSE, out.widt
 
 
 # Abstract {-}
-Conservation practitioners need rigorous evidence measuring the effectiveness of proposed policy interventions. Increasingly, scientists are generating this evidence by applying methods of impact evaluation to remotely sensed data on land use change. Here we review this burgeoning literature to develop practical guidance for the design of econometric models quantifying conservation policy effectiveness. Using Monte Carlo simulations and analytical proofs, we demonstrate that many of the models employed for conservation impact evaluation are biased - the significance, magnitude and even direction of estimated effects from many studies may be incorrect. These errors threaten to undermine the evidence base that is increasingly used to inform conservation policy adoption and design. We demonstrate that careful design of econometric models can minimize this bias to better inform conservation.
+Conservation practitioners need rigorous evidence measuring the effectiveness of proposed policy interventions. Increasingly, scientists are generating this evidence by applying methods of impact evaluation to remotely sensed data on land use change, however, these applications come with new challenges. Using Monte Carlo simulations and analytical proofs, we demonstrate that many of the models employed for conservation impact evaluation are biased - the significance, magnitude and even direction of estimated effects from many studies may be incorrect. These errors threaten to undermine the evidence base that is increasingly used to inform conservation policy adoption and design. We review this burgeoning literature and develop practical guidance for the design of econometric models quantifying conservation policy effectiveness. 
 
 # Introduction
 The founding goal of conservation biology was to provide principles and tools to preserve biological diversity [@soule1985]. To live up to this goal, scientists must generate causal evidence detailing the effectiveness of  conservation interventions [@williams2020]. Such evidence is critical for practitioners who grapple with challenging questions of cause and effect. Do marine protected areas stop unsustainable harvesting of fish? Can payments for ecosystem services encourage lasting reforestation? When successful, conservation science provides answers that improve the way society confronts environmental challenges. However, inappropriate methods can yield misleading conclusions and, as a result, risk diverting scarce financial and political resources from the most effective conservation strategies.
+
+<!-- Kelsey - What about starting with an example? Something to give a hook, articulate why RS data are a powerful contribution to IE in conservation, but one with pitfalls? Then get back to the general stuff —  -->
 
 Increasingly, conservation science has turned to econometric methods of impact evaluation to disentangle causal relationships [@butsic2017; @baylis2016]. While randomized experiments are the gold standard for scientific discovery in both the natural and social sciences [@edwards2020; @jayachandran2017], conservation often poses questions that are prohibitively expensive, unethical or impossible to pursue through experimentation. In such settings, a growing portfolio of statistical techniques enable researchers to draw causal conclusions using observational data [@larsen2019]. These methods generate accurate estimates of an intervention's impact by comparing observed outcomes to a rigorous counterfactual of what would have happened in the absence of an intervention [@ferraro2009; @meyfroidt2016; @ferraro2019; @ribas2020]. Importantly, these methods account for the non-random assignment of interventions that often confound identification of causal relationships; a low rate of deforestation within a remote protected area may reflect the protected area's effectiveness, or it may be indicative of the remote location's poor suitability for agricultural development [@andam2008; @pfaff2009]. A diversity of research designs such as regression discontinuity, synthetic control, matching, instrumental variables and event studies have been used to generate statistical counterfactuals of conservation interventions [@butsic2017]. These approaches frequently build upon panel data settings in which units are observed repeatedly through time, enabling researchers to observe changes in outcomes after the adoption of an intervention [@blackman2013]. When a rigorous research design is applied to panel data, observational studies can yield conclusions that are comparable to what a researcher would discover if they were able to run a randomized experiment [@ferraro2017].
 
@@ -63,17 +65,19 @@ Conservation impact evaluation increasingly makes use of panel data thanks, in l
 However, many of these remotely sensed metrics have structural differences from the data used in more traditional applications of causal inference. These differences include the underlying error structure of generated data products and unique properties of the ecological processes being studied. Here we demonstrate that, as a result of these differences, many of the econometric models used in this growing literature are likely biased - significance, magnitude and even direction of estimated effects might be incorrect. These biases arise even when researchers follow common guidance to adopt "rigorous" research designs with valid counterfactuals [@blackman2013; @jones2015]. Based on a review of the existing literature, we identify key model design decisions that researchers need to make. Using Monte Carlo simulations and analytical proofs, we show how these design decisions affect the validity of causal inference in these settings. Lastly, we illustrate ways in which scientists can tailor these design decisions to minimize bias and better understand the implications of their impact evaluations.
 
 # Key considerations for impact evaluations of deforestation
-We focus on the case in which a researcher would like to quantify the impact that a policy has had on deforestation rates. We assume that the intervention has clearly defined boundaries (e.g. a protected area, certified concession, or indigenous territory), and that the researcher has access to spatially explicit observations of forest cover and forest loss spanning the periods before and after the intervention was adopted. The fundamental problem of causal inference is that, for every treated unit, we fail to observe the value that the outcome would have taken in the absence of treatment [@holland1986]. Figure 1 displays this problem in the context of our simulated conservation intervention --- the landscape is depicted as observed by the researcher at the end of the observation period, including the unobservable counterfactual of what would have happened if the conservation intervention had not been adopted. The researcher's goal is to measure the Average Treatment Effect on the Treated $(ATT)$, which quantifies the avoided deforestation occurring inside treated units. This general setting describes a broad array of research studies that apply panel methods to remotely sensed data (Table 1). 
+
+We focus on the case in which a researcher would like to quantify the impact that a policy has had on deforestation rates. We assume that the intervention has clearly defined boundaries (e.g., a protected area, certified concession, or indigenous territory), and that the researcher has access to spatially explicit observations of forest cover and forest loss spanning the periods before and after the intervention was adopted. The fundamental problem of causal inference is that, for every treated unit, we fail to observe the value that the outcome would have taken in the absence of treatment [@holland1986]. Figure 1 displays this problem in the context of our simulated conservation intervention --- the landscape is depicted as observed by the researcher at the end of the observation period, including the unobservable counterfactual of what would have happened if the conservation intervention had not been adopted. Note that in untreated areas, there is no counterfactual deforestation, since no intervention ever took place. The researcher's goal is to measure the Average Treatment Effect on the Treated $(ATT)$, which quantifies the avoided deforestation occurring inside treated units. This general setting describes a broad array of research studies that apply panel methods to remotely sensed data (Table 1). 
 
 
 ```{r, echo=FALSE, fig.pos = 'H', fig.cap="This figure shows deforestation that would have ocurred in the absence of the conservation intervention at the same point in time, after implementation of the conservation intervention. Note that no counterfactual deforestation occurs in the control area, since no intervention ocurred.", fig.show='hold'}
 knitr::include_graphics("figs/counterfactual.png")
 ```
 
+<!-- In figure legend, change blue and green to "pixels not deforested in intervention area/ in untreated area over the course of the observation period" -->
 
 In panel data settings, two broad methods are often used to measure the impact of conservation interventions: Difference-in-Differences (DID) and Two-way Fixed Effects (TWFE) regression models [@blackman2013; @jones2015]. The typical DID regression model includes a dummy variable equal to one for units in the treatment group, a dummy variable equal to one for observations in the period after the intervention, and their interaction. Conceptually, the DID estimator calculates the treatment effect as the difference between the differences of the treated and untreated observations before and after treatment [@butsic2017]. The DID estimator identifies the ATT under one main assumption, known as the common trends assumption. It amounts to assuming that both units in the intervention area and untreated units would have experienced the same average change in the outcome in the absence of the intervention. While fundamentally untestable, ensuring that deforestation rates in the intervention area and the control area followed parallel trajectories prior to the date of the intervention can give creedence to this assumption [@butsic2017]. 
 
-Figure 2 displays intuition behind the DID estimator in the context of our simulated conservation intervention --- Panel A depicts the deforestation in the landscape as observed by the researcher in the first and second periods, while Panel B depicts how the DID estimator is found, given the deforestation rate trends in the intervention and untreated areas along with the unobservable counterfactual of what would have happened if the conservation intervention had not been adopted.
+Figure 2 displays intuition behind the DID estimator in the context of our simulated conservation intervention --- Panel A depicts the deforestation in the landscape as observed by the researcher in the first versus second periods, while Panel B depicts how the DID estimator is found, given the deforestation rate trends in the intervention and untreated areas along with the unobservable counterfactual of what would have happened if the conservation intervention had not been adopted.
 
 <!-- Albert: I tried to incorporate most of the information that was in this paragraph to the figure caption -->
 
@@ -92,11 +96,13 @@ purpose of this section: how did we settle on these parameters as the focus of o
 More technical discussion of these considerations has been moved to the appendix
 -->
 
-Several key decisions must be made by the researcher in the design of the econometric model for causal inference. We outline some of these design decisions including the choice between DID and TWFE models, the unit of analysis, and functional form. A more in depth discussion of these model decisions can be found in the Appendix. As seen in Table 1, a wide variety of model parameterizations are used in the literature, and some of these may be biased estimators of the treatment effect. We focus on model decisions that are not consistent across the literature and for which little guidance currently exists. 
+<!-- Kelsey: this section feels a little ad hoc. maybe describe how the literature guided choice of where to focus?  -->
 
-Researchers must decide on the unit of analysis for their econometric model, which comes with several implications both for the interpretation of results and consideration of spatial autocorrelation. Analyses using a binary pixel or plot are standard in the literature [@jones2015]. A pixel or grid cell level analysis may be preferable in contexts where there is no clear alternative unit of interest, however, the pixel is often times used without any explanation for why it is preferred to alternative options. This paper explores some of the potential pitfalls of using the pixel as opposed to an aggregated unit of analysis such as a grid cell or administrative unit.  
+Several key decisions must be made by the researcher in the design of the econometric model for causal inference. These include the choice between DID and TWFE models, the unit of analysis, and functional form. A more in depth discussion of these model decisions can be found in the Appendix. As seen in Table 1, a wide variety of model parameterizations are used in the literature, and some of these may be biased estimators of the treatment effect. We focus on model decisions that are not consistent across the literature and for which little guidance currently exists. 
 
-Other papers in the literature choose to conduct analysis at the level of the property or comparable decision making unit. This level of analysis matches the scale at which management decisions often occur [@carlson2018], and has been promoted in the context of PES programs that enroll at the property level. Using the entire area owned by an individual landowner or a larger adminitrative unit such as the county may provide the advantage of accounting for spillover effects that occur when the intervention spurs deforestation on other parts of the relevant unit [@blackman2018; @alix-garcia2014; @arriagada2012]. We consider how aggregation may impact researchers' analyses in the presence and absence of property level unobservables.  
+Researchers must decide on the unit of analysis for their econometric model, which comes with several implications both for the interpretation of results and consideration of spatial autocorrelation. Analyses using a binary pixel or plot are standard in the literature [@jones2015]. A pixel or grid cell (e.g., pixels aggregated to a 5kmx5km grid) level analysis may be preferable in contexts where there is no clear alternative unit of interest, however, the pixel is often times used without any explanation for why it is preferred to alternative options. This paper explores some of the potential pitfalls of using the pixel as opposed to an aggregated unit of analysis such as a grid cell or administrative unit.  
+
+Other papers in the literature choose to conduct analysis at the level of the property or comparable decision making unit. This level of analysis matches the scale at which management decisions often occur [@carlson2018], and has been promoted in the context of PES programs that enroll at the property level. Using the entire area owned by an individual landowner or a larger adminitrative unit such as the county provides the advantage of accounting for spillover effects that occur when the intervention spurs deforestation on other parts of the relevant unit [@blackman2018; @alix-garcia2014; @arriagada2012]. We consider how aggregation may impact researchers' analyses in the presence and absence of property level unobservables.  
 
 The decision of functional form is another often overlooked decison, particularly with a binary measure of forest cover. The vast majority of papers use OLS, maintaining a linear functional form. Few authors explain their reasoning for choosing the preferred functional form of the econometric model. This choice may have an impact on the resulting analysis, particularly in low and high deforestation settings. We evaluate the performance of linear, logit, probit, and poisson models in our setting to see the impact of alternative functional form choices. 
 <!-- Maybe emphasize disciplinary differences in approaches? -->
@@ -275,7 +281,7 @@ knitr::include_graphics(c("figs/vary_func_agg.png"))
 Albert: the results indicate that we want to focus on the trend line, however, I think it might be important to see what is happening with low deforestation rates, since people might expect that to be an instance when functional form is important. It's also a more likely scenario than extremely high deforestation rates. 
 -->
 
-The underlying DGP and error structure play a role in determining which functional form leads to the least bias in a given scenario. Alternative parameterizations may affect which functional form is optimal in a given circumstance. Further, one can imagine a slightly different DGP in which the preferred functional form is different than in our setup. Therefore, authors, regardless of the preferred specification, should justify their choice, taking into account the DGP underlying their specific context. We also recommend that authors ensure the result is robust to alternate functional forms. 
+The underlying DGP and error structure play a role in determining which functional form leads to the least bias in a given scenario. Alternative parameterizations may affect which functional form is optimal in a given circumstance. Further, one can imagine a slightly different DGP in which the preferred functional form is different than in our setup. Therefore, authors, regardless of the preferred specification, should justify their choice, taking into account the data structure underlying their specific context. We also recommend that authors ensure the result is robust to alternate functional forms. 
 
 
 
@@ -320,9 +326,62 @@ We thank the University of California, Santa Barbara's Academic Senate for a Fac
 
 Remotely sensed metrics of deforestation at the pixel level are often subject to the dynamics of forest disturbance and regrowth. After a deforestation event occurs, the deforested area is unlikely to revert to forest cover within the study period, as it takes several years for forest to regenerate to a detectable level. In the panel therefore, it is probable that in the periods after a pixel is first realized as deforested, subsequent observations of the pixel will also observe the pixel as deforested. 
 
-The logic for dropping pixels after they first become deforested is as follows. A forested pixel switches from its assigned value of 0 to a value of 1 following a discrete deforestation event. Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested may imply that it has actively been deforested in each subsequent time period. In fact, no new deforestation event has ocurred, but the area simply remains deforested from the prior event. These pixels, therefore, contribute positively towards the deforestation rate in each period they are left in the panel.
+The logic for dropping binary pixels after they first become deforested is as follows. A forested pixel switches from its assigned value of 0 to a value of 1 following a discrete deforestation event. Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested may imply that it has actively been deforested in each subsequent time period. In fact, no new deforestation event has ocurred, but the area simply remains deforested from the prior event. These pixels, therefore, contribute positively towards the deforestation rate in each period they are left in the panel.
+
+### Analytical proof in two-period two-group case
+
+The DID estimand is
+\begin{align*}
+& E[y_{it} |  t\geq t_0, D_i=1] - E[y_{it} |  t<t_0, D_i=1] - (E[y_{it} |  t\geq t_0, D_i=0] - E[y_{it} |  t<t_0, D_i=0] )\\
+=& P(y_{it}=1 |  t\geq t_0, D_i=1) - P(y_{it}=1 |  t<t_0, D_i=1) - \\
+& (P(y_{it}=1 |  t\geq t_0, D_i=0) - P(y_{it}=1 |  t<t_0, D_i=0) )
+\end{align*}
+
+In the case of an irreversible binary outcome, the first and third terms can be reexpressed, giving
+\begin{align*}
+& P(y_{it}=1 |  t\geq t_0, D_i=1)\cup P(y_{it}=1 |  t<t_0, D_i=1) - P(y_{it}=1 |  t<t_0, D_i=1) - \\
+ & (P(y_{it}=1 |  t\geq t_0, D_i=0)\cup P(y_{it}=1 |  t<t_0, D_i=0) - P(y_{it}=1 |  t<t_0, D_i=0) ) \\
+=& P(y_{it}=1 |  t\geq t_0, D_i=1) + P(y_{it}=1 |  t<t_0, D_i=1) -P(y_{it}=1 |  t\geq t_0, D_i=1)\cap P(y_{it}=1 |  t<t_0, D_i=1) -\\
+& P(y_{it}=1 |  t<t_0, D_i=1) -\\
+& (P(y_{it}=1 |  t\geq t_0, D_i=0) + P(y_{it}=1 |  t<t_0, D_i=0) - P(y_{it}=1 |  t\geq t_0, D_i=0)\cap P(y_{it}=1 |  t<t_0, D_i=0) - \\
+& P(y_{it}=1 |  t<t_0, D_i=0) )\\
+=& P(y_{it}=1 |  t\geq t_0, D_i=1) -P(y_{it}=1 |  t\geq t_0, D_i=1)\cap P(y_{it}=1 |  t<t_0, D_i=1) -\\
+& (P(y_{it}=1 |  t\geq t_0, D_i=0) - P(y_{it}=1 |  t\geq t_0, D_i=0)\cap P(y_{it}=1 |  t<t_0, D_i=0))
+\end{align*}
+
+We can attempt to sign the bias introduced here. The bias will be positive when
+\begin{align*}
+&P(y_{it}=1 |  t\geq t_0, D_i=1) -P(y_{it}=1 |  t\geq t_0, D_i=1)\cap P(y_{it}=1 |  t<t_0, D_i=1) -\\
+& (P(y_{it}=1 |  t\geq t_0, D_i=0) - P(y_{it}=1 |  t\geq t_0, D_i=0)\cap P(y_{it}=1 |  t<t_0, D_i=0))\\
+\geq & ATT\\
+\Leftrightarrow \\
+&P(y_{it}(1)=1 |  t\geq t_0, D_i=1) -P(y_{it}(1)=1 |  t\geq t_0, D_i=1)\cap P(y_{it}(0)=1 |  t<t_0, D_i=1) -\\
+& (P(y_{it}(0)=1 |  t\geq t_0, D_i=0) - P(y_{it}(0)=1 |  t\geq t_0, D_i=0)\cap P(y_{it}(0)=1 |  t<t_0, D_i=0))\\
+\geq & P(y_{it}(1) = 1 | t\geq t_0, D_i=1) - P(y_{it}(0) = 1 | t\geq t_0, D_i=1)\\
+\Leftrightarrow \\
+& P(y_{it}(0) = 1 | t\geq t_0, D_i=1)-P(y_{it}(0)=1 |  t\geq t_0, D_i=0)\\
+\geq & P(y_{it}(1)=1 |  t\geq t_0, D_i=1)\cap P(y_{it}(0)=1 |  t<t_0, D_i=1) - P(y_{it}(0)=1 |  t\geq t_0, D_i=0)\cap P(y_{it}(0)=1 |  t<t_0, D_i=0)\\
+\end{align*}
+
+While it is not possible to sign the bias, it will be positive when:
+\begin{align*}
+P(y_{it}(0) = 1 | t\geq t_0, D_i=1) \geq P(y_{it}(0)=1 |  t\geq t_0, D_i=0)
+\end{align*}
+and
+\begin{align*}
+P(y_{it}(1)=1 |  t\geq t_0, D_i=1) \geq P(y_{it}(0)=1 |  t\geq t_0, D_i=0)
+\end{align*}
+and
+\begin{align*}
+P(y_{it}(0)=1 |  t<t_0, D_i=1) \geq P(y_{it}(0)=1 |  t<t_0, D_i=0)
+\end{align*}
+
+Thus, if the deforestation rate is higher in the treatment group both before and after treatment, the bias will be positive (and vice versa). 
+
+### Monte Carlo evidence
 
 Figure XX demonstrates the magnitude and direction of the bias incurred from keeping deforested pixels in the panel after they are first realized as deforested in the context of our guiding example. Pixels that were deforested prior to the implementation of the policy continued to contribute to the deforestation rate in the post period in both the treatment and control groups. Dropping the pixels in the periods after they are first observed as deforested mitigates this bias in the DID model, as seen in Figure XX. 
+
 
 <!-- If the main point of this figure is to contrast the bias in the two examples here, I'd suggest forcing the x-axes to stay constant across figures. Maybe just easier to drop them both on the same plot? -->
 ```{r, echo=FALSE,out.width="75%", fig.cap="Distribution of DID estimates leaving deforested pixels in the panel and of DID estimates dropping deforested pixels. Note that leaving deforested pixels in the panel incurs severe bias.", fig.pos = 'H', fig.show='hold', fig.align='center'}

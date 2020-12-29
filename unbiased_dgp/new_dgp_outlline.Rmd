@@ -36,7 +36,6 @@ source('functionalform_agg.R')
 
 source('outcome_fcn.R')
 source('aggregation_fcn.R')
-#source('pixelcluster_fcn.R')
 
 source('vary_outcome_defor.R')
 source('vary_outcome_yr.R')
@@ -111,7 +110,7 @@ nobs = 10000
 n = 200
 
 cellsize = 10
-ppoints = 50
+ppoints = 40
 std_p = 0
 cpoints = 20
 
@@ -160,16 +159,6 @@ DID_yit$plot
 ```
 
 
-```{r did defor, results='hide'}
-
-DID_defor <- quickmonte(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, "defor")
-
-DID_defor$plot
-
-#ggsave(path = "figs", filename = "did_defor.png", dpi = 500)
-
-```
-
 ```{r functionalform 1, results='hide'}
 
 
@@ -178,6 +167,16 @@ func <- functionalform(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
 func$plot
 
 ggsave(path = "figs", filename = "func1.png", dpi = 500)
+
+```
+
+```{r did keep and drop, results='hide'}
+
+did_keep <- DID_keep(n, nobs, b0, b1, b2_0, b2_1, b3, std_a, std_v)
+
+did_keep$plot
+
+ggsave(path = "figs", filename = "DID_keep.png", dpi = 500)
 
 ```
 
@@ -202,15 +201,7 @@ ggsave(path = "figs", filename = "twoway.png", dpi = 500)
 
 ```
 
-```{r did keep and drop, results='hide'}
 
-did_keep <- DID_keep(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
-
-did_keep$plot
-
-ggsave(path = "figs", filename = "DID_keep.png", dpi = 500)
-
-```
 
 ```{r functionalform 1, results='hide'}
 
@@ -224,7 +215,7 @@ ggsave(path = "figs", filename = "outcome.png", dpi = 500)
 
 ```{r aggregate, results = 'hide', warning=FALSE}
 aggregation <- aggregation_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
-#aggregation$plot
+aggregation$plot
 
 #ggsave(path = "figs", filename = "aggregation.png", dpi = 500)
 
@@ -232,8 +223,8 @@ aggregation <- aggregation_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, st
 #write.csv(agg_biases, "agg_biases.csv")
 
 
-coverages_df <- aggregation$coverages_df
-write.csv(coverages_df, "coverages.csv")
+# coverages_df <- aggregation$coverages_df
+# write.csv(coverages_df, "coverages.csv")
 
 ```
 
