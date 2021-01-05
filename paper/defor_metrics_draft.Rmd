@@ -132,8 +132,18 @@ kable(lit_table, format = "latex",
 
 
 # Methods
+
+We employ a series of Monte Carlo simulations alongside analytical proofs in order to evaluate the benefits and pitfalls of different econometric model specifications. Monte Carlo simulations allow us to (1) generate synthetic landscapes with known policy effectiveness and (2) analyze the performance of econometric models in estimating the policy's known impact. Doing so provides additional support for our analytical results as well as evidence of the tradeoffs made when using different models. Our general findings include the following:
+
+\begin{enumerate}
+\item In the case of an pixelated (binary) forest cover outcome, observations must be dropped in the periods after a pixel first becomes deforested. This is shown via analytical proof and Monte Carlo simulations. 
+\item Pixel level TWFE regression models with a binary forest cover outcome do not identify the $ATT$, but in fact, identify a simple post-treatment difference in outcomes ($ATT$ plus the pre-treatment difference in outcomes). This is shown via analytical proof and Monte Carlo simulations.
+\item Property-level unobservables negatively impact model bias, coverage, and RMSE when the unit of analysis is too large or too small relative to the true decision-making unit. This is shown via Monte Carlo simulations.
+\item Choice of model functional form may play a larger role in particularly high and low deforestation settings. This is shown via Monte Carlo simulations.
+\end{enumerate}
+
 ## Monte Carlo simulations
-We employ a series of Monte Carlo simulations to (1) generate synthetic landscapes with known policy effectiveness and (2) analyze the performance of different econometric models in estimating the policy's known impact. Our landscape consists of administrative units that are either untreated $(D=0)$ or are assigned to a conservation treatment $(D=1)$. We observe deforestation in two, even-length periods, a pre-treatment $(t < t_{0})$ and a post-treatment $(t \ge t_{0})$ period. 
+Our landscape consists of administrative units that are either untreated $(D=0)$ or are assigned to a conservation treatment $(D=1)$. We observe deforestation in two, even-length periods, a pre-treatment $(t < t_{0})$ and a post-treatment $(t \ge t_{0})$ period. 
 
 The data generating process underlying our Monte Carlo simulations begins with the assignment of five parameters: The mean, pre-treatment period deforestation rate for untreated units, $baseline_0$; the mean, pre-treatment period deforestation rate for treated units, $baseline_1$; untreated units' mean change in deforestation rates occurring between the pre- and post-treatment periods, $trend_0$; treated units' mean counterfactual change in deforestation rates occurring between the pre- and post-treatment periods in the absence of treatment, $trend_1$; and lastly, the average treatment effect of the policy on the treated units, $ATT$. The researcher's primary goal is to estimate ATT. In all of our simulations, we impose parallel trends (i.e. set $trend_0 = trend_1$). 
 
@@ -182,7 +192,7 @@ We use three primary criteria to compare econometric models: bias, RMSE, and cov
 
 ## Issue using TWFE with binary outcome
 
-Analyses at the pixel level are prevalent in the literature, as seen in Table 1. Further, it has often been promoted as the preferred unit of analysis in many cases. To account for the fact that deforested pixels generally do not revert back to forest cover over the course of the study period, it has been advised to drop deforested pixels in the periods after they first become deforested [@jones2015; @alix-garcia2017]. Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested may imply that it has actively been deforested in each subsequent time period, when in fact, no new deforestation event has ocurred. These pixels, therefore, contribute unwarrantedly toward the deforestation rate in each additional period they are left in the panel. We show in the Appendix (7.1) that regression models failing to drop deforested pixels in subsequent periods do indeed incur severe bias. 
+Analyses at the pixel level are prevalent in the literature, as seen in Table 1. Further, it has often been promoted as the preferred unit of analysis in many cases. To account for the fact that deforested pixels generally do not revert back to forest cover over the course of the study period, it has been advised to drop deforested pixels in the periods after they first become deforested [@jones2015; @alix-garcia2017]. Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested may imply that it has actively been deforested in each subsequent time period, when in fact, no new deforestation event has ocurred. These pixels, therefore, contribute unwarrantedly toward the deforestation rate in each additional period they are left in the panel. We show both analytically and with our Monte Carlo simulations that regression models failing to drop deforested pixels in subsequent periods do indeed incur severe bias (Appendix 7.2). 
 
 Despite widespread use of pixel level analyses, they are problematic in the context of TWFE regression models. In fact, the TWFE model yields the post-treatment difference in outcomes (single difference), rather than the desired ATT. We provide two forms of evidence to support this claim: (1) evidence from our Monte Carlo simulations and (2) an analytical proof found in the appendix (7.2). The result stems from the fact that the TWFE regression is not able to identify off of pixels that are dropped in the first period. Thus the pre-treatment period deforestation rates are not accounted for in the TWFE estimates. 
 
@@ -225,7 +235,7 @@ kable(coverage_table[,2:4], format = "latex", row.names = FALSE,
 ```
 
 ### Property Level Unobservables
-Property level unobservables may impact both treatment effect estimates and coverage probabilities. This is likely to be a factor when land use decisions are made at the property level or the intervention seeks to alter underlying landowner incentives. The error term in the initial DGP, $\rho_v$, varies at the property level in order to account for these unobservables. We explore the cases when the property level disturbances are generated according to $\rho_v \sim N(0, \sigma_p^2)$ with $\sigma_p = 0.00$, $0.05$, $0.15$, and $0.25$. 
+Property level unobservables may impact both treatment effect estimates and coverage probabilities. This is likely to be a factor when land use decisions are made at the property level or the intervention seeks to alter underlying landowner incentives. In our Monte Carlo simulations, we vary the error term in the initial DGP, $\rho_v$, at the property level in order to account for these unobservables. We explore the cases when the property level disturbances are generated according to $\rho_v \sim N(0, \sigma_p^2)$ with $\sigma_p = 0.00$, $0.05$, $0.15$, and $0.25$. 
 
 <!-- Implications for bias -->
 
