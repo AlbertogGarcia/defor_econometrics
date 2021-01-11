@@ -38,7 +38,6 @@ knitr::opts_chunk$set(echo = FALSE, warnings = FALSE, messages = FALSE, out.widt
 <!-- - citations -->
 <!-- - functional form: emphasize disciplinary differences in approaches -->
 <!-- - motivate advantages of TWFE in TWFE section -->
-<!-- - give grid cell and property size some context -->
 <!-- - summary figure for specifications -->
 
 <!-- Possible extensions: -->
@@ -66,9 +65,7 @@ We demonstrate that, as a result of the differences inherent to satellite data i
 
 The remainder of this paper is structured as follows. Section 2 reviews panel econometric methods in the land-use impact evaluation literature. Section 3 reviews common model parameterization decisions that researchers face in the design of their impact evaluation. Section 4 describes our Monte Carlo simulation approach to exploring the performance of various model parameterizations. Section 5 presents results from analytical proofs and Monte Carlo simulations that show certain model parameterizations are biased and lead to improper inference. Section 6 concludes and offers guidance for researchers' impact evaluations.
 
-
-
-# Panel methods in the impact evaluation literature
+# Panel methods
 
 While randomized experiments are the gold standard for scientific discovery in both the natural and social sciences [@edwards2020; @jayachandran2017], conservation often poses questions that are prohibitively expensive, unethical or impossible to pursue through experimentation. In such settings, a growing portfolio of statistical techniques enable researchers to draw causal conclusions using observational data [@larsen2019]. Importantly, these methods account for the non-random assignment of interventions that often confound identification of causal relationships; a low rate of deforestation within a remote protected area may reflect the protected area's effectiveness, or it may be indicative of the remote location's poor suitability for agricultural development [@andam2008; @pfaff2009]. A diversity of research designs such as regression discontinuity, synthetic control, matching, instrumental variables and event studies have been used to generate statistical counterfactuals of conservation interventions [@butsic2017]. These approaches frequently build upon panel data settings in which units are observed repeatedly through time, enabling researchers to observe changes in outcomes after the adoption of an intervention [@blackman2013]. When a rigorous research design is applied to panel data, observational studies can yield conclusions that are comparable to what a researcher would discover if they were able to run a randomized experiment [@ferraro2017].
 
@@ -91,8 +88,7 @@ knitr::include_graphics(c("figs/twoperiod_landscape.png","figs/did_trends.png"))
 ```
 
 
-TWFE regression models are often used to apply DID methods to multiple groups or treatment periods. This amounts to estimating a regression that controls for unit and time fixed effects. Intuitively, this can be thought of as including a dummy variable for each unit of analysis and each time period. The fixed effects account for any unobservable confounding variables that may vary across units or through time. When the treatment effect is constant across groups and over time, TWFE regressions
-estimate the $ATT$ under the standard common trends assumption [@deChaisemartin2019]. Because TWFE regression models are often used to generalize the DID method, they are used in a wider variety of settings. Settings in which units undergo treatment in more than two distinct time periods may be amenable to TWFE regression, but not the standard DID method. For example, a researcher may use an TWFE regression model to examine the effectiveness of a network of protected areas, where the protected areas where created at different times or a payment for ecosystem services (PES) program, which enrolls properties in annual cohorts. In the case of two groups and two time periods, the TWFE regression should give an estimate equivalent to that of the DID model [@wooldridge]. This flexibility has led to TWFE regression models becoming commonplace in the literature. 
+TWFE regression models are often used to apply DID methods to multiple groups or treatment periods. This amounts to estimating a regression that controls for unit and time fixed effects. Intuitively, this can be thought of as including a dummy variable for each unit of analysis and each time period. The fixed effects account for any unobservable confounding variables that may vary across units or through time. When the treatment effect is constant across groups and over time, TWFE regressions estimate the $ATT$ under the standard common trends assumption [@deChaisemartin2019]. Because TWFE regression models are often used to generalize the DID method, they are used in a wider variety of settings. Settings in which units undergo treatment in more than two distinct time periods may be amenable to TWFE regression, but not the standard DID method. For example, a researcher may use an TWFE regression model to examine the effectiveness of a network of protected areas, where the protected areas where created at different times or a payment for ecosystem services (PES) program, which enrolls properties in annual cohorts. In the case of two groups and two time periods, the TWFE regression should give an estimate equivalent to that of the DID model [@wooldridge]. This flexibility has led to TWFE regression models becoming commonplace in the literature. 
 
 ## Key regression specification decisions in the literature
 <!-- 
@@ -105,9 +101,15 @@ More technical discussion of these considerations has been moved to the appendix
 
 Several key decisions must be made by the researcher in the design of the econometric model for causal inference. A literature review led us to three major model specification decisions in which the same choice was not consistently applied. These were the choice between DID and TWFE models, the unit of analysis, and functional form. A more in depth discussion of these model decisions and authors' common justifications can be found in the Appendix. As seen in Table 1, a wide variety of model parameterizations are used in the literature, and some of these may be biased estimators of the treatment effect. Little guidance currently exists for researchers to make these specification decisions, and many common choices are likely to result in severe bias and improper inference. 
 
-Researchers must decide on the unit of analysis for their econometric model, which comes with several implications both for the interpretation of results and consideration of spatial autocorrelation. Analyses using a binary pixel or plot are standard in the literature [@jones2015], but authors have used multiple areal units including larger grids or irregular polygons based on administrative boundaries. A pixel or grid cell (e.g., pixels aggregated to a 5kmx5km grid) level analysis may be preferable in contexts where there is no clear alternative unit of interest, however, the pixel is often times used without any explanation for why it is preferred to alternative options. This paper explores some of the potential pitfalls of using the pixel as opposed to an aggregated unit of analysis such as a grid cell or administrative unit. 
+Researchers must decide on the unit of analysis for their econometric model, which comes with several implications both for the interpretation of results and consideration of spatial autocorrelation. Analyses using a binary pixel or plot are standard in the literature [@jones2015], but authors have used multiple areal units including larger grids or irregular polygons based on administrative boundaries. A pixel or grid cell (e.g., pixels aggregated to a 5kmx5km grid) level analysis may be preferable in contexts where there is no clear alternative unit of interest, however, the pixel is often times used without any explanation for why it is preferred to alternative options. This paper explores some of the potential pitfalls of using the pixel as opposed to an aggregated unit of analysis such as a grid cell or administrative unit.
 
-Other papers in the literature choose to conduct analysis at the level of the property or comparable decision making unit. This level of analysis matches the scale at which management decisions often occur [@carlson2018], and has been promoted in the context of PES programs that enroll at the property level. Using the entire area owned by an individual landowner or a larger administrative unit such as the county provides the advantage of accounting for spillover effects that occur when the intervention spurs deforestation on other parts of the relevant unit [@blackman2018; @alix-garcia2014; @arriagada2012]. We consider how aggregation may impact researchers' analyses in the presence and absence of property level unobservables.  
+
+Other papers in the literature choose to conduct analysis at the level of the property or comparable decision making unit. This level of analysis matches the scale at which management decisions often occur [@carlson2018], and has been promoted in the context of PES programs that enroll at the property level. Using the entire area owned by an individual landowner or a larger administrative unit such as the county provides the advantage of accounting for spillover effects that occur when the intervention spurs deforestation on other parts of the relevant unit [@blackman2018; @alix-garcia2014; @arriagada2012]. We consider how unobservable heterogeneity may affect which unit of analysis is preferable in a given situation. This is of particular interest when multiple processes operate simultaneously within the landscape. This may leave the researcher uncertain at which scales the true processes operate, and thus, which unit of analysis is preferable. 
+
+
+```{r, fig.cap="This figure demonstrates the spatial extent and scale of common units of analysis.", fig.show='hold', fig.pos = 'H'}
+knitr::include_graphics("figs/pixpic.png")
+```
 
 The decision of functional form is another often overlooked decison, particularly with a binary measure of forest cover. The vast majority of papers use OLS, maintaining a linear functional form. Few authors explain their reasoning for choosing the preferred functional form of the econometric model. This choice may have an impact on the resulting analysis, particularly in low and high deforestation settings. We evaluate the performance of linear, logit, probit, and poisson models in our setting to see the impact of alternative functional form choices. 
 <!-- Maybe emphasize disciplinary differences in approaches? -->
@@ -140,7 +142,8 @@ We employ a series of Monte Carlo simulations alongside analytical proofs in ord
 \begin{enumerate}
 \item In the case of an pixelated (binary) forest cover outcome, observations must be dropped in the periods after a pixel first becomes deforested. This is shown via analytical proof and Monte Carlo simulations. 
 \item Pixel level TWFE regression models with a binary forest cover outcome do not identify the $ATT$, but in fact, identify a simple post-treatment difference in outcomes ($ATT$ plus the pre-treatment difference in outcomes). This is shown via analytical proof and Monte Carlo simulations.
-\item Property-level unobservables negatively impact model bias, coverage, and RMSE when the unit of analysis is too large or too small relative to the true decision-making unit. This is shown via Monte Carlo simulations.
+\item Property-level unobservables negatively impact model bias, coverage, and RMSE when the unit of analysis does not match the true scale of the deforestation process. This is shown via Monte Carlo simulations.
+\item When unobservables operate at several different scales, models that match the scale of the primary driver of deforestation heterogeneity outperform the alternatives. This is shown via Monte Carlo simulations.
 \item Choice of model functional form may play a larger role in particularly high and low deforestation settings. This is shown via Monte Carlo simulations.
 \end{enumerate}
 
@@ -192,7 +195,7 @@ We use three primary criteria to compare econometric models: bias, RMSE, and cov
 
 # Results
 
-## Using a pixelated forest cover outcome
+## Using a binary forest cover outcome
 
 Analyses at the pixel level are prevalent in the literature, as seen in Table 1. Further, it has often been promoted as the preferred unit of analysis in many cases. Deforested pixels generally do not revert back to forest cover over the course of the study period. To account for irreversibilities in this land-use change process, it has been advised to drop deforested pixels in the periods after they first become deforested [@jones2015; @alix-garcia2017]. Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested may imply that it has actively been deforested in each subsequent time period, when in fact, no new deforestation event has ocurred. These pixels, therefore, contribute unwarrantedly toward the deforestation rate in each additional period they are left in the panel. We show both analytically and with our Monte Carlo simulations that pixel level regression models failing to drop deforested pixels in subsequent periods do indeed incur severe bias (Appendix 7.2). 
 
@@ -273,14 +276,36 @@ kable(coverage_perr[,2:7], format = "latex", row.names = FALSE,
       caption = "Table of coverage in presence of property level unobservables", 
       col.names = NULL) %>% 
   add_header_above(c("unit of analysis"=1, "standard error structure"=1, "coverage probability" = 4), escape = TRUE, line =TRUE, bold = TRUE)%>%
-  add_header_above(c(" "=1, " "=1, "$\\sigma_p = 0$"=1, "$\\sigma_p = 0.05$" = 1, "$\\sigma_p = 0.15$" = 1, "$\\sigma_p = 0.25$" = 1), escape = FALSE, line =FALSE, bold =FALSE)%>%
+  add_header_above(c(" "=1, " "=1, "$\\sigma_p = 0$"=1, "$0.05$" = 1, "$0.15$" = 1, "$0.25$" = 1), escape = FALSE, line =FALSE, bold =FALSE)%>%
   kable_styling(font_size = 10, latex_options = c("HOLD_position"),bootstrap_options = c("striped", "hover", "condensed", "responsive"),#full_width = TRUE
                 position = "center")
 
 ```
+### Multiple concurrent processes
+
+In any given landscape, several different processes may impact land-use or land use change. While landowner preference may play a significant role in landscape heterogeneity, unobservable county or ecosystem characteristics may drive observed outcomes as well. It has been advised to aggregate to the unit that drives this process of land use change [@avelino2016], however, little guidance exists for situations in which multiple drivers or landscape processes may be at work simultaneously. 
+
+In order to determine the tradeoffs associated with different units of analysis in the presence of spatially distinct but concurrent landscape processes, we now introduce unobservable perturbations at the county level in addition to our property level unobservables. Figure 4 shows how coverage probability may be impacted by the introduction of an additional source of unabservable heterogeneity. As the size of the standard error of the county level perturbations, $\sigma_c$, increases, the property level model sees decreased coverage relative to the desired 95% coverage probability, whereas the county level model does not see as drastic of a decline in performance. It may therefore be optimal to aggregate to the level that is the best determinant of the observed heterogeneity. 
+
+```{r, fig.cap="Performance of property versus county level aggregation in the presence of unbservables at multiple scales. The standard error of the property level unobservables, $\\sigma_p$ is equal to $0.15$. Standard errors are clustered at the level of aggregation.", fig.pos='H', fig.show='hold'}
+knitr::include_graphics("figs/coverages_county.png")
+```
+
+<!-- ```{r table4, results = "asis", fig.show='hold'} -->
+<!-- coverage_cp <- read.csv("coverages_county.csv")[,2:8] -->
+
+<!-- kable(coverage_cp, format = "latex", row.names = FALSE,  -->
+<!--       caption = "Table of coverage in presence of unobservables at multiple scales. The standard error of the property level unobservables, $\\sigma_p$ is equal to $0.15$. Standard errors are clustered at the level of aggregation.",  -->
+<!--       col.names = NULL) %>%  -->
+<!--   add_header_above(c("unit of analysis"=1, "coverage probability" = 6), escape = TRUE, line =TRUE, bold = TRUE)%>% -->
+<!--   add_header_above(c(" "=1, "$\\sigma_p = 0$"=1, "$0.05$" = 1, "$0.1$" = 1, "$0.15$" = 1, "$0.2$" = 1,"$0.25$" = 1), escape = FALSE, line =FALSE, bold =FALSE)%>% -->
+<!--   kable_styling(font_size = 10, latex_options = c("HOLD_position"),bootstrap_options = c("striped", "hover", "condensed", "responsive"),#full_width = TRUE -->
+<!--                 position = "center") -->
+
+<!-- ``` -->
 
 ## Functional Form
-Given that all of the outcome metrics used in the studies presented in Table 1 are generated from maps of binary, pixel-level deforestation events, several researchers have suggested that non-linear functional forms may be preferred over linear models. For example, models estimated using individual pixels may be better represented by a probit or logit functional form (XX - Add refs), whereas models that count deforested pixels within a broader unit of observation (i.e. grid cell) may be best modeled using a Poisson distribution [@burgess2012; @busch2015a; @carlson2018]. However, these non-linear functional forms can complicate interpretation of regression coefficients [@gomila2019]. We evaluate whether the use of non-linear functional forms reduce bias in ATT estimates in our setting. We find that, with our DGP, a simple Linear Probability Model (LPM) often results in less bias than alternate, non-linear functional forms. For example, Figure 7 shows the distribution of model bias resulting from different model structures in our guiding parameterization. 
+Given that all of the outcome metrics used in the studies presented in Table 1 are generated from maps of binary, pixel-level deforestation events, several researchers have suggested that non-linear functional forms may be preferred over linear models. For example, models estimated using individual pixels may be better represented by a probit or logit functional form [@blackman2015], whereas models that count deforested pixels within a broader unit of observation (i.e. grid cell) may be best modeled using a Poisson distribution [@burgess2012; @busch2015a; @carlson2018]. However, these non-linear functional forms can complicate interpretation of regression coefficients [@gomila2019]. We evaluate whether the use of non-linear functional forms reduce bias in ATT estimates in our setting. We find that, with our DGP, a simple Linear Probability Model (LPM) often results in less bias than alternate, non-linear functional forms. For example, Figure 7 shows the distribution of model bias resulting from different model structures in our guiding parameterization. 
 
 ```{r, fig.cap="Distribution of estimates produced by different functional forms. We use DID regression models at the pixel level in this section to avoid the aforementioned issues with pixel level TWFE models. Left: distribution of estimate bias from linear probability model, logit, and probit models with binary unit of analysis; Right: distribution of estimate bias from grid level linear and poisson models", fig.pos='H', fig.show='hold'}
 knitr::include_graphics(c("figs/func1.png", "figs/func_agg.png"))
