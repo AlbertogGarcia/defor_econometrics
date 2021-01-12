@@ -140,11 +140,11 @@ kable(lit_table, format = "latex",
 We employ a series of Monte Carlo simulations alongside analytical proofs in order to evaluate the benefits and pitfalls of different econometric model specifications. Monte Carlo simulations allow us to (1) generate synthetic landscapes with known policy effectiveness and (2) analyze the performance of econometric models in estimating the policy's known impact. Doing so provides additional support for our analytical results as well as evidence of the tradeoffs made when using different models. Our general findings include the following:
 
 \begin{enumerate}
-\item In the case of an pixelated (binary) forest cover outcome, observations must be dropped in the periods after a pixel first becomes deforested. This is shown via analytical proof and Monte Carlo simulations. 
-\item Pixel level TWFE regression models with a binary forest cover outcome do not identify the $ATT$, but in fact, identify a simple post-treatment difference in outcomes ($ATT$ plus the pre-treatment difference in outcomes). This is shown via analytical proof and Monte Carlo simulations.
-\item Property-level unobservables negatively impact model bias, coverage, and RMSE when the unit of analysis does not match the true scale of the deforestation process. This is shown via Monte Carlo simulations.
-\item When unobservables operate at several different scales, models that match the scale of the primary driver of deforestation heterogeneity outperform the alternatives. This is shown via Monte Carlo simulations.
-\item Choice of model functional form may play a larger role in particularly high and low deforestation settings. This is shown via Monte Carlo simulations.
+\item In the case of an pixelated (binary) forest cover outcome, observations must be dropped in the periods after a pixel first becomes deforested. \textbf{supported by analytical proof and Monte Carlo simulations}. 
+\item Pixel level TWFE regression models with a binary forest cover outcome do not identify the $ATT$, but in fact, identify a simple post-treatment difference in outcomes ($ATT$ plus the pre-treatment difference in outcomes). \textbf{supported by analytical proof and Monte Carlo simulations}.
+\item Property-level unobservables negatively impact model bias, coverage, and RMSE when the unit of analysis does not match the true scale of the deforestation process. \textbf{supported by Monte Carlo simulations}.
+\item When unobservables operate at several different scales, models that match the scale of the primary driver of deforestation heterogeneity outperform the alternatives. \textbf{supported by Monte Carlo simulations}.
+\item Choice of model functional form may play a larger role in particularly high and low deforestation settings. \textbf{supported by Monte Carlo simulations}.
 \end{enumerate}
 
 ## Monte Carlo simulations
