@@ -107,7 +107,7 @@ Researchers must decide on the unit of analysis for their econometric model, whi
 Other papers in the literature choose to conduct analysis at the level of the property or comparable decision making unit. This level of analysis matches the scale at which management decisions often occur [@carlson2018], and has been promoted in the context of PES programs that enroll at the property level. Using the entire area owned by an individual landowner or a larger administrative unit such as the county provides the advantage of accounting for spillover effects that occur when the intervention spurs deforestation on other parts of the relevant unit [@blackman2018; @alix-garcia2014; @arriagada2012]. We consider how unobservable heterogeneity may affect which unit of analysis is preferable in a given situation. This is of particular interest when multiple processes operate simultaneously within the landscape. This may leave the researcher uncertain at which scales the true processes operate, and thus, which unit of analysis is preferable. 
 
 
-```{r, fig.cap="This figure demonstrates the spatial extent and scale of common units of analysis.", fig.show='hold', fig.pos = 'H'}
+```{r, fig.cap="This figure demonstrates the spatial extent and scale of common units of analysis.", fig.show='hold', fig.pos = 'H', out.width = "30%"}
 knitr::include_graphics("figs/pixpic.png")
 ```
 
