@@ -138,7 +138,9 @@ landscape_maps <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
   fills <- c("intervention area" = "#a1d76a", 
              "control area" = "light blue", 
              "deforested pixel" = "white", 
-             "counterfactual deforestation" = "gray30")
+             "deforestation in first period" = "white", 
+             "counterfactual deforestation" = "gray30",
+             "deforestation in second period" = "gray30")
   
   colors <- c("county boundaries" = "black", 
               "property boundaries" = "gray50")
@@ -169,14 +171,15 @@ landscape_maps <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
   
   plot_df_period2 <- panels %>%
     st_as_sf() %>%
-    dplyr::select(pixels, year, treat, defor) %>%
-    filter(year == (years+1)  & defor == 1)
+    dplyr::select(pixels, year, treat, defor, y_it) %>%
+    filter(year == (years+1)  & y_it == 1)
   
   landscape_period2 <- 
     ggplot() + 
     geom_sf(data = intervention_area, aes(fill = "intervention area"), color = "#a1d76a") +
     geom_sf(data = control_area, aes(fill = "control area"), color = "lightblue")+
-    geom_sf(data = plot_df_period2, aes(fill = "deforested pixel"), color = "NA", shape = 22, alpha = .9, size = 1.5)+
+    geom_sf(data = plot_df_period1, aes(fill = "deforestation in first period"), color = "NA", shape = 22, alpha = .9, size = 1)+
+    geom_sf(data = plot_df_period2, aes(fill = "deforestation in second period"), color = "NA", shape = 22, alpha = .9, size = 1)+
     geom_sf(data = p_bounds, aes(color = "property boundaries"), fill = "NA")+
     geom_sf(data = c_bounds, aes(color = "county boundaries"), size = 1, fill = "NA")+
     scale_color_manual(values = colors) +

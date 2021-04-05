@@ -7,17 +7,17 @@ library(Metrics)
 source('defor_DGP.R')
 
 #begin function
-quickmontey <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, outcome_var = "y"){
+quickmontey2 <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v = 0.25, outcome_var = "y"){
   
   #preallocate n x 1 matrix
   coeffmatrix <- matrix(nrow = n, ncol = 1)
 
   for(i in 1:n){
     # call defor_dgp function to simulate dataframe, returned as defor_df  
-    dgp_results <- defor_DGP(nobs, years, b0, b1, b2, b3, std_a, std_v)
+    dgp_results <- defor_DGP2(nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
     panels = dgp_results$panels
     ATT = dgp_results$ATT
-    DID_estimand = dgp_results$DID_estimand
+    #DID_estimand = dgp_results$DID_estimand
     panels['outcome'] = panels[outcome_var]
     
     
@@ -40,16 +40,16 @@ quickmontey <- function(n, nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
   
   plot = ggplot() +
     geom_density(data = did_coeff , aes(x = V1), alpha = .2, fill="#29CD44")+
-    geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
+    #geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
     geom_vline(data = did_coeff, xintercept = 0, linetype = "dashed")+
     theme(plot.caption = element_text(hjust = 0.5))+
     labs(x= "Bias", caption = paste("Mean:", round(mean(did_coeff$V1), digits = 4),
                                     ", RMSE:", round(rmse(actual, did_coeff$V1), digits = 4)) 
     )
   
-  prop_ATT <- mean(did_coeff$V1)/ATT
   
-  outputs = list("plot" = plot, "did_biases" = did_coeff, "prop_ATT" = prop_ATT)
+  
+  outputs = list("plot" = plot, "did_biases" = did_coeff)
   return(outputs)
   
   #end function  

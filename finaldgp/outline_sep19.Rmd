@@ -28,7 +28,7 @@ header-includes:
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 #landscape maps
-source('landscape_maps.R')
+#source('landscape_maps.R')
 
 #binary fcns
 source('quickmontey.R')
@@ -55,8 +55,8 @@ Define universal parameters
 ```{r parameters}
 set.seed(930)
 
-base_0 = .02
-base_1 = .04
+base_0 = .01
+base_1 = .03
 trend = -.005
 ATT = -.01
 
@@ -74,141 +74,42 @@ cpoints = 20
 ```
 
 
+
+
+
+
 ```{r generating beta parameters, results='hide', warning = FALSE}
+
+base_0 = .02
+base_1 = .05
+trend = -.005
+ATT = -.01
+
+std_a = 0.1
+std_v = 0.25
+years = 3
+nobs = 10000
+n = 200
 
 std_av = (std_a^2+std_v^2)^.5
 b0 = qnorm(base_0, mean = 0, sd = std_av)
 b1 = qnorm(base_1, mean = 0, sd = std_av) - b0
-b2 = qnorm(trend + base_0, mean = 0, sd = std_av) - b0
-b3 = qnorm( pnorm(b0+b1+b2, mean = 0, sd = std_av) + ATT , mean = 0, sd = std_av) - (b0 + b1 + b2)
+b2_0 = qnorm(trend + base_0, mean = 0, sd = std_av) - b0
+b2_1 = qnorm(trend + base_1, mean = 0, sd = std_av) - b0 - b1
+b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_av) + ATT , mean = 0, sd = std_av) - (b0 + b1 + b2_1)
 
 ```
-# DGP
 
-## Setting initial parameters
-
-The researcher sets the following four parameters:
-
-\begin{align*}
-baseline_0 &= E[y_{it}(0) |  t<t_0, D_i=0]\\
-baseline_1 &= E[y_{it}(0) |  t<t_0, D_i=1]\\
-trend &= E[y_{it}(0) |  t\geq t_0, D_i=0] - E[y_{it}(0) |  t<t_0, D_i=0]\\
-ATT &= E[y_{it}(1) - y_{it}(0) |  t\geq t_0, D_i=1]\\
-\end{align*}
-
-Note the following constraints on the parameters:
-\begin{align*}
-E[y_{it}(0) |  t \geq t_0, D_i=0] \geq 0\\
-E[y_{it}(1) |  t \geq t_0, D_i=1] \geq 0
-\end{align*}
-
-The initial DGP is now as follows. We define the latent variable, $y^*_{it}$,
-\begin{align*}
-y^*_{it} = \beta_0 + \beta_1 \mathbbm{1}\{  D_i = 1  \} +\beta_2 \mathbbm{1}\{  t \geq t_0  \} +\beta_3 \mathbbm{1}\{  D_i = 1  \} \mathbbm{1}\{  t \geq t_0  \} + \alpha_i +u_{it}
-\end{align*}
-, where the $\beta$ coefficients are derived from the four parameters assigned by the researcher. 
-
-The treatment variable is generated according to $D_i \sim bernoulli(.5)$. The period in which the treatment is implemented is denoted $t_0$. The pixel specific parameter is generated according to $\alpha_i \sim N(0, \sigma^2_a)$ and the error term is generated according to $u_{it} \sim N(0, \sigma^2_u)$. 
-
-The mapping from the latent to observed variable $y_{it}$ is
-
-\[ y_{it} = \begin{cases} 
-      1 & y^*_{it} > 0  \\
-      0 & else
-   \end{cases}
-\]
-
-## parameter to $\beta$ coefficient mapping
-
-\begin{align*}
-ATT =& E[y_{it}(1) - y_{it}(0) |  t\geq t_0, D_i=1] \\
-=& E[ y_{it}(1) |  t\geq t_0, D_i=1] - E[y_{it}(0) |  t\geq t_0, D_i=1]\\
-=& P(y_{it}(1) = 1 | t\geq t_0, D_i=1) - P(y_{it}(0) = 1 | t\geq t_0, D_i=1)\\
-=& P(y_{it}^* (1) >0 | t\geq t_0, D_i=1) - P(y_{it}^*(0) >0 | t\geq t_0, D_i=1)\\
-=& P(\beta_0 + \beta_1 +\beta_2 +\beta_3 + \alpha_i +u_{it} > 0) - P(\beta_0 + \beta_1 +\beta_2 + \alpha_i +u_{it} > 0)\\
-=& P(-\alpha_i -u_{it} < \beta_0 + \beta_1 +\beta_2 +\beta_3) - P(-\alpha_i -u_{it} < \beta_0 + \beta_1 +\beta_2)\\
-=& F(\beta_0 + \beta_1 +\beta_2 +\beta_3) - F(\beta_0 + \beta_1 +\beta_2)
-\end{align*}
-
-
-\begin{align*}
-trend =& E[y_{it}(0) |  t\geq t_0, D_i=0] - E[y_{it}(0) |  t<t_0, D_i=0]\\
-=& P(y_{it}(0)=1 |  t\geq t_0, D_i=0) - P(y_{it}(0)=1 |  t<t_0, D_i=0)\\
-=& P(y^*_{it}(0)>0 |  t\geq t_0, D_i=0) - P(y^*_{it}(0)>0 |  t<t_0, D_i=0)\\
-=& P(-\alpha_i -u_{it} < \beta_0 +\beta_2) - P(-\alpha_i -u_{it} < \beta_0 )\\
-=& F(\beta_0 + \beta_2) - F(\beta_0)
-\end{align*}
-
-\begin{align*}
-baseline_0 =& E[y_{it}(0) |  t<t_0, D_i=0]\\
-=& P(y_{it}(0)=1 |  t< t_0, D_i=0)\\
-=& P(y^*_{it}(0)>0 | t<t_0, D_i=0)\\
-=& P(-\alpha_i -u_{it} < \beta_0 ) \\
-=& F(\beta_0)
-\end{align*}
-
-\begin{align*}
-baseline_1 =& E[y_{it}(0) |  t<t_0, D_i=1]\\
-=& P(y_{it}(0)=1 |  t< t_0, D_i=1)\\
-=& P(y^*_{it}(0)>0 | t<t_0, D_i=1)\\
-=& P(-\alpha_i -u_{it} < \beta_0 +\beta_1) \\
-=& F(\beta_0+\beta_1)
-\end{align*}
-
-
-, Where $F()$ is the CDF of a $N(0, \sigma^2_a + \sigma^2_u)$
-
-
-
-## solving for the $\beta$ coefficients
-
-solving for $\beta_0$
-\begin{align*}
-baseline_0= F(\beta_0) \\
-\Leftrightarrow \\
-\beta_0 = F^{-1}(baseline_0)
-\end{align*}
-
-solving for $\beta_1$
-\begin{align*}
-baseline_1= F(\beta_0 + \beta_1) \\
-\Leftrightarrow \\
-\beta_1 = F^{-1}(baseline_1) - \beta_0
-\end{align*}
-
-solving for $\beta_2$
-\begin{align*}
-trend= F(\beta_0 + \beta_2 ) - F(\beta_0) \\
-\Leftrightarrow \\
-trend + baseline_0 =F( \beta_0 + \beta_2)\\
-\Leftrightarrow \\
-F^{-1}(trend + baseline_0 ) =\beta_0 + \beta_2\\
-\Leftrightarrow \\
-\beta_2 = F^{-1}(trend + baseline_0 ) - \beta_0 
-\end{align*}
-
-solving for $\beta_3$
-\begin{align*}
-ATT= F(\beta_0 + \beta_1 +\beta_2 +\beta_3) - F(\beta_0 + \beta_1 +\beta_2)\\
-\Leftrightarrow \\
-ATT + F(\beta_0 + \beta_1 +\beta_2) = F(\beta_0 + \beta_1 +\beta_2 +\beta_3) \\
-\Leftrightarrow \\
-F^{-1}(ATT + F(\beta_0 + \beta_1 +\beta_2) )= \beta_0 + \beta_1 +\beta_2 +\beta_3\\
-\Leftrightarrow \\
-\beta_3 = F^{-1}(ATT + F(\beta_0 + \beta_1 +\beta_2) )- (\beta_0 + \beta_1 +\beta_2)\\
-\end{align*}
-
-
-# DID and functional forms
 
 ## initial DID estimates
 
 ```{r DIDy, results='hide', warning = FALSE}
-DID_y <- quickmontey(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "y")
+
+DID_y <- quickmontey2(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, "y_it")
 
 DID_y$plot
 
-ggsave(path = "figs", filename = "fig1.png", dpi = 500)
+#ggsave(path = "figs", filename = "fig1.png", dpi = 500)
 
 ```
 
@@ -217,10 +118,10 @@ We begin by allowing the outcome to vary between 0 and 1 across time periods.  W
 
 
 ```{r DIDy1, results='hide', warning = FALSE}
-DID_keep <- quickmontey_did(n, nobs, years, b0, b1, b2, b3, std_a, std_v, "defor")
+DID_keep <- quickmontey2(50, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, "defor")
 DID_keep$plot
 
-ggsave(path = "figs", filename = "fig2.png", dpi = 500)
+#ggsave(path = "figs", filename = "fig2.png", dpi = 500)
 ```
 
 

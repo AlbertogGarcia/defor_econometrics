@@ -3,7 +3,7 @@
 library(sf)
 library(rlist)
 library(tidyverse)
-library(ggpattern)
+#library(ggpattern)
 
 county_scapegen <- function(nobs, cellsize, ppoints, cpoints){
   

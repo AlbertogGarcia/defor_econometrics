@@ -45,57 +45,6 @@ source('vary_rate_funcform_agg.R')
 
 ```
 
-# DGP 
-
-In order to enforce parallel trends, I allow the treated and untreated group to have different $\beta_2$ parameters. This gives enough flexibility to make sure that each group's $\beta_2 (t \ge t_{0})$ parameter results in a trend that would be the same in the absence of treatment. It appears that all of the major conclusions from the paper carry over to this framewok (dropping obs, TWFE, etc. ), while eliminating the intial bias in the case where the binary outcome can vary between 0 and 1 across periods
-
-## altered text for draft
-
-We employ a series of Monte Carlo simulations to (1) generate synthetic landscapes with known policy effectiveness and (2) analyze the performance of different econometric models in estimating the policy's known impact. Our landscape consists of administrative units that are either untreated $(D=0)$ or are assigned to a conservation treatment $(D=1)$. We observe deforestation in two, even-length periods, a pre-treatment $(t < t_{0})$ and a post-treatment $(t \ge t_{0})$ period. 
-
-The data generating process underlying our Monte Carlo simulations begins with the assignment of five parameters: The mean, pre-treatment period deforestation rate for untreated units, $baseline_0$; the mean, pre-treatment period deforestation rate for treated units, $baseline_1$; untreated units' mean change in deforestation rates occurring between the pre- and post-treatment periods, $trend_0$; treated units' mean counterfactual change in deforestation rates occurring between the pre- and post-treatment periods in the absence of treatment, $trend_1$; and lastly, the average treatment effect of the policy on the treated units, $ATT$. The researcher's primary goal is to estimate ATT. We define the five parameters as follows:
-
-\begin{align*}
-baseline_0 &= E[y_{it}(0) |  t<t_0, D_i=0]\\
-baseline_1 &= E[y_{it}(0) |  t<t_0, D_i=1]\\
-trend_0 &= E[y_{it}(0) |  t\geq t_0, D_i=0] - E[y_{it}(0) |  t<t_0, D_i=0]\\
-trend_1 &= E[y_{it}(0) |  t\geq t_0, D_i=1] - E[y_{it}(0) |  t<t_0, D_i=1]\\
-ATT &= E[y_{it}(1) - y_{it}(0) |  t\geq t_0, D_i=1]\\
-\end{align*}
-<!-- Not needed in draft text -->
-
-In all  of our simulations, we impose parallel trends (ie. set $trend_0 = trend_1$). 
-
-Rather than directly observing each pixel's deforestation in each time period, the researcher observes annualized maps depicting pixel-level, binary deforestation $(y_{ivt}\ \epsilon \ 0, 1)$. We follow [@kerr; @pfaff2004] and model these binary deforestation events as a function of each pixel's unobservable value along a continuous, latent variable $(y^*_{ivt})$ indicating the utility of deforesting pixel $i$, in property $v$, in year $t$. We define this latent variable as:
-
-$$y^*_{ivt} = \beta_0 + \beta_1 \mathbbm{1}\{  D_i = 1  \} +$$ 
-$$\beta_{2,0} \mathbbm{1}\{  t \geq t_0  \} (1 - \mathbbm{1}\{  D_i = 1  \})+\beta_{2,1} \mathbbm{1}\{  t \geq t_0  \} \mathbbm{1}\{  D_i = 1  \} +$$
-$$\beta_3 \mathbbm{1}\{  D_i = 1  \} \mathbbm{1}\{  t \geq t_0  \} + \alpha_i + u_{it} + \rho_{v}$$
-
-The $\beta$ coefficients dictate how the utility of deforestation evolves over the two time periods $(\mathbbm{1}\{  t \geq t_0  \})$, across the control and treated units $(\mathbbm{1}\{  D_i = 1  \})$. These coefficients can be defined as a transformation of the five parameters assigned by the researcher ($baseline_0$, $baseline_1$, $trend_0$, $trend_1$, $ATT$; derivation provided in Appendix 1). In addition, we assume that the value of deforestation is influenced by time-invariant random disturbances at the scale of individual pixels ($\alpha_i \sim N(0, \sigma_a^2)$) or properties ($\rho_v \sim N(0, \sigma_p^2)$), as well as time-varying, pixel-scale disturbances ($u_{it} \sim N(0, \sigma_u^2)$). These disturbances can represent a variety of spatial and temporal processes including, for example, the biophysical characteristics of a location, or the preferences of a property owner. 
-
-We assume that pixels with a positive utility of deforestation are cleared, resulting in the following mapping from the latent $y^*_{ivt}$ to the observed $y_{ivt}$ variable:
-\begin{align}
- y_{ivt} = \begin{cases} 
-      1 & y^*_{ivt} > 0  \\
-      0 & otherwise
-   \end{cases}
-\end{align}
-
-Here, the observed outcome variable, $y_{it}$, is equal to 1 if pixel $i$ is observed as deforested in time $t$ and 0 otherwise. The observed variable is the binary outcome visible to the researcher, which represents the result of a more complex data generating process that reflects the pre-defined effectiveness of the policy $(ATT)$ as well as temporal trends in deforestation $(trend)$, pre-treatment differences in deforestation probabilities $(baseline_1)$, unobservable, pixel-specific determinants of deforestation $(\alpha_i)$ and time-varying, pixel-level disturbances $(u_{it})$. 
-
-## Example 1
-
-Here are some examples of our simulations to show that this gives generally unbiased or expected results when we impose common trends. Here, we set:
-\begin{align*}
-baseline_0 &= 0.02\\
-baseline_1 &= 0.05\\
-trend_0 &= -0.005\\
-trend_1 &= -0.005\\
-ATT &= -0.01
-\end{align*}
-
-
 
 ```{r generating beta parameters, results='hide'}
 
@@ -201,11 +150,12 @@ twoway$plot
 
 ggsave(path = "figs", filename = "twoway.png", dpi = 500)
 
+
 ```
 
 
 
-```{r functionalform 1, results='hide'}
+```{r outcome 1, results='hide'}
 
 outcome <- outcome_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, cellsize)
 
@@ -230,31 +180,6 @@ aggregation$plot
 
 ```
 
-
-
-```{r varying func, results = 'hide', warning=FALSE}
-# ATT_start = ATT
-# base_0_start = base_0
-# base_1_start = base_1
-# trend_start = trend
-# 
-# vary_func <- vary_rate_funcform(60, nobs, years, base_0_start, base_1_start, trend_start, ATT_start, std_a, std_v )
-# vary_func$plot
-# ggsave(path = "figs", filename = "vary_func.png", dpi = 500)
-
-```
-
-```{r varying func poisson, results = 'hide', warning=FALSE}
-ATT_start = ATT
-base_0_start = base_0
-base_1_start = base_1
-trend_start = trend
-
-vary_func_agg <- vary_rate_funcform_agg(60, nobs, years, base_0_start, base_1_start, trend_start, ATT_start, std_a, std_v, cellsize)
-vary_func_agg$plot
-ggsave(path = "figs", filename = "vary_func_agg.png", dpi = 500)
-
-```
 
 ```{r aggregate p_err5, results = 'hide', warning=FALSE}
 std_p = 0.05
@@ -520,6 +445,27 @@ write.csv(coverages_c25, "coverages_c25.csv")
 
 ```
 
+```{r county level perturbations c.30, results = 'hide', warning=FALSE}
+
+std_p = 0.15
+std_c = 0.3
+std_avpc = (std_a^2+std_v^2+std_p^2 + std_c^2)^.5
+b0 = qnorm(base_0, mean = 0, sd = std_avpc)
+b1 = qnorm(base_1, mean = 0, sd = std_avpc) - b0
+b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avpc) - b0
+b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avpc) - b0 - b1
+b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avpc) + ATT , mean = 0, sd = std_avpc) - (b0 + b1 + b2_1)
+
+layer_c3 <- layerprocess_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, std_c, cellsize, ppoints, cpoints)
+
+layerbiases_c3 <- layer_c3$biases
+write.csv(layerbiases_c3, "layerbiases_c3.csv")
+
+coverages_c3 <- layer_c3$coverages_df
+write.csv(coverages_c3, "coverages_c3.csv")
+
+```
+
 
 
 
@@ -539,7 +485,7 @@ rmse_c <- data.frame(
 write.csv(rmse_c, "rmse_c.csv")
 
 # creating bias csv
-biases_c <- data.frame("0" = colMeans(layerbiases_c0) , "0.05" = colMeans(layerbiases_c5), "0.10" = colMeans(layerbiases_c10),"0.15" = colMeans(layerbiases_c15), "0.25" = colMeans(layerbiases_c25) ,check.names = FALSE)
+biases_c <- data.frame("0" = colMeans(layerbiases_c0) , "0.05" = colMeans(layerbiases_c5), "0.10" = colMeans(layerbiases_c10),"0.15" = colMeans(layerbiases_c15), "0.25" = colMeans(layerbiases_c25)#, "0.3" = colMeans(layerbiases_c3) ,check.names = FALSE)
 write.csv(rmse_c, "bias_c.csv")
 
 ```
@@ -577,7 +523,9 @@ coverage_cp <- read.csv("coverages_c0.csv") %>%
          "0.10" = read.csv("coverages_c10.csv")[,4],
          "0.15" = read.csv("coverages_c15.csv")[,4],
          "0.20" = read.csv("coverages_c2.csv")[,4],
-         "0.25" = read.csv("coverages_c25.csv")[,4])%>%
+         "0.25" = read.csv("coverages_c25.csv")[,4],
+         #"0.3" = read.csv("coverages_c3.csv")[,4]
+         )%>%
   rename("0" = coverage)%>%
   arrange(desc(aggregation), std_error)%>%
   filter(aggregation=="county" | aggregation=="property" )%>%
