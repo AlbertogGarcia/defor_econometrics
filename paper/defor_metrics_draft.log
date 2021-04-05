@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.14159265-2.6-0.999992 (MiKTeX 2.9.7380 64-bit) (preloaded format=xelatex 2020.8.14)  4 APR 2021 20:38
+This is XeTeX, Version 3.14159265-2.6-0.999992 (MiKTeX 2.9.7380 64-bit) (preloaded format=xelatex 2020.8.14)  4 APR 2021 21:33
 entering extended mode
 **./defor_metrics_draft.tex
 (defor_metrics_draft.tex
@@ -1060,109 +1060,106 @@ File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 
 ]
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 7.0pt on input line 216.
+(Font)              scaled to size 7.0pt on input line 238.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 5.0pt on input line 216.
+(Font)              scaled to size 5.0pt on input line 238.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 10.00092pt on input line 216.
+(Font)              scaled to size 10.00092pt on input line 238.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 7.00064pt on input line 216.
+(Font)              scaled to size 7.00064pt on input line 238.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 5.00046pt on input line 216.
+(Font)              scaled to size 5.00046pt on input line 238.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 9.99893pt on input line 216.
+(Font)              scaled to size 9.99893pt on input line 238.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 6.99925pt on input line 216.
+(Font)              scaled to size 6.99925pt on input line 238.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 4.99947pt on input line 216.
+(Font)              scaled to size 4.99947pt on input line 238.
+[2]
 File: figs/counterfactual.png Graphic file (type bmp)
 <figs/counterfactual.png>
-[2]
-File: figs/twoperiod_landscape.png Graphic file (type bmp)
-<figs/twoperiod_landscape.png>
 File: figs/did_trends.png Graphic file (type bmp)
 <figs/did_trends.png>
 [3]
-Overfull \hbox (18.13498pt too wide) in paragraph at lines 305--362
+Overfull \hbox (18.13498pt too wide) in paragraph at lines 327--384
 [][] 
  []
 
 [4]
-LaTeX Font Info:    Calculating math sizes for size <11> on input line 366.
+LaTeX Font Info:    Calculating math sizes for size <11> on input line 388.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 11.0pt on input line 366.
+(Font)              scaled to size 11.0pt on input line 388.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 7.69997pt on input line 366.
+(Font)              scaled to size 7.69997pt on input line 388.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 5.5pt on input line 366.
+(Font)              scaled to size 5.5pt on input line 388.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 11.001pt on input line 366.
+(Font)              scaled to size 11.001pt on input line 388.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 7.70067pt on input line 366.
+(Font)              scaled to size 7.70067pt on input line 388.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 5.5005pt on input line 366.
+(Font)              scaled to size 5.5005pt on input line 388.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 10.99883pt on input line 366.
+(Font)              scaled to size 10.99883pt on input line 388.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 7.69914pt on input line 366.
+(Font)              scaled to size 7.69914pt on input line 388.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 5.4994pt on input line 366.
+(Font)              scaled to size 5.4994pt on input line 388.
 [5] [6]
-LaTeX Font Info:    Trying to load font information for U+bbm on input line 478
+LaTeX Font Info:    Trying to load font information for U+bbm on input line 508
 .
 ("C:\Users\garci\AppData\Local\Programs\MiKTeX 2.9\tex/latex/bbm\ubbm.fd"
 File: ubbm.fd 1999/03/15 V 1.2 Font definition for bbm font - TH
-)
+) [7]
 
 LaTeX Font Warning: Font shape `U/bbm/m/n' in size <5.5> not available
-(Font)              size <5> substituted on input line 547.
+(Font)              size <5> substituted on input line 577.
 
-[7]
 File: figs/pixpic.png Graphic file (type bmp)
 <figs/pixpic.png>
 [8]
 File: figs/summary_fig.png Graphic file (type bmp)
 <figs/summary_fig.png>
+[9]
 File: figs/bias_p.png Graphic file (type bmp)
 <figs/bias_p.png>
 File: figs/fe_bias_p.png Graphic file (type bmp)
 <figs/fe_bias_p.png>
-[9] [10] [11] [12] [13] [14] [15]
-Overfull \hbox (14.851pt too wide) detected at line 1182
+[10] [11] [12] [13] [14] [15] [16]
+Overfull \hbox (14.851pt too wide) detected at line 1256
 []
  []
 
 
-Overfull \hbox (55.411pt too wide) detected at line 1196
+Overfull \hbox (55.411pt too wide) detected at line 1270
 []
  []
 
-[16]
+[17]
 File: figs/did_keep.png Graphic file (type bmp)
 <figs/did_keep.png>
-[17] [18] [19] [20]
+[18] [19] [20] [21]
 File: figs/outcome.png Graphic file (type bmp)
 <figs/outcome.png>
-[21]
+[22]
 File: figs/outcome_byyr1.png Graphic file (type bmp)
 <figs/outcome_byyr1.png>
-[22]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1524.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1598.
 [23]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 1524.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 1598.
 (defor_metrics_draft.aux)
-Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 1524.
-Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 1524.
+Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 1598.
+Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 1598.
 
 LaTeX Font Warning: Size substitutions with differences
 (Font)              up to 0.5pt have occurred.
 
  ) 
 Here is how much of TeX's memory you used:
- 20195 strings out of 414219
- 349371 string characters out of 2898314
- 820610 words of memory out of 3000000
- 37389 multiletter control sequences out of 15000+200000
+ 20182 strings out of 414219
+ 349138 string characters out of 2898314
+ 819706 words of memory out of 3000000
+ 37377 multiletter control sequences out of 15000+200000
  542438 words of font info for 99 fonts, out of 3000000 for 9000
  1348 hyphenation exceptions out of 8191
  59i,20n,118p,820b,364s stack positions out of 5000i,500n,10000p,200000b,50000s
