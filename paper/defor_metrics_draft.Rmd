@@ -257,7 +257,7 @@ TWFE models have risen to prominence due to their flexibility in applying DID me
 
 In the two-group, two-period case the typical DID model is an unbiased estimator of the $ATT$, as shown in column 2 of Figure \@ref(fig:summary-fig). However, Researchers often want to use TWFE models because of their flexibility in situations that do not fall under the typical DID setup. Therefore, researchers should be aware of the tradeoffs using aggregated units of analysis and fixed effects when using TWFE models for deforestation impact evaluation. 
 
-For simplicity, we assume the researcher can choose between three levels at which to aggregate the data: grid cell, county, and property. Grid cells are uniform grids layered over the study area and may have a treatment value between 0 and 1 following aggregation of pixels. Counties are heterogeneous administrative units at which we now assign the treatment. Lastly, properties are smaller administrative units that may sit partially between two counties. 
+For simplicity, we assume the researcher can choose between three levels at which to aggregate the data: grid cell, county, and property. Grid cells are uniform grids layered over the study area and may have a treatment value between 0 and 1 following aggregation of pixels. Counties are heterogeneous administrative units at which we now assign the treatment. Lastly, properties are smaller administrative units that lie within one or more counties. 
 
 ```{r pixpics, fig.cap="This figure demonstrates the spatial extent and scale of common units of analysis.", fig.show='hold', fig.pos = 'H', out.width = "30%"}
 knitr::include_graphics("figs/pixpic.png")
@@ -266,9 +266,9 @@ knitr::include_graphics("figs/pixpic.png")
 
 ## Aggregated units of analysis
 
-Aggregated units of analysis overcome the issues that we have identified with respect to TWFE regressions at the pixel level. The following results apply to both DID and TWFE regression models, as both are equivalent in the two-period, two-group example when pixels are not dropped. While the researcher does not have to drop pixels in the periods after they first become deforested, they must calculate the deforestaion rate in each time period. This calculation is detailed in the appendix (). 
+Aggregated units of analysis overcome the issues that we have identified with respect to TWFE regressions at the pixel level. The following results apply to both DID and TWFE regression models, as both are equivalent in the two-period, two-group example when pixels are not dropped. While the researcher does not have to drop pixels in the periods after they first become deforested, they must calculate the deforestaion rate in each time period. This calculation is detailed in the appendix. 
 
-We find little evidence that any one aggregated unit of analysis is consistently preferrable in terms of bias. Columns 3-5 of Figure \@ref(fig:summary-fig) shows that the bias of the estimates is not critically different depending on level of aggregation, however, the distributions are varied. RMSE is highest with property level aggregation due to the heterogeneity in property sizes across the landscape. 
+We find little evidence that any one aggregated unit of analysis is consistently preferrable in terms of bias. Columns 3-5 of Figure \@ref(fig:summary-fig) shows that the bias of the estimates is not critically different depending on level of aggregation, however, the distributions are varied. In particular, the distribution of estimates was widest with property level aggregation due to the heterogeneity in property sizes across the landscape. 
 
 <!-- ```{r agg_units, fig.cap="fig caption", fig.show='hold', fig.pos = 'H'} -->
 <!-- knitr::include_graphics("figs/aggregated_ua.png") -->
@@ -277,7 +277,7 @@ We find little evidence that any one aggregated unit of analysis is consistently
 
 ## Aggregated fixed effects
 
-One can also use fixed effects at the level of an administrative unit rather than the pixel level to resolve bias associated with pixel level TWFE regressions. Columns 6-8 of Figure \@ref(fig:summary-fig) shows that pixel level TWFE regressions are unbiased estimators of the $ATT$ when grid, county, or property fixed effects are used rather than pixel fixed effects. We also see that in the absence of property level perturbations (i.e. $\sigma_p=0$ in the DGP), all three models provide nearly identical estimates. The estimate distributions and RMSE are similar across all three models. 
+One can also use fixed effects at the level of an administrative unit rather than the pixel level to resolve bias associated with pixel level TWFE regressions. Columns 6-8 of Figure \@ref(fig:summary-fig) show that pixel level TWFE regressions are unbiased estimators of the $ATT$ when grid, county, or property fixed effects are used rather than pixel fixed effects. We also see that in the absence of property level perturbations (i.e. $\sigma_p=0$ in the DGP), all three models provide nearly identical estimates. The estimate distributions and RMSE are similar across all three models. 
 
 <!-- ```{r agg_fe, fig.cap="fig caption", fig.show='hold', fig.pos = 'H'} -->
 <!-- knitr::include_graphics("figs/aggregated_fe.png") -->
@@ -293,13 +293,17 @@ We now demonstrate the importance of connecting the econometric model to the pro
 
 <!-- Implications for bias -->
 
-The introduction of property level unobservables changes the relative performance of each level of aggregation in terms of bias, RMSE, and coverage. We see that pixel level analyses and models with aggregation to the grid cell and county levels suffer from increased bias as the standard error governing the property level disturbances, $\sigma_p$, increases. This is evident in the left panel of Figure \@ref(fig:property-plots). Models with observations aggregated to the property level, however, do not suffer from increased bias after the introduction of property level disturbances. This indicates that aggregating to the level of the relevant decision making unit reduces estimate bias relative to other aggregated units of analysis. Further, as property level unobservables play a larger role, pixel level analyses suffer from more bias than any other unit of analysis. 
+The introduction of property level unobservables changes the relative performance of each level of aggregation in terms of bias, RMSE, and coverage. Models incorporating the property into the analysis, whether with aggregated units of analysis or fixed effects, perform relatively better in terms of bias when the standard error governing the property level disturbances, $\sigma_p$, increases. Figure \@ref(fig:property-uoa) demonstrates that models with the property as the unit of analysis (orange) outperform models with any other unit of analysis. The pixel level DID suffers from the highest levels of bias regardless of the property level unobservables. 
 
-The right panel of Figure \@ref(fig:property-plots) demonstrates a similar takeaway in the context of models with the pixel as the unit of analysis but aggregated fixed effects. We see that models with grid, property, or county fixed effects perform similarly in terms of bias when there are no property level disturbances. However, as soon as these disturbances enter the picture, the model with property fixed effects outperforms the others. 
+These findings indicate that incorporating the relevant decision making unit into the econometric specification reduces estimate bias. 
 
-```{r property-plots, fig.cap="Left: Bias using different levels of aggregation as a function of property level unbservables; Right: Bias using fixed effects at an aggregated unit rather than the pixel as a function of property level unbservables", fig.pos='H', fig.show='hold'}
-knitr::include_graphics(c("figs/bias_p.png", "figs/rmse_p.png"))
+```{r property-uoa, fig.cap="Property level unobservables differentially impact coefficient bias from models with aggregated units of analysis and aggregated fixed effects", fig.pos='H', fig.show='hold'}
+knitr::include_graphics(c("figs/bias_uoa.png", "figs/bias_fe.png"))
 ```
+
+The right panel of Figure \@ref(fig:property-uoa) demonstrates a similar takeaway in terms of aggregating fixed effects. We see that models with grid, property, or county fixed effects perform similarly in terms of bias when there are no property level disturbances. However, as $\sigma_p$ increases, the model with property fixed effects outperforms the others. 
+
+
 
 <!-- Implications for RMSE -->
 
@@ -325,8 +329,7 @@ kable(coverage_did, format = "latex", row.names = FALSE, booktabs = T,
 
 As property level unobservables play a larger role, the treatment of standard errors also becomes more important. Standard error clustering is used by nearly every study in the literature for inference. The clustering problem is caused by the presence of a common unobserved random shock at the group level that will lead to correlation between all observations within a group [@hansen2007]. We have introduced the random shock at the property level in our guiding example to represent individual landowner preferences or property characteristics. As such, correlation within grids and counties will also be introduced, since they contain multiple pixels within a property. Clustering standard errors relaxes the assumption of no correlation across observations within the spatial unit used for clustering [@jones2015]. 
 
-Table XX demonstrates how the presence of property level unobservables impacts coverage probability in the pixel level DID model. Clustering standard errors clearly has an impact on coverage probability as well as the level at which they are clustered. The issue with the use of classical standard errors becomes apparent when property level unobservables enter the DGP, as evidence by the last row of Table XX. Clustering standard errors improves coverage probability with clustering at the county and property level outperforming the grid level.
-
+Table \@ref(tab:did-cover) demonstrates how the presence of property level unobservables impacts coverage probability in the pixel level DID model. Clustering standard errors clearly has an impact on coverage probability as well as the level at which they are clustered. The issue with the use of classical standard errors becomes apparent when property level unobservables enter the DGP, as evidence by the last row of Table XX. Clustering standard errors improves coverage probability with clustering at the county and property level outperforming the grid level.
 
 ```{r uoa-cover, results = "asis", fig.show='hold'}
 
