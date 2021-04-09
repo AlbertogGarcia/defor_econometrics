@@ -248,7 +248,7 @@ It is not uncommon to see annual treatment effects amounting to less than a 1 pe
 
 The initial simulated landscape has the following characteristics: a pre-treatment deforestation rate of 2\% in the control area; a pre-treatment deforestation rate of 5\% in the intervention area; a decrease in the deforestation rate of .5 percentage points between the first and second period in the absence of treatment; and an average reduction of 1 percentage point in the deforestation rate in treated units due to the intervention ($ATT = -0.01$). Lastly, $\sigma_a = .25$, $\sigma_p = 0$, and $\sigma_u = .1$. With $\sigma_p = 0$, there is no influence of random disturbances at the property scale. 
 
-We use three primary criteria to compare econometric models: bias, RMSE, and coverage probability of their estimate of the $ATT$ parameter. Using our Monte Carlo simulations, we determine bias by computing the difference between each model's mean estimate of the $ATT$ and the known $ATT$ parameter. RMSE addresses the distribution of the estimates around the true $ATT$. Coverage probability is defined as the proportion of simulations in which the true $ATT$ lies within the simulation's 95\% confidence interval (CI). As such, we would expect the $ATT$ to lie within this CI 95\% of the time, however, factors such as the bias of the estimates, their distribution, and treatment of standard errors may impact coverage. If the estimator is biased, for example, it is ex-ante less likely that the true parameter falls within the CI. We largely rely on the bias of the estimators to evaluate their performance, but RMSE and coverage probability play an important role when bias is comparable across estimators. 
+We use the following primary criteria to compare econometric models: bias, RMSE, and coverage probability of their estimate of the $ATT$ parameter. Using our Monte Carlo simulations, we determine bias by computing the difference between each model's mean estimate of the $ATT$ and the known $ATT$ parameter. RMSE addresses the distribution of the estimates around the true $ATT$. Coverage probability is defined as the proportion of simulations in which the true $ATT$ lies within the simulation's 95\% confidence interval (CI). As such, we would expect the $ATT$ to lie within this CI 95\% of the time, however, factors such as the bias of the estimates, their distribution, and treatment of standard errors may impact coverage. If the estimator is biased, for example, it is ex-ante less likely that the true parameter falls within the CI. We largely rely on the bias of the estimators to evaluate their performance, but RMSE and coverage probability play an important role when bias is comparable across estimators. 
 
 
 # Alternative models can generate unbiased estimates of the $ATT$
@@ -293,29 +293,19 @@ We now demonstrate the importance of connecting the econometric model to the pro
 
 <!-- Implications for bias -->
 
-The introduction of property level unobservables changes the relative performance of each level of aggregation in terms of bias, RMSE, and coverage. Models incorporating the property into the analysis, whether with aggregated units of analysis or fixed effects, perform relatively better in terms of bias when the standard error governing the property level disturbances, $\sigma_p$, increases. Figure \@ref(fig:property-uoa) demonstrates that models with the property as the unit of analysis (orange) outperform models with any other unit of analysis. The pixel level DID suffers from the highest levels of bias regardless of the property level unobservables. 
-
-These findings indicate that incorporating the relevant decision making unit into the econometric specification reduces estimate bias. 
+The introduction of property level unobservables changes the relative performance of each level of aggregation. Figure \@ref(fig:property-uoa) demonstrates that models incorporating the property into the analysis, whether with aggregated units of analysis or fixed effects, perform relatively better in terms of bias when the standard error governing the property level disturbances, $\sigma_p$, increases. The left panel of Figure \@ref(fig:property-uoa) demonstrates that models with the property as the unit of analysis (orange) outperform models with any other unit of analysis. The pixel level DID suffers from the highest levels of bias regardless of the property level unobservables. The right panel of Figure \@ref(fig:property-uoa) demonstrates a similar takeaway in terms of aggregating fixed effects. We see that models with grid, property, or county fixed effects perform similarly in terms of bias when there are no property level disturbances. However, as $\sigma_p$ increases, the model with property fixed effects outperforms the others. These findings indicate that incorporating the relevant decision making unit into the econometric specification reduces estimate bias. 
 
 ```{r property-uoa, fig.cap="Property level unobservables differentially impact coefficient bias from models with aggregated units of analysis and aggregated fixed effects", fig.pos='H', fig.show='hold'}
 knitr::include_graphics(c("figs/bias_uoa.png", "figs/bias_fe.png"))
 ```
 
-The right panel of Figure \@ref(fig:property-uoa) demonstrates a similar takeaway in terms of aggregating fixed effects. We see that models with grid, property, or county fixed effects perform similarly in terms of bias when there are no property level disturbances. However, as $\sigma_p$ increases, the model with property fixed effects outperforms the others. 
-
-
 
 <!-- Implications for RMSE -->
-
-<!-- RMSE is also impacted in the presence of property level unobservables. Again, pixel level analyses suffer the most from increased RMSE as property level unobservables become more of a factor. This is partially due to the change in bias.  -->
-
-<!-- Implications for coverage -->
-
 
 
 ```{r did-cover, fig.pos = "H", fig.cap = "test"}
 
-coverage_did <- read.csv("did_coverage.csv")[2:7] #%>%
+coverage_did <- read.csv("did_coverage.csv")[2:5,2:7] #%>%
   #arrange(desc(std_error))%>%#, aggregation)
 
 kable(coverage_did, format = "latex", row.names = FALSE, booktabs = T,
@@ -329,7 +319,7 @@ kable(coverage_did, format = "latex", row.names = FALSE, booktabs = T,
 
 As property level unobservables play a larger role, the treatment of standard errors also becomes more important. Standard error clustering is used by nearly every study in the literature for inference. The clustering problem is caused by the presence of a common unobserved random shock at the group level that will lead to correlation between all observations within a group [@hansen2007]. We have introduced the random shock at the property level in our guiding example to represent individual landowner preferences or property characteristics. As such, correlation within grids and counties will also be introduced, since they contain multiple pixels within a property. Clustering standard errors relaxes the assumption of no correlation across observations within the spatial unit used for clustering [@jones2015]. 
 
-Table \@ref(tab:did-cover) demonstrates how the presence of property level unobservables impacts coverage probability in the pixel level DID model. Clustering standard errors clearly has an impact on coverage probability as well as the level at which they are clustered. The issue with the use of classical standard errors becomes apparent when property level unobservables enter the DGP, as evidence by the last row of Table XX. Clustering standard errors improves coverage probability with clustering at the county and property level outperforming the grid level.
+Table \@ref(tab:did-cover) demonstrates how the presence of property level unobservables impacts coverage probability in the pixel level DID model. The level at which standard errors are clustered clearly has an impact on coverage probability. When property level unobservables enter the DGP, clustering at the pixel level clearly becomes ill-advised, as coverage probability declines rapidly.
 
 ```{r uoa-cover, results = "asis", fig.show='hold'}
 
@@ -346,15 +336,17 @@ coverage_agg <- read.csv("agg_coverage.csv")[2:7] %>%
   dplyr::select(aggregation, everything())
 
 kable(coverage_agg, format = "latex", row.names = FALSE,  booktabs = T,
-      caption = "Coverage probabilities for TWFE models using aggregated units of analysis in presence of property level unobservables", 
-      col.names = NULL) %>% 
+      caption = "Coverage probabilities for TWFE models using aggregated units of analysis in presence of property level unobservables",
+      col.names = NULL) %>%
   add_header_above(c("unit of analysis"=1,"fixed effects"=1, "standard error structure"=1, "0"=1, "0.1" = 1, "0.2" = 1, "0.3" = 1), escape = TRUE, line =TRUE, bold = TRUE)%>%
   add_header_above(c(" "=1, " "=1, " "=1, "coverage probability ($\\\\sigma_p =$)"=4), escape = FALSE, line =FALSE, bold =FALSE)%>%
-  kable_styling(font_size = 10, latex_options = c("HOLD_position", "striped"), 
+  kable_styling(font_size = 10, latex_options = c("HOLD_position", "striped"),
                 position = "center")
 
 
 ```
+
+Table \@ref(tab:uoa-cover) demonstrates how coverage probabilities are impacted by property level unobservables for TWFE models with aggregated units of analysis. The property level specification incurred the least bias with the introduction of property level disturbances (Figure \@ref(fig:property-uoa)). Table \@ref(tab:uoa-cover) now shows that while all three aggregated units of analysis provide coverage probability near the desired 95\% when $\sigma_p=0$, the property level model is the only one that maintains coverage above 90% as $\sigma_p$ increases. 
 
 ```{r fe-cover, results = "asis", fig.show='hold'}
 
@@ -381,13 +373,10 @@ kable(coverage_fe, format = "latex", row.names = FALSE,  booktabs = T,
 
 ```
 
-Table XX and Table XX demonstrate how coverage probabilities are impacted by property level unobservables for TWFE models with aggregated units of analysis and fixed effects, respectively. While the property level specification incurred the least bias with the introduction of property level disturbances, Table XX shows that both the property and county level models hover near the desired 95\% coverage probabilities as the property level disturbances become a factor. On the other hand, the grid level model's coverage probability declines as the disturbances play a larger role. 
 
-The pixel level model with property fixed effects incurred less bias than the pixel level models with other alternative fixed effects. Table XX shows that the model with property fixed effects also outperforms the other models in this table in terms of coverage probability. Even as $]sigma_p$ grows, the property fixed effects model maintains a coverage probability near the desired 95\%. 
+Table \@ref(tab:fe-cover) demonstrates how coverage probabilities are impacted by property level unobservables for pixel level TWFE models with aggregated units of analysis.The pixel level model with property fixed effects incurred less bias than the pixel level models with other aggregated fixed effects. Table \@ref(tab:fe-cover) shows that the model with property fixed effects also outperforms the other models in this table in terms of coverage probability. 
 
-These results highlight the importance of taking the decision-making process underlying deforestation into account. 
-
-In many instances, researchers do not have access to geospatial boundaries of the relevant decision-making unit. County and grid cell level aggregation lead to lower levels of bias and higher coverage probability than pixel level specifications when property unobservables are present. County level aggregation leads to the best coverage in the absence of property boundaries, meaning that a larger, alternative administrative unit may be the best alternative when an adequate number of observations are available. If a pixel level analysis is used (potentially due to constraints on geospatial boundary access or few administrative units), we see that coverage is greatly improved when standard errors are clustered to a higher unit of aggregation.  
+Overall, this section highlights the benefits of structuring one's econometric modeling decisions around the decision-making unit. In some instances, researchers do not have access to geospatial boundaries of the relevant decision-making unit. County and grid cell level aggregation lead to lower levels of bias and higher coverage probability than pixel level specifications when property unobservables are present. County level aggregation leads to the best coverage in the absence of property boundaries, meaning that a larger, alternative administrative unit may be the best alternative when an adequate number of observations are available. If constraints on geospatial boundary access prevent analysis at the scale of the relevant decision-making unit, a grid level model or one with grid fixed effects is likely to greatly improve bias and coverage probability relative to a pixel level DID. 
 
 ```{r, fig.cap="bias, distribution, and coverage of all models with standard errors clustered at the level of the model fixed effects. The pixel level DID is clustered at the pixel level. ", out.width = "100%", fig.pos='H', fig.show='hold'}
 knitr::include_graphics("figs/summary_full.png")
