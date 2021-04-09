@@ -67,70 +67,59 @@ aggregation <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a,
 
 bias_0 <- aggregation$biases
 fe_bias_0 <- aggregation$fe_biases
-cover_0 <- aggregation$coverages_df
-fe_cover_0 <- aggregation$fe_coverages_df
+did_cover_0 <- aggregation$did_coverages_df
+# fe_cover_0 <- aggregation$fe_coverages_df
 
-summary_df <- aggregation$summary_df[2:9,]
-
+summary_df <- aggregation$summary_df[2:9,]%>%
+  mutate(dev_95 = abs(.95-cover))
 
 # Looks better when there is an outer margins
 par(oma=c(1,0,1,1))
 
 labels <- list("Model:" = c("DID", "TWFE", "dropped pixels"),
                "Unit of analysis:" = c("pixel", "grid", "property", "county"),
-               "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE"))
+               "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE"),
+               "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
 
+coverage_deviation <- summary_df$dev_95
 RMSE <- summary_df$RMSE
-test <- subset(summary_df, select=-c(RMSE, q99, q01))
+test <- subset(summary_df, select=-c(dev_95, cover, RMSE, q99, q01))
 
 index.ci <- match(c("q05","q95"), names(test))
 
 # One could also add information about model fit to this chart
-ylim <- c(-0.07,0.04)
+ylim <- c(-0.085,0.04)
 
 
 #Create the plot
 
 
-schart(test,labels, ylim = ylim, index.ci=index.ci, col.est=c("#0072B2","red"), ylab="                 Bias", highlight=1
+schart(test,labels, ylim = ylim, index.ci=index.ci, col.est=c("grey50","#D55E00"), ylab="                 Bias", highlight=1
        ,band.ref=c(-.05, .04), axes = FALSE
        #, col.band.ref="#c7e9f9"
        ) # make some room at the bottom
 Axis(side=2, at = c( 0, 0.03), labels=TRUE)
 abline(h=-0.02)
 abline(h=min(ylim)+0.0095)
-lapply(1:length(RMSE), function(i) {
-  rect(xleft=i-.1, ybottom=min(ylim)+0.01, xright=i+.1, ytop=min(ylim)+0.01+RMSE[i], border=NA, col="grey70")
+lapply(1:length(coverage_deviation), function(i) {
+  rect(xleft=i-.1, ybottom=min(ylim)+0.01, xright=i+.1, ytop=min(ylim)+0.01+coverage_deviation[i]/18, border=NA, col="#CC79A7")
   text(x= i
      , y=min(ylim)+.002, paste0(i), col="black", font=2)
 })
 text(x=mean(1:nrow(test))
-     , y=-.02-.01, "RMSE", col="grey70", font=2)
+     , y=-.02-.01, "deviation from 95% coverage", col="grey30", font=2)
+
+
+summary0_df <- aggregation$summary_df[2:9,]%>%
+  mutate(dev_95 = abs(.95-cover),
+         sigma_p=0)
 
 
 ```
 
-
-```{r aggregate p_err5, results = 'hide', warning=FALSE}
-std_p = 0.05
-std_avp = (std_a^2+std_v^2+std_p^2)^.5
-b0 = qnorm(base_0, mean = 0, sd = std_avp)
-b1 = qnorm(base_1, mean = 0, sd = std_avp) - b0
-b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
-b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
-b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
-
-aggregation_5 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
-
-bias_5 <- aggregation_5$biases
-fe_bias_5 <- aggregation_5$fe_biases
-cover_5 <- aggregation_5$coverages_df
-fe_cover_5 <- aggregation_5$fe_coverages_df
-
-```
 
 ```{r aggregate p_err15, results = 'hide', warning=FALSE}
-std_p = 0.15
+std_p = 0.1
 std_avp = (std_a^2+std_v^2+std_p^2)^.5
 b0 = qnorm(base_0, mean = 0, sd = std_avp)
 b1 = qnorm(base_1, mean = 0, sd = std_avp) - b0
@@ -138,19 +127,24 @@ b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
 b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
-aggregation_15 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+aggregation_1 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
 #aggregation_5$plot
 #ggsave(path = "figs", filename = "aggregation.png", dpi = 500)
 
-bias_15 <- aggregation_15$biases
-fe_bias_15 <- aggregation_15$fe_biases
-cover_15 <- aggregation_15$coverages_df
-fe_cover_15 <- aggregation_15$fe_coverages_df
+
+bias_1 <- aggregation_1$biases
+fe_bias_1 <- aggregation_1$fe_biases
+cover_1 <- aggregation_1$coverages_df
+fe_cover_1 <- aggregation_1$fe_coverages_df
+
+summary1_df <- aggregation_1$summary_df[2:9,]%>%
+  mutate(dev_95 = abs(.95-cover),
+         sigma_p=.1)
 
 ```
 
 ```{r aggregate p_err25, results = 'hide', warning=FALSE}
-std_p = 0.25
+std_p = 0.2
 std_avp = (std_a^2+std_v^2+std_p^2)^.5
 b0 = qnorm(base_0, mean = 0, sd = std_avp)
 b1 = qnorm(base_1, mean = 0, sd = std_avp) - b0
@@ -158,13 +152,40 @@ b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
 b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
-aggregation_25 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+aggregation_2 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
 # aggregation_25$plot
 
-bias_25 <- aggregation_25$biases
-fe_bias_25 <- aggregation_25$fe_biases
-cover_25 <- aggregation_25$coverages_df
-fe_cover_25 <- aggregation_25$fe_coverages_df
+bias_2 <- aggregation_2$biases
+fe_bias_2 <- aggregation_2$fe_biases
+cover_2 <- aggregation_2$coverages_df
+fe_cover_2 <- aggregation_2$fe_coverages_df
+
+summary2_df <- aggregation_2$summary_df[2:9,]%>%
+  mutate(dev_95 = abs(.95-cover),
+         sigma_p=.2)
+
+```
+
+```{r aggregate p_err25, results = 'hide', warning=FALSE}
+std_p = 0.3
+std_avp = (std_a^2+std_v^2+std_p^2)^.5
+b0 = qnorm(base_0, mean = 0, sd = std_avp)
+b1 = qnorm(base_1, mean = 0, sd = std_avp) - b0
+b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
+b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
+b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
+
+aggregation_3 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+# aggregation_25$plot
+
+bias_3 <- aggregation_3$biases
+fe_bias_3 <- aggregation_3$fe_biases
+cover_3 <- aggregation_3$coverages_df
+fe_cover_3 <- aggregation_3$fe_coverages_df
+
+summary3_df <- aggregation_3$summary_df[2:9,]%>%
+  mutate(dev_95 = abs(.95-cover),
+         sigma_p = .3)
 
 ```
 
@@ -174,17 +195,17 @@ fe_cover_25 <- aggregation_25$fe_coverages_df
 RMSE <- function (x) sqrt(mean((x-0)^2))
 rmse_p <- data.frame(
   "0" = unlist(lapply(bias_0, FUN = RMSE)),
-  "0.05" = unlist(lapply(bias_5, FUN = RMSE)),
-  "0.15" = unlist(lapply(bias_15, FUN = RMSE)),
-  "0.25" = unlist(lapply(bias_25, FUN = RMSE))
+  "0.1" = unlist(lapply(bias_1, FUN = RMSE)),
+  "0.2" = unlist(lapply(bias_2, FUN = RMSE)),
+  "0.3" = unlist(lapply(bias_3, FUN = RMSE))
   , check.names = FALSE
 )
 
 fe_rmse_p <- data.frame(
   "0" = unlist(lapply(fe_bias_0, FUN = RMSE)),
-  "0.05" = unlist(lapply(fe_bias_5, FUN = RMSE)),
-  "0.15" = unlist(lapply(fe_bias_15, FUN = RMSE)),
-  "0.25" = unlist(lapply(fe_bias_25, FUN = RMSE))
+  "0.1" = unlist(lapply(fe_bias_1, FUN = RMSE)),
+  "0.2" = unlist(lapply(fe_bias_2, FUN = RMSE)),
+  "0.3" = unlist(lapply(fe_bias_3, FUN = RMSE))
   , check.names = FALSE
 )
 
@@ -192,9 +213,11 @@ write.csv(rmse_p, "rmse_p.csv")
 write.csv(fe_rmse_p, "fe_rmse_p.csv")
 
 # creating bias csv
-biases_p <- data.frame("0" = colMeans(bias_0) , "0.05" = colMeans(bias_5), "0.15" = colMeans(bias_15), "0.25" = colMeans(bias_25) ,check.names = FALSE)
+biases_p <- data.frame("0" = colMeans(bias_0) , "0.1" = colMeans(bias_1), "0.2" = colMeans(bias_2), "0.3" = colMeans(bias_3) ,check.names = FALSE)
 
-fe_biases_p <- data.frame("0" = colMeans(fe_bias_0) , "0.05" = colMeans(fe_bias_5), "0.15" = colMeans(fe_bias_15), "0.25" = colMeans(fe_bias_25) ,check.names = FALSE)
+fe_biases_p <- data.frame("0" = colMeans(fe_bias_0) , "0.1" = colMeans(fe_bias_1), "0.2" = colMeans(fe_bias_2), "0.3" = colMeans(fe_bias_3) ,check.names = FALSE)
+
+biases_p <- rbind(biases_p, fe_biases_p)
 
 write.csv(biases_p, "bias_p.csv")
 write.csv(fe_biases_p, "fe_bias_p.csv")
@@ -202,19 +225,26 @@ write.csv(fe_biases_p, "fe_bias_p.csv")
 
 
 ```{r coverage}
-coverage <- cover_0 %>%
-  mutate(cover_5 = cover_5[,ncol(cover_5)],
-         cover_15 = cover_15[,ncol(cover_15)],
-         cover_25 = cover_25[,ncol(cover_25)]
+did_coverage <- did_cover_0 %>%
+  mutate(did_cover_1 = did_cover_1[,ncol(did_cover_1)],
+         did_cover_2 = did_cover_2[,ncol(did_cover_2)],
+         did_cover_3 = did_cover_3[,ncol(did_cover_3)]
+         )
+
+agg_coverage <- agg_cover_0 %>%
+  mutate(agg_cover_1 = agg_cover_1[,ncol(agg_cover_1)],
+         agg_cover_2 = agg_cover_2[,ncol(agg_cover_2)],
+         agg_cover_3 = agg_cover_3[,ncol(agg_cover_3)]
          )
   
 fe_coverage <-  fe_cover_0 %>%
-  mutate(fe_cover_5 = fe_cover_5[,ncol(fe_cover_5)],
-         fe_cover_15 = fe_cover_15[,ncol(fe_cover_15)],
-         fe_cover_25 = fe_cover_25[,ncol(fe_cover_25)]
+  mutate(fe_cover_1 = fe_cover_1[,ncol(fe_cover_1)],
+         fe_cover_2 = fe_cover_2[,ncol(fe_cover_2)],
+         fe_cover_3 = fe_cover_3[,ncol(fe_cover_3)]
          ) 
   
-write.csv(coverage, "coverage.csv")  
+write.csv(did_coverage, "did_coverage.csv")  
+write.csv(agg_coverage, "agg_coverage.csv") 
 write.csv(fe_coverage, "fe_coverage.csv")  
 
 ```
@@ -222,28 +252,53 @@ write.csv(fe_coverage, "fe_coverage.csv")
 
 ```{r plot rmse, results = 'hide', warning=FALSE}
 
-rmse_plot_df <- rmse_p %>%
-  rownames_to_column(var = "aggregation") %>%
-  melt(variable.name = "sigma_p", value.name = "RMSE" )
+rmse_plot_df <- rbind(rmse_p, fe_rmse_p) %>%
+  rownames_to_column(var = "model") %>%
+  melt(variable.name = "sigma_p", value.name = "RMSE" )%>%
+  separate(model, into = c("fixed effects", "uoa"), sep = " ")%>%
+  mutate("unit of analysis" = ifelse(is.na(uoa),  "same as fe", "pixel"),
+         "fixed effects" = ifelse(`fixed effects`=="pixel", "none", `fixed effects`)
+         )
 
-plot_rmse = ggplot(data = rmse_plot_df, aes(x = as.numeric(as.character(sigma_p)), y = RMSE, colour = aggregation)) +
-    geom_line(size = 1.2) +
-  geom_hline(yintercept = 0, linetype = "dashed")+
-    theme(plot.caption = element_text(hjust = 0.5))+
-    labs(x= "standard error of property level disturbances")
+plot_rmse = ggplot(data = rmse_plot_df, aes(x = as.numeric(as.character(sigma_p)), y = RMSE,  linetype = `unit of analysis`, colour = `fixed effects`)) +
+    geom_line(size = 1.25) +
+  geom_segment(aes(x=0, xend=.3, y=0, yend=0), linetype = "dashed", size=1, color="black")+
+  geom_vline(xintercept = 0, size=1)+
+    #theme(plot.caption = element_text(hjust = 0.5))+
+    labs(y = "RMSE", x= expression(sigma[p]))+
+  ggtitle(expression(paste("RMSE as a function of ", sigma[p])))+
+  # theme_classic() +
+  #scale_color_colorblind()+
+  mytheme
 plot_rmse
 
 ggsave(path = "figs", filename = "rmse_p.png", dpi = 500)
 
-bias_plot_df <- biases_p %>%
-  rownames_to_column(var = "aggregation") %>%
-  melt(variable.name = "sigma_p", value.name = "bias" )
+bias_plot_df <- rbind(biases_p, fe_biases_p) %>%
+  rownames_to_column(var = "model") %>%
+  melt(variable.name = "sigma_p", value.name = "bias" )%>%
+  separate(model, into = c("fixed effects", "uoa"), sep = " ")%>%
+  mutate("unit of analysis" = ifelse(is.na(uoa),  "same as fe", "pixel"),
+         "fixed effects" = ifelse(`fixed effects`=="pixel", "none", `fixed effects`)
+         )
 
-plot_bias = ggplot(data = bias_plot_df, aes(x = as.numeric(as.character(sigma_p)), y = bias, colour = aggregation)) +
-    geom_line(size = 1.2) +
-  geom_hline(yintercept = 0, linetype = "dashed")+
-    theme(plot.caption = element_text(hjust = 0.5))+
-    labs(x= "standard error of property level disturbances")
+mytheme <- theme(#axis.line = element_line(size = 1, colour = "black"),
+                 panel.grid.major  = element_line(colour="grey", size=rel(0.5)),
+                 panel.grid.minor = element_blank(),
+                 panel.background = element_rect(fill="whitesmoke"),
+                 plot.title= element_text(hjust = 0.5))
+
+plot_bias = ggplot(data = bias_plot_df, aes(x = as.numeric(as.character(sigma_p)), y = bias,  linetype = `unit of analysis`, colour = `fixed effects`)) +
+  ylim(-.005, .002)+
+    geom_line(size = 1.25) +
+  geom_segment(aes(x=0, xend=.3, y=0, yend=0), linetype = "dashed", size=1, color="black")+
+  geom_vline(xintercept = 0, size=1)+
+    #theme(plot.caption = element_text(hjust = 0.5))+
+    labs(y = "coefficient bias", x= expression(sigma[p]))+
+  ggtitle(expression(paste("coefficient bias as a function of ", sigma[p])))+
+  # theme_classic() +
+  #scale_color_colorblind()+
+  mytheme
 plot_bias
 
 ggsave(path = "figs", filename = "bias_p.png", dpi = 500)
@@ -277,5 +332,58 @@ fe_plot_bias = ggplot(data = fe_bias_plot_df, aes(x = as.numeric(as.character(si
 fe_plot_bias
 
 ggsave(path = "figs", filename = "fe_bias_p.png", dpi = 500)
+
+```
+
+```{r}
+
+full_summary <- rbind(summary0_df, summary1_df, summary2_df, summary3_df)
+
+
+
+# Looks better when there is an outer margins
+par(oma=c(1,0,1,1))
+
+labels <- list("Model:" = c("DID", "TWFE", "dropped pixels"),
+               "Unit of analysis:" = c("pixel", "grid", "property", "county"),
+               "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE"),
+               "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
+
+full_summary <- subset(full_summary, pixel.fe=="FALSE")
+
+coverage_deviation <- full_summary$dev_95
+RMSE <- full_summary$RMSE
+test <- subset(full_summary, select=-c(dev_95, cover, RMSE, q99, q01, sigma_p))
+
+index.ci <- match(c("q05","q95"), names(test))
+
+# One could also add information about model fit to this chart
+ylim <- c(-0.09,0.025)
+
+
+#Create the plot
+
+schart(test,labels, ylim = ylim, index.ci=index.ci, col.est=c("#0072B2","grey50"), ylab="                 Bias", highlight=c(1:7, 15:21)
+       ,band.ref=c(-.05, .04), axes = FALSE
+       #, col.band.ref="#c7e9f9"
+       ) # make some room at the bottom
+Axis(side=2, at = 0, labels=TRUE)
+abline(h=-0.03)
+abline(h=min(ylim)+0.0095)
+lapply(1:length(coverage_deviation), function(i) {
+  rect(xleft=i-.2, ybottom=min(ylim)+0.01, xright=i+.2, ytop=min(ylim)+0.01+coverage_deviation[i]/15, border=NA, col="#CC79A7")
+  text(x= i
+     , y=min(ylim)+.002, paste0(i), col="black", font=2)
+})
+text(x=mean(1:nrow(test))
+     , y=-.03-.005, "deviation from 95% coverage", col="grey30", font=2)
+text(x=4
+     , y=.02, expression(paste(sigma[p],"=0.0")), col="grey50", font=2)
+text(x=4+7
+     , y=.02, expression(paste(sigma[p],"=0.1")), col="#0072B2", font=2)
+text(x=4+7+7
+     , y=.02, expression(paste(sigma[p],"=0.2")), col="grey50", font=2)
+text(x=4+7+7+7
+     , y=.02, expression(paste(sigma[p],"=0.3")), col="#0072B2", font=2)
 
 ```

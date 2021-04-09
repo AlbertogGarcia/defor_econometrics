@@ -26,8 +26,11 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
   
   pixloc <- pixloc_df
   
-  covermat <- matrix(nrow = n, ncol = 10)
-  fix_covermat <- matrix(nrow = n, ncol = 6)
+  did_covermat <- matrix(nrow = n, ncol = 5)
+  agg_covermat <- matrix(nrow = n, ncol = 3)
+  bad_covermat <- matrix(nrow = n, ncol = 2)
+  fix_covermat <- matrix(nrow = n, ncol = 3)
+  
   coeffmatrix <- matrix(nrow = n, ncol = 4)
   bad_coeffmatrix <- matrix(nrow = n, ncol = 2)
   fix_coeffmatrix <- matrix(nrow = n, ncol = 3)
@@ -154,22 +157,24 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
     countylevel_df <- 
       countylevel_df %>% 
       filter_all(all_vars(!is.infinite(.)))
-
     
-    DID1 <- feols(deforrate ~  post*treat|year+grid, data = gridlevel_df)
+    # aggregated units of analysis
     
-    
-    DID2 <- feols(deforrate ~  post*treat|year+property, data = proplevel_df)
-
-    
-    DID3 <- feols(deforrate ~  post*treat|year+county, data = countylevel_df)
+    agg_DID1 <- feols(deforrate ~  post*treat|year+grid, data = gridlevel_df)
     
     
-    DID4 <- feols(y_it ~  post*treat, data = panels)
+    agg_DID2 <- feols(deforrate ~  post*treat|year+property, data = proplevel_df)
     
-    DID5 <- feols(defor ~  post*treat, data = panels)
     
-    DID6 <- feols(y_it ~  post*treat|year+pixels, data = panels)
+    agg_DID3 <- feols(deforrate ~  post*treat|year+county, data = countylevel_df)
+    
+    DID <- feols(y_it ~  post*treat, data = panels)
+    
+    # problematic specifications
+    
+    bad_DID1 <- feols(defor ~  post*treat, data = panels)
+    
+    bad_DID2 <- feols(y_it ~  post*treat|year+pixels, data = panels)
     
     
     
@@ -182,73 +187,72 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
     fix_DID3 <- feols(y_it ~  post*treat|year+county, data = panels)
     
     
-    #calculating bias from each aggregation method
-    coeffmatrix[i,1] <- DID1$coefficients - ATT
-    coeffmatrix[i,2] <- DID2$coefficients - ATT
-    coeffmatrix[i,3] <- DID3$coefficients - ATT
-    coeffmatrix[i,4] <- DID4$coefficients[4] - ATT
+    #calculating bias from each method
     
-    bad_coeffmatrix[i,1] <- DID5$coefficients[4] - ATT
-    bad_coeffmatrix[i,2] <- DID6$coefficients - ATT
+    # aggregated units of analysis
+    coeffmatrix[i,1] <- agg_DID1$coefficients - ATT
+    coeffmatrix[i,2] <- agg_DID2$coefficients - ATT
+    coeffmatrix[i,3] <- agg_DID3$coefficients - ATT
     
+    # regular did
+    coeffmatrix[i,4] <- DID$coefficients[4] - ATT
+    
+    # problematic specifications
+    bad_coeffmatrix[i,1] <- bad_DID1$coefficients[4] - ATT
+    bad_coeffmatrix[i,2] <- bad_DID2$coefficients - ATT
+    
+    # aggregated fixed effects
     fix_coeffmatrix[i,1] <- tail(fix_DID1$coefficients, n=1) - ATT
     fix_coeffmatrix[i,2] <- tail(fix_DID2$coefficients, n=1) - ATT
     fix_coeffmatrix[i,3] <- tail(fix_DID3$coefficients, n=1) - ATT
     
-    # classical standard errors
-    se1 <- summary(DID1, se = "hetero")$se[1]
-    se2 <- summary(DID2, se = "hetero")$se[1]
-    se3 <- summary(DID3, se = "hetero")$se[1]
-    se4 <- summary(DID4, se = "hetero")$se[4]
+    #regular DID standard errors
+    # robust
+    DID_se <- summary(DID, se = "hetero")$se[4]
+    # clustered at pixel
+    DID_clse_pixel  <- tail(summary(DID, cluster = ~pixels)$se, n=1)
+    # clustered pixel level standard errors at other units of aggregation
+    DID_clse_grid  <- tail(summary(DID, cluster = ~grid)$se, n=1)
+    DID_clse_property <- tail(summary(DID, cluster = ~property)$se, n=1)
+    DID_clse_county <- tail(summary(DID, cluster = ~county)$se, n=1)
+    
+    did_covermat[i,1] <- between(ATT, DID$coefficients[4] - 1.96 * DID_se, DID$coefficients[4] + 1.96 * DID_se)*1
+    did_covermat[i,2] <- between(ATT, DID$coefficients[4] - 1.96 * DID_clse_pixel, DID$coefficients[4] + 1.96 * DID_clse_pixel)*1
+    did_covermat[i,3] <- between(ATT, DID$coefficients[4] - 1.96 * DID_clse_grid, DID$coefficients[4] + 1.96 * DID_clse_grid)*1
+    did_covermat[i,4] <- between(ATT, DID$coefficients[4] - 1.96 * DID_clse_property, DID$coefficients[4] + 1.96 * DID_clse_property)*1
+    did_covermat[i,5] <- between(ATT, DID$coefficients[4] - 1.96 * DID_clse_county, DID$coefficients[4] + 1.96 * DID_clse_county)*1
+    
     
     #clustering at group level for aggregated analyses
-    cluster_se1    <- tail(summary(DID1, cluster = ~grid)$se, n=1)
-    cluster_se2    <- tail(summary(DID2, cluster = ~property)$se, n=1)
-    cluster_se3    <- tail(summary(DID3, cluster = ~county)$se, n=1)
+    agg_clse1    <- tail(summary(agg_DID1, cluster = ~grid)$se, n=1)
+    agg_clse2    <- tail(summary(agg_DID2, cluster = ~property)$se, n=1)
+    agg_clse3    <- tail(summary(agg_DID3, cluster = ~county)$se, n=1)
     
-    # clustered pixel level standard errors
-    cluster_prop_pix  <- tail(summary(DID4, cluster = ~property)$se, n=1)
-    cluster_grid_pix <- tail(summary(DID4, cluster = ~grid)$se, n=1)
-    cluster_county_pix <- tail(summary(DID4, cluster = ~county)$se, n=1)
+    # coverage with clustered standard errors at group level
+    agg_covermat[i,1] <- between(ATT, agg_DID1$coefficients - 1.96 * agg_clse1, agg_DID1$coefficients + 1.96 * agg_clse1)*1
+    agg_covermat[i,2] <- between(ATT, agg_DID2$coefficients - 1.96 * agg_clse2, agg_DID2$coefficients + 1.96 * agg_clse2)*1
+    agg_covermat[i,3] <- between(ATT, agg_DID3$coefficients - 1.96 * agg_clse3, agg_DID3$coefficients + 1.96 * agg_clse3)*1
     
     
-    ### typical and clustered standard errors for aggregated fixed effects
-    
-    fix_se1 <- tail(summary(fix_DID1, se = "hetero")$se, n=1)
-    fix_se2 <- tail(summary(fix_DID2, se = "hetero")$se, n=1)
-    fix_se3 <- tail(summary(fix_DID3, se = "hetero")$se, n=1)
-    
+    ### clustered standard errors for aggregated fixed effects
     fix_clse1    <- tail(summary(fix_DID1, cluster = ~grid)$se, n=1)
     fix_clse2    <- tail(summary(fix_DID2, cluster = ~property)$se, n=1)
     fix_clse3    <- tail(summary(fix_DID3, cluster = ~county)$se, n=1)
     
     #whether att is within CI
-    
-    # coverage with clustered standard errors at group level
-    covermat[i,1] <- between(ATT, DID1$coefficients - 1.96 * cluster_se1, DID1$coefficients + 1.96 * cluster_se1)*1
-    covermat[i,2] <- between(ATT, DID2$coefficients - 1.96 * cluster_se2, DID2$coefficients + 1.96 * cluster_se2)*1
-    covermat[i,3] <- between(ATT, DID3$coefficients - 1.96 * cluster_se3, DID3$coefficients + 1.96 * cluster_se3)*1
-    
-    # classical standard errors
-    covermat[i,4] <- between(ATT, DID1$coefficients - 1.96 * se1, DID1$coefficients + 1.96 * se1)*1
-    covermat[i,5] <- between(ATT, DID2$coefficients - 1.96 * se2, DID2$coefficients + 1.96 * se2)*1
-    covermat[i,6] <- between(ATT, DID3$coefficients - 1.96 * se3, DID3$coefficients + 1.96 * se3)*1
-    covermat[i,7] <- between(ATT, DID4$coefficients[4] - 1.96 * se4, DID4$coefficients[4] + 1.96 * se4)*1
-    
-    # coverage with pixel level analyses clustered at different levels
-    covermat[i,8] <- between(ATT, DID4$coefficients[4] - 1.96 * cluster_prop_pix, DID4$coefficients[4] + 1.96 * cluster_prop_pix)*1
-    covermat[i,9] <- between(ATT, DID4$coefficients[4] - 1.96 * cluster_grid_pix, DID4$coefficients[4] + 1.96 * cluster_grid_pix)*1
-    covermat[i,10] <- between(ATT, DID4$coefficients[4] - 1.96 * cluster_county_pix, DID4$coefficients[4] + 1.96 * cluster_county_pix)*1
-    
     ### coverage matrix for aggregated fixed effects
     
-    fix_covermat[i,1] <- between(ATT, tail(fix_DID1$coefficients, n=1) - 1.96 * fix_se1, tail(fix_DID1$coefficients, n=1) + 1.96 * fix_se1)*1
-    fix_covermat[i,2] <- between(ATT, tail(fix_DID2$coefficients, n=1) - 1.96 * fix_se2, tail(fix_DID2$coefficients, n=1) + 1.96 * fix_se2)*1
-    fix_covermat[i,3] <- between(ATT, tail(fix_DID3$coefficients, n=1) - 1.96 * fix_se3, tail(fix_DID3$coefficients, n=1) + 1.96 * fix_se3)*1
+    fix_covermat[i,1] <- between(ATT, tail(fix_DID1$coefficients, n=1) - 1.96 * fix_clse1, tail(fix_DID1$coefficients, n=1) + 1.96 * fix_clse1)*1
+    fix_covermat[i,2] <- between(ATT, tail(fix_DID2$coefficients, n=1) - 1.96 * fix_clse2, tail(fix_DID2$coefficients, n=1) + 1.96 * fix_clse2)*1
+    fix_covermat[i,3] <- between(ATT, tail(fix_DID3$coefficients, n=1) - 1.96 * fix_clse3, tail(fix_DID3$coefficients, n=1) + 1.96 * fix_clse3)*1
     
-    fix_covermat[i,4] <- between(ATT, tail(fix_DID1$coefficients, n=1) - 1.96 * fix_clse1, tail(fix_DID1$coefficients, n=1) + 1.96 * fix_clse1)*1
-    fix_covermat[i,5] <- between(ATT, tail(fix_DID2$coefficients, n=1) - 1.96 * fix_clse2, tail(fix_DID2$coefficients, n=1) + 1.96 * fix_clse2)*1
-    fix_covermat[i,6] <- between(ATT, tail(fix_DID3$coefficients, n=1) - 1.96 * fix_clse3, tail(fix_DID3$coefficients, n=1) + 1.96 * fix_clse3)*1
+    # se for bad specifications clustered at pixel level
+    bad_clse1    <- tail(summary(bad_DID1, cluster = ~pixels)$se, n=1)
+    bad_clse2    <- tail(summary(bad_DID2, cluster = ~pixels)$se, n=1)
+    
+    #coverage for bad specifications
+    bad_covermat[i,1] <- between(ATT, tail(bad_DID1$coefficients, n=1) - 1.96 * bad_clse1, tail(bad_DID1$coefficients, n=1) + 1.96 * bad_clse1)*1
+    bad_covermat[i,2] <- between(ATT, bad_DID2$coefficients - 1.96 * bad_clse2, bad_DID2$coefficients + 1.96 * bad_clse2)*1
     
     
     print(i)
@@ -309,28 +313,28 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
     )
   
   
-  coverages_df <- data.frame( 
+  did_coverages_df <- data.frame( 
+    aggregation = c('pixel',
+                    'pixel',
+                    'pixel',
+                    'pixel',
+                    'pixel'),
+    std_error = c('robust',
+                  'clustered at pixel',
+                  'clustered at grid',
+                  'clustered at property'
+                  , 'clustered at county'),
+    coverage = colMeans(did_covermat)
+  )
+  
+  agg_coverages_df <- data.frame( 
     aggregation = c('grid', 
-                   'property',
-                   'county',
-                   'grid',
-                   'property',
-                   'county',
-                   'pixel',
-                   'pixel',
-                   'pixel',
-                   'pixel'),
+                    'property',
+                    'county'),
     std_error = c('clustered at grid', 
-                 'clustered at property',
-                 'clustered at county',
-                 'classical',
-                 'classical',
-                 'classical',
-                 'classical'
-                 , 'clustered at property',
-                 'clustered at grid'
-                 , 'clustered at county'),
-    coverage = colMeans(covermat)
+                  'clustered at property',
+                  'clustered at county'),
+    coverage = colMeans(agg_covermat)
   )
   
   fix_coverages_df <- data.frame( 
@@ -340,104 +344,121 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
                     'grid',
                     'property',
                     'county'),
-    std_error = c('classical',
-                  'classical',
-                  'classical',
-                  'clustered at grid', 
+    std_error = c('clustered at grid', 
                   'clustered at property',
                   'clustered at county'),
     coverage = colMeans(fix_covermat)
   )
-    
+  
   summary_df <- data.frame('DID'=rep(NA, 9), 'TWFE'=rep(NA, 9), 'pixels dropped' =rep(NA, 9),
-                     'pixel'=rep(NA, 9),'grid'=rep(NA, 9),'property'=rep(NA, 9),'county'=rep(NA, 9),
-                     'pixel fe'=rep(NA, 9),'grid fe'=rep(NA, 9),'property fe'=rep(NA, 9),'county fe'=rep(NA, 9), 
-                     'mean_bias'=rep(NA, 9), 'RMSE'=rep(NA, 9),
-                     'q05'=rep(NA, 9), 'q95'=rep(NA, 9),# as many cols as you need
-                     'q01'=rep(NA, 9), 'q99'=rep(NA, 9),
-                   stringsAsFactors=FALSE)
+                           'pixel'=rep(NA, 9),'grid'=rep(NA, 9),'property'=rep(NA, 9),'county'=rep(NA, 9),
+                           'pixel fe'=rep(NA, 9),'grid fe'=rep(NA, 9),'property fe'=rep(NA, 9),'county fe'=rep(NA, 9),
+                           'se_pixel'=rep(NA, 9), 'se_grid'=rep(NA, 9), 'se_property'=rep(NA, 9), 'se_county'=rep(NA, 9),
+                           'mean_bias'=rep(NA, 9), 'RMSE'=rep(NA, 9),
+                           'q05'=rep(NA, 9), 'q95'=rep(NA, 9),
+                           'q01'=rep(NA, 9), 'q99'=rep(NA, 9),
+                           'cover'=rep(NA, 9),
+                           stringsAsFactors=FALSE)
   
   # DID1 <- feols(deforrate ~  post*treat|year+grid, data = gridlevel_df)
   summary_df[4,] <- c(0,1,0,
-            0,1,0,0,
-            0,1,0,0,
-            mean(coeff_bias$grid), rmse(actual, coeff_bias$grid),
-            quantile(coeff_bias$grid, 0.05), quantile(coeff_bias$grid, 0.95),
-            quantile(coeff_bias$grid, 0.01), quantile(coeff_bias$grid, 0.99))
+                      0,1,0,0,
+                      0,1,0,0,
+                      0,1,0,0,
+                      mean(coeff_bias$grid), rmse(actual, coeff_bias$grid),
+                      quantile(coeff_bias$grid, 0.05), quantile(coeff_bias$grid, 0.95),
+                      quantile(coeff_bias$grid, 0.01), quantile(coeff_bias$grid, 0.99),
+                      mean(agg_covermat[,1]))
   
   # DID2 <- feols(deforrate ~  post*treat|year+property, data = proplevel_df)
   summary_df[5,] <- c(0,1,0,
-            0,0,1,0,
-            0,0,1,0,
-            mean(coeff_bias$property), rmse(actual, coeff_bias$property),
-            quantile(coeff_bias$property, 0.05), quantile(coeff_bias$property, 0.95),
-            quantile(coeff_bias$property, 0.01), quantile(coeff_bias$property, 0.99))
+                      0,0,1,0,
+                      0,0,1,0,
+                      0,0,1,0,
+                      mean(coeff_bias$property), rmse(actual, coeff_bias$property),
+                      quantile(coeff_bias$property, 0.05), quantile(coeff_bias$property, 0.95),
+                      quantile(coeff_bias$property, 0.01), quantile(coeff_bias$property, 0.99),
+                      mean(agg_covermat[,2]))
   
   # DID3 <- feols(deforrate ~  post*treat|year+county, data = countylevel_df)
   summary_df[6,] <- c(0,1,0,
-            0,0,0,1,
-            0,0,0,1,
-            mean(coeff_bias$county), rmse(actual, coeff_bias$county),
-            quantile(coeff_bias$county, 0.05), quantile(coeff_bias$county, 0.95),
-            quantile(coeff_bias$county, 0.01), quantile(coeff_bias$county, 0.99))
+                      0,0,0,1,
+                      0,0,0,1,
+                      0,0,0,1,
+                      mean(coeff_bias$county), rmse(actual, coeff_bias$county),
+                      quantile(coeff_bias$county, 0.05), quantile(coeff_bias$county, 0.95),
+                      quantile(coeff_bias$county, 0.01), quantile(coeff_bias$county, 0.99),
+                      mean(agg_covermat[,3]))
   
   
   # DID4 <- feols(y_it ~  post*treat, data = panels)
   summary_df[3,] <- c(1,0,1,
-            1,0,0,0,
-            0,0,0,0,
-            mean(coeff_bias$pixel), rmse(actual, coeff_bias$pixel),
-            quantile(coeff_bias$pixel, 0.05), quantile(coeff_bias$pixel, 0.95),
-            quantile(coeff_bias$pixel, 0.01), quantile(coeff_bias$pixel, 0.99))
+                      1,0,0,0,
+                      0,0,0,0,
+                      1,0,0,0,
+                      mean(coeff_bias$pixel), rmse(actual, coeff_bias$pixel),
+                      quantile(coeff_bias$pixel, 0.05), quantile(coeff_bias$pixel, 0.95),
+                      quantile(coeff_bias$pixel, 0.01), quantile(coeff_bias$pixel, 0.99),
+                      mean(did_covermat[,2]))
   
   
   summary_df[1,] <- c(1,0,0,
-            1,0,0,0,
-            0,0,0,0,
-            mean(bad_bias[,1]), rmse(actual, bad_bias[,1]),
-            quantile(bad_bias[,1], 0.05), quantile(bad_bias[,1], 0.95),
-            quantile(bad_bias[,1], 0.01), quantile(bad_bias[,1], 0.99))
+                      1,0,0,0,
+                      0,0,0,0,
+                      1,0,0,0,
+                      mean(bad_bias[,1]), rmse(actual, bad_bias[,1]),
+                      quantile(bad_bias[,1], 0.05), quantile(bad_bias[,1], 0.95),
+                      quantile(bad_bias[,1], 0.01), quantile(bad_bias[,1], 0.99),
+                      mean(bad_covermat[,1]))
   
   # DID6 <- feols(y_it ~  post*treat|year+pixels, data = panels)
   summary_df[2,] <- c(0,1,1,
                       1,0,0,0,
                       1,0,0,0,
+                      1,0,0,0,
                       mean(bad_bias[,2]), rmse(actual, bad_bias[,2]),
                       quantile(bad_bias[,2], 0.05), quantile(bad_bias[,2], 0.95),
-                      quantile(bad_bias[,2], 0.01), quantile(bad_bias[,2], 0.99))
+                      quantile(bad_bias[,2], 0.01), quantile(bad_bias[,2], 0.99),
+                      mean(bad_covermat[,2]))
   
   ### TWFE regressions with aggregated fixed effects
   
   # fix_DID1 <- feols(y_it ~  post*treat|year+grid, data = panels)
   summary_df[7,] <- c(0,1,1,
-            1,0,0,0,
-            0,1,0,0,
-            mean(fix_bias[,1]), rmse(actual, fix_bias[,1]),
-            quantile(fix_bias[,1], 0.05), quantile(fix_bias[,1], 0.95),
-            quantile(fix_bias[,1], 0.01), quantile(fix_bias[,1], 0.99))
+                      1,0,0,0,
+                      0,1,0,0,
+                      0,1,0,0,
+                      mean(fix_bias[,1]), rmse(actual, fix_bias[,1]),
+                      quantile(fix_bias[,1], 0.05), quantile(fix_bias[,1], 0.95),
+                      quantile(fix_bias[,1], 0.01), quantile(fix_bias[,1], 0.99),
+                      mean(fix_covermat[,1]))
   
   # fix_DID2 <- feols(y_it ~  post*treat|year+property, data = panels)
   summary_df[8,] <- c(0,1,1,
-            1,0,0,0,
-            0,0,1,0,
-            mean(fix_bias[,2]), rmse(actual, fix_bias[,2]),
-            quantile(fix_bias[,2], 0.05), quantile(fix_bias[,2], 0.95),
-            quantile(fix_bias[,2], 0.01), quantile(fix_bias[,2], 0.99))
+                      1,0,0,0,
+                      0,0,1,0,
+                      0,0,1,0,
+                      mean(fix_bias[,2]), rmse(actual, fix_bias[,2]),
+                      quantile(fix_bias[,2], 0.05), quantile(fix_bias[,2], 0.95),
+                      quantile(fix_bias[,2], 0.01), quantile(fix_bias[,2], 0.99),
+                      mean(fix_covermat[,2]))
   
   # fix_DID3 <- feols(y_it ~  post*treat|year+county, data = panels)
   summary_df[9,] <- c(0,1,1,
-            1,0,0,0,
-            0,0,0,1,
-            mean(fix_bias[,3]), rmse(actual, fix_bias[,3]),
-            quantile(fix_bias[,3], 0.05), quantile(fix_bias[,3], 0.95),
-            quantile(fix_bias[,3], 0.01), quantile(fix_bias[,3], 0.99))
+                      1,0,0,0,
+                      0,0,0,1,
+                      0,0,0,1,
+                      mean(fix_bias[,3]), rmse(actual, fix_bias[,3]),
+                      quantile(fix_bias[,3], 0.05), quantile(fix_bias[,3], 0.95),
+                      quantile(fix_bias[,3], 0.01), quantile(fix_bias[,3], 0.99),
+                      mean(fix_covermat[,3]))
   
   summary_df <- summary_df %>%
-    mutate_at(1:10, as.logical)%>%
+    mutate_at(1:15, as.logical)%>%
     dplyr::select(mean_bias, everything())
   
   
-  outputs = list("plot" = plot, "fe_plot" = fe_plot, "biases" = coeff_bias, "fe_biases" = fix_bias, "coverages_df" = coverages_df, "fe_coverages_df" = fix_coverages_df, "summary_df" = summary_df)
+  outputs = list("plot" = plot, "fe_plot" = fe_plot, "biases" = coeff_bias, "fe_biases" = fix_bias, "did_coverages_df" = did_coverages_df, "agg_coverages_df" = agg_coverages_df, "fe_coverages_df" = fix_coverages_df, "summary_df" = summary_df)
   return(outputs)
   
   #end function  
