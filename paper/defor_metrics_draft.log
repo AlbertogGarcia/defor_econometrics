@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.14159265-2.6-0.999992 (MiKTeX 2.9.7380 64-bit) (preloaded format=xelatex 2020.8.14)  9 APR 2021 13:54
+This is XeTeX, Version 3.14159265-2.6-0.999992 (MiKTeX 2.9.7380 64-bit) (preloaded format=xelatex 2020.8.14)  9 APR 2021 16:47
 entering extended mode
 **./defor_metrics_draft.tex
 (defor_metrics_draft.tex
@@ -1179,22 +1179,22 @@ LaTeX Font Warning: Font shape `U/bbm/m/n' in size <5.5> not available
 File: figs/pixpic.png Graphic file (type bmp)
 <figs/pixpic.png>
 [8]
-File: figs/summary_fig.png Graphic file (type bmp)
-<figs/summary_fig.png>
+File: figs/summary_fig1.png Graphic file (type bmp)
+<figs/summary_fig1.png>
 [9]
 File: figs/bias_uoa.png Graphic file (type bmp)
 <figs/bias_uoa.png>
 File: figs/bias_fe.png Graphic file (type bmp)
 <figs/bias_fe.png>
 [10]
-File: figs/summary_full.png Graphic file (type bmp)
-<figs/summary_full.png>
-[11] [12] [13] [14] [15] [16]
+File: figs/summary_full1.png Graphic file (type bmp)
+<figs/summary_full1.png>
+[11] [12] [13] [14] [15] [16] [17]
 Overfull \hbox (14.851pt too wide) detected at line 680
 []
  []
 
-[17]
+
 Overfull \hbox (55.411pt too wide) detected at line 694
 []
  []
@@ -1204,10 +1204,9 @@ File: figs/did_keep.png Graphic file (type bmp)
 [18] [19] [20] [21]
 File: figs/outcome.png Graphic file (type bmp)
 <figs/outcome.png>
-[22]
+[22] [23]
 File: figs/outcome_byyr1.png Graphic file (type bmp)
 <figs/outcome_byyr1.png>
-[23]
 Package atveryend Info: Empty hook `BeforeClearDocument' on input line 908.
 [24]
 Package atveryend Info: Empty hook `AfterLastShipout' on input line 908.
@@ -1221,8 +1220,8 @@ LaTeX Font Warning: Size substitutions with differences
  ) 
 Here is how much of TeX's memory you used:
  20817 strings out of 414219
- 360246 string characters out of 2898314
- 834762 words of memory out of 3000000
+ 360268 string characters out of 2898314
+ 835762 words of memory out of 3000000
  37999 multiletter control sequences out of 15000+200000
  542438 words of font info for 99 fonts, out of 3000000 for 9000
  1348 hyphenation exceptions out of 8191

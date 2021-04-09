@@ -120,40 +120,6 @@ kable(lit_table, format = "latex",
 
 ```
 
-<!-- ## A model of land use change  -->
-
-<!-- In the model below, a risk-neutral landowner of each forested plot j faces a dynamic optimization problem. The property owner selects T, the time when land is cleared, in order to maximize the expected present discounted value of returns from the use of plot j: -->
-
-<!-- $$ \max_{T}   \int_0^T S_{jt}e^{-rt}dt + \int_T^{\infty} R_{jt}e^{-rt}dt - C_Te^{-rt}$$ -->
-
-<!-- where:  -->
-
-<!-- $S_{jt}=$ expected return to forest uses of the land -->
-
-<!-- $R_{jt}=$ expected return to non-forest uses of the land -->
-
-<!-- $C_T=$ cost of clearing net of obtainable timber value and including lost option value -->
-
-<!-- $r=$ interest rate -->
-
-<!-- In order for clearing at time $T$, (1) clearing must be profitable, and (2) it must not be preferred to wait. The following ``Arbitrage" condition must hold: -->
-
-<!-- $$ R_{jt} - S_{jt} - r_tC_t+\frac{dC_T}{dt}>0$$ -->
-<!-- Our empirical methodology is based on this condition.  -->
-
-<!-- Assuming that our explanatory variables enter in a linear way, the implications of this model for any given plot can be expressed in terms of a latent variable: -->
-
-<!-- $$y^*_{jt} = R_{jt} - S_{jt} - r_tC_t+\frac{dC_T}{dt}$$ -->
-
-<!-- and its mapping to the observed outcome, $y_{jt}$, where: -->
-
-
-<!-- \[y_{jt}= \begin{cases}  -->
-<!--  1 & \text{if } y^*_{jt} > 0 \\ -->
-<!--  0 & \text{otherwise} -->
-<!--    \end{cases} -->
-<!-- \] -->
-
 
 # Commonly used models fail to estimate the $ATT$
 
@@ -193,7 +159,7 @@ y_{it} = \alpha + \beta \text{ x } \mathbb{1} \{ t\geq t_0\} \mathbb{1} \{ D_i =
 
 \[ E [\hat{\beta }] = ATT + \underbrace{E[y_{it}(0) | t<t_0, D_i=1] - E[y_{it}(0) | t<t_0, D_i=0]}_{\text{pre-treatment difference in deforestation rates}} \]
 
-Thus, the above regression sacrifices the benefits that panel methods provide. If the treated area has a different baseline deforestation rate than the control, the researcher will present a biased estimate of the intervention's impact. This is often the case in the context of interventions that seek to reduce a landscape's deforestation rate, because the intervention is often implemented in a given area precisely because of its deforestation rate. It is conceivable that this bias could not only lead to changes of the magnitude estimates, but a change in the sign, thereby influencing policymakers to adopt ineffective ineffective programs. In cases where the researcher has two groups and two distinct time periods, a pixel level analysis is still feasible using the simple DID model, however, researchers often find themselves in situations where the more flexible TWFE model is preferable to the simple DID. Unfortunately, TWFE models with pixel fixed effects as described by equation (1) generally cannot identify the $ATT$. 
+Thus, the above regression forgoes the benefits that panel methods provide. If the treated area has a different baseline deforestation rate than the control, the researcher will present a biased estimate of the intervention's impact. This is often the case in the context of interventions that seek to reduce a landscape's deforestation rate, because the intervention is often implemented in a given area precisely because of its deforestation rate. It is conceivable that this bias could not only lead to changes of the magnitude estimates, but a change in the sign, thereby influencing policymakers to adopt ineffective ineffective programs. In cases where the researcher has two groups and two distinct time periods, a pixel level analysis is still feasible using the simple DID model, however, researchers often find themselves in situations where the more flexible TWFE model is preferable to the simple DID. Unfortunately, TWFE models with pixel fixed effects as described by equation (1) generally cannot identify the $ATT$. 
 
 # Methods
 
@@ -248,8 +214,7 @@ It is not uncommon to see annual treatment effects amounting to less than a 1 pe
 
 The initial simulated landscape has the following characteristics: a pre-treatment deforestation rate of 2\% in the control area; a pre-treatment deforestation rate of 5\% in the intervention area; a decrease in the deforestation rate of .5 percentage points between the first and second period in the absence of treatment; and an average reduction of 1 percentage point in the deforestation rate in treated units due to the intervention ($ATT = -0.01$). Lastly, $\sigma_a = .25$, $\sigma_p = 0$, and $\sigma_u = .1$. With $\sigma_p = 0$, there is no influence of random disturbances at the property scale. 
 
-We use the following primary criteria to compare econometric models: bias, RMSE, and coverage probability of their estimate of the $ATT$ parameter. Using our Monte Carlo simulations, we determine bias by computing the difference between each model's mean estimate of the $ATT$ and the known $ATT$ parameter. RMSE addresses the distribution of the estimates around the true $ATT$. Coverage probability is defined as the proportion of simulations in which the true $ATT$ lies within the simulation's 95\% confidence interval (CI). As such, we would expect the $ATT$ to lie within this CI 95\% of the time, however, factors such as the bias of the estimates, their distribution, and treatment of standard errors may impact coverage. If the estimator is biased, for example, it is ex-ante less likely that the true parameter falls within the CI. We largely rely on the bias of the estimators to evaluate their performance, but RMSE and coverage probability play an important role when bias is comparable across estimators. 
-
+We use the following primary criteria to compare econometric models: estimate bias and coverage probability of the estimate of the $ATT$ parameter. Using our Monte Carlo simulations, we determine bias by computing the difference between each model's mean estimate of the $ATT$ and the known $ATT$ parameter. Coverage probability is defined as the proportion of simulations in which the true $ATT$ lies within the simulation's 95\% confidence interval (CI). As such, we would expect the $ATT$ to lie within this CI 95\% of the time, however, factors such as the bias of the estimates, their distribution, and treatment of standard errors may impact coverage. If the estimator is biased, for example, it is ex-ante less likely that the true parameter falls within the CI.  
 
 # Alternative models can generate unbiased estimates of the $ATT$
 
@@ -277,14 +242,14 @@ We find little evidence that any one aggregated unit of analysis is consistently
 
 ## Aggregated fixed effects
 
-One can also use fixed effects at the level of an administrative unit rather than the pixel level to resolve bias associated with pixel level TWFE regressions. Columns 6-8 of Figure \@ref(fig:summary-fig) show that pixel level TWFE regressions are unbiased estimators of the $ATT$ when grid, county, or property fixed effects are used rather than pixel fixed effects. We also see that in the absence of property level perturbations (i.e. $\sigma_p=0$ in the DGP), all three models provide nearly identical estimates. The estimate distributions and RMSE are similar across all three models. 
+One can also use fixed effects at the level of an administrative unit rather than the pixel level to resolve bias associated with pixel level TWFE regressions. Columns 6-8 of Figure \@ref(fig:summary-fig) show that pixel level TWFE regressions are unbiased estimators of the $ATT$ when grid, county, or property fixed effects are used rather than pixel fixed effects. We also see that in the absence of property level perturbations (i.e. $\sigma_p=0$ in the DGP), all three models provide nearly identical estimates. The estimate distributions are similar across all three models. 
 
 <!-- ```{r agg_fe, fig.cap="fig caption", fig.show='hold', fig.pos = 'H'} -->
 <!-- knitr::include_graphics("figs/aggregated_fe.png") -->
 <!-- ``` -->
 
 ```{r summary-fig, fig.cap="bias, distribution, and coverage of all models with standard errors clustered at the level of the model fixed effects. The pixel level DID is clustered at the pixel level. ", fig.show='hold', fig.pos = 'H', out.width="100%"}
-knitr::include_graphics("figs/summary_fig.png")
+knitr::include_graphics("figs/summary_fig1.png")
 ```
 
 ## The importance of connecting the analysis to decision-making unit
@@ -379,7 +344,7 @@ Table \@ref(tab:fe-cover) demonstrates how coverage probabilities are impacted b
 Overall, this section highlights the benefits of structuring one's econometric modeling decisions around the decision-making unit. In some instances, researchers do not have access to geospatial boundaries of the relevant decision-making unit. County and grid cell level aggregation lead to lower levels of bias and higher coverage probability than pixel level specifications when property unobservables are present. County level aggregation leads to the best coverage in the absence of property boundaries, meaning that a larger, alternative administrative unit may be the best alternative when an adequate number of observations are available. If constraints on geospatial boundary access prevent analysis at the scale of the relevant decision-making unit, a grid level model or one with grid fixed effects is likely to greatly improve bias and coverage probability relative to a pixel level DID. 
 
 ```{r, fig.cap="bias, distribution, and coverage of all models with standard errors clustered at the level of the model fixed effects. The pixel level DID is clustered at the pixel level. ", out.width = "100%", fig.pos='H', fig.show='hold'}
-knitr::include_graphics("figs/summary_full.png")
+knitr::include_graphics("figs/summary_full1.png")
 ```
 
 # Conclusions
@@ -390,15 +355,15 @@ knitr::include_graphics("figs/summary_full.png")
 
 
 
-This paper seeks to leave researchers with a clear sense of the decisions that play a role in their choice of econometric specification. Despite past guidance to the contrary, models that incorporate fixed effects for individual points are unable to yield unbiased estimates of a policy's $ATT$ when applied to irreversible, binary observations of deforestation. This is due to the fact that when pixels are dropped after they first become deforested (necessary in the case of an irreversible binary outcome), TWFE models cannot identify off of points deforested in the first period. This main finding casts doubt as to the reliability of a significant number of estimates in the avoided deforestation literature. 
+This paper seeks to leave researchers with a clear sense of the decisions that play a role in their choice of econometric specification for conservation impact evaluation. Despite past guidance to the contrary, models that incorporate fixed effects for individual points are unable to yield unbiased estimates of a policy's $ATT$ when applied to irreversible, binary observations of deforestation. This is due to the fact that when pixels are dropped after they first become deforested (necessary in the case of an irreversible binary outcome), TWFE models cannot identify off of points deforested in the first period. This novel finding casts doubt as to the reliability of a significant number of estimates in the avoided deforestation literature. 
 
-In order to avoid the issue associated with TWFE models that incorporate point fixed effects, researchers can take advantage of aggregated spatial units. TWFE models with aggregated units of analysis and point level TWFE models with aggregated fixed effects are both viable solutions. We explore the benefits of conducting the analysis and inference at the level of the relevant decision making unit and offer guidance for when it is not relevant or available. Bias can arise when the scale of the analysis differs from the scale at which the process of land use change occurs. We provide guidance for when the researcher does not have access to geospatial boundaries detailing the relevant administrative or decision-making units. Ultimately, context plays a role in all of these decisions, and researchers should make clear which decisions they have made as well as their reasoning. 
+In order to avoid issues associated with TWFE models that incorporate point fixed effects, researchers can take advantage of aggregated spatial units. TWFE models with aggregated units of analysis and point level TWFE models with aggregated fixed effects are both viable solutions. As to which of these alternative spatial units is preferable to prioritize in the econometric specification, depends on the process by which land use change actually occurs. Bias can arise when the scale of the analysis differs from the scale of the process of land use change. As such, we explore the benefits of conducting estimation and inference at the level of the relevant decision-making unit and provide guidance for when the researcher does not have access to geospatial boundaries detailing the relevant units. Ultimately, context plays a role in what is feasible, and researchers should make clear the limits to their impact evaluation strategy. 
 
-An up and coming literature explores how remotely sensed data may need special consideration when used in impact evaluation. Aspects of the collection process such as satellite sensor characteristics, atmospheric conditions, and image processing may influence the structure of remotely sensed data products [@jain2020; @alix-garcia2020]. Of particular concern is the propensity for non-classical measurement error, which can lead to biased estimates of the $ATT$ [@wooldridge]. @alix-garcia2020 propose a solution for the case of a remotely sensed binary outcome in which misclassification is non-classical. As the proliferation of research relying on satellite data continues, researchers will need consider the intricacies of particular satellite data sources in order to substantiate causal claims.
+We do not integrate many aspects of the up and coming literature that explores how remotely sensed data may need special consideration when used in impact evaluation. Aspects of the collection process such as satellite sensor characteristics, atmospheric conditions, and image processing may influence the structure of remotely sensed data products [@jain2020; @alix-garcia2020]. Of particular concern is the propensity for non-classical measurement error, which can lead to biased estimates of the $ATT$ [@wooldridge]. @alix-garcia2020 propose a solution for the case of a remotely sensed binary outcome in which misclassification is non-classical. As the proliferation of research relying on satellite data continues, researchers will need consider the intricacies of particular satellite data sources in order to substantiate causal claims.
 
 Several econometric considerations relevant to model design and interpretation were not explored in this paper. TWFE regression models have received substantial attention in the econometrics literature recently, regarding concerns surrounding their viability and interpretability [e.g. @kropko2020]. For example, properties of TWFE regression models that arise when the treatment effect is heterogeneous across groups or over time may lead to erroneous results [@deChaisemartin2019]. We largely abstract away from choices of scale with regards to grid size or unit of analysis, but biased estimates may result from scale choices that are too large or too small relative to the data generating process or decision unit [@avelino2016]. This makes choice of grid cell size a relevant but unexplored aspect of our study. Lastly, the benefits of pre-matching control and treatment units are not addressed, but they are well understood to be substantial [e.g. @jones2015; @blackman2013].
 
-Without clear guidance on key econometric decisions, a wide variety of methods have been used in the literature using quasi-experimental methods for avoided deforestation impact evaluation. We show that a number of studies use specifications that suffer from bias or improper inference. The observations made here may apply to a wider audience beyond the set of researchers investigating the impacts of conservation interventions on deforestation. Any evaluation of interventions implemented at a spatial scale may benefit from this discussion. These results further apply to many settings in which the outcome represents an irreversible binary event. For example, studies addressing technology adoption as an outcome may fall prey to the same issues we describe with a point level analysis. Moving forward, it is imperative that researchers use methods that minimize bias and allow inference at expected levels of confidence. Misleading results may lead policymakers to avoid impactful policy designs or adopt policy that worsens environmental damages. 
+Without clear guidance on key econometric decisions, a wide variety of methods have been used in the literature using quasi-experimental methods for avoided deforestation impact evaluation. We show that a number of studies use specifications that suffer from estimation bias and imprecise inference. The observations made here may apply to a wider audience beyond the set of researchers investigating the impacts of conservation interventions on deforestation. Any evaluation of interventions implemented at a spatial scale may benefit from this discussion. These results further apply to many settings in which the outcome represents an irreversible binary event. For example, studies addressing technology adoption as an outcome may fall prey to the same issues we describe with a point level analysis. Moving forward, it is imperative that researchers use methods that minimize bias and allow inference at expected levels of confidence. Misleading results may lead policymakers to avoid impactful policy designs or adopt policy that worsens environmental damages. 
 
 
 # Acknowledgements and data {-}
