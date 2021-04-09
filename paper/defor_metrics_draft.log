@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.14159265-2.6-0.999992 (MiKTeX 2.9.7380 64-bit) (preloaded format=xelatex 2020.8.14)  4 APR 2021 21:33
+This is XeTeX, Version 3.14159265-2.6-0.999992 (MiKTeX 2.9.7380 64-bit) (preloaded format=xelatex 2020.8.14)  8 APR 2021 21:37
 entering extended mode
 **./defor_metrics_draft.tex
 (defor_metrics_draft.tex
@@ -503,84 +503,120 @@ LaTeX Warning: Command \underline  has changed.
                Check if current package is valid.
 
 )
+("C:\Users\garci\AppData\Local\Programs\MiKTeX 2.9\tex/latex/mathtools\mathtool
+s.sty"
+Package: mathtools 2021/03/18 v1.25 mathematical typesetting tools
+("C:\Users\garci\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\calc.sty"
+Package: calc 2017/05/25 v4.3 Infix arithmetic (KKT,FJ)
+\calc@Acount=\count289
+\calc@Bcount=\count290
+\calc@Adimen=\dimen162
+\calc@Bdimen=\dimen163
+\calc@Askip=\skip53
+\calc@Bskip=\skip54
+LaTeX Info: Redefining \setlength on input line 80.
+LaTeX Info: Redefining \addtolength on input line 81.
+\calc@Ccount=\count291
+\calc@Cskip=\skip55
+)
+("C:\Users\garci\AppData\Local\Programs\MiKTeX 2.9\tex/latex/mathtools\mhsetup.
+sty"
+Package: mhsetup 2021/03/18 v1.4 programming setup (MH)
+)
+LaTeX Info: Thecontrolsequence`\('isalreadyrobust on input line 130.
+LaTeX Info: Thecontrolsequence`\)'isalreadyrobust on input line 130.
+LaTeX Info: Thecontrolsequence`\['isalreadyrobust on input line 130.
+LaTeX Info: Thecontrolsequence`\]'isalreadyrobust on input line 130.
+\g_MT_multlinerow_int=\count292
+\l_MT_multwidth_dim=\dimen164
+\origjot=\skip56
+\l_MT_shortvdotswithinadjustabove_dim=\dimen165
+\l_MT_shortvdotswithinadjustbelow_dim=\dimen166
+\l_MT_above_intertext_sep=\dimen167
+\l_MT_below_intertext_sep=\dimen168
+\l_MT_above_shortintertext_sep=\dimen169
+\l_MT_below_shortintertext_sep=\dimen170
+\xmathstrut@box=\box49
+\xmathstrut@dim=\dimen171
+)
 ("C:\Users\garci\AppData\Local\Programs\MiKTeX 2.9\tex/latex/booktabs\booktabs.
 sty"
 Package: booktabs 2020/01/12 v1.61803398 Publication quality tables
-\heavyrulewidth=\dimen162
-\lightrulewidth=\dimen163
-\cmidrulewidth=\dimen164
-\belowrulesep=\dimen165
-\belowbottomsep=\dimen166
-\aboverulesep=\dimen167
-\abovetopsep=\dimen168
-\cmidrulesep=\dimen169
-\cmidrulekern=\dimen170
-\defaultaddspace=\dimen171
-\@cmidla=\count289
-\@cmidlb=\count290
-\@aboverulesep=\dimen172
-\@belowrulesep=\dimen173
-\@thisruleclass=\count291
-\@lastruleclass=\count292
-\@thisrulewidth=\dimen174
+\heavyrulewidth=\dimen172
+\lightrulewidth=\dimen173
+\cmidrulewidth=\dimen174
+\belowrulesep=\dimen175
+\belowbottomsep=\dimen176
+\aboverulesep=\dimen177
+\abovetopsep=\dimen178
+\cmidrulesep=\dimen179
+\cmidrulekern=\dimen180
+\defaultaddspace=\dimen181
+\@cmidla=\count293
+\@cmidlb=\count294
+\@aboverulesep=\dimen182
+\@belowrulesep=\dimen183
+\@thisruleclass=\count295
+\@lastruleclass=\count296
+\@thisrulewidth=\dimen184
 )
 ("C:\Users\garci\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\longtable.st
 y"
 Package: longtable 2020/01/07 v4.13 Multi-page Table package (DPC)
-\LTleft=\skip53
-\LTright=\skip54
-\LTpre=\skip55
-\LTpost=\skip56
-\LTchunksize=\count293
-\LTcapwidth=\dimen175
-\LT@head=\box49
-\LT@firsthead=\box50
-\LT@foot=\box51
-\LT@lastfoot=\box52
-\LT@cols=\count294
-\LT@rows=\count295
-\c@LT@tables=\count296
-\c@LT@chunks=\count297
+\LTleft=\skip57
+\LTright=\skip58
+\LTpre=\skip59
+\LTpost=\skip60
+\LTchunksize=\count297
+\LTcapwidth=\dimen185
+\LT@head=\box50
+\LT@firsthead=\box51
+\LT@foot=\box52
+\LT@lastfoot=\box53
+\LT@cols=\count298
+\LT@rows=\count299
+\c@LT@tables=\count300
+\c@LT@chunks=\count301
 \LT@p@ftn=\toks24
 ) ("C:\Users\garci\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\array.sty"
 Package: array 2019/08/31 v2.4l Tabular extension package (FMi)
-\col@sep=\dimen176
-\ar@mcellbox=\box53
-\extrarowheight=\dimen177
+\col@sep=\dimen186
+\ar@mcellbox=\box54
+\extrarowheight=\dimen187
 \NC@list=\toks25
-\extratabsurround=\skip57
-\backup@length=\skip58
-\ar@cellbox=\box54
+\extratabsurround=\skip61
+\backup@length=\skip62
+\ar@cellbox=\box55
 )
 ("C:\Users\garci\AppData\Local\Programs\MiKTeX 2.9\tex/latex/multirow\multirow.
 sty"
 Package: multirow 2019/05/31 v2.5 Span multiple rows of a table
-\multirow@colwidth=\skip59
-\multirow@cntb=\count298
-\multirow@dima=\skip60
-\bigstrutjot=\dimen178
+\multirow@colwidth=\skip63
+\multirow@cntb=\count302
+\multirow@dima=\skip64
+\bigstrutjot=\dimen188
 )
 ("C:\Users\garci\AppData\Local\Programs\MiKTeX 2.9\tex/latex/wrapfig\wrapfig.st
 y"
-\wrapoverhang=\dimen179
-\WF@size=\dimen180
-\c@WF@wrappedlines=\count299
-\WF@box=\box55
+\wrapoverhang=\dimen189
+\WF@size=\dimen190
+\c@WF@wrappedlines=\count303
+\WF@box=\box56
 \WF@everypar=\toks26
 Package: wrapfig 2003/01/31  v 3.6
 ) ("C:\Users\garci\AppData\Local\Programs\MiKTeX 2.9\tex/latex/float\float.sty"
 Package: float 2001/11/08 v1.3d Float enhancements (AL)
-\c@float@type=\count300
+\c@float@type=\count304
 \float@exts=\toks27
-\float@box=\box56
+\float@box=\box57
 \@float@everytoks=\toks28
-\@floatcapt=\box57
+\@floatcapt=\box58
 )
 ("C:\Users\garci\AppData\Local\Programs\MiKTeX 2.9\tex/latex/colortbl\colortbl.
 sty"
 Package: colortbl 2020/01/04 v1.0e Color table columns (DPC)
 \everycr=\toks29
-\minrowclearance=\skip61
+\minrowclearance=\skip65
 )
 ("C:\Users\garci\AppData\Local\Programs\MiKTeX 2.9\tex/latex/pdflscape\pdflscap
 e.sty"
@@ -598,38 +634,38 @@ Package: tabu 2019/01/11 v2.9 - flexible LaTeX tabulars (FC+tabu-fixed)
 ("C:\Users\garci\AppData\Local\Programs\MiKTeX 2.9\tex/latex/varwidth\varwidth.
 sty"
 Package: varwidth 2009/03/30 ver 0.92;  Variable-width minipages
-\@vwid@box=\box58
-\sift@deathcycles=\count301
-\@vwid@loff=\dimen181
-\@vwid@roff=\dimen182
+\@vwid@box=\box59
+\sift@deathcycles=\count305
+\@vwid@loff=\dimen191
+\@vwid@roff=\dimen192
 )
-\c@taburow=\count302
-\tabu@nbcols=\count303
-\tabu@cnt=\count304
-\tabu@Xcol=\count305
-\tabu@alloc=\count306
-\tabu@nested=\count307
-\tabu@target=\dimen183
-\tabu@spreadtarget=\dimen184
-\tabu@naturalX=\dimen185
-\tabucolX=\dimen186
-\tabu@Xsum=\dimen187
-\extrarowdepth=\dimen188
-\abovetabulinesep=\dimen189
-\belowtabulinesep=\dimen190
-\tabustrutrule=\dimen191
+\c@taburow=\count306
+\tabu@nbcols=\count307
+\tabu@cnt=\count308
+\tabu@Xcol=\count309
+\tabu@alloc=\count310
+\tabu@nested=\count311
+\tabu@target=\dimen193
+\tabu@spreadtarget=\dimen194
+\tabu@naturalX=\dimen195
+\tabucolX=\dimen196
+\tabu@Xsum=\dimen197
+\extrarowdepth=\dimen198
+\abovetabulinesep=\dimen199
+\belowtabulinesep=\dimen256
+\tabustrutrule=\dimen257
 \tabu@thebody=\toks30
 \tabu@footnotes=\toks31
-\tabu@box=\box59
-\tabu@arstrutbox=\box60
-\tabu@hleads=\box61
-\tabu@vleads=\box62
-\tabu@cellskip=\skip62
+\tabu@box=\box60
+\tabu@arstrutbox=\box61
+\tabu@hleads=\box62
+\tabu@vleads=\box63
+\tabu@cellskip=\skip66
 )
 ("C:\Users\garci\AppData\Local\Programs\MiKTeX 2.9\tex/latex/threeparttable\thr
 eeparttable.sty"
 Package: threeparttable 2003/06/13  v 3.0
-\@tempboxb=\box63
+\@tempboxb=\box64
 )
 ("C:\Users\garci\AppData\Local\Programs\MiKTeX 2.9\tex/latex/threeparttablex\th
 reeparttablex.sty"
@@ -643,24 +679,24 @@ Package: environ 2014/05/04 v0.3 A new way to define environments
 ces.sty"
 Package: trimspaces 2009/09/17 v1.1 Trim spaces around a token list
 ))
-\TPTL@width=\skip63
+\TPTL@width=\skip67
 ) ("C:\Users\garci\AppData\Local\Programs\MiKTeX 2.9\tex/latex/ulem\ulem.sty"
-\UL@box=\box64
-\UL@hyphenbox=\box65
-\UL@skip=\skip64
+\UL@box=\box65
+\UL@hyphenbox=\box66
+\UL@skip=\skip68
 \UL@hook=\toks32
-\UL@height=\dimen192
-\UL@pe=\count308
-\UL@pixel=\dimen193
-\ULC@box=\box66
+\UL@height=\dimen258
+\UL@pe=\count312
+\UL@pixel=\dimen259
+\ULC@box=\box67
 Package: ulem 2019/11/18
-\ULdepth=\dimen194
+\ULdepth=\dimen260
 )
 ("C:\Users\garci\AppData\Local\Programs\MiKTeX 2.9\tex/latex/makecell\makecell.
 sty"
 Package: makecell 2009/08/03 V0.1e Managing of Tab Column Heads and Cells
-\rotheadsize=\dimen195
-\c@nlinenum=\count309
+\rotheadsize=\dimen261
+\c@nlinenum=\count313
 \TeXr@lab=\toks33
 ) (defor_metrics_draft.aux)
 \openout1 = `defor_metrics_draft.aux'.
@@ -951,6 +987,24 @@ LaTeX Font Info:    Encoding `OMX' has changed to `TU' for symbol font
 LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `bold'
 (Font)                  OMX/lmex/m/n --> TU/latinmodern-math.otf(3)/b/n on inpu
 t line 83.
+
+Package unicode-math Warning: Using \overbracket and \underbracket from
+(unicode-math)                `mathtools' package.
+(unicode-math)                 
+(unicode-math)                 Use \Uoverbracket and \Uunderbracket for
+(unicode-math)                original `unicode-math' definition.
+
+
+Package unicode-math Warning: I'm going to overwrite the following commands
+(unicode-math)                from the `mathtools' package: 
+(unicode-math)                 
+(unicode-math)                     \dblcolon, \coloneqq, \Coloneqq, \eqqcolon.
+(unicode-math)                
+(unicode-math)                 
+(unicode-math)                 Note that since I won't overwrite the other
+(unicode-math)                colon-like commands, using them will lead to
+(unicode-math)                inconsistencies.
+
 LaTeX Info: Redefining \microtypecontext on input line 83.
 Package microtype Info: Character protrusion enabled (level 2).
 Package microtype Info: Using protrusion set `basicmath'.
@@ -963,7 +1017,7 @@ ModernRoman.cfg"
 File: mt-LatinModernRoman.cfg 2013/03/13 v1.0 microtype config. file: Latin Mod
 ern Roman (RS)
 )
-\AtBeginShipoutBox=\box67
+\AtBeginShipoutBox=\box68
 Package hyperref Info: Link coloring OFF on input line 83.
 
 ("C:\Users\garci\AppData\Local\Programs\MiKTeX 2.9\tex/latex/hyperref\nameref.s
@@ -978,7 +1032,7 @@ Package: refcount 2019/12/15 v3.6 Data extraction from label references (HO)
 ettitlestring.sty"
 Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 )
-\c@section@level=\count310
+\c@section@level=\count314
 )
 LaTeX Info: Redefining \ref on input line 83.
 LaTeX Info: Redefining \pageref on input line 83.
@@ -1058,62 +1112,62 @@ fg"
 File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 ) [1
 
-]
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 7.0pt on input line 238.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 5.0pt on input line 238.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 10.00092pt on input line 238.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 7.00064pt on input line 238.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 5.00046pt on input line 238.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 9.99893pt on input line 238.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 6.99925pt on input line 238.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 4.99947pt on input line 238.
-[2]
+] [2]
 File: figs/counterfactual.png Graphic file (type bmp)
 <figs/counterfactual.png>
 File: figs/did_trends.png Graphic file (type bmp)
 <figs/did_trends.png>
 [3]
-Overfull \hbox (18.13498pt too wide) in paragraph at lines 327--384
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
+(Font)              scaled to size 7.0pt on input line 323.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
+(Font)              scaled to size 5.0pt on input line 323.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
+(Font)              scaled to size 10.00092pt on input line 323.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
+(Font)              scaled to size 7.00064pt on input line 323.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
+(Font)              scaled to size 5.00046pt on input line 323.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
+(Font)              scaled to size 9.99893pt on input line 323.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
+(Font)              scaled to size 6.99925pt on input line 323.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
+(Font)              scaled to size 4.99947pt on input line 323.
+
+Overfull \hbox (18.13498pt too wide) in paragraph at lines 323--380
 [][] 
  []
 
 [4]
-LaTeX Font Info:    Calculating math sizes for size <11> on input line 388.
+LaTeX Font Info:    Calculating math sizes for size <11> on input line 384.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 11.0pt on input line 388.
+(Font)              scaled to size 11.0pt on input line 384.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 7.69997pt on input line 388.
+(Font)              scaled to size 7.69997pt on input line 384.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 5.5pt on input line 388.
+(Font)              scaled to size 5.5pt on input line 384.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 11.001pt on input line 388.
+(Font)              scaled to size 11.001pt on input line 384.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 7.70067pt on input line 388.
+(Font)              scaled to size 7.70067pt on input line 384.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 5.5005pt on input line 388.
+(Font)              scaled to size 5.5005pt on input line 384.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 10.99883pt on input line 388.
+(Font)              scaled to size 10.99883pt on input line 384.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 7.69914pt on input line 388.
+(Font)              scaled to size 7.69914pt on input line 384.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 5.4994pt on input line 388.
+(Font)              scaled to size 5.4994pt on input line 384.
 [5] [6]
-LaTeX Font Info:    Trying to load font information for U+bbm on input line 508
+LaTeX Font Info:    Trying to load font information for U+bbm on input line 504
 .
 ("C:\Users\garci\AppData\Local\Programs\MiKTeX 2.9\tex/latex/bbm\ubbm.fd"
 File: ubbm.fd 1999/03/15 V 1.2 Font definition for bbm font - TH
 ) [7]
 
 LaTeX Font Warning: Font shape `U/bbm/m/n' in size <5.5> not available
-(Font)              size <5> substituted on input line 577.
+(Font)              size <5> substituted on input line 573.
 
 File: figs/pixpic.png Graphic file (type bmp)
 <figs/pixpic.png>
@@ -1123,45 +1177,48 @@ File: figs/summary_fig.png Graphic file (type bmp)
 [9]
 File: figs/bias_p.png Graphic file (type bmp)
 <figs/bias_p.png>
-File: figs/fe_bias_p.png Graphic file (type bmp)
-<figs/fe_bias_p.png>
-[10] [11] [12] [13] [14] [15] [16]
-Overfull \hbox (14.851pt too wide) detected at line 1256
+File: figs/rmse_p.png Graphic file (type bmp)
+<figs/rmse_p.png>
+[10] [11]
+File: figs/summary_full.png Graphic file (type bmp)
+<figs/summary_full.png>
+[12] [13] [14] [15] [16] [17]
+Overfull \hbox (14.851pt too wide) detected at line 1288
 []
  []
 
 
-Overfull \hbox (55.411pt too wide) detected at line 1270
+Overfull \hbox (55.411pt too wide) detected at line 1302
 []
  []
 
-[17]
+[18]
 File: figs/did_keep.png Graphic file (type bmp)
 <figs/did_keep.png>
-[18] [19] [20] [21]
+[19] [20] [21] [22]
 File: figs/outcome.png Graphic file (type bmp)
 <figs/outcome.png>
-[22]
+[23]
 File: figs/outcome_byyr1.png Graphic file (type bmp)
 <figs/outcome_byyr1.png>
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1598.
-[23]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 1598.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1632.
+[24]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 1632.
 (defor_metrics_draft.aux)
-Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 1598.
-Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 1598.
+Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 1632.
+Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 1632.
 
 LaTeX Font Warning: Size substitutions with differences
 (Font)              up to 0.5pt have occurred.
 
  ) 
 Here is how much of TeX's memory you used:
- 20182 strings out of 414219
- 349138 string characters out of 2898314
- 819706 words of memory out of 3000000
- 37377 multiletter control sequences out of 15000+200000
+ 20736 strings out of 414219
+ 358940 string characters out of 2898314
+ 833970 words of memory out of 3000000
+ 37922 multiletter control sequences out of 15000+200000
  542438 words of font info for 99 fonts, out of 3000000 for 9000
  1348 hyphenation exceptions out of 8191
  59i,20n,118p,820b,364s stack positions out of 5000i,500n,10000p,200000b,50000s
 
-Output written on defor_metrics_draft.pdf (23 pages).
+Output written on defor_metrics_draft.pdf (24 pages).

@@ -284,7 +284,7 @@ One can also use fixed effects at the level of an administrative unit rather tha
 <!-- ``` -->
 
 
-```{r summary_fig, fig.cap="fig caption", fig.show='hold', fig.pos = 'H', out.width="100%"}
+```{r summary_fig, fig.cap="bias, distribution, and coverage of all models with standard errors clustered at the level of the model fixed effects. The pixel level DID is clustered at the pixel level. ", fig.show='hold', fig.pos = 'H', out.width="100%"}
 knitr::include_graphics("figs/summary_fig.png")
 ```
 
@@ -299,7 +299,7 @@ The introduction of property level unobservables changes the relative performanc
 The right panel of Figure XX demonstrates a similar takeaway in the context of models with the pixel as the unit of analysis but aggregated fixed effects. We see that models with grid, property, or county fixed effects perform similarly in terms of bias when there are no property level disturbances. However, as soon as these disturbances enter the picture, the model with property fixed effects outperforms the others. 
 
 ```{r, fig.cap="Left: Bias using different levels of aggregation as a function of property level unbservables; Right: Bias using fixed effects at an aggregated unit rather than the pixel as a function of property level unbservables", fig.pos='H', fig.show='hold'}
-knitr::include_graphics(c("figs/bias_p.png", "figs/fe_bias_p.png"))
+knitr::include_graphics(c("figs/bias_p.png", "figs/rmse_p.png"))
 ```
 
 <!-- Implications for RMSE -->
@@ -316,14 +316,13 @@ knitr::include_graphics(c("figs/bias_p.png", "figs/fe_bias_p.png"))
 
 ```{r did-cover, results = "asis", fig.show='hold'}
 
-coverage_did <- read.csv("coverage.csv") %>%
-  arrange(desc(std_error))%>%#, aggregation)%>%
-  filter(aggregation == "pixel")
+coverage_did <- read.csv("did_coverage.csv")[2:7] #%>%
+  #arrange(desc(std_error))%>%#, aggregation)
 
-kable(coverage_did[,2:7], format = "latex", row.names = FALSE, booktabs = T,
+kable(coverage_did, format = "latex", row.names = FALSE, booktabs = T,
       caption = "Coverage probabilities for pixel level DID model in presence of property level unobservables", 
       col.names = NULL) %>% 
-  add_header_above(c("unit of analysis"=1, "standard error structure"=1, "0"=1, "0.05" = 1, "0.15" = 1, "0.25" = 1), escape = TRUE, line =TRUE, bold = TRUE)%>%
+  add_header_above(c("unit of analysis"=1, "standard error structure"=1, "0"=1, "0.1" = 1, "0.2" = 1, "0.3" = 1), escape = TRUE, line =TRUE, bold = TRUE)%>%
   add_header_above(c(" "=1, " "=1, "coverage probability ($\\\\sigma_p =$)"=4), escape = FALSE, line =FALSE, bold =TRUE)%>%
   kable_styling(font_size = 10, latex_options = c("HOLD_position", "striped"), 
                 position = "center")
@@ -336,30 +335,43 @@ Table XX demonstrates how the presence of property level unobservables impacts c
 
 ```{r uoa-cover, results = "asis", fig.show='hold'}
 
-coverage_uoa <- read.csv("coverage.csv")[,2:7] %>%
-  arrange(desc(std_error))%>%#, aggregation)%>%
-  filter(std_error != "classical" & aggregation != "pixel")%>%
-  mutate(fe = aggregation)%>%
-  dplyr::select(fe, everything())%>%
+# coverage_uoa <- read.csv("coverage.csv")[,2:7] %>%
+#   arrange(desc(std_error))%>%#, aggregation)%>%
+#   filter(std_error != "classical" & aggregation != "pixel")%>%
+#   mutate(fe = aggregation)%>%
+#   dplyr::select(fe, everything())%>%
+#   dplyr::select(aggregation, everything())
+
+coverage_agg <- read.csv("agg_coverage.csv")[2:7] %>%
+  mutate("fixed effects" = aggregation)%>%
+  dplyr::select(`fixed effects`, everything())%>%
   dplyr::select(aggregation, everything())
 
-kable(coverage_uoa, format = "latex", row.names = FALSE,  booktabs = T,
+kable(coverage_agg, format = "latex", row.names = FALSE,  booktabs = T,
       caption = "Coverage probabilities for TWFE models using aggregated units of analysis in presence of property level unobservables", 
       col.names = NULL) %>% 
-  add_header_above(c("unit of analysis"=1,"fixed effects"=1, "standard error structure"=1, "0"=1, "0.05" = 1, "0.15" = 1, "0.25" = 1), escape = TRUE, line =TRUE, bold = TRUE)%>%
+  add_header_above(c("unit of analysis"=1,"fixed effects"=1, "standard error structure"=1, "0"=1, "0.1" = 1, "0.2" = 1, "0.3" = 1), escape = TRUE, line =TRUE, bold = TRUE)%>%
   add_header_above(c(" "=1, " "=1, " "=1, "coverage probability ($\\\\sigma_p =$)"=4), escape = FALSE, line =FALSE, bold =FALSE)%>%
   kable_styling(font_size = 10, latex_options = c("HOLD_position", "striped"), 
                 position = "center")
+
 
 ```
 
 ```{r fe-cover, results = "asis", fig.show='hold'}
 
-coverage_fe <- read.csv("fe_coverage.csv")[,2:7] %>%
-  arrange(desc(std_error))%>%#, aggregation)%>%
+# coverage_fe <- read.csv("fe_coverage.csv")[,2:7] %>%
+#   arrange(desc(std_error))%>%#, aggregation)%>%
+#   filter(std_error != "classical" )%>%
+#   mutate(uoa = "pixel")%>%
+#   dplyr::select(uoa, everything())
+
+coverage_fe <- read.csv("fe_coverage.csv")[2:7] %>%
+  rename("fixed effects" = 1)%>%
   filter(std_error != "classical" )%>%
-  mutate(uoa = "pixel")%>%
-  dplyr::select(uoa, everything())
+  mutate(aggregation = "pixel")%>%
+  dplyr::select(aggregation, everything())
+
 
 kable(coverage_fe, format = "latex", row.names = FALSE,  booktabs = T,
       caption = "Coverage probabilities for TWFE models using aggregated fixed effects in presence of property level unobservables", 
@@ -379,6 +391,9 @@ These results highlight the importance of taking the decision-making process und
 
 In many instances, researchers do not have access to geospatial boundaries of the relevant decision-making unit. County and grid cell level aggregation lead to lower levels of bias and higher coverage probability than pixel level specifications when property unobservables are present. County level aggregation leads to the best coverage in the absence of property boundaries, meaning that a larger, alternative administrative unit may be the best alternative when an adequate number of observations are available. If a pixel level analysis is used (potentially due to constraints on geospatial boundary access or few administrative units), we see that coverage is greatly improved when standard errors are clustered to a higher unit of aggregation.  
 
+```{r, fig.cap="bias, distribution, and coverage of all models with standard errors clustered at the level of the model fixed effects. The pixel level DID is clustered at the pixel level. ", out.width = "100%", fig.pos='H', fig.show='hold'}
+knitr::include_graphics("figs/summary_full.png")
+```
 
 # Conclusions
 
