@@ -328,7 +328,7 @@ coverage_fe <- read.csv("fe_coverage.csv")[2:7] %>%
 kable(coverage_fe, format = "latex", row.names = FALSE,  booktabs = T,
       caption = "Coverage probabilities for TWFE models using aggregated fixed effects in presence of property level unobservables", 
       col.names = NULL) %>% 
-  add_header_above(c("unit of analysis"=1,"fixed effects"=1, "standard error structure"=1, "0"=1, "0.05" = 1, "0.15" = 1, "0.25" = 1), escape = TRUE, line =TRUE, bold = TRUE)%>%
+  add_header_above(c("unit of analysis"=1,"fixed effects"=1, "standard error structure"=1, "0"=1, "0.1" = 1, "0.2" = 1, "0.3" = 1), escape = TRUE, line =TRUE, bold = TRUE)%>%
   add_header_above(c(" "=1, " "=1, " "=1, "coverage probability ($\\\\sigma_p =$)"=4), escape = FALSE, line =FALSE, bold =FALSE)%>%
   kable_styling(font_size = 10, latex_options = c("HOLD_position", "striped"), 
                 position = "center")
