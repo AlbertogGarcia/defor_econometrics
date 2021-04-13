@@ -145,7 +145,7 @@ In order to correct for irreversibilities in this deforestation process, it has 
 
 Despite widespread use of pixel level analyses, they are problematic in the context of TWFE regression models. While dropping pixels has been offered as a correction to account for the irreversibility of deforestation events, it is quite problematic. In fact, with this correction, the TWFE model yields the post-treatment difference in outcomes (single difference), rather than the desired $ATT$. We provide an analytical proof to support our claim. It can be found in the appendix (7.1). The result stems from the fact that the TWFE regression is not able to identify off of pixels that are dropped in the first period. Thus the pre-treatment period deforestation rates are not accounted for in the TWFE estimates. 
 
-The following pixel level TWFE regression is commonly used in the literature, with $\beta$ used to identify the $ATT$:
+The following pixel level TWFE regression is commonly used to estimate a policy's impact on deforestation. It has been used multiple times in studies published in economics journals, with $\beta$ used to identify the $ATT$:
 
 \begin{align}
 y_{it} = \alpha + \beta \text{ x } \mathbb{1} \{ t\geq t_0\} \mathbb{1} \{ D_i = 1\}+ \gamma_t + \lambda_i + \epsilon_{it}
@@ -248,7 +248,7 @@ knitr::include_graphics("figs/summary_fig1.png")
 
 ## The importance of connecting the analysis to decision-making unit
 
-We now demonstrate the importance of connecting the econometric model to the process by which land use change occurs on the ground. Property level unobservables may impact both treatment effect estimates and coverage probabilities. This is likely to be a factor when land use decisions are made at the property level, or the intervention seeks to alter underlying landowner incentives. In our Monte Carlo simulations, we vary the standard deviation of the time-invariant property level disturbances in the initial DGP, $\sigma_p$, in order to account for these unobservables. 
+We now demonstrate the importance of connecting the econometric model to the process by which land use change occurs on the ground. Table \@ref(tab:table-lit) shows that researchers often use a binary point or pixel as the unit of analysis. While this may sometimes be the preferred unit, it may be undesireable if the land use change process operates at a larger scale. Property level unobservables may impact both treatment effect estimates and coverage probabilities. This is likely to be a factor when land use decisions are made at the property level, or the intervention seeks to alter underlying landowner incentives. In our Monte Carlo simulations, we vary the standard deviation of the time-invariant property level disturbances in the initial DGP, $\sigma_p$, in order to account for these unobservables. 
 
 <!-- Implications for bias -->
 
