@@ -17,7 +17,7 @@ Heilmayr and Lambin 2016,matched DID,property,OLS
 Herrera et al. 2019,matched regression,binary point/pixel,OLS
 Holland et al. 2017,matched TWFE,landowner parcel/predio,OLS
 Jones and Lewis 2015 (1),matched TWFE,binary point/pixel, OLS
-(2),matched two-way FE,household parcel,OLS
+(2),matched TWFE,household parcel,OLS
 Jones et al. 2017,matched TWFE,household,OLS
 Koch et al. 2018,matched DID,municipality,OLS
 Oliviera Fiorini et al. 2020,matched regression,binary point/pixel,WLS
