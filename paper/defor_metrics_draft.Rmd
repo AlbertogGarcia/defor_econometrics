@@ -79,13 +79,14 @@ We center our attention on the case in which a researcher would like to quantify
 knitr::include_graphics("figs/counterfactual.png")
 ```
 
+<!-- In figure legend, I will change blue and green to "pixels not deforested in intervention area/ in untreated area over the course of the observation period" -->
+
 ## The difference-in-differences and two-way fixed effects estimators
 
 The remainder of our paper focuses on two methods commonly used in panel settings to measure the impact of conservation interventions: Difference-in-Differences (DID) and Two-way Fixed Effects (TWFE) regression models [@blackman2013; @jones2015]. The typical DID regression model includes a dummy variable equal to one for units in the treatment group, a dummy variable equal to one for observations in the period after the intervention, and their interaction. Conceptually, the DID estimator calculates the treatment effect as the difference between the differences of the treated and untreated observations before and after treatment [@butsic2017]. The DID estimator identifies the treatment effect parameter under one main assumption, known as the common trends assumption. It amounts to assuming that both units in the intervention area and untreated units would have experienced the same average change in the outcome (trend) in the absence of the intervention. While fundamentally untestable, ensuring that deforestation rates in the intervention area and the control area followed parallel trajectories prior to the date of the intervention can give creedence to this assumption [@butsic2017]. The DID method has become so popular in part, because the researcher does not need random assignment of treatment to generate convincing estimates of a program's impact on avoided deforestation, as long as the common trends assumption plausibly holds. 
 
 Figure \@ref(fig:twoperiod-deforestation) displays the intuition behind the DID estimator in the context of our simulated conservation intervention, given the deforestation rate trends in the intervention and untreated areas along with the unobservable counterfactual of what would have happened if the conservation intervention had not been adopted.
 
-<!-- In figure legend, change blue and green to "pixels not deforested in intervention area/ in untreated area over the course of the observation period" -->
 
 
 ```{r twoperiod-deforestation, fig.cap="The DID estimator (estimated ATT) amounts to the difference in pre-treatment deforestation rates (pre-treatment difference) minus the post-treatment difference in deforestation rates (post-treatment difference) between units with and without the intervention.", fig.show='hold', fig.pos = 'H', out.width = "75%"}
