@@ -195,12 +195,10 @@ y_{it} = \alpha + \beta \text{ x } \mathbb{1} \{ t\geq t_0\} \mathbb{1} \{ D_i =
 
 Thus, the above regression forgoes the benefits that panel methods provide. If the treated area has a different baseline deforestation rate than the control, the researcher will present a biased estimate of the intervention's impact. This is often the case in the context of interventions that seek to reduce a landscape's deforestation rate, because the intervention is implemented in a given area precisely because of its deforestation rate. It is conceivable that this bias could not only lead to changes of the magnitude estimates, but changes in its sign, thereby influencing policymakers to adopt ineffective ineffective programs or vice versa. In cases where the researcher has two groups and two distinct time periods, a pixel level analysis is still feasible using the simple DID model, however, researchers often find themselves in situations where the more flexible TWFE model is preferable to the simple DID. Unfortunately, TWFE models with pixel fixed effects as described by equation (1) cannot be used to convincingly identify the $ATT$. 
 
-# Monte Carlo simulations to compare model performance
-
-We employ a series of Monte Carlo simulations to evaluate the performance of different econometric model specifications. Specifically, we randomly generate synthetic landscapes with known policy effectiveness and analyze the performance of different econometric models in estimating the policy's known impact.
+# Monte Carlo simulations to compare alternative model performance
+The rapid growth of the conservation impact evaluation literature has resulted in a diversity of alternate model structures that could yield more accurate estimates of the effectiveness of different interventions (Table 1). To explore the relative performance of these different models, we employ a series of Monte Carlo simulations. Specifically, we randomly generate synthetic landscapes with known policy effectiveness and analyze the performance of different econometric models in estimating the policy's known impact.
 
 ## Data generating process
-
 Each of our simulated landscapes consists of administrative units that are either untreated $(D=0)$ or are assigned to a conservation treatment $(D=1)$. We observe deforestation in two, even-length periods, a pre-treatment $(t < t_{0})$ and a post-treatment $(t \ge t_{0})$ period. 
 
 Rather than directly observing deforestaion rates across the landscape in each time period, the researcher observes annualized maps depicting pixel-level, binary deforestation ($y_{ivt}\in 0,1$). We follow [@kerr; @pfaff2004a] and model these binary deforestation events as a function of each pixel's unobservable value along a continous, latent variable ($y^*_{ivt}$) indicating the return to clearing pixel $i$, in property $v$, in year $t$. The latent variable is defined:
