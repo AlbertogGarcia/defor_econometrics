@@ -78,13 +78,16 @@ The remainder of this paper is structured as follows. Section 2 reviews the stan
 
 # Conservation impact evaluation using panel methods
 
-While randomized experiments are the gold standard for scientific discovery in both the natural and social sciences [@edwards2020; @jayachandran2017], conservation often poses questions that are prohibitively expensive, unethical or impossible to pursue through experimentation. In such settings, a growing portfolio of statistical techniques enable researchers to draw causal conclusions using observational data [@larsen2019]. Importantly, these methods account for the non-random assignment of interventions that often confound identification of causal relationships; a low rate of deforestation within a remote protected area may reflect the protected area's effectiveness, or it may be indicative of the remote location's poor suitability for agricultural development [@andam2008; @pfaff2009]. These approaches frequently build upon panel data settings in which units are observed repeatedly through time, enabling researchers to observe changes in outcomes after the adoption of an intervention [@blackman2013]. When a rigorous research design is applied to panel data, observational studies can yield conclusions that are comparable to what a researcher would discover if they were able to run a randomized experiment [@ferraro2017].
+While randomized experiments are the gold standard for scientific discovery in both the natural and social sciences [@edwards2020; @jayachandran2017], conservation often poses questions that are prohibitively expensive, unethical or impossible to pursue through experimentation. In such settings, a growing portfolio of statistical techniques enable researchers to draw causal conclusions using observational data [@larsen2019]. Importantly, these methods account for the non-random assignment of interventions that often confound identification of causal relationships; i.e., a low rate of deforestation within a remote protected area may reflect the protected area's effectiveness, or it may be indicative of the remote location's poor suitability for agricultural development [@andam2008; @pfaff2009]. These approaches frequently build upon panel data settings , in which units are observed repeatedly through time. This enables researchers to observe changes in outcomes after the adoption of an intervention [@blackman2013]. When a rigorous research design is applied to panel data, observational studies can yield conclusions that are comparable to what a researcher would discover if they were able to run a randomized experiment [@ferraro2017].
 
 We center our attention on the case in which a researcher would like to quantify the impact of a policy intervention on deforestation rates. We assume that the intervention has clearly defined boundaries (e.g., a protected area, certified concession, or indigenous territory), and that the researcher has access to spatially explicit observations of forest cover and forest loss spanning the periods before and after the intervention was adopted. This general setting describes a broad array of research studies that apply panel methods to remotely sensed data (Table \@ref(tab:table-lit)).
+
 
 <!--
 TODO: The above paragraph assumes SUTVA. Maybe need to acknowledge that that's an assumption we're making at some point in the paper? Maybe we could add a short section to Monte Carlo description to note that we're imposing parallel trends and SUTVA to simplify the simulations?
 -->
+
+
 
 \renewcommand{\arraystretch}{1.5}
 ```{r table-lit}
@@ -96,14 +99,15 @@ kable(lit_table, format = "latex",
       col.names = c("Paper",
                     "Panel Method",
                     "Unit of analysis",
-                    "Functional form")) %>% 
+                    "Unit fixed effects level")) %>% 
   row_spec(0,bold=TRUE) %>% 
   kable_styling(font_size = 10, latex_options = c("striped", "HOLD_position"),
                 #full_width = TRUE
-                position = "left"
+                position = "center"
                 )
 
 ```
+\clearpage
 <!-- 
 TODO: 
 1. For the reader to be able to more identify the studies that fall prey to our main critique, do we need to add another column that describes the level unit fixed effects?
@@ -113,13 +117,14 @@ TODO:
 -->
 
 
-## Defining the $ATT$ and the standard binary forest cover outcome
 
-In each of the studies detailed in Table \@ref(tab:table-lit), the researcher's goal is to measure the impact that a specific policy had on deforestation within treated units. The fundamental challenge is that, for every treated unit, the researcher is unable to observe the value that the outcome would have taken in the absence of treatment [@holland1986]. Figure \@ref(fig:counterfactual) displays this problem in the context of our simulated conservation intervention --- the landscape is depicted as observed by the researcher at the end of the observation period, including the unobservable counterfactual of what would have happened if the conservation intervention had not been adopted. Note that in untreated areas, there is no counterfactual deforestation, since no intervention ever took place. 
+In each of the studies detailed in Table \@ref(tab:table-lit), the researcher's goal is to measure the impact that a specific policy had on deforestation within treated units. The parameter describing the causal effect of the policy is referred to as the \textit{average treatment effect on the treated}, or $ATT$. The $ATT$ estimates the difference between a) the average deforestation rate of treated units with treatment and b) the average deforestation rate of treated units without treatment. The fundamental challenge is that, for every treated unit, the researcher is unable to observe the value that the outcome would have taken in the absence of treatment [@holland1986]. In our case, this means that the researcher cannot observe the deforestation that would have occurred in treated units had they not received treatment. Figure \@ref(fig:counterfactual) displays this problem in the context of our simulated conservation intervention --- the landscape is depicted as observed by the researcher at the end of the observation period, including the unobservable counterfactual of what would have happened if the conservation intervention had not been adopted. Note that in untreated areas, there is no counterfactual deforestation, since no intervention ever took place. 
 
-```{r counterfactual, echo=FALSE, fig.pos = 'H', fig.cap="This figure shows deforestation that would have ocurred in the absence of the conservation intervention at the same point in time, after implementation of the conservation intervention. Note that no counterfactual deforestation occurs in the control area, since no intervention ocurred.", fig.show='hold', out.width = "100%"}
-knitr::include_graphics("figs/lscape.png")
+```{r counterfactual, echo=FALSE, fig.cap="This figure shows deforestation that would have ocurred in the absence of the conservation intervention at the same point in time, after implementation of the conservation intervention. Note that no counterfactual deforestation occurs in the control area, since no intervention ocurred.", out.width = "75%"}
+knitr::include_graphics("figs/lscape.jpg")
 ```
+
+
 
 <!-- 
 TODO: I've only done a really rough job bringing these sections together. Ideally, we'd still:
@@ -127,26 +132,23 @@ TODO: I've only done a really rough job bringing these sections together. Ideall
 2. Provide more definitions for the notation. For example, y_it wasn't defined until after this section.
 3. Ensure we're not creating conflicting notation between this section and sections 3 and 4.1. Ideally all notation is consistent and builds upon previous sections.
 4. Remove Figure 2? If we're headed towards REEP, might be better to add more complete mathematical notation and remove the simple visual describing DiD. 
-5. Move some of the end of this section (e.g. reference to appendix 7.2) back into section 3?
+5. Move some of the end of this section (e.g. reference to appendix 7.2) back into section 3? X was here
 -->
 
-We now define the parameter the researcher hopes to estimate in deforestation impact evaluations. The average treatment effect on the treated, or the $ATT$, estimates the impact of the conservation intervention on the units that receive it relative to the counterfactual scenario without the intervention. It can be expressed as
-
-$$ ATT = E[y_{it}(1) - y_{it}(0) |  t\geq t_0, D_i=1]$$
-
-, where $t_0$ is the year that the intervention is implemented and $D_i$ is a dummy equal to one if unit $i$ is ever treated. 
-
-Often times, the researcher accesses the data at the pixel level, and analyses at the pixel level are prevalent in the literature, as seen in Table \@ref(tab:table-lit). Further, it has often been promoted as the preferred unit of analysis in many cases. Deforested pixels generally do not revert back to forest cover over the course of the study period. In this context, the researcher is interested in how the intervention impacts the decision to clear, not the presence of cleared land. Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested may imply that it has actively been deforested in each subsequent time period, when in fact, no new deforestation event or clearing decision has ocurred. These pixels, therefore, contribute unwarrantedly toward the deforestation rate in each additional period they are left in the panel. We show that pixel level regression models failing to drop deforested pixels in subsequent periods do indeed incur bias (Appendix 7.2). 
-
-In order to correct for irreversibilities in this deforestation process, it has been advised to drop deforested pixels in the periods after they first become deforested [@jones2015; @alix-garcia2017]. In the literature, the typical outcome variable describing pixel $i$ in time $t$ is defined as follows: 
-
+As with the Global Forest Change product, researchers often observe maps depicting pixel-level, binary deforestation, similar to what is depicted in Figure \@ref(fig:counterfactual). When converted to a panel dataset, the researcher observes the year in which a pixel is converted from forest to non-forest, and importantly, deforested pixels do not revert back to forest cover over the course of the study period. Thus, repeated deforestation events cannot be detected in the same location. In order to correct for this irreversibility, it has been advised to drop deforested pixels in the periods after they first become deforested [@jones2015; @alix-garcia2017]. In the literature, the outcome variable describing pixel $i$, in property $v$, in time $t$ is often defined as follows:
 \begin{align*}
- y_{it} = \begin{cases} 
+ y_{ivt} = \begin{cases}
       1 &  \text{if pixel $i$ is deforested in time $t$}\\
       0 &  \text{if pixel $i$ has never been deforested} \\
-      NAN & \text{if pixel $i$ was deforested prior to time $t$} 
+      NAN & \text{if pixel $i$ was deforested prior to time $t$}
    \end{cases}
 \end{align*}
+
+Analyses at the pixel level are prevalent in the literature, as seen in Table \@ref(tab:table-lit). Further, it has often been promoted as the preferred unit of analysis in many cases. Ultimately, the researcher seeks to estimate the $ATT$, which estimates the average impact of the conservation intervention on deforestation rate in pixels that receive it relative to the counterfactual scenario without the intervention. Let $y_{ivt}(1)$ and $y_{ivt}(0)$ denote the potential outcomes of pixel $i$ in property $v$ in time $t$ with and without the treatment, respectively. The $ATT$ is then the average effect of the conservation intervention on treated pixels and can be expressed: 
+$$ ATT = E[y_{ivt}(1) - y_{ivt}(0) |  t\geq t_0, D_i=1]$$
+
+, where $t_0$ is the year that the intervention is implemented and $D_i$ is a dummy equal to one if pixel $i$ is ever treated.
+
 
 ## The difference-in-differences and two-way fixed effects estimators
 
@@ -154,46 +156,75 @@ In order to correct for irreversibilities in this deforestation process, it has 
 TODO: By defining the ATT and y_it above, I think we could introduce simple notation illustrating how the DID and TWFE estimate the ATT.
 -->
 
-The remainder of our paper focuses on two methods commonly used in panel settings to measure the impact of conservation interventions: Difference-in-Differences (DID) and Two-way Fixed Effects (TWFE) regression models [@blackman2013; @jones2015]. The typical DID regression model includes a dummy variable equal to one for units in the treatment group, a dummy variable equal to one for observations in the period after the intervention, and their interaction. Conceptually, the DID estimator calculates the treatment effect as the difference between the differences of the treated and untreated observations before and after treatment [@butsic2017]. The DID estimator identifies the treatment effect parameter under one main assumption, known as the common trends assumption. It amounts to assuming that both units in the intervention area and untreated units would have experienced the same average change in the outcome (trend) in the absence of the intervention. While fundamentally untestable, ensuring that deforestation rates in the intervention area and the control area followed parallel trajectories prior to the date of the intervention can give creedence to this assumption [@butsic2017]. The DID method has become so popular in part, because the researcher does not need random assignment of treatment to generate convincing estimates of a program's impact on avoided deforestation, as long as the common trends assumption plausibly holds. 
+The remainder of our paper focuses on two methods commonly used to estimate the $ATT$ in conservation intervention settings with panel data: Difference-in-Differences (DID) and Two-way Fixed Effects (TWFE) regression models [@blackman2013; @jones2015]. The DID and TWFE methods have become so popular in part, because the researcher does not need random assignment of treatment to generate convincing estimates of a program's impact on avoided deforestation. Instead, the researcher must make a common trends assumption, under which we evaluate both methods. 
 
-Figure \@ref(fig:twoperiod-deforestation) displays the intuition behind the DID estimator in the context of our simulated conservation intervention, given the deforestation rate trends in the intervention and untreated areas along with the unobservable counterfactual of what would have happened if the conservation intervention had not been adopted.
+\textbf{Assumption 1:} (Common trends)
+\begin{align*}
+E[y_{ivt}(0) |  t\geq t_0, D_i=1]-E[y_{ivt}(0) |  t< t_0, D_i=1]=E[y_{ivt}(0) |  t\geq t_0, D_i=0]-E[y_{ivt}(0) |  t< t_0, D_i=0]
+\end{align*}
 
-
-
-```{r twoperiod-deforestation, fig.cap="The DID estimator (estimated ATT) amounts to the difference in pre-treatment deforestation rates (pre-treatment difference) minus the post-treatment difference in deforestation rates (post-treatment difference) between units with and without the intervention.", fig.show='hold', fig.pos = 'H', out.width = "75%"}
-knitr::include_graphics(c("figs/did_trends.png"))
-
-#knitr::include_graphics(c("figs/twoperiod_landscape.png","figs/did_trends.png"))
-```
-
-TWFE regression models are often used to apply DID methods to multiple groups or treatment periods. This generally amounts to estimating a regression that controls for unit and time fixed effects. Intuitively, this can be thought of as including a dummy variable for each unit of analysis and each time period. The fixed effects account for any unobservable confounding variables that may vary across units or through time. When the treatment effect is constant across groups and over time, TWFE regressions estimate the average treatment effect in treated units under the standard common trends assumption [@dechaisemartin2020]. 
-
-Because TWFE regression models are often used to generalize the DID method, they are used in a wider variety of settings and have gained paramount popularity in the land use change impact evaluation literature. Settings in which units undergo treatment in more than two distinct time periods may be amenable to TWFE regression, but not the standard DID method. For example, a researcher may use an TWFE regression model to examine the effectiveness of a network of protected areas, where the protected areas where created at different times or a payment for ecosystem services (PES) program, which enrolls properties in annual cohorts. In the case of two groups and two time periods, the TWFE regression should give an estimate equivalent to that of the DID model [@wooldridge]. This flexibility has led to TWFE regression models becoming the gold standard in the literature. While we do not consider Table \@ref(tab:table-lit) a perfect representation of all deforestation impact evaluation studies using panel data, 17 of the 28 (60.7\%) identified studies use TWFE models. 
+Assumption 1 requires that both units in the intervention area and untreated units would have experienced the same average change in the outcome (trend) in the absence of the intervention. While fundamentally untestable, ensuring that deforestation rates in the intervention area and the control area followed parallel trajectories prior to the date of the intervention can give creedence to this assumption [@butsic2017]. 
 
 
-# Pixel level, two way fixed effects models fail to estimate the $ATT$
+We also evaluate the DID and TWFE models under the following stable unit value treatment assumption (SUTVA)
 
-Despite widespread use of pixel level analyses of deforestation, the application of TWFE models to a binary, irreversible process such as deforestation is problematic.
+\textbf{Assumption 2:} (SUTVA)
+\begin{align*}
+\forall d \in \{ 0,1\}: \text{ if }D_i=d, \text{ then }y_{ivt}(d)=y_{ivt}
+\end{align*}
 
-<!--
-TODO: add back a short description of why irreversibility necessitates dropping observations. Text is currently in section 2.1
--->
+Assumption 2 requires that the potential outcomes for pixel $i$, $y_{ivt}(1)$ and $y_{ivt}(0)$, do not depend on the treatment status of any other pixel. There also cannot exist unobserved versions of treatment that may affect the potential outcomes. 
 
-While dropping pixels has been offered as a correction to account for the irreversibility of deforestation events, it is quite problematic. In fact, with this correction, the TWFE model yields the post-treatment difference in outcomes (single difference), rather than the desired $ATT$. We provide an analytical proof to support our claim (Appendix 7.1). The result stems from the fact that the TWFE regression is not able to identify off of pixels that are dropped in the first period. Thus the pre-treatment period deforestation rates are not accounted for in the TWFE estimates. 
-
-The following pixel level TWFE regression is commonly used to estimate a policy's impact on deforestation. It has been used multiple times in studies published in economics journals, with $\beta$ used to identify the $ATT$:
-
+\textbf{Regression 1:} (DID regression)
+Let $\beta_{DID}$ denote the coefficient of the interaction between $D_{i}$ and an indicator for whether the intervention has been implemented in time $t$, $\mathbb{1} \{ t\geq t_0\}$,  in the following (population) OLS regression: 
 \begin{align}
-y_{it} = \alpha + \beta \text{ x } \mathbb{1} \{ t\geq t_0\} \mathbb{1} \{ D_i = 1\}+ \gamma_t + \lambda_i + \epsilon_{it}
+y_{it} = \alpha_0 + \alpha_1 D_i + \alpha_2 \mathbb{1} \{ t\geq t_0\}+ \beta_{DID} \text{ x } D_i \mathbb{1} \{ t\geq t_0\}  + \epsilon_{it}
 \end{align}
 
+The typical DID regression model includes a dummy variable equal to one for units in the treatment group, a dummy variable equal to one for observations in the period after the intervention, and their interaction. Conceptually, the DID estimator calculates the treatment effect as the difference between the differences of the treated and untreated observations before and after treatment [@butsic2017]. 
+\begin{align*}
+\beta_{DID} = E[y_{it} |  t\geq t_0, D_i=1] - E[y_{it} |  t<t_0, D_i=1] - (E[y_{it} |  t\geq t_0, D_i=0] - E[y_{it} |  t<t_0, D_i=0] )\\
+\end{align*}
+
+It is easy to show that under Assumption 1 and 2, 
+\begin{align*}
+\beta_{DID}=ATT
+\end{align*}
+
+<!-- Figure \@ref(fig:twoperiod-deforestation) displays the intuition behind the DID estimator in the context of our simulated conservation intervention, given the deforestation rate trends in the intervention and untreated areas along with the unobservable counterfactual of what would have happened if the conservation intervention had not been adopted. -->
+
+<!-- ```{r twoperiod-deforestation, fig.cap="The DID estimator (estimated ATT) amounts to the difference in pre-treatment deforestation rates (pre-treatment difference) minus the post-treatment difference in deforestation rates (post-treatment difference) between units with and without the intervention.", fig.show='hold', fig.pos = 'H', out.width = "75%"} -->
+<!-- knitr::include_graphics(c("figs/did_trends.png")) -->
+
+<!-- #knitr::include_graphics(c("figs/twoperiod_landscape.png","figs/did_trends.png")) -->
+<!-- ``` -->
+
+Often times, however, the researcher wants to estimate the $ATT$ in a setting that is not consistent with the two-group, two-period case covered by DID models. TWFE regression models are often used to apply DID methods to multiple groups or treatment periods. This generally amounts to estimating a regression that controls for unit and time fixed effects. Intuitively, this can be thought of as including a dummy variable for each unit of analysis and each time period. The fixed effects account for any unobservable confounding variables that may vary across units or through time. 
+
+\textbf{Regression 2:} (TWFE regression)
+Let $\beta_{TWFE}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression: 
+\begin{align}
+y_{it} = \alpha + \beta_{TWFE} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \gamma_t + \lambda_i + \epsilon_{it}
+\end{align}
 , where $\gamma_t$ and $\lambda_i$ are year and pixel fixed effects, respectively. 
 
-\textbf{Claim:} The TWFE regression described by equation (1) does not identify the $ATT$, but rather the post treatment difference in outcomes. 
+Because TWFE regression models are often used to generalize the DID method, they are used in a wider variety of settings and have gained paramount popularity in the land use change impact evaluation literature. Settings in which units undergo treatment in more than two distinct time periods may be amenable to TWFE regression, but not the standard DID method. For example, a researcher may use an TWFE regression model to examine the effectiveness of a network of protected areas, where the protected areas were created at different times or a payment for ecosystem services (PES) program, which enrolls properties in annual cohorts. In the case of two groups and two time periods, the TWFE regression should give an estimate equivalent to that of the DID model [@wooldridge]. This flexibility has led to TWFE regression models becoming the gold standard in the literature. While we do not consider Table \@ref(tab:table-lit) a perfect representation of all deforestation impact evaluation studies using panel data, 20 of the 30 (66.6\%) identified studies use TWFE models. 
 
-\[ E [\hat{\beta }] = ATT + \underbrace{E[y_{it}(0) | t<t_0, D_i=1] - E[y_{it}(0) | t<t_0, D_i=0]}_{\text{pre-treatment difference in deforestation rates}} \]
+When the treatment effect is constant across groups and over time, TWFE regressions typically estimate the average treatment effect in treated units under the standard common trends assumption [@dechaisemartin2020]. However, when TWFE models are applied to a binary, irreversible process such as deforestation, $\beta_{TWFE}$ fails to identify the $ATT$. 
 
-Thus, the above regression forgoes the benefits that panel methods provide. If the treated area has a different baseline deforestation rate than the control, the researcher will present a biased estimate of the intervention's impact. This is often the case in the context of interventions that seek to reduce a landscape's deforestation rate, because the intervention is implemented in a given area precisely because of its deforestation rate. It is conceivable that this bias could not only lead to changes of the magnitude estimates, but changes in its sign, thereby influencing policymakers to adopt ineffective ineffective programs or vice versa. In cases where the researcher has two groups and two distinct time periods, a pixel level analysis is still feasible using the simple DID model, however, researchers often find themselves in situations where the more flexible TWFE model is preferable to the simple DID. Unfortunately, TWFE models with pixel fixed effects as described by equation (1) cannot be used to convincingly identify the $ATT$. 
+# Pixel level, TWFE models fail to estimate the $ATT$
+
+Despite widespread use of pixel level analyses of deforestation, the application of TWFE models to a binary, irreversible process such as deforestation is not a viable method to estimate the $ATT$. In this context, the researcher is interested in how the intervention impacts the decision to clear, not the presence of cleared land. Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested may imply that it has actively been deforested in each subsequent time period, when in fact, no new deforestation event or clearing decision has ocurred. These pixels, therefore, contribute unwarrantedly toward the deforestation rate in each additional period they are left in the panel. We show that pixel level regression models failing to drop deforested pixels in subsequent periods do indeed incur bias (Appendix 7.2).
+
+While dropping pixels (as in our definition of $y_{it}$) has been offered as a correction to account for the irreversibility of deforestation events, it is quite problematic in TWFE models. In fact, with this correction, the TWFE model yields the post-treatment difference in outcomes (single difference), rather than the desired $ATT$. The result stems from the fact that the TWFE regression is not able to identify off of pixels that are dropped in the first period. Thus the pre-treatment period deforestation rates are not accounted for in $\beta_{TWFE}$.
+
+\textbf{Result:} $\beta_{TWFE}$ does not identify the $ATT$, but rather, in the two-group, two-period case identifies the post treatment difference in outcomes. 
+
+\[ \beta_{TWFE} = ATT + \underbrace{E[y_{it}(0) | t<t_0, D_i=1] - E[y_{it}(0) | t<t_0, D_i=0]}_{\text{pre-treatment difference in deforestation rates}} \]
+
+\textbf{Proof:} Appendix 7.1 Q.E.D.
+
+Thus, regression 2 forgoes the benefits that panel methods provide. If the treated area has a different baseline deforestation rate than the control, the researcher will present a biased estimate of the intervention's impact. This is often the case in the context of interventions that seek to reduce a landscape's deforestation rate, because the intervention is implemented in a given area precisely because of its deforestation rate. It is conceivable that this bias could not only lead to changes in the magnitude of estimates, but changes in its sign, thereby influencing policymakers to adopt ineffective policies or ignore effective program designs. In cases where the researcher has two groups and two distinct time periods, a pixel level analysis is still feasible using the simple DID model, however, researchers often find themselves in situations where the more flexible TWFE model is preferable to the simple DID. Unfortunately, TWFE models with pixel fixed effects as described by Regression 2 cannot be used to convincingly identify the $ATT$. 
 
 # Monte Carlo simulations to compare alternative model performance
 The rapid growth of the conservation impact evaluation literature has resulted in a diversity of alternate model structures that could yield more accurate estimates of the effectiveness of different interventions (Table 1). To explore the relative performance of these different models, we employ a series of Monte Carlo simulations. Specifically, we randomly generate synthetic landscapes with known policy effectiveness and analyze the performance of different econometric models in estimating the policy's known impact.
@@ -201,13 +232,11 @@ The rapid growth of the conservation impact evaluation literature has resulted i
 ## Data generating process
 Each of our simulated landscapes consists of administrative units that are either untreated $(D=0)$ or are assigned to a conservation treatment $(D=1)$. We observe deforestation in two, even-length periods, a pre-treatment $(t < t_{0})$ and a post-treatment $(t \ge t_{0})$ period. 
 
-Rather than directly observing deforestaion rates across the landscape in each time period, the researcher observes annualized maps depicting pixel-level, binary deforestation ($y_{ivt}\in 0,1$). We follow [@kerr; @pfaff2004a] and model these binary deforestation events as a function of each pixel's unobservable value along a continous, latent variable ($y^*_{ivt}$) indicating the return to clearing pixel $i$, in property $v$, in year $t$. The latent variable is defined:
-
+We follow [@kerr; @pfaff2004a] and model these binary deforestation events as a function of each pixel's unobservable value along a continous, latent variable ($y^*_{ivt}$) indicating the return to clearing pixel $i$, in property $v$, in year $t$. The latent variable is defined:
 \begin{align*}
-y^*_{ivt} =&\beta_0 + \beta_1 \mathbbm{1}\{  D_i = 1  \} +\\
-& \beta_{2,0} \mathbbm{1}\{  t \geq t_0  \} (1 - \mathbbm{1}\{  D_i = 1  \})+\beta_{2,1} \mathbbm{1}\{  t \geq t_0  \} \mathbbm{1}\{  D_i = 1  \} +\\
-&\beta_3 \mathbbm{1}\{  D_i = 1  \} \mathbbm{1}\{  t \geq t_0  \} +\\
-& \alpha_i + u_{it} + \rho_{v}
+y^*_{ivt} =\beta_0 + \beta_1 D_i +
+ \beta_{2,0} (1 -  D_i ) \mathbbm{1}\{  t \geq t_0  \} +(\beta_{2,1} + \beta_3 )D_i \mathbbm{1}\{  t \geq t_0  \} +
+ \alpha_i + u_{it} + \rho_{v}
 \end{align*}
 
 <!--
@@ -227,13 +256,33 @@ TODO: I think the equation above indicates that b3 and b2,1 are multiplied again
 
 
 
-That is, the returns to deforestation evolve over the two time periods $(\mathbbm{1}\{  t \geq t_0  \})$, and differ across the control and treated units $(\mathbbm{1}\{  D_i = 1  \})$. In addition, we assume that the value of deforestation is influenced by time-invariant random disturbances at the scale of individual pixels ($\alpha_i \sim N(0, \sigma_a^2)$) or properties ($\rho_v \sim N(0, \sigma_p^2)$), as well as time-varying, pixel-scale disturbances ($u_{it} \sim N(0, \sigma_u^2)$). These disturbances can represent a variety of spatial and temporal processes including, for example, the biophysical characteristics of a location, or the preferences of a property owner. 
+That is, the returns to deforestation evolve over the two time periods $(\mathbbm{1}\{  t \geq t_0  \})$, and differ across the control $(  D_i = 0 )$ and treated units $(  D_i = 1 )$. In addition, we assume that the value of deforestation is influenced by time-invariant random disturbances at the scale of individual pixels ($\alpha_i \sim N(0, \sigma_a^2)$) or properties ($\rho_v \sim N(0, \sigma_p^2)$), as well as time-varying, pixel-scale disturbances ($u_{it} \sim N(0, \sigma_u^2)$). These disturbances can represent a variety of spatial and temporal processes including, for example, the biophysical characteristics of a location, or the preferences of a property owner. 
 
 Rather than directly observing deforestation rates across the landscape in each time period, the researcher observes annualized maps depicting pixel-level, binary deforestation $(y_{ivt}\ \epsilon \ 0, 1)$ with the following mapping from the latent $y^*_{ivt}$ to the observed $y_{ivt}$:
+
+
+<!-- $\tilde{y}_{ivt}$: -->
+<!-- \begin{align} -->
+<!--  \tilde{y}_{ivt} = \begin{cases}  -->
+<!--       1 & y^*_{ivt} > 0\\ -->
+<!--       0 & otherwise -->
+<!--    \end{cases} -->
+<!-- \end{align} -->
+
+<!-- The standard outcome variable in the literature, $y_{ivt}$, then becomes: -->
+<!-- \begin{align} -->
+<!--  y_{ivt} = \begin{cases}  -->
+<!--       1   & \tilde{y}_{ivt} = 1 \text{ and } \tilde{y}_{ivT}=0 \text{ for all }T<t  \\ -->
+<!--       0   &  \tilde{y}_{ivt} = 0 \text{ and } \tilde{y}_{ivT}=0 \text{ for all }T<t \\ -->
+<!--       NAN & otherwise -->
+<!--    \end{cases} -->
+<!-- \end{align} -->
+
 \begin{align}
- y_{ivt} = \begin{cases} 
-      1 & y^*_{ivt} > 0  \\
-      0 & otherwise
+ y_{ivt} = \begin{cases}
+      1   & y^*_{ivt} > 0 \text{ and } y^*_{iv \tau} \leq 0 \text{ for all } \tau<t  \\
+      0   &  y^*_{ivt} \leq 0 \text{ and } y^*_{iv \tau} \leq 0 \text{ for all } \tau<t \\
+      NAN & otherwise
    \end{cases}
 \end{align}
 
@@ -245,9 +294,9 @@ Rather than directly observing deforestation rates across the landscape in each 
 
 ## Assumed parameter values
 
-It is not uncommon to see annual treatment effects amounting to less than a 1 percentage point reduction in the annual deforestation rate [e.g. @robalino2013; @jones2017]. These modest reductions in the annual deforestation rate, however, can amount to large landscape-scale effects. For example, @alix-garcia2018 find that environmental land registration in Brazil’s Amazonian states of Mato Grosso and Para reduced the annual deforestation rate by an average 0.5 percentage points, which has  amounted to an overall deforestation reduction of 10\%. We have parameterized a guiding example, representative of an impactful intervention in a very high deforestation setting, to explore for the remainder of the paper. 
+It is not uncommon to see annual treatment effects amounting to less than a 1 percentage point reduction in the annual deforestation rate [e.g. @robalino2013; @jones2017]. These modest reductions in the annual deforestation rate, however, can amount to large landscape-scale effects. For example, @alix-garcia2018 find that environmental land registration in Brazil’s Amazonian states of Mato Grosso and Para reduced the annual deforestation rate by an average 0.5 percentage points, which has  amounted to an overall deforestation reduction of 10\%. We have parameterized a guiding example, representative of an impactful intervention in a high deforestation setting, to explore for the remainder of the paper. 
 
-The initial simulated landscape has the following characteristics: a pre-treatment deforestation rate of 2\% in the control area; a pre-treatment deforestation rate of 5\% in the intervention area; a decrease in the deforestation rate of 0.5 percentage points between the first and second period in the absence of treatment; and an average reduction of 1 percentage point in the deforestation rate in treated units due to the intervention ($ATT = -0.01$). We assume that $\sigma_a = 0.25$, and $\sigma_u = 0.1$. Finally, we begin by assuming away property-level disturbances ($\sigma_p = 0$) but relax this assumption in Section 6.
+The initial simulated landscape has the following characteristics: a pre-treatment deforestation rate of 2\% in the control area; a pre-treatment deforestation rate of 5\% in the intervention area; a decrease in the deforestation rate of 0.5 percentage points between the first and second period in the absence of treatment; and an average reduction of 1 percentage point in the deforestation rate in treated units due to the intervention ($ATT = -0.01$). We assume that $\sigma_a = 0.25$, and $\sigma_u = 0.1$. Finally, we begin by assuming away property-level disturbances ($\sigma_p = 0$) but relax this assumption in Section 6. Note that Assumption 1 (Common trends) is satisfied by construction. 
 
 ## Evaluation criteria
 
@@ -259,9 +308,9 @@ TWFE models have risen to prominence due to their flexibility in applying DID me
 
 However, we show that multiple alternate model specifications enable researchers to generate unbiased estimates of the $ATT$. We describe three straightforward solutions to this challenge below.
 
-## Traditional difference in differences model
+## Traditional difference-in-differences model
 
-In the two-group, two-period case the typical DID model is an unbiased estimator of the $ATT$, as shown in column 2 of Figure \@ref(fig:summary-fig). However, researchers often want to use TWFE models because of their flexibility in situations that do not fall under the typical DID setup. Therefore, researchers should be aware of the trade-offs using aggregated units of analysis and fixed effects when using TWFE models for deforestation impact evaluation. 
+In the two-group, two-period case the typical DID model (Regression 1) is an unbiased estimator of the $ATT$, as shown in column 2 of Figure \@ref(fig:summary-fig). However, researchers often want to use TWFE models because of their flexibility in situations that do not fall under the typical DID setup. Therefore, researchers should be aware of the trade-offs using aggregated units of analysis and fixed effects when using TWFE models for deforestation impact evaluation. 
 
 <!--
 ```{r pixpics, fig.cap="This figure demonstrates the spatial extent and scale of common units of analysis.", fig.show='hold', fig.pos = 'H', out.width = "30%"}
@@ -275,7 +324,18 @@ knitr::include_graphics("figs/pixpic.png")
 TODO: Need to add a bit more detail on this aggregation process, and how deforestation rates are calculated. Currently I worry the "XX-level" analyses are a bit mysterious to a reader
 -->
 
-Aggregated units of analysis overcome the issues that we have identified with respect to pixel-level TWFE regressions. For simplicity, we assume the researcher can choose between three levels at which to aggregate the data: grid cell, county, and property. Grid cells are uniform grids layered over the study area and may have a treatment value between 0 and 1 following aggregation of pixels. Counties are heterogeneous administrative units at which we now assign the treatment. Lastly, properties are smaller administrative units that lie within one or more counties. The following results apply to both DID and TWFE regression models, as both are equivalent in the two-period, two-group example when pixels are not dropped. While the researcher does not have to drop pixels in the periods after they first become deforested when using aggregated units of analysis, they must calculate the deforestaion rate in each time period. This calculation is detailed in the appendix. 
+Aggregated units of analysis overcome the issues that we have identified with respect to pixel-level TWFE regressions. For simplicity, we assume the researcher can choose between three levels at which to aggregate the data: grid cell, county, and property. Grid cells are uniform grids layered over the study area and may have a treatment value between 0 and 1 following aggregation of pixels. Counties are heterogeneous administrative units at which we now assign the treatment. Lastly, properties are smaller administrative units that lie within one or more counties. The following results apply to both DID and TWFE regression models, as both are equivalent in the two-period, two-group example when pixels are not dropped. The researcher does not have to drop pixels in the periods after they first become deforested when using aggregated units of analysis, but they must calculate the deforestaion rate in each time period. While we detail the tradeoffs of various deforestation rate calculations in the appendix (), the following results are based on one common formula to calculate deforestation rates. 
+\begin{align*}
+rate_{jt} &= \frac{F_{j,t-1} - F_{jt}}{F_{j,t-1}}
+\end{align*}
+, where $F_{jt}$ and $F_{j,t-1}$ are the forest cover in unit $j$ at times $t$ and $t-1$, respectively. Unit $j$ represents one of the three aggregated units, the grid cell (g), county (c), or property (v). This calculation is used consistently in the literature [e.g. @carlson2018; @busch2015a], and is arguably the most widely used formula.
+
+\textbf{Regression 3:} (grid/county/property level regression)
+Let $\beta_{j}$ denote the coefficient of the interaction between $D_{j}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression, where $j=\{g,c,v \}$:
+\begin{align}
+rate_{jt} = \alpha + \beta_{j} \text{ x } D_j \mathbb{1} \{ t\geq t_0\} + \gamma_t + \lambda_j + \epsilon_{jt}
+\end{align}
+, where $\gamma_t$ denotes year fixed effects and $\lambda_j$ denotes one of grid (g), county (c), or property (v) fixed effects. The treatment variable $D_j = \frac{1}{N_j}\sum_{i=1}^{N_j}D_i$, is the average treatment value amongst all pixels in unit $j$.
 
 We find little evidence that any one aggregated unit of analysis is consistently preferrable in terms of bias. Columns 3-5 of Figure \@ref(fig:summary-fig) show that the bias of the estimates is not critically different depending on level of aggregation, however, the distributions are varied.  In particular, the property-level model had the highest RMSE of unbiased specifications due to the heterogeneity in property sizes across the landscape. 
 
@@ -283,18 +343,27 @@ We find little evidence that any one aggregated unit of analysis is consistently
 <!-- knitr::include_graphics("figs/aggregated_ua.png") -->
 <!-- ``` -->
 
+```{r summary-fig, fig.cap="bias, distribution, and coverage of all models with standard errors clustered at the level of the model fixed effects. The pixel level DID is clustered at the pixel level. ",  out.width="100%"}
+knitr::include_graphics("figs/summary_fig1.png")
+```
 
 ## Aggregated fixed effects
 
-One can also use fixed effects at the level of an aggregated unit rather than the pixel level to resolve bias associated with pixel-level TWFE regressions with pixel fixed effects. Columns 6-8 of Figure \@ref(fig:summary-fig) show that pixel level TWFE regressions are unbiased estimators of the $ATT$ when grid, county, or property fixed effects are used rather than pixel fixed effects. We also see that, in the absence of property level perturbations (i.e. $\sigma_p=0$ in the DGP), all three models provide nearly identical estimates and estimate distributions. The RMSE of these models is slightly smaller than that of the corresponding models with aggregated units of analysis. 
+One can also use fixed effects at the level of an aggregated unit rather than the pixel level to resolve bias associated with pixel-level TWFE regressions with pixel fixed effects. These regression models are all in the form of Regression 4, with varying levels of $j=\{g,c,v \}$. 
+
+\textbf{Regression 4:} (pixel level TWFE regression with aggregated fixed effects)
+Let $\beta_{FE,j}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
+\begin{align}
+y_{it} = \alpha + \beta_{FE,j} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \gamma_t + \lambda_j + \epsilon_{it}
+\end{align}
+, where $\gamma_t$ denotes year fixed effects and $\lambda_j$ denotes one of grid (g), county (c), or property (v) fixed effects.
+
+Columns 6-8 of Figure \@ref(fig:summary-fig) show that pixel level TWFE regressions are unbiased estimators of the $ATT$ when grid, county, or property fixed effects are used rather than pixel fixed effects. We also see that, in the absence of property level perturbations (i.e. $\sigma_p=0$ in the DGP), all three models provide nearly identical estimates and estimate distributions. The RMSE of these models is slightly smaller than that of the corresponding models with aggregated units of analysis. 
 
 <!-- ```{r agg_fe, fig.cap="fig caption", fig.show='hold', fig.pos = 'H'} -->
 <!-- knitr::include_graphics("figs/aggregated_fe.png") -->
 <!-- ``` -->
 
-```{r summary-fig, fig.cap="bias, distribution, and coverage of all models with standard errors clustered at the level of the model fixed effects. The pixel level DID is clustered at the pixel level. ", fig.show='hold', fig.pos = 'H', out.width="100%"}
-knitr::include_graphics("figs/summary_fig1.png")
-```
 
 # The value of linking model structure to the scale of decision-making
 
@@ -302,7 +371,7 @@ We now demonstrate the importance of connecting the econometric model to the pro
 
 <!-- Implications for bias -->
 
-The introduction of property level unobservables changes the relative performance of each level of aggregation. Figure \@ref(fig:property-uoa) demonstrates that models incorporating the property into the analysis, whether with aggregated units of analysis or fixed effects, perform relatively better than their counterparts in terms of bias when the standard error governing the property level disturbances, $\sigma_p$, increases. The left panel of Figure \@ref(fig:property-uoa) demonstrates that the property-level specification (orange) suffers from less bias that models with any other unit of analysis when $\sigma_p$ is non-zero. The pixel level DID suffers from the highest levels of bias relative to alternative units of analysis. 
+The introduction of property level unobservables changes the relative performance of each level of aggregation. Figure \@ref(fig:property-uoa) demonstrates that models incorporating the property into the analysis, whether with aggregated units of analysis or fixed effects, perform relatively better than their counterparts in terms of bias when the standard error governing the property level disturbances, $\sigma_p$, increases. The left panel of Figure \@ref(fig:property-uoa) demonstrates that the property-level specification suffers from less bias that models with any other unit of analysis when $\sigma_p$ is non-zero. The pixel level DID suffers from the highest levels of bias relative to alternative units of analysis. 
 
 The right panel of Figure \@ref(fig:property-uoa) demonstrates a similar takeaway in terms of models that aggregate fixed effects. We see that models with grid, property, or county fixed effects perform similarly in terms of bias when there are no property level disturbances. However, as $\sigma_p$ increases, the model with property fixed effects suffers from less bias than the others. These findings indicate that incorporating the relevant decision making unit into the econometric specification can help to reduce estimate bias. 
 
@@ -437,7 +506,7 @@ We thank the University of California, Santa Barbara's Academic Senate for a Fac
 # References
 <div id="refs"></div>
 
-# Appendix 
+# (APPENDIX) Appendix {-} 
 <!-- Getting to point where we probably need to number appendices -->
 
  
