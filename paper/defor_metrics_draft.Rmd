@@ -166,7 +166,7 @@ E[y_{ivt}(0) |  t\geq t_0, D_i=1]-E[y_{ivt}(0) |  t< t_0, D_i=1]=E[y_{ivt}(0) | 
 Assumption 1 requires that both units in the intervention area and untreated units would have experienced the same average change in the outcome (trend) in the absence of the intervention. While fundamentally untestable, ensuring that deforestation rates in the intervention area and the control area followed parallel trajectories prior to the date of the intervention can give creedence to this assumption [@butsic2017]. 
 
 
-We also evaluate the DID and TWFE models under the following stable unit value treatment assumption (SUTVA)
+We also evaluate the DID and TWFE models under the following stable unit treatment value assumption (SUTVA)
 
 \textbf{Assumption 2:} (SUTVA)
 \begin{align*}
