@@ -36,10 +36,7 @@ knitr::opts_chunk$set(echo = FALSE, warnings = FALSE, messages = FALSE, out.widt
 
 
 <!-- To do: -->
-<!-- - citations -->
-<!-- - functional form: emphasize disciplinary differences in approaches -->
-<!-- - motivate advantages of TWFE in TWFE section -->
-<!-- - summary figure for specifications -->
+<!-- - lit table citations -->
 
 <!-- Possible extensions: -->
 <!-- - weighting possibilities -->
@@ -47,12 +44,6 @@ knitr::opts_chunk$set(echo = FALSE, warnings = FALSE, messages = FALSE, out.widt
 
 <!-- - spatial autocorrelation -->
 <!-- perform diagnostics to show how reseachers can use data to examine spatial autocorrelation -->
-
-
-<!--
-Formatting TODO:
-Probably best to shift to embedded references rather than writing out section references - some sections were incorrectly referenced, and I've probably made an even bigger mess of things given my reorganization.
--->
 
 
 # Abstract {-}
@@ -83,11 +74,6 @@ While randomized experiments are the gold standard for scientific discovery in b
 We center our attention on the case in which a researcher would like to quantify the impact of a policy intervention on deforestation rates. We assume that the intervention has clearly defined boundaries (e.g., a protected area, certified concession, or indigenous territory), and that the researcher has access to spatially explicit observations of forest cover and forest loss spanning the periods before and after the intervention was adopted. This general setting describes a broad array of research studies that apply panel methods to remotely sensed data (Table \@ref(tab:table-lit)).
 
 
-<!--
-TODO: The above paragraph assumes SUTVA. Maybe need to acknowledge that that's an assumption we're making at some point in the paper? Maybe we could add a short section to Monte Carlo description to note that we're imposing parallel trends and SUTVA to simplify the simulations?
--->
-
-
 
 \renewcommand{\arraystretch}{1.5}
 ```{r table-lit}
@@ -110,10 +96,12 @@ kable(lit_table, format = "latex",
 \clearpage
 <!-- 
 TODO: 
-1. For the reader to be able to more identify the studies that fall prey to our main critique, do we need to add another column that describes the level unit fixed effects?
-2. For "regression" panel methods - what does this mean? Aren't all of these studies using regression? Are these cross-sectional rather than panel models?
+1. For "regression" panel methods - what does this mean? Aren't all of these studies using regression? Are these cross-sectional rather than panel models?
+- need to address this
 3. Add studies that use binary "any deforestation within bounds" outcome?
+- add these studies
 4. Differentiate NDVI as an outcome vs binary deforestation?
+- currently, I've excluded studies that use only NDVI
 -->
 
 
@@ -124,16 +112,6 @@ In each of the studies detailed in Table \@ref(tab:table-lit), the researcher's 
 knitr::include_graphics("figs/lscape.png")
 ```
 
-
-
-<!-- 
-TODO: I've only done a really rough job bringing these sections together. Ideally, we'd still:
-1. Smooth integration between the previous paragraph and what's to come
-2. Provide more definitions for the notation. For example, y_it wasn't defined until after this section.
-3. Ensure we're not creating conflicting notation between this section and sections 3 and 4.1. Ideally all notation is consistent and builds upon previous sections.
-4. Remove Figure 2? If we're headed towards REEP, might be better to add more complete mathematical notation and remove the simple visual describing DiD. 
-5. Move some of the end of this section (e.g. reference to appendix 7.2) back into section 3? X was here
--->
 
 As with the Global Forest Change product, researchers often observe maps depicting pixel-level, binary deforestation, similar to what is depicted in Figure \@ref(fig:counterfactual). When converted to a panel dataset, the researcher observes the year in which a pixel is converted from forest to non-forest, and importantly, deforested pixels do not revert back to forest cover over the course of the study period. Thus, repeated deforestation events cannot be detected in the same location. In order to correct for this irreversibility, it has been advised to drop deforested pixels in the periods after they first become deforested [@jones2015; @alix-garcia2017]. In the literature, the outcome variable describing pixel $i$, in property $v$, in time $t$ is often defined as follows:
 \begin{align*}
@@ -151,10 +129,6 @@ $$ ATT = E[y_{ivt}(1) - y_{ivt}(0) |  t\geq t_0, D_i=1]$$
 
 
 ## The difference-in-differences and two-way fixed effects estimators
-
-<!-- 
-TODO: By defining the ATT and y_it above, I think we could introduce simple notation illustrating how the DID and TWFE estimate the ATT.
--->
 
 The remainder of our paper focuses on two methods commonly used to estimate the $ATT$ in conservation intervention settings with panel data: Difference-in-Differences (DID) and Two-way Fixed Effects (TWFE) regression models [@blackman2013; @jones2015]. The DID and TWFE methods have become so popular in part, because the researcher does not need random assignment of treatment to generate convincing estimates of a program's impact on avoided deforestation. Instead, the researcher must make a common trends assumption, under which we evaluate both methods. 
 
@@ -243,6 +217,7 @@ y^*_{ivt} =\beta_0 + \beta_1 D_i +
 
 <!--
 TODO: I think the equation above indicates that b3 and b2,1 are multiplied against the same term? Is that a typo?
+- not a typo, but I've simplified the expression
 -->
 
 <!-- The data generating process underlying our Monte Carlo simulations begins with the assignment of five parameters: The mean, pre-treatment period deforestation rate for untreated units, $baseline_0$; the mean, pre-treatment period deforestation rate for treated units, $baseline_1$; untreated units' mean change in deforestation rates occurring between the pre- and post-treatment periods, $trend_0$; treated units' mean counterfactual change in deforestation rates occurring between the pre- and post-treatment periods in the absence of treatment, $trend_1$; and lastly, the average treatment effect of the policy on the treated units, $ATT$. The researcher's primary goal is to estimate ATT. In all of our simulations, we impose parallel trends (i.e. set $trend_0 = trend_1$).  -->
