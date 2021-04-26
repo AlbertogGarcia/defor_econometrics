@@ -326,7 +326,7 @@ knitr::include_graphics("figs/pixpic.png")
 TODO: Need to add a bit more detail on this aggregation process, and how deforestation rates are calculated. Currently I worry the "XX-level" analyses are a bit mysterious to a reader
 -->
 
-Aggregated units of analysis overcome the issues that we have identified with respect to pixel-level TWFE regressions. For simplicity, we assume the researcher can choose between three levels at which to aggregate the data: grid cell, county, and property. Grid cells are uniform grids layered over the study area and may have a treatment value between 0 and 1 following aggregation of pixels. Counties are heterogeneous administrative units at which we now assign the treatment. Lastly, properties are smaller administrative units that lie within one or more counties. The following results apply to both DID and TWFE regression models, as both are equivalent in the two-period, two-group example when pixels are not dropped. The researcher does not have to drop pixels in the periods after they first become deforested when using aggregated units of analysis, but they must calculate the deforestaion rate in each time period. While we detail the tradeoffs of various deforestation rate calculations in the appendix (), the following results are based on one common formula to calculate deforestation rates. 
+Aggregated units of analysis overcome the issues that we have identified with respect to pixel-level TWFE regressions. For simplicity, we assume the researcher can choose between three levels at which to aggregate the data: grid cell, county, and property. Grid cells are uniform grids layered over the study area and may have a treatment value between 0 and 1 following aggregation of pixels. Counties are heterogeneous administrative units at which we now assign the treatment. Lastly, properties are smaller administrative units that lie within one or more counties. The following results apply to both DID and TWFE regression models, as both are equivalent in the two-period, two-group example when pixels are not dropped. The researcher does not have to drop pixels in the periods after they first become deforested when using aggregated units of analysis, but they must calculate the deforestaion rate in each time period. While we detail the tradeoffs of various deforestation rate calculations in the appendix (Appendix \@ref(rate-formula)), the following results are based on one common formula to calculate deforestation rates. 
 \begin{align*}
 rate_{jt} &= \frac{F_{j,t-1} - F_{jt}}{F_{j,t-1}}
 \end{align*}
@@ -667,10 +667,10 @@ Thus, under parallel trends, if the deforestation rate is higher in the treatmen
 
 ### Monte Carlo evidence
 
-Figure XX demonstrates the magnitude and direction of the bias incurred from keeping deforested pixels in the panel after they are first realized as deforested in the context of our guiding example. Pixels that were deforested prior to the implementation of the policy continued to contribute to the deforestation rate in the post period in both the treatment and control groups. Dropping the pixels in the periods after they are first observed as deforested mitigates this bias in the DID model, as seen in Figure XX. 
+Figure \@ref(fig:keep-pixels) demonstrates the bias incurred from keeping deforested pixels in the panel after they are first realized as deforested in the context of our guiding example. Pixels that were deforested prior to the implementation of the policy continued to contribute to the deforestation rate in the post period in both the treatment and control groups. Dropping the pixels in the periods after they are first observed as deforested mitigates this bias in the DID model, as seen in Figure \@ref(fig:keep-pixels). 
 
 
-```{r, echo=FALSE,out.width="75%", fig.cap="Distribution of DID estimates leaving deforested pixels in the panel and of DID estimates dropping deforested pixels. Note that leaving deforested pixels in the panel incurs severe bias.", fig.pos = 'H', fig.show='hold', fig.align='center'}
+```{r keep-pixels, echo=FALSE,out.width="75%", fig.cap="Distribution of DID estimates leaving deforested pixels in the panel and of DID estimates dropping deforested pixels. Note that leaving deforested pixels in the panel incurs severe bias.", fig.pos = 'H', fig.show='hold', fig.align='center'}
 knitr::include_graphics("figs/did_keep.png")
 ```
 
@@ -815,20 +815,20 @@ Lastly, we consider a formula derived from the Compound Interest Law that has al
 \text{Outcome 3)} &= ln(F_{i,t-1}/F_{it})
 \end{align}
 
-```{r, echo=FALSE,out.width="75%", fig.cap="Distribution of estimates produced by different outcome variable formulae", fig.pos='H', fig.align='center'}
+```{r deforrates, echo=FALSE,out.width="75%", fig.cap="Distribution of estimates produced by different outcome variable formulae", fig.pos='H', fig.align='center'}
 knitr::include_graphics("figs/outcome.png")
 ```
 
-Figure 8 demonstrates that outcome 1 results in the least bias in our guiding example. The other outcomes result in relatively greater bias, although this difference seems minimal in our setting. RMSE is also comparable across the three outcomes. 
+Figure \@ref(fig:deforrates) demonstrates that outcome 1 results in the least bias in our guiding example. The other outcomes result in relatively greater bias, although this difference seems minimal in our setting. RMSE is also comparable across the three outcomes. 
 
-We express concern surrounding the use of the initial observed baseline forest cover in the calculation of deforestation rates, as in formula (2). As the rate is calculated in periods further away from the baseline, the deforestation rate will be increasingly high, even if the rate has not changed over time. We demonstrate this issue in Figure XX by examining how bias behaves as a function of the length of study period. Formula (2) is indeed the least robust to changes in the length of study period. We set $trend =0$ and $ATT=0$ to show a basic case where the intervention had no effect and deforestation rates in the treated and untreated group are stable though time.
+We express concern surrounding the use of the initial observed baseline forest cover in the calculation of deforestation rates, as in formula (2). As the rate is calculated in periods further away from the baseline, the deforestation rate will be increasingly high, even if the rate has not changed over time. We demonstrate this issue in Figure \@ref(fig:formula-length) by examining how bias behaves as a function of the length of study period. Formula (2) is indeed the least robust to changes in the length of study period. We set $trend =0$ and $ATT=0$ to show a basic case where the intervention had no effect and deforestation rates in the treated and untreated group are stable though time.
 
 Regardless of authors' choice of formula, we advise that this formula be explicitly stated in the paper. This will help to avoid confusion as to which formula was used and help researchers understand which methods are the standard within the literature. Moving forward in our paper, all specifications using aggregated data use outcome 1. In our guiding example, it resulted in the least bias and lowest RMSE, and it is currently the most common deforestation rate calculation used in the literature. 
 
 Here, we show that outcome formula 2) is problematic in our context. We examine the performance of the three outcomes in an example where $ATT=0$ and $trend=0$. This simple exercise allows us to gauge how the outcomes behave through time. As we see below, outcome 2) is the least robust to changes in the study period length, while outcomes 1) and 2) behave nearly identically. 
 
 
-```{r, echo=FALSE, out.width="75%", fig.cap="Bias as a function of study period length with ATT =0 and no time trend", fig.pos='H', fig.align='center'}
+```{r formula-length, echo=FALSE, out.width="75%", fig.cap="Bias as a function of study period length with ATT =0 and no time trend", fig.pos='H', fig.align='center'}
 
 knitr::include_graphics("figs/outcome_byyr1.png")#, "figs/outcome_byyr2.png"))
 
