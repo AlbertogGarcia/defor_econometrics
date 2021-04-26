@@ -206,9 +206,9 @@ Often times, however, the researcher wants to estimate the $ATT$ in a setting th
 \textbf{Regression 2:} (TWFE regression)
 Let $\beta_{TWFE}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression: 
 \begin{align}
-y_{it} = \alpha + \beta_{TWFE} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \gamma_t + \lambda_i + \epsilon_{it}
+y_{it} = \alpha + \beta_{TWFE} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \lambda_t + \gamma_i + \epsilon_{it}
 \end{align}
-, where $\gamma_t$ and $\lambda_i$ are year and pixel fixed effects, respectively. 
+, where $\lambda_t$ and $\gamma_i$ are year and pixel fixed effects, respectively. 
 
 Because TWFE regression models are often used to generalize the DID method, they are used in a wider variety of settings and have gained paramount popularity in the land use change impact evaluation literature. Settings in which units undergo treatment in more than two distinct time periods may be amenable to TWFE regression, but not the standard DID method. For example, a researcher may use an TWFE regression model to examine the effectiveness of a network of protected areas, where the protected areas were created at different times or a payment for ecosystem services (PES) program, which enrolls properties in annual cohorts. In the case of two groups and two time periods, the TWFE regression should give an estimate equivalent to that of the DID model [@wooldridge]. This flexibility has led to TWFE regression models becoming the gold standard in the literature. While we do not consider Table \@ref(tab:table-lit) a perfect representation of all deforestation impact evaluation studies using panel data, 20 of the 30 (66.6\%) identified studies use TWFE models. 
 
@@ -335,9 +335,9 @@ rate_{jt} &= \frac{F_{j,t-1} - F_{jt}}{F_{j,t-1}}
 \textbf{Regression 3:} (grid/county/property level regression)
 Let $\beta_{j}$ denote the coefficient of the interaction between $D_{j}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression, where $j=\{g,c,v \}$:
 \begin{align}
-rate_{jt} = \alpha + \beta_{j} \text{ x } D_j \mathbb{1} \{ t\geq t_0\} + \gamma_t + \lambda_j + \epsilon_{jt}
+rate_{jt} = \alpha + \beta_{j} \text{ x } D_j \mathbb{1} \{ t\geq t_0\} + \lambda_t + \gamma_j + \epsilon_{jt}
 \end{align}
-, where $\gamma_t$ denotes year fixed effects and $\lambda_j$ denotes one of grid (g), county (c), or property (v) fixed effects. The treatment variable $D_j = \frac{1}{N_j}\sum_{i=1}^{N_j}D_i$, is the average treatment value amongst all pixels in unit $j$.
+, where $\lambda_t$ denotes year fixed effects and $\gamma_j$ denotes one of grid (g), county (c), or property (v) fixed effects. The treatment variable $D_j = \frac{1}{N_j}\sum_{i=1}^{N_j}D_i$, is the average treatment value amongst all pixels in unit $j$.
 
 We find little evidence that any one aggregated unit of analysis is consistently preferrable in terms of bias. Columns 3-5 of Figure \@ref(fig:summary-fig) show that the bias of the estimates is not critically different depending on level of aggregation, however, the distributions are varied.  In particular, the property-level model had the highest RMSE of unbiased specifications due to the heterogeneity in property sizes across the landscape. 
 
@@ -356,9 +356,9 @@ One can also use fixed effects at the level of an aggregated unit rather than th
 \textbf{Regression 4:} (pixel level TWFE regression with aggregated fixed effects)
 Let $\beta_{FE,j}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
 \begin{align}
-y_{it} = \alpha + \beta_{FE,j} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \gamma_t + \lambda_j + \epsilon_{it}
+y_{it} = \alpha + \beta_{FE,j} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \lambda_t + \gamma_j + \epsilon_{it}
 \end{align}
-, where $\gamma_t$ denotes year fixed effects and $\lambda_j$ denotes one of grid (g), county (c), or property (v) fixed effects.
+, where $\lambda_t$ denotes year fixed effects and $\gamma_j$ denotes one of grid (g), county (c), or property (v) fixed effects.
 
 Columns 6-8 of Figure \@ref(fig:summary-fig) show that pixel level TWFE regressions are unbiased estimators of the $ATT$ when grid, county, or property fixed effects are used rather than pixel fixed effects. We also see that, in the absence of property level perturbations (i.e. $\sigma_p=0$ in the DGP), all three models provide nearly identical estimates and estimate distributions. The RMSE of these models is slightly smaller than that of the corresponding models with aggregated units of analysis. 
 
