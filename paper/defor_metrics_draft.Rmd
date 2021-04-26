@@ -170,10 +170,12 @@ We also evaluate the DID and TWFE models under the following stable unit treatme
 
 \textbf{Assumption 2:} (SUTVA)
 \begin{align*}
-\forall d \in \{ 0,1\}: \text{ if }D_i=d, \text{ then }y_{ivt}(d)=y_{ivt}
+\forall d \in \{ 0,1\}: \text{ if }D_i=d \text{ and }t\geq t_0, \text{ then }y_{ivt}(d)=y_{ivt}
 \end{align*}
 
 Assumption 2 requires that the potential outcomes for pixel $i$, $y_{ivt}(1)$ and $y_{ivt}(0)$, do not depend on the treatment status of any other pixel. There also cannot exist unobserved versions of treatment that may affect the potential outcomes. 
+
+The typical DID regression model includes a dummy variable equal to one for units in the treatment group, a dummy variable equal to one for observations in the period after the intervention, and their interaction. 
 
 \textbf{Regression 1:} (DID regression)
 Let $\beta_{DID}$ denote the coefficient of the interaction between $D_{i}$ and an indicator for whether the intervention has been implemented in time $t$, $\mathbb{1} \{ t\geq t_0\}$,  in the following (population) OLS regression: 
@@ -181,7 +183,7 @@ Let $\beta_{DID}$ denote the coefficient of the interaction between $D_{i}$ and 
 y_{it} = \alpha_0 + \alpha_1 D_i + \alpha_2 \mathbb{1} \{ t\geq t_0\}+ \beta_{DID} \text{ x } D_i \mathbb{1} \{ t\geq t_0\}  + \epsilon_{it}
 \end{align}
 
-The typical DID regression model includes a dummy variable equal to one for units in the treatment group, a dummy variable equal to one for observations in the period after the intervention, and their interaction. Conceptually, the DID estimator calculates the treatment effect as the difference between the differences of the treated and untreated observations before and after treatment [@butsic2017]. 
+Conceptually, the DID estimator calculates the treatment effect as the difference between the differences of the treated and untreated observations before and after treatment [@butsic2017]. 
 \begin{align*}
 \beta_{DID} = E[y_{it} |  t\geq t_0, D_i=1] - E[y_{it} |  t<t_0, D_i=1] - (E[y_{it} |  t\geq t_0, D_i=0] - E[y_{it} |  t<t_0, D_i=0] )\\
 \end{align*}
@@ -199,7 +201,7 @@ It is easy to show that under Assumption 1 and 2,
 <!-- #knitr::include_graphics(c("figs/twoperiod_landscape.png","figs/did_trends.png")) -->
 <!-- ``` -->
 
-Often times, however, the researcher wants to estimate the $ATT$ in a setting that is not consistent with the two-group, two-period case covered by DID models. TWFE regression models are often used to apply DID methods to multiple groups or treatment periods. This generally amounts to estimating a regression that controls for unit and time fixed effects. Intuitively, this can be thought of as including a dummy variable for each unit of analysis and each time period. The fixed effects account for any unobservable confounding variables that may vary across units or through time. 
+Often times, however, the researcher wants to estimate the $ATT$ in a setting that is not consistent with the two-group, two-period case covered by DID models. TWFE regression models are frequently used to apply DID methods to multiple groups or treatment periods. This generally amounts to estimating a regression that controls for unit and time fixed effects, which account for any unobservable confounding variables that may vary across units or through time. 
 
 \textbf{Regression 2:} (TWFE regression)
 Let $\beta_{TWFE}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression: 
@@ -216,7 +218,7 @@ When the treatment effect is constant across groups and over time, TWFE regressi
 
 Despite widespread use of pixel level analyses of deforestation, the application of TWFE models to a binary, irreversible process such as deforestation is not a viable method to estimate the $ATT$. In this context, the researcher is interested in how the intervention impacts the decision to clear, not the presence of cleared land. Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested may imply that it has actively been deforested in each subsequent time period, when in fact, no new deforestation event or clearing decision has ocurred. These pixels, therefore, contribute unwarrantedly toward the deforestation rate in each additional period they are left in the panel. We show that pixel level regression models failing to drop deforested pixels in subsequent periods do indeed incur bias (Appendix 7.2).
 
-While dropping pixels (as in our definition of $y_{it}$) has been offered as a correction to account for the irreversibility of deforestation events, it is quite problematic in TWFE models. In fact, with this correction, the TWFE model yields the post-treatment difference in outcomes (single difference), rather than the desired $ATT$. The result stems from the fact that the TWFE regression is not able to identify off of pixels that are dropped in the first period. Thus the pre-treatment period deforestation rates are not accounted for in $\beta_{TWFE}$.
+While dropping pixels (as in our definition of $y_{ivt}$) has been offered as a correction to account for the irreversibility of deforestation events, it is quite problematic in TWFE models. In fact, with this correction, the TWFE model yields the post-treatment difference in outcomes (single difference), rather than the desired $ATT$. The result stems from the fact that the TWFE regression is not able to identify off of pixels that are dropped in the first period. Thus the pre-treatment period deforestation rates are not accounted for in $\beta_{TWFE}$.
 
 \textbf{Result:} $\beta_{TWFE}$ does not identify the $ATT$, but rather, in the two-group, two-period case identifies the post treatment difference in outcomes. 
 
@@ -464,7 +466,7 @@ kable(coverage_fe, format = "latex", row.names = FALSE,  booktabs = T,
 
 Table \@ref(tab:fe-cover) demonstrates how coverage probabilities are impacted by property level unobservables for pixel level TWFE models with aggregated fixed effects.The pixel level model with property fixed effects incurred less bias than the pixel level models with other aggregated fixed effects. Table \@ref(tab:fe-cover) shows that the model with property fixed effects also outperforms the other models in this table in terms of coverage probability. 
 
-Using \@ref(fig:summary) to compare across all models, we see that RMSE tends to increase across all specifications as $\sigma_p$ increases. The pixel-level model with property fixed effects tends to have the lowest RMSE whenever $\sigma_p$ is nonzero. In contrast, the property-level model and pixel-level DID tend to have the highest RMSE. When bias and coverage probability are comparable, it is preferable to use the model with lower RMSE. 
+Using Figure \@ref(fig:summary) to compare across all models, we see that RMSE tends to increase across all specifications as $\sigma_p$ increases. The pixel-level model with property fixed effects tends to have the lowest RMSE whenever $\sigma_p$ is nonzero. In contrast, the property-level model and pixel-level DID tend to have the highest RMSE. When bias and coverage probability are comparable, it is preferable to use the model with lower RMSE. 
 
 Overall, this section highlights the benefits of structuring one's econometric modeling decisions around the decision-making unit. In some instances, researchers do not have access to geospatial boundaries of the relevant decision-making unit. County and grid cell level aggregation lead to lower levels of bias and higher coverage probability than pixel level specifications when property unobservables are present. County level aggregation leads to the best coverage in the absence of property boundaries, meaning that a larger, alternative administrative unit may be the best alternative when an adequate number of observations are available. If constraints on geospatial boundary access prevent analysis at the scale of the relevant decision-making unit, a grid level model or one with grid fixed effects is likely to greatly improve bias and coverage probability relative to a pixel level DID. 
 
@@ -516,7 +518,7 @@ In settings with a binary and unrepeatable outcome variable, the commonly used p
 
 proof:
 
-Consider a two-period setting $(t=1,2)$ with multiple pixels indexed by $i$. We observe $y_{it}$, the realized deforestation occurring in each pixel in each time period. Some units are exposed to a policy treatment in the second time period $(w_{i,2}=1)$. Using the potential outcomes framework, we consider the potential outcomes for each observation as $y_{i,2}(w_{i,2})$. In this notation, the treatment effect for unit $i$ can be defined as
+Consider a two-period setting $(t=1,2)$ with multiple pixels indexed by $i$. We observe $y_{it}$, the realized deforestation occurring in each pixel in each time period. Some units are exposed to a policy treatment ($D_i=1$) in the second time period $( t_0=2)$. Using the potential outcomes framework, we consider the potential outcomes for each observation as $y_{i,2}(D_i)$. In this notation, the treatment effect for unit $i$ can be defined as
 
 $$\tau_i = y_{i,2}(1) - y_{i,2}(0) $$
 
@@ -524,7 +526,7 @@ $$\tau_i = y_{i,2}(1) - y_{i,2}(0) $$
 
 In many deforestation maps generated through remote sensing, deforestation is represented as a binary indicator. Furthermore, deforestation is only observed once for a given location since these data products typically do not monitor the timing of reforestation. Given these constraints, deforestation is typically (@alix-garcia2017; @jones2015) represented as a binary, unrepeatable variable taking the following values: 
 
-$$ y_{i1}=\alpha+\tau w_{i1}+c_i+u_{i1}$$
+
 \[y_{it}= \begin{cases} 
       0 & \text{the pixel has never been deforested}\\
       1 & \text{the pixel was deforested in year }t\\
@@ -534,7 +536,7 @@ $$ y_{i1}=\alpha+\tau w_{i1}+c_i+u_{i1}$$
 
 The traditional two-way fixed effects model seeks to estimate this effect using the following regression specification:
 
-$$ y_{it}=\alpha+\beta w_{it}+\gamma_i+\eta_t+u_{it}, \text{ for } t=1,2 $$
+$$ y_{it} = \alpha + \beta_{TWFE} \text{ x } D_i \mathbb{1} \{ t\geq t_0\}  + \gamma_i + \eta_{t=2}+ u_{it}, \text{ for } t=1,2 $$
 
 Taking into account the data structure of $y_{it}$ and our two-period case, we are left with:
 
@@ -543,7 +545,7 @@ $$ y_{i1}=\alpha+\gamma_i+u_{i1}$$
 and
 
 \[y_{i2}= \begin{cases} 
-      \alpha+\beta w_{i2}+\gamma_i+\eta_{t=2} + u_{i2} & y_{i1}= 0\\
+      \alpha+\beta_{TWFE} \text{ x }D_i+\gamma_i+\eta_{t=2} + u_{i2} & y_{i1}= 0\\
       NAN & y_{i1} \neq 0 
    \end{cases}
 \]
@@ -552,58 +554,57 @@ and
 First differencing,
 
 \[y_{i2}-y_{i1}= \begin{cases} 
-      (\alpha+\beta w_{i2}+\gamma_i+\eta_{t=2} + u_{i2}) - (\alpha+\gamma_i+u_{i1}) & y_{i1}= 0\\
+      (\alpha+\beta_{TWFE} \text{ x }D_i+\gamma_i+\eta_{t=2} + u_{i2}) - (\alpha+\gamma_i+u_{i1}) & y_{i1}= 0\\
       NAN & y_{i1} \neq 0 
    \end{cases}
 \]
 
 
-Consider the regression
-$$ y_{it}=\alpha+\eta d2_t+\tau w_{it}+c_i+u_{it}, \text{ for } t=1,2 $$
-
-
  Focusing on the first case, where $y_{i1}=0$
 \begin{align*}
-(\alpha+\beta w_{i2}+\gamma_i+\eta_{t=2} + u_{i2}) - (\alpha+\gamma_i+u_{i1})\\
-&=\beta w_{i2} + \eta_{t=2} + \Delta u_{i}
+y_{i2}-y_{i1}&=(\alpha+\beta_{TWFE}\text{ x }D_i+\gamma_i+\eta_{t=2} + u_{i2}) - (\alpha+\gamma_i+u_{i1})\\
+&=\beta_{TWFE}\text{ x }D_i + \eta_{t=2} + \Delta u_{i}
 \end{align*}
 
 
 The general expression can be restated as:
 
 \[y_{i2}-y_{i1}= \begin{cases} 
- \beta w_{i2} + \eta_{t=2} + \Delta u_{i} & y_{i1}= 0\\
+ \beta_{TWFE} \text{ x }D_i + \eta_{t=2} + \Delta u_{i} & y_{i1}= 0\\
       NAN & y_{i1} \neq 0 
    \end{cases}
 \]
 
-With binary treatment ($w_{it}$), $\hat{\beta}$, the regression’s estimate of $\beta$ can be expressed as the double difference in mean outcomes across treated / untreated units, and across the two time periods:
+With binary treatment ($D_i$), $\hat{\beta}_{TWFE}$, the regression’s estimate of $\beta_{TWFE}$ can be expressed as the double difference in mean outcomes across treated / untreated units, and across the two time periods:
 
 
 \begin{align*}
-\hat{\beta}&= \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i2} - \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i1} - (\frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i2} - \frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i1})
+\hat{\beta}&= \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y_{i2} - \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y_{i1} - (\frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y_{i2} - \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y_{i1})
 \end{align*}
 
-, where $n_{ST}$ and $n_{SU}$ are the number of surviving treated and untreated units such that $y_{i1}=0$, respectively. 
 
-Since this captures where $y_{i1}=0$, we have $\frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i1}=0$ and $\frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i1}=0$ 
 
-Then restating the expression:   
+However, this is only valid when $y_{i1}=0$. As a result, we can restate as: 
 
 \begin{align*}
-\hat{\beta}&= \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i2} - 0 - (\frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i2} - 0)\\
+\hat{\beta}_{TWFE}&= \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y_{i2} - 0 - (\frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y_{i2} - 0)\\
 \end{align*}
 
-Applying the potential outcomes to indicate whether we see the treated or untreated outcome:
+Applying the potential outcomes notation to indicate whether we see the treated or untreated outcome:
 \begin{align*}
-&= \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i2}(1) - \frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i2}(0)\\
+\hat{\beta}_{TWFE}&= \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y_{i2}(1) - \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y_{i2}(0)\\
 \end{align*}
 
-Finally, adding and subtracting $\frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i2}(0)$ gives:
+Adding and subtracting $\frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y_{i2}(0)$ gives:
 \begin{align*}
-&=    \frac{1}{n_{ST}}\sum_{i:w_i=1} y_{i2}(1) - y_{i2}(0)  \\
-+& \frac{1}{n_{ST}}\sum_{i:w_i=1}y_{i2}(0) - \frac{1}{n_{SU}}\sum_{i:w_i=0} y_{i2}(0) \\
-&= ATT+Diff\\
+\hat{\beta}_{TWFE}&=    \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y_{i2}(1) - y_{i2}(0)  \\
++& \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=1}y_{i2}(0) - \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y_{i2}(0) 
+\end{align*}
+
+And finally, taking the expectation gives:
+\begin{align*}
+E[\hat{\beta}_{TWFE}]&=ATT+Diff\\
+\beta_{TWFE}&=ATT+Diff\\
 \blacksquare &
 \end{align*}
 
