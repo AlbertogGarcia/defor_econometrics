@@ -350,111 +350,136 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
     coverage = colMeans(fix_covermat)
   )
   
-  summary_df <- data.frame('DID'=rep(NA, 9), 'TWFE'=rep(NA, 9), 'pixels dropped' =rep(NA, 9),
-                           'pixel'=rep(NA, 9),'grid'=rep(NA, 9),'property'=rep(NA, 9),'county'=rep(NA, 9),
-                           'pixel fe'=rep(NA, 9),'grid fe'=rep(NA, 9),'property fe'=rep(NA, 9),'county fe'=rep(NA, 9),
-                           'se_pixel'=rep(NA, 9), 'se_grid'=rep(NA, 9), 'se_property'=rep(NA, 9), 'se_county'=rep(NA, 9),
-                           'mean_bias'=rep(NA, 9), 'RMSE'=rep(NA, 9),
-                           'q05'=rep(NA, 9), 'q95'=rep(NA, 9),
-                           'q01'=rep(NA, 9), 'q99'=rep(NA, 9),
-                           'cover'=rep(NA, 9),
+  summary_df <- data.frame('pixel'=rep(NA, 12),'grid'=rep(NA, 12),'property'=rep(NA, 12),'county'=rep(NA, 12),
+                           'pixel fe'=rep(NA, 12),'grid fe'=rep(NA, 12),'property fe'=rep(NA, 12),'county fe'=rep(NA, 12),'treatment fe'=rep(NA, 12),
+                           'se_pixel'=rep(NA, 12), 'se_grid'=rep(NA, 12), 'se_property'=rep(NA, 12), 'se_county'=rep(NA, 12),
+                           'mean_bias'=rep(NA, 12), 'RMSE'=rep(NA, 12),
+                           'q05'=rep(NA, 12), 'q95'=rep(NA, 12),
+                           'cover'=rep(NA, 12),
                            stringsAsFactors=FALSE)
   
   # DID1 <- feols(deforrate ~  post*treat|year+grid, data = gridlevel_df)
-  summary_df[4,] <- c(0,1,0,
+  summary_df[7,] <- c(
                       0,1,0,0,
-                      0,1,0,0,
+                      0,1,0,0,0,
                       0,1,0,0,
                       mean(coeff_bias$grid), rmse(actual, coeff_bias$grid),
                       quantile(coeff_bias$grid, 0.05), quantile(coeff_bias$grid, 0.95),
-                      quantile(coeff_bias$grid, 0.01), quantile(coeff_bias$grid, 0.99),
+                      #quantile(coeff_bias$grid, 0.01), quantile(coeff_bias$grid, 0.99),
                       mean(agg_covermat[,1]))
   
   # DID2 <- feols(deforrate ~  post*treat|year+property, data = proplevel_df)
-  summary_df[5,] <- c(0,1,0,
+  summary_df[8,] <- c(
                       0,0,1,0,
-                      0,0,1,0,
+                      0,0,1,0,0,
                       0,0,1,0,
                       mean(coeff_bias$property), rmse(actual, coeff_bias$property),
                       quantile(coeff_bias$property, 0.05), quantile(coeff_bias$property, 0.95),
-                      quantile(coeff_bias$property, 0.01), quantile(coeff_bias$property, 0.99),
+                      #quantile(coeff_bias$property, 0.01), quantile(coeff_bias$property, 0.99),
                       mean(agg_covermat[,2]))
   
   # DID3 <- feols(deforrate ~  post*treat|year+county, data = countylevel_df)
-  summary_df[6,] <- c(0,1,0,
+  summary_df[9,] <- c(
                       0,0,0,1,
-                      0,0,0,1,
+                      0,0,0,1,0,
                       0,0,0,1,
                       mean(coeff_bias$county), rmse(actual, coeff_bias$county),
                       quantile(coeff_bias$county, 0.05), quantile(coeff_bias$county, 0.95),
-                      quantile(coeff_bias$county, 0.01), quantile(coeff_bias$county, 0.99),
+                      #quantile(coeff_bias$county, 0.01), quantile(coeff_bias$county, 0.99),
                       mean(agg_covermat[,3]))
   
   
   # DID4 <- feols(y_it ~  post*treat, data = panels)
-  summary_df[3,] <- c(1,0,1,
+  summary_df[3,] <- c(
                       1,0,0,0,
-                      0,0,0,0,
+                      0,0,0,0,1,
                       1,0,0,0,
                       mean(coeff_bias$pixel), rmse(actual, coeff_bias$pixel),
                       quantile(coeff_bias$pixel, 0.05), quantile(coeff_bias$pixel, 0.95),
-                      quantile(coeff_bias$pixel, 0.01), quantile(coeff_bias$pixel, 0.99),
+                      #quantile(coeff_bias$pixel, 0.01), quantile(coeff_bias$pixel, 0.99),
                       mean(did_covermat[,2]))
   
+  summary_df[4,] <- c(
+    1,0,0,0,
+    0,0,0,0,1,
+    0,1,0,0,
+    mean(coeff_bias$pixel), rmse(actual, coeff_bias$pixel),
+    quantile(coeff_bias$pixel, 0.05), quantile(coeff_bias$pixel, 0.95),
+    #quantile(coeff_bias$pixel, 0.01), quantile(coeff_bias$pixel, 0.99),
+    mean(did_covermat[,3]))
   
-  summary_df[1,] <- c(1,0,0,
+  summary_df[5,] <- c(
+    1,0,0,0,
+    0,0,0,0,1,
+    0,0,1,0,
+    mean(coeff_bias$pixel), rmse(actual, coeff_bias$pixel),
+    quantile(coeff_bias$pixel, 0.05), quantile(coeff_bias$pixel, 0.95),
+    #quantile(coeff_bias$pixel, 0.01), quantile(coeff_bias$pixel, 0.99),
+    mean(did_covermat[,4]))
+  
+  summary_df[6,] <- c(
+    1,0,0,0,
+    0,0,0,0,1,
+    0,0,0,1,
+    mean(coeff_bias$pixel), rmse(actual, coeff_bias$pixel),
+    quantile(coeff_bias$pixel, 0.05), quantile(coeff_bias$pixel, 0.95),
+    #quantile(coeff_bias$pixel, 0.01), quantile(coeff_bias$pixel, 0.99),
+    mean(did_covermat[,5]))
+  
+  
+  summary_df[1,] <- c(
                       1,0,0,0,
-                      0,0,0,0,
+                      0,0,0,0,1,
                       1,0,0,0,
                       mean(bad_bias[,1]), rmse(actual, bad_bias[,1]),
                       quantile(bad_bias[,1], 0.05), quantile(bad_bias[,1], 0.95),
-                      quantile(bad_bias[,1], 0.01), quantile(bad_bias[,1], 0.99),
+                      #quantile(bad_bias[,1], 0.01), quantile(bad_bias[,1], 0.99),
                       mean(bad_covermat[,1]))
   
   # DID6 <- feols(y_it ~  post*treat|year+pixels, data = panels)
-  summary_df[2,] <- c(0,1,1,
+  summary_df[2,] <- c(
                       1,0,0,0,
-                      1,0,0,0,
+                      1,0,0,0,0,
                       1,0,0,0,
                       mean(bad_bias[,2]), rmse(actual, bad_bias[,2]),
                       quantile(bad_bias[,2], 0.05), quantile(bad_bias[,2], 0.95),
-                      quantile(bad_bias[,2], 0.01), quantile(bad_bias[,2], 0.99),
+                      #quantile(bad_bias[,2], 0.01), quantile(bad_bias[,2], 0.99),
                       mean(bad_covermat[,2]))
   
   ### TWFE regressions with aggregated fixed effects
   
   # fix_DID1 <- feols(y_it ~  post*treat|year+grid, data = panels)
-  summary_df[7,] <- c(0,1,1,
+  summary_df[10,] <- c(
                       1,0,0,0,
-                      0,1,0,0,
+                      0,1,0,0,0,
                       0,1,0,0,
                       mean(fix_bias[,1]), rmse(actual, fix_bias[,1]),
                       quantile(fix_bias[,1], 0.05), quantile(fix_bias[,1], 0.95),
-                      quantile(fix_bias[,1], 0.01), quantile(fix_bias[,1], 0.99),
+                      #quantile(fix_bias[,1], 0.01), quantile(fix_bias[,1], 0.99),
                       mean(fix_covermat[,1]))
   
   # fix_DID2 <- feols(y_it ~  post*treat|year+property, data = panels)
-  summary_df[8,] <- c(0,1,1,
+  summary_df[11,] <- c(
                       1,0,0,0,
-                      0,0,1,0,
+                      0,0,1,0,0,
                       0,0,1,0,
                       mean(fix_bias[,2]), rmse(actual, fix_bias[,2]),
                       quantile(fix_bias[,2], 0.05), quantile(fix_bias[,2], 0.95),
-                      quantile(fix_bias[,2], 0.01), quantile(fix_bias[,2], 0.99),
+                      #quantile(fix_bias[,2], 0.01), quantile(fix_bias[,2], 0.99),
                       mean(fix_covermat[,2]))
   
   # fix_DID3 <- feols(y_it ~  post*treat|year+county, data = panels)
-  summary_df[9,] <- c(0,1,1,
+  summary_df[12,] <- c(
                       1,0,0,0,
-                      0,0,0,1,
+                      0,0,0,1,0,
                       0,0,0,1,
                       mean(fix_bias[,3]), rmse(actual, fix_bias[,3]),
                       quantile(fix_bias[,3], 0.05), quantile(fix_bias[,3], 0.95),
-                      quantile(fix_bias[,3], 0.01), quantile(fix_bias[,3], 0.99),
+                      #quantile(fix_bias[,3], 0.01), quantile(fix_bias[,3], 0.99),
                       mean(fix_covermat[,3]))
   
   summary_df <- summary_df %>%
-    mutate_at(1:15, as.logical)%>%
+    mutate_at(1:13, as.logical)%>%
     dplyr::select(mean_bias, everything())
   
   
