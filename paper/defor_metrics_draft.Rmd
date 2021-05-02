@@ -94,24 +94,25 @@ kable(lit_table, format = "latex",
 ```
 \clearpage
 <!-- 
-TODO: 
+TODO: -this is the one TODO that still needs to be addressed to a certain extent. I'm thinking that I'll wait to add the studies that use binary "any deforestation within bounds" outcome until we incorporate this outcome into the simulations. At that point, I'll more descriptively include the outcome as something separate from the unit of analysis
+
 1. For "regression" panel methods - what does this mean? Aren't all of these studies using regression? Are these cross-sectional rather than panel models?
-- need to address this
+- need to address this in a more informative way, but many are in panel settings but use a model that does not use fixed effects 
 3. Add studies that use binary "any deforestation within bounds" outcome?
-- add these studies
+- need to add these studies
 4. Differentiate NDVI as an outcome vs binary deforestation?
-- currently, I've excluded studies that use only NDVI
+- currently, I've excluded studies that use only NDVI. Some of these use both NDVI and a binary outcome
 -->
 
 
 
-In each of the studies detailed in Table \@ref(tab:table-lit), the researcher's goal is to measure the impact that a specific policy had on deforestation within treated units. The parameter describing the causal effect of the policy is referred to as the \textit{average treatment effect on the treated}, or $ATT$. The $ATT$ estimates the difference between a) the average deforestation rate of treated units with treatment and b) the average deforestation rate of treated units without treatment. The fundamental challenge is that, for every treated unit, the researcher is unable to observe the value that the outcome would have taken in the absence of treatment [@holland1986]. In our case, this means that the researcher cannot observe the deforestation that would have occurred in treated units had they not received treatment. Figure \@ref(fig:counterfactual) displays this problem in the context of a simulated conservation intervention --- the landscape is depicted as observed by the researcher at the end of the observation period, including the unobservable counterfactual of what would have happened if the conservation intervention had not been adopted. Note that in untreated areas, there is no counterfactual deforestation, since no intervention ever took place. 
+In each of the studies detailed in Table \@ref(tab:table-lit), the researcher's goal is to measure the impact that a specific policy had on deforestation within treated units. The parameter describing the causal effect of the policy is referred to as the \textit{average treatment effect on the treated}, or $ATT$. The $ATT$ estimates the difference between a) the average deforestation rate of treated units with treatment and b) the average deforestation rate of treated units without treatment. The fundamental challenge is that, for every treated unit, the researcher is unable to observe the value that the outcome would have taken in the absence of treatment [@holland1986]. In our case, this means that the researcher cannot observe the deforestation that would have occurred in treated units had they not received treatment. Figure \@ref(fig:counterfactual) displays this problem in the context of a simulated conservation intervention that reduced deforestation rates in treated areas --- the landscape is depicted as observed by the researcher at the end of the observation period, including the unobservable counterfactual of what would have happened if the conservation intervention had not been adopted. Note that in untreated areas, there is no counterfactual deforestation, since no intervention ever took place. 
 
 ```{r counterfactual, echo=FALSE, fig.cap="This figure shows deforestation that would have ocurred in the absence of the conservation intervention at the same point in time, after implementation of the conservation intervention. Note that no counterfactual deforestation occurs in the control area, since no intervention ocurred.", out.width = "75%"}
 knitr::include_graphics("figs/lscape.png")
 ```
 
-Researchers generally observe maps depicting pixel-level, binary deforestation, similar to what is depicted in Figure \@ref(fig:counterfactual). When in the form of a panel dateset, the researcher observes the year in which a pixel is converted from forest to non-forest, and importantly, deforested pixels do not revert back to forest cover over the course of the study period. Thus, repeated deforestation events cannot be detected in the same location. In order to correct for this irreversibility, it has been advised to drop deforested pixels in the periods after they first become deforested [@jones2015; @alix-garcia2017]. In the literature, the outcome variable describing pixel $i$, in property $v$, in time $t$ is often defined as follows:
+Researchers generally observe maps depicting pixel-level, binary deforestation, similar to what is depicted in Figure \@ref(fig:counterfactual). In the form of a panel dateset, the researcher observes the year in which a pixel is converted from forest to non-forest, and importantly, deforested pixels do not revert back to forest cover over the course of the study period. Thus, repeated deforestation events cannot be detected in the same location. In order to correct for this irreversibility, it has been advised to drop deforested pixels in the periods after they first become deforested [@jones2015; @alix-garcia2017]. In the literature, the outcome variable describing pixel $i$, in property $v$, in time $t$ is often defined as follows:
 \begin{align*}
  y_{ivt} = \begin{cases}
       1 &  \text{if pixel $i$ is deforested in time $t$}\\
@@ -120,13 +121,10 @@ Researchers generally observe maps depicting pixel-level, binary deforestation, 
    \end{cases}
 \end{align*}
 
-The pixel has been promoted as the preferred unit of analysis in many cases. As seen in Table \@ref(tab:table-lit), pixel level analyses are prevalent in the literature. 
-
-Ultimately, the researcher seeks to estimate the $ATT$, which estimates the average impact of the conservation intervention on deforestation rate in pixels that receive it relative to the counterfactual scenario without the intervention. Let $y_{ivt}(1)$ and $y_{ivt}(0)$ denote the potential outcomes of pixel $i$ in property $v$ in time $t$ with and without the treatment, respectively. The $ATT$ is then the average effect of the conservation intervention on treated pixels and can be expressed: 
+The pixel has been promoted as the preferred unit of analysis in many cases. As seen in Table \@ref(tab:table-lit), pixel level analyses are prevalent in the literature. The $ATT$ is then the average effect of the conservation intervention on treated pixels. Let $y_{ivt}(1)$ and $y_{ivt}(0)$ denote the potential outcomes of pixel $i$ in property $v$ in time $t$ with and without the treatment, respectively. The $ATT$ can now be expressed: 
 $$ ATT = E[y_{ivt}(1) - y_{ivt}(0) |  t\geq t_0, D_i=1]$$
 
 , where $t_0$ is the year that the intervention is implemented and $D_i$ is a dummy equal to one if pixel $i$ is ever treated.
-
 
 ## The difference-in-differences and two-way fixed effects estimators
 
@@ -166,14 +164,6 @@ It is easy to show that under Assumption 1 and 2,
 \beta_{DID}=ATT
 \end{align*}
 
-<!-- Figure \@ref(fig:twoperiod-deforestation) displays the intuition behind the DID estimator in the context of our simulated conservation intervention, given the deforestation rate trends in the intervention and untreated areas along with the unobservable counterfactual of what would have happened if the conservation intervention had not been adopted. -->
-
-<!-- ```{r twoperiod-deforestation, fig.cap="The DID estimator (estimated ATT) amounts to the difference in pre-treatment deforestation rates (pre-treatment difference) minus the post-treatment difference in deforestation rates (post-treatment difference) between units with and without the intervention.", fig.show='hold', fig.pos = 'H', out.width = "75%"} -->
-<!-- knitr::include_graphics(c("figs/did_trends.png")) -->
-
-<!-- #knitr::include_graphics(c("figs/twoperiod_landscape.png","figs/did_trends.png")) -->
-<!-- ``` -->
-
 Often times, however, the researcher wants to estimate the $ATT$ in a setting that is not consistent with the two-group, two-period case covered by DID models. TWFE regression models are frequently used to apply DID methods to multiple groups or treatment periods. This amounts to estimating a regression that controls for unit and time fixed effects, which account for any unobservable confounding variables that may vary across units or through time. 
 
 \textbf{Regression 2:} (TWFE regression)
@@ -185,7 +175,7 @@ y_{ivt} = \alpha + \beta_{TWFE} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \lamb
 
 Because TWFE regression models are often used to generalize the DID method, they are used in a wider variety of settings and have gained paramount popularity in the land use change impact evaluation literature. Settings in which units undergo treatment in more than two distinct time periods may be amenable to TWFE regression, but not the standard DID method. For example, a researcher may use an TWFE regression model to examine the effectiveness of a network of protected areas, where the protected areas were created at different times or a payment for ecosystem services (PES) program, which enrolls properties in annual cohorts. In the case of two groups and two time periods, the TWFE regression should give an estimate equivalent to that of the DID model [@wooldridge]. This flexibility has led to TWFE regression models becoming the gold standard in the literature. While we do not consider Table \@ref(tab:table-lit) a perfect representation of all deforestation impact evaluation studies using panel data, 20 of the 30 (66.6\%) identified studies use TWFE models. 
 
-When the treatment effect is constant across groups and over time, TWFE regressions typically estimate the average treatment effect in treated units under the standard common trends assumption [@dechaisemartin2020]. However, when TWFE models are applied to a binary, irreversible process such as deforestation, $\beta_{TWFE}$ fails to identify the $ATT$. 
+When the treatment effect is constant across groups and over time, TWFE regressions typically estimate the average treatment effect in treated units under the standard common trends assumption [@dechaisemartin2020]. However, when TWFE models in the form of Regression 2 are applied to a binary, irreversible process such as deforestation, $\beta_{TWFE}$ fails to identify the $ATT$. 
 
 # Pixel level, TWFE models fail to estimate the $ATT$
 
@@ -202,9 +192,11 @@ While dropping pixels (as in our definition of $y_{ivt}$) has been offered as a 
 Thus, regression 2 forgoes the benefits that panel methods provide. If the treated area has a different baseline deforestation rate than the control, the researcher will present a biased estimate of the intervention's impact. This is often the case in the context of interventions that seek to reduce a landscape's deforestation rate, because the intervention is implemented in a given area precisely because of a desire to reduce deforestation. It is conceivable that this bias could not only lead to changes in the magnitude of estimates, but changes in its sign, thereby influencing policymakers to adopt ineffective policies or ignore effective program designs. In cases where the researcher has two groups and two distinct time periods, the simple DID model can still identify the $ATT$, however, researchers often find themselves in situations where the more flexible TWFE model is preferable to the simple DID. Unfortunately, TWFE models with pixel fixed effects as described by Regression 2 cannot be used to convincingly identify the $ATT$. 
 
 # Monte Carlo simulations to compare alternative model performance
+
 The rapid growth of the conservation impact evaluation literature has resulted in a diversity of alternate model structures that could yield more accurate estimates of the effectiveness of different interventions (Table \@ref(tab:table-lit)). To explore the relative performance of these different models, we employ a series of Monte Carlo simulations. Specifically, we randomly generate synthetic landscapes with known policy effectiveness and analyze the performance of different econometric models in estimating the policy's known impact.
 
 ## Data generating process
+
 Each of our simulated landscapes consists of administrative units that are either untreated $(D=0)$ or are assigned to a conservation treatment $(D=1)$. We observe deforestation in two, even-length periods, a pre-treatment $(t < t_{0})$ and a post-treatment $(t \ge t_{0})$ period. 
 
 We follow [@kerr; @pfaff2004a] and model these binary deforestation events as a function of each pixel's unobservable value along a continous, latent variable ($y^*_{ivt}$) indicating the return to clearing pixel $i$, in property $v$, in year $t$. The latent variable is defined:
@@ -215,13 +207,13 @@ y^*_{ivt} =\beta_0 + \beta_1 D_i +
 \end{align*}
 
 <!--
-TODO: I think the equation above indicates that b3 and b2,1 are multiplied against the same term? Is that a typo?
+Robert: I think the equation above indicates that b3 and b2,1 are multiplied against the same term? Is that a typo?
+Albert: 
 - not a typo, but I've simplified the expression
+- in order to get common trends, we need to allow for the coefficent affecting the evolution of the latent variable across the two time periods to differ between treated and untreated pixels. This allows us to ensure that the evolution of the outcome would be the same without treatment for each group. Key here is the distinction between the evolution of the outcome vs. latent variable. 
 -->
 
 <!-- The data generating process underlying our Monte Carlo simulations begins with the assignment of five parameters: The mean, pre-treatment period deforestation rate for untreated units, $baseline_0$; the mean, pre-treatment period deforestation rate for treated units, $baseline_1$; untreated units' mean change in deforestation rates occurring between the pre- and post-treatment periods, $trend_0$; treated units' mean counterfactual change in deforestation rates occurring between the pre- and post-treatment periods in the absence of treatment, $trend_1$; and lastly, the average treatment effect of the policy on the treated units, $ATT$. The researcher's primary goal is to estimate ATT. In all of our simulations, we impose parallel trends (i.e. set $trend_0 = trend_1$).  -->
-
-
 
 That is, the returns to deforestation evolve over the two time periods $(\mathbbm{1}\{  t \geq t_0  \})$, and differ across the control $(  D_i = 0 )$ and treated pixels $(  D_i = 1 )$. In addition, we assume that the value of deforestation is influenced by time-invariant random disturbances at the scale of individual pixels ($\alpha_i \sim N(0, \sigma_a^2)$) or properties ($\rho_v \sim N(0, \sigma_p^2)$), as well as time-varying, pixel-scale disturbances ($u_{it} \sim N(0, \sigma_u^2)$). These disturbances can represent a variety of spatial and temporal processes including, for example, the biophysical characteristics of a location, or the preferences of a property owner. 
 
@@ -253,12 +245,6 @@ Rather than directly observing deforestation rates across the landscape in each 
    \end{cases}
 \end{align}
 
-<!-- Figure 3 demonstrates that DID estimates are unbiased using our DGP allowing the outcome variable $y_{ivt}$ to vary between 0 and 1 across periods.  -->
-
-<!-- ```{r, fig.cap="DID estimates when outcome is allowed to vary across periods", fig.pos = 'H', fig.show='hold'} -->
-<!-- knitr::include_graphics("figs/did_y.png") -->
-<!-- ``` -->
-
 ## Assumed parameter values
 
 It is not uncommon to see annual treatment effects amounting to less than a 1 percentage point reduction in the annual deforestation rate [e.g. @robalino2013; @jones2017]. These modest reductions in the annual deforestation rate, however, can amount to large landscape-scale effects. For example, @alix-garcia2018 find that environmental land registration in Brazil’s Amazonian states of Mato Grosso and Para reduced the annual deforestation rate by an average 0.5 percentage points, which has amounted to an overall deforestation reduction of 10\%. We have parameterized a guiding example, representative of an impactful intervention in a high deforestation setting, to explore for the remainder of the paper. 
@@ -271,25 +257,15 @@ We compare econometric models using a combination of estimate bias, root mean sq
 
 # Alternative specifications can yield unbiased estimates of the $ATT$
 
-TWFE models have risen to prominence due to their flexibility in applying DID methods to settings with multiple groups and variation in treatment timing, however, we have shown that TWFE models are not a viable approach to estimate the $ATT$ with pixel fixed effects in deforestation impact evaluations. Column 1 of Figure \@ref(fig:summary-fig) shows the bias associated with the problematic regression described by equation (1). In our guiding example, the ex-post single difference is 0.02 (the $ATT$ plus the post-treatment group difference in deforestation rates), when the true $ATT$ is equal to -0.01. This means that a positive bias of 0.03 results from the use of this regression model. However, we show that multiple alternate model specifications enable researchers to generate unbiased estimates of the $ATT$. We describe three straightforward solutions to this challenge below.
+TWFE models have risen to prominence due to their flexibility in applying DID methods to settings with multiple groups and variation in treatment timing, however, TWFE models with pixel fixed effects are not a viable approach to estimate the $ATT$ in deforestation impact evaluations. Column 1 of Figure \@ref(fig:summary-fig) shows the bias associated with Regression 2. In our guiding example, the ex-post single difference is 0.02 (the $ATT$ plus the post-treatment group difference in deforestation rates), when the true $ATT$ is equal to -0.01. This means that a positive bias of 0.03 results from the use of this regression model. However, we show that multiple alternate model specifications enable researchers to generate unbiased estimates of the $ATT$. We describe three straightforward solutions to this challenge below.
 
 ## Traditional difference-in-differences model
 
-In the two-group, two-period case the typical DID model (Regression 1) is an unbiased estimator of the $ATT$, as shown in columns 2-5 of Figure \@ref(fig:summary-fig). However, researchers often want to use TWFE models because of their flexibility in situations that do not fall under the typical DID setup. Therefore, researchers should be aware of the trade-offs using aggregated units of analysis and fixed effects when using TWFE models for deforestation impact evaluation. 
-
-<!--
-```{r pixpics, fig.cap="This figure demonstrates the spatial extent and scale of common units of analysis.", fig.show='hold', fig.pos = 'H', out.width = "30%"}
-knitr::include_graphics("figs/pixpic.png")
-```
--->
+In the two-group, two-period case the typical DID model (Regression 1) is an unbiased estimator of the $ATT$, as shown in columns 2-5 of Figure \@ref(fig:summary-fig) (The typical DID is equivalent to including treatment fixed effects). However, researchers often want to use TWFE models because of their flexibility in situations that do not fall under the typical DID setup. Therefore, researchers should be aware of the trade-offs using aggregated units of analysis and fixed effects when using TWFE models for deforestation impact evaluation. 
 
 ## Aggregated units of analysis
 
-<!--
-TODO: Need to add a bit more detail on this aggregation process, and how deforestation rates are calculated. Currently I worry the "XX-level" analyses are a bit mysterious to a reader
--->
-
-Aggregated units of analysis overcome the issues that we have identified with respect to pixel-level TWFE regressions. For simplicity, we assume the researcher can choose between three levels at which to aggregate the data: grid cell, county, and property. Grid cells are uniform grids layered over the study area and may have a treatment value between 0 and 1 following aggregation of pixels. Counties are heterogeneous administrative units at which we now assign the treatment. Lastly, properties are smaller administrative units that lie within one or more counties. The following results apply to both DID and TWFE regression models, as both are equivalent in the two-period, two-group example when pixels are not dropped. The researcher does not have to drop pixels in the periods after they first become deforested when using aggregated units of analysis, but they must calculate the deforestaion rate in each time period. While we detail the tradeoffs of various deforestation rate calculations in the appendix (Appendix \@ref(rate-formula)), the following results are based on one common formula to calculate deforestation rates. 
+Aggregated units of analysis overcome the issues that we have identified with respect to pixel-level TWFE regressions. For simplicity, we assume the researcher can choose between three levels at which to aggregate the data: grid cell, county, and property. Grid cells are uniform grids layered over the study area. Counties are heterogeneous administrative units at which we assign the treatment. Lastly, properties are smaller administrative units that lie within one or more counties. The following results apply to both DID and TWFE regression models, as both are equivalent in the two-period, two-group example when pixels are not dropped. The researcher does not have to drop pixels in the periods after they first become deforested when using aggregated units of analysis, but they must calculate the deforestaion rate in each time period. While we detail the tradeoffs of various deforestation rate calculations in the appendix (Appendix \@ref(rate-formula)), the following results are based on one common formula to calculate deforestation rates. 
 \begin{align*}
 z_{jt} &= \frac{F_{j,t-1} - F_{jt}}{F_{j,t-1}}
 \end{align*}
@@ -300,13 +276,9 @@ Let $\beta_{j}$ denote the coefficient of the interaction between $D_{j}$ and $\
 \begin{align}
 z_{jt} = \alpha + \beta_{j} \text{ x } D_j \mathbb{1} \{ t\geq t_0\} + \lambda_t + \gamma_j + \epsilon_{jt}
 \end{align}
-, where $\lambda_t$ denotes year fixed effects and $\gamma_j$ denotes one of grid (g), county (c), or property (v) fixed effects. The treatment variable $D_j = \frac{1}{N_j}\sum_{i=1}^{N_j}D_i$, is the average treatment value amongst all pixels in unit $j$.
+, where $\lambda_t$ denotes year fixed effects and $\gamma_j$ denotes one of grid, county, or property fixed effects. Note that in these regressions, the level of unit fixed effects matches the unit of analysis. The treatment variable $D_j = \frac{1}{N_j}\sum_{i=1}^{N_j}D_i$, is the average treatment value amongst all pixels in unit $j$.
 
-We find little evidence that any one aggregated unit of analysis is consistently preferrable in terms of bias. Columns 6-8 of Figure \@ref(fig:summary-fig) show that the bias of the estimates is not critically different depending on level of aggregation, however, the distributions are varied.  In particular, the property-level model had the highest RMSE of unbiased specifications due to the heterogeneity in property sizes across the landscape. 
-
-<!-- ```{r agg_units, fig.cap="fig caption", fig.show='hold', fig.pos = 'H'} -->
-<!-- knitr::include_graphics("figs/aggregated_ua.png") -->
-<!-- ``` -->
+We find little evidence that any one aggregated unit of analysis is consistently preferrable in terms of bias. Columns 6-8 of Figure \@ref(fig:summary-fig) show that the bias of the estimates is not critically different depending on level of aggregation, however, the distributions are varied. In particular, the property-level model had the highest RMSE of unbiased specifications due to the heterogeneity in property sizes across the landscape. 
 
 ```{r summary-fig, fig.cap="bias, distribution, and coverage of all models with clustered standard errors. ",  out.width="100%"}
 knitr::include_graphics("figs/schart.png")
@@ -314,7 +286,7 @@ knitr::include_graphics("figs/schart.png")
 
 ## Aggregated fixed effects
 
-One can also use fixed effects at the level of an aggregated unit rather than the pixel level to resolve bias associated with pixel-level TWFE regressions with pixel fixed effects. These regression models are all in the form of Regression 4, with varying levels of $j=\{g,c,v \}$. 
+One can also use fixed effects at the level of an aggregated unit rather than the pixel level to resolve bias associated with TWFE regressions with pixel fixed effects. These regression models are all in the form of Regression 4, with varying levels of $j=\{g,c,v \}$. 
 
 \textbf{Regression 4:} (pixel level TWFE regression with aggregated fixed effects)
 Let $\beta_{FE,j}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
@@ -325,19 +297,11 @@ y_{it} = \alpha + \beta_{FE,j} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \lambd
 
 Columns 9-11 of Figure \@ref(fig:summary-fig) show that pixel level TWFE regressions are unbiased estimators of the $ATT$ when grid, county, or property fixed effects are used rather than pixel fixed effects. We also see that, in the absence of property level perturbations (i.e. $\sigma_p=0$ in the DGP), all three models provide nearly identical estimates and estimate distributions. The RMSE of these models is slightly smaller than that of the corresponding models with aggregated units of analysis. 
 
-<!-- ```{r agg_fe, fig.cap="fig caption", fig.show='hold', fig.pos = 'H'} -->
-<!-- knitr::include_graphics("figs/aggregated_fe.png") -->
-<!-- ``` -->
-
 # The value of linking model structure to the scale of decision-making {#property}
 
-We now demonstrate the importance of connecting the econometric model to the process by which land use change occurs on the ground. Table \@ref(tab:table-lit) shows that researchers often use a binary point or pixel as the unit of analysis. While this may sometimes be the preferred unit, it may be undesireable if the land use change process operates at a larger scale. Property level unobservables may impact both treatment effect estimates and coverage probabilities. This is likely to be a factor when land use decisions are made at the property level, or the intervention seeks to alter underlying landowner incentives. In our Monte Carlo simulations, we vary the standard deviation of the time-invariant property level disturbances in the initial DGP, $\sigma_p$, in order to account for these unobservables. 
+Connecting the econometric model to the process by which land use change occurs on the ground has clear benefits for estimation and inference in deforestation impact evaluation. Table \@ref(tab:table-lit) shows that researchers often use a binary point or pixel as the unit of analysis. While this may sometimes be the preferred unit, it may lead to biased results if the land use change process operates at a larger scale. Property level unobservables impact both treatment effect estimates and coverage probabilities. This is likely to be a factor when land use decisions are made at the property level, or the intervention seeks to alter underlying landowner incentives. In our Monte Carlo simulations, we vary the standard deviation of the time-invariant property level disturbances in the initial DGP, $\sigma_p$, in order to account for these unobservables. 
 
-<!-- Implications for bias -->
-
-The introduction of property level unobservables changes the relative performance of each level of aggregation. Figure \@ref(fig:property-uoa) demonstrates that models incorporating the property into the analysis, whether with aggregated units of analysis or fixed effects, perform relatively better than their counterparts in terms of bias when the standard error governing the property level disturbances, $\sigma_p$, increases. The left panel of Figure \@ref(fig:property-uoa) demonstrates that the property-level specification suffers from less bias that models with any other unit of analysis when $\sigma_p$ is non-zero. The pixel level DID suffers from the highest levels of bias relative to alternative units of analysis. 
-
-The right panel of Figure \@ref(fig:property-uoa) demonstrates a similar takeaway in terms of models that aggregate fixed effects. We see that models with grid, property, or county fixed effects perform similarly in terms of bias when there are no property level disturbances. However, as $\sigma_p$ increases, the model with property fixed effects suffers from less bias than the others. These findings indicate that incorporating the relevant decision making unit into the econometric specification can help to reduce estimate bias. 
+The introduction of property level unobservables changes the relative performance of each level of aggregation. Figure \@ref(fig:property-uoa) demonstrates that models incorporating the property into the analysis, whether with aggregated units of analysis (Regression 3) or fixed effects (Regression 4), perform relatively better than their counterparts in terms of bias when the standard error governing the property level disturbances, $\sigma_p$, increases. The left panel of Figure \@ref(fig:property-uoa) demonstrates that the property-level specification suffers from less bias than models with any other aggregated unit of analysis when $\sigma_p$ is non-zero. The right panel of Figure \@ref(fig:property-uoa) demonstrates a similar takeaway in terms of pixel level specifications with aggregated unit fixed effects. We see that models with grid, property, county, or treatment (DID) fixed effects perform similarly in terms of bias when there are no property level disturbances. However, as $\sigma_p$ increases, the model with property fixed effects suffers from less bias than the others. These findings indicate that incorporating the relevant decision making unit into the econometric specification can help to reduce estimate bias. 
 
 ```{r property-uoa, fig.cap="Property level unobservables differentially impact coefficient bias from models with aggregated units of analysis and aggregated fixed effects", fig.pos='H', fig.show='hold'}
 knitr::include_graphics(c("figs/bias_uoa.png", "figs/bias_fe.png"))
@@ -345,10 +309,12 @@ knitr::include_graphics(c("figs/bias_uoa.png", "figs/bias_fe.png"))
 
 <!--
 NOTE: This figure seems like the hardest for me to know how general these results are. Why would bias decrease as you increase random perturbations? Does performance of grid just reflect that our current grid is between county and property in size?
-Also, would it make sense to add DID to the FE panel? This is really just a treated / non-treated FE.
+Really good point- I'll try to think about alternatives for the next iteration
 -->
 
-<!-- Implications for RMSE -->
+As property level unobservables play a larger role, the treatment of standard errors also becomes more important. Standard error clustering is used by nearly every study in the literature for inference. The clustering problem is caused by the presence of a common unobserved random shock at the group level that leads to correlation between all observations within a group [@hansen2007]. We have introduced the random shock at the property level in our guiding example to represent individual landowner preferences or property characteristics. As such, correlation within grids and counties will also be introduced, since they contain multiple pixels within a property. Clustering standard errors relaxes the assumption of no correlation across observations within the spatial unit used for clustering [@jones2015]. 
+
+Table \@ref(tab:did-cover) demonstrates how the presence of property level unobservables impacts coverage probability in the pixel level DID model (Regression 1). The level at which standard errors are clustered clearly has an impact on coverage probability. When property level unobservables enter the DGP, clustering at the pixel level is ill-advised, as coverage probability declines rapidly. Note that regardless of the level at which standard errors are clustered, coverage probability using the pixel level DID model is not near the desired 95\%, particularly in the presence of property level unobservables. 
 
 
 ```{r did-cover, fig.pos = "H", fig.cap = "test"}
@@ -365,15 +331,11 @@ kable(coverage_did, format = "latex", row.names = FALSE, booktabs = T,
                 position = "center")
 ```
 
-As property level unobservables play a larger role, the treatment of standard errors also becomes more important. Standard error clustering is used by nearly every study in the literature for inference. The clustering problem is caused by the presence of a common unobserved random shock at the group level that will lead to correlation between all observations within a group [@hansen2007]. We have introduced the random shock at the property level in our guiding example to represent individual landowner preferences or property characteristics. As such, correlation within grids and counties will also be introduced, since they contain multiple pixels within a property. Clustering standard errors relaxes the assumption of no correlation across observations within the spatial unit used for clustering [@jones2015]. 
+Table \@ref(tab:cover) demonstrates how coverage probabilities are impacted by property-level unobservables for TWFE models with aggregated units of analysis and unit fixed effects. Of the specifications with aggregated units of analysis (i.e., Regression 3; rows 1-3 of Table \@ref(tab:cover)), the property level specification maintained a coverage probability nearest to the desired 95\% as $\sigma_p$ increased. In fact, of the models with aggregated units of analysis, the property level model led to the coverage probability nearest the desired 95\% whenever $\sigma_p$ was nonzero. Looking at the pixel level TWFE models with aggregated unit fixed effects (Regression 4; rows 4-6 of Table \@ref(tab:cover)) demonstrates that the pixel level model with property fixed effects also outperforms other pixel level TWFE models in terms of coverage probability. Of the pixel level models, the model with property fixed effects led to the coverage probability nearest the desired 95\% when $sigma_p$ was nonzero. These findings demonstrate that when property unobservables are present, inference is likely to be most precise when the the property is incorporated into the econometric specification, whether as the unit of analysis or as the level of the unit fixed effects. 
 
-Table \@ref(tab:did-cover) demonstrates how the presence of property level unobservables impacts coverage probability in the pixel-level DID model. The level at which standard errors are clustered clearly has an impact on coverage probability. When property level unobservables enter the DGP, clustering at the pixel level is ill-advised, as coverage probability declines rapidly.
+<!-- ^This paragraph feels a bit dense, but I think the takeaway comes across -->
 
-<!--
-TODO: Does it make more sense to combine tables 3 and 4?
--->
-
-```{r uoa-cover, results = "asis", fig.show='hold'}
+```{r cover, results = "asis", fig.show='hold'}
 
 # coverage_uoa <- read.csv("coverage.csv")[,2:7] %>%
 #   arrange(desc(std_error))%>%#, aggregation)%>%
@@ -385,74 +347,47 @@ TODO: Does it make more sense to combine tables 3 and 4?
 coverage_agg <- read.csv("agg_coverage.csv")[2:7] %>%
   mutate("fixed effects" = aggregation)%>%
   dplyr::select(`fixed effects`, everything())%>%
-  dplyr::select(aggregation, everything())
-
-kable(coverage_agg, format = "latex", row.names = FALSE,  booktabs = T,
-      caption = "Coverage probabilities for TWFE models using aggregated units of analysis in presence of property level unobservables",
-      col.names = NULL) %>%
-  add_header_above(c("unit of analysis"=1,"fixed effects"=1, "standard error structure"=1, "0"=1, "0.1" = 1, "0.2" = 1, "0.3" = 1), escape = TRUE, line =TRUE, bold = TRUE)%>%
-  add_header_above(c(" "=1, " "=1, " "=1, "coverage probability ($\\\\sigma_p =$)"=4), escape = FALSE, line =FALSE, bold =FALSE)%>%
-  kable_styling(font_size = 10, latex_options = c("HOLD_position", "striped"),
-                position = "center")
-
-
-```
-
-Table \@ref(tab:uoa-cover) demonstrates how coverage probabilities are impacted by property-level unobservables for TWFE models with aggregated units of analysis. The property level specification incurred the least bias with the introduction of property level disturbances (Figure \@ref(fig:property-uoa)). Table \@ref(tab:uoa-cover) now shows that while all three aggregated units of analysis provide coverage probability near the desired 95\% when $\sigma_p=0$, the property-level model is the only one that maintains coverage above 90% as $\sigma_p$ increases. 
-
-```{r fe-cover, results = "asis", fig.show='hold'}
-
-# coverage_fe <- read.csv("fe_coverage.csv")[,2:7] %>%
-#   arrange(desc(std_error))%>%#, aggregation)%>%
-#   filter(std_error != "classical" )%>%
-#   mutate(uoa = "pixel")%>%
-#   dplyr::select(uoa, everything())
+  dplyr::select(aggregation, everything())%>%
+  rename(cover_1=5, cover_2=6, cover_3=7)
 
 coverage_fe <- read.csv("fe_coverage.csv")[2:7] %>%
   rename("fixed effects" = 1)%>%
   filter(std_error != "classical" )%>%
   mutate(aggregation = "pixel")%>%
-  dplyr::select(aggregation, everything())
+  dplyr::select(aggregation, everything())%>%
+  rename(cover_1=5, cover_2=6, cover_3=7)
 
+coverage <- rbind(coverage_agg, coverage_fe)
 
-kable(coverage_fe, format = "latex", row.names = FALSE,  booktabs = T,
-      caption = "Coverage probabilities for pixel level, TWFE models using aggregated fixed effects in presence of property level unobservables", 
-      col.names = NULL) %>% 
+kable(coverage, format = "latex", row.names = FALSE,  booktabs = T,
+      caption = "Coverage probabilities for TWFE models using aggregated units of analysis in presence of property level unobservables",
+      col.names = NULL) %>%
   add_header_above(c("unit of analysis"=1,"fixed effects"=1, "standard error structure"=1, "0"=1, "0.1" = 1, "0.2" = 1, "0.3" = 1), escape = TRUE, line =TRUE, bold = TRUE)%>%
-  add_header_above(c(" "=1, " "=1, " "=1, "coverage probability ($\\\\sigma_p =$)"=4), escape = FALSE, line =FALSE, bold =FALSE)%>%
-  kable_styling(font_size = 10, latex_options = c("HOLD_position", "striped"), 
-                position = "center")
+  add_header_above(c(" "=1, " "=1, " "=1, "coverage probability ($\\\\sigma_p =$)"=4), escape = FALSE, line =FALSE, bold =TRUE)%>%
+  kable_styling(font_size = 10, latex_options = c("HOLD_position", "striped"),
+                position = "center")%>%
+  row_spec(3, hline_after = TRUE)
+
 
 ```
 
+Using Figure \@ref(fig:summary) to compare across all models, we see that RMSE tends to increase across all specifications as $\sigma_p$ increases. The pixel-level model with property fixed effects tends to have the lowest RMSE whenever $\sigma_p$ is nonzero. In contrast, the specification with the property as the unit of analysis (column 6 in each subplot) and pixel-level DID (columns 1-4 of each subplot) tend to have the highest RMSE. When bias and coverage probability are comparable, it is preferable to use the model with lower RMSE. 
 
-Table \@ref(tab:fe-cover) demonstrates how coverage probabilities are impacted by property level unobservables for pixel level TWFE models with aggregated fixed effects.The pixel level model with property fixed effects incurred less bias than the pixel level models with other aggregated fixed effects. Table \@ref(tab:fe-cover) shows that the model with property fixed effects also outperforms the other models in this table in terms of coverage probability. 
+<!-- I can easily add column numbers to the plot, but left out to declutter a bit. Thoughts on this decision? -->
 
-Using Figure \@ref(fig:summary) to compare across all models, we see that RMSE tends to increase across all specifications as $\sigma_p$ increases. The pixel-level model with property fixed effects tends to have the lowest RMSE whenever $\sigma_p$ is nonzero. In contrast, the property-level model and pixel-level DID tend to have the highest RMSE. When bias and coverage probability are comparable, it is preferable to use the model with lower RMSE. 
+Overall, this section highlights the benefits of structuring one's econometric modeling decisions around the decision-making unit. In some instances, researchers do not have access to geospatial boundaries of the relevant decision-making unit. In these cases, utilizing a grid cell or alternative administrative unit are likely preferable to pixel level DID models for purposes of both estimation and inference. 
 
-Overall, this section highlights the benefits of structuring one's econometric modeling decisions around the decision-making unit. In some instances, researchers do not have access to geospatial boundaries of the relevant decision-making unit. County and grid cell level aggregation lead to lower levels of bias and higher coverage probability than pixel level specifications when property unobservables are present. County level aggregation leads to the best coverage in the absence of property boundaries, meaning that a larger, alternative administrative unit may be the best alternative when an adequate number of observations are available. If constraints on geospatial boundary access prevent analysis at the scale of the relevant decision-making unit, a grid level model or one with grid fixed effects is likely to greatly improve bias and coverage probability relative to a pixel level DID. 
-
-```{r summary, fig.cap="bias, distribution, and coverage of all models with clustered standard errors. Each subplot represents simulated landscapes with varying $\\sigma_p$. ", out.width = "100%", fig.pos='H', fig.show='hold'}
+```{r summary, fig.align="left", fig.cap="bias, distribution, and coverage of all models with clustered standard errors. Each subplot represents simulated landscapes with varying $\\sigma_p$. ", out.width = "100%", fig.pos='H', fig.show='hold'}
 knitr::include_graphics("figs/full_schart.png")
 ```
-
-<!--
-TODO: A few suggestions / questions for this figure
-1. Probably best to just have the value for RMSE and deviation as numbers rather than bars? Would also make Fig 4 a bit easier to read - simultaneously see large difference between 1 and all others, and variation among the others.
-2. Could DID just be expressed as treatment fixed effect?
-3. Drop pixel FE since that's not being used in this figure?
-4. Don't quite understand what a lack of dropped pixels means in the aggregated models. How are these pixels contributing to the deforestation rate calculation?
-5. Should we add some models that use DID, but cluster SE at county or property? These seem to perform much better than the standard DID, so could be useful to show the best performing DID for context.
-6. Illustrate changing sigma_p using lines to separate into sub-plots, move label to top-left of each sub-plot.
--->
 
 # Planned extensions
 
 We plan to undertake the following extensions in future iterations of this paper:
 
 \begin{itemize}
-\item weighting by administrative unit size in order to obtain landscape scale interpretation 
-\item incorporate binary outcome variable equal to one if any deforestation occurs in administrative unit during time $t$ [e.g., @blank; @blank2]
+\item weighting by administrative unit size in order to obtain landscape-scale interpretation. One of the reasons authors prefer the pixel as the unit of analysis is because it is easy to interpret the treatment effect coefficient as the average effect across the landscape. When an aggregated unit of analysis is used, the interpretation is in reference to the characteristic unit. 
+\item incorporate binary outcome variable equal to one if any deforestation occurs in administrative unit during time $t$. This outcome has been used with increasing frequency, and the coefficient has been interpreted as a deforestation rate. This measure may perform better when heterogeneity is present. 
 \end{itemize}
 
 # Conclusions
