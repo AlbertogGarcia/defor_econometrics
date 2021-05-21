@@ -1,8 +1,7 @@
 ---
-title: Practical guidance for conservation impact evaluation using remotely sensed
-  data
+title: Conservation impact evaluation using remotely sensed data
 author: "Alberto Garcia and Robert Heilmayr"
-date: "April 4, 2021"
+date: "May 4, 2021"
 output:
   bookdown::pdf_document2:
     latex_engine: xelatex
@@ -22,6 +21,7 @@ header-includes:
 
 \sectionfont{\fontsize{11}{11}\selectfont}
 \subsectionfont{\fontsize{11}{11}\selectfont}
+
 
 ```{r setup, include=FALSE}
 library(knitr)
@@ -258,18 +258,18 @@ TWFE models have risen to prominence due to their flexibility in applying DID me
 
 In the two-group, two-period case the typical DID model (Regression 1) is an unbiased estimator of the $ATT$, as shown in columns 2-5 of Figure \@ref(fig:summary-fig) (The typical DID is equivalent to including treatment fixed effects). However, researchers often want to use TWFE models because of their flexibility in situations that do not fall under the typical DID setup. Therefore, researchers should be aware of the trade-offs using aggregated units of analysis and fixed effects when using TWFE models for deforestation impact evaluation. 
 
-## Aggregated fixed effects
+## Spatially aggregated fixed effects
 
-One can also use fixed effects at the level of a spatially aggregated unit rather than the pixel level to resolve bias associated with TWFE regressions with pixel fixed effects. For simplicity, we assume the researcher can choose between three levels at which to aggregate the data: grid cell, county, and property. Grid cells are uniform grids layered over the study area. Counties are heterogeneous administrative units at which we assign the treatment. Lastly, properties are smaller administrative units that lie within one or more counties. These models are all in the form of Regression 3.
+One can also use fixed effects at the level of a spatially aggregated unit rather than the pixel level to resolve bias associated with TWFE regressions with pixel fixed effects. For simplicity, we assume the researcher can choose between three levels at which to aggregate the data: grid cell, county, and property. Grid cells are uniform grids layered over the study area. Counties are heterogeneous administrative units at which we assign the treatment. Lastly, properties are smaller administrative units that lie within one or more counties. Pixel level TWFE models with spatially aggregated unit fixed effects are all in the form of Regression 3.
 
-\textbf{Regression 3:} (pixel level TWFE regression with aggregated fixed effects)
+\textbf{Regression 3:} (pixel level TWFE regression with spatially aggregated unit fixed effects)
 Let $\beta_{FE,j}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
 \begin{align}
 y_{it} = \alpha + \beta_{FE,j} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \lambda_t + \gamma_j + \epsilon_{it}
 \end{align}
-, where $\lambda_t$ denotes year fixed effects and $\gamma_j$ denotes one of grid (g), county (c), or property (v) fixed effects.
+, where $\lambda_t$ denotes year fixed effects and $\gamma_j$ denotes one of grid ($g$), county ($c$), or property ($v$) fixed effects ($j=\{g, c, v \}$).
 
-Columns 9-11 of Figure \@ref(fig:summary-fig) show that pixel level TWFE regressions are unbiased estimators of the $ATT$ when grid, county, or property fixed effects are used rather than pixel fixed effects. We also see that, in the absence of property level perturbations (i.e. $\sigma_p=0$ in the DGP), all three models provide nearly identical estimates and estimate distributions. 
+Columns 6-8 of Figure \@ref(fig:summary-fig) show that pixel level TWFE regressions are unbiased estimators of the $ATT$ when grid, county, or property fixed effects are used rather than pixel fixed effects. We also see that, in the absence of property level perturbations (i.e. $\sigma_p=0$ in the DGP), all three models provide similar estimates and estimate distributions. 
 
 ```{r summary-fig, fig.cap="bias, distribution, and coverage of all models with clustered standard errors. ",  out.width="100%"}
 knitr::include_graphics("figs/schart.png")
@@ -291,7 +291,7 @@ z_{jt} = \alpha + \beta_{j} \text{ x } D_j \mathbb{1} \{ t\geq t_0\} + \lambda_t
 \end{align}
 , where $\lambda_t$ denotes year fixed effects and $\gamma_j$ denotes one of grid, county, or property fixed effects. Note that in these regressions, the level of unit fixed effects matches the unit of analysis. The treatment variable $D_j = \frac{1}{N_j}\sum_{i=1}^{N_j}D_i$, is the average treatment value amongst all pixels in unit $j$.
 
-We find little evidence that any one aggregated unit of analysis is consistently preferrable in terms of bias. Columns 6-8 of Figure \@ref(fig:summary-fig) show that the bias of the estimates is not critically different depending on level of aggregation, however, the distributions are varied. In particular, the property-level model had the highest RMSE of unbiased specifications due to the heterogeneity in property sizes across the landscape. Note that the RMSE of these models is slightly greater than that of the corresponding models with aggregated unit fixed effects. 
+Columns 9-11 of Figure \@ref(fig:summary-fig) show that the bias of the estimates is not critically different depending on level of aggregation, however, the distributions are varied. In particular, the property-level model had the highest RMSE of unbiased specifications due to the heterogeneity in property sizes across the landscape. Note that relative to the pixel level models with spatially aggregated unit fixed effects, the coverage probability of these models is closer to the desired 95\%. However, these models have a higher RMSE.  
 
 # The value of linking model structure to the scale of decision-making {#property}
 
@@ -355,9 +355,9 @@ coverage_fe <- read.csv("fe_coverage.csv")[2:7] %>%
 coverage <- rbind(coverage_fe, coverage_agg)
 
 kable(coverage, format = "latex", row.names = FALSE,  booktabs = T,
-      caption = "Coverage probabilities for TWFE models using aggregated units of analysis in presence of property level unobservables",
+      caption = "Coverage probabilities for TWFE models using spatially aggregated unit fixed effects or units of analysis in presence of property level unobservables",
       col.names = NULL) %>%
-  add_header_above(c("unit of analysis"=1,"fixed effects"=1, "standard error structure"=1, "0"=1, "0.1" = 1, "0.2" = 1, "0.3" = 1), escape = TRUE, line =TRUE, bold = TRUE)%>%
+  add_header_above(c("unit of analysis"=1,"unit fixed effects"=1, "standard error structure"=1, "0"=1, "0.1" = 1, "0.2" = 1, "0.3" = 1), escape = TRUE, line =TRUE, bold = TRUE)%>%
   add_header_above(c(" "=1, " "=1, " "=1, "coverage probability ($\\\\sigma_p =$)"=4), escape = FALSE, line =FALSE, bold =TRUE)%>%
   kable_styling(font_size = 10, latex_options = c("HOLD_position", "striped"),
                 position = "center")%>%
@@ -366,7 +366,7 @@ kable(coverage, format = "latex", row.names = FALSE,  booktabs = T,
 
 ```
 
-Using Figure \@ref(fig:summary) to compare across all models, we see that RMSE tends to increase across all specifications as $\sigma_p$ increases. The pixel-level model with property fixed effects tends to have the lowest RMSE whenever $\sigma_p$ is nonzero. In contrast, the specification with the property as the unit of analysis (column 6 in each subplot) and pixel-level DID (columns 1-4 of each subplot) tend to have the highest RMSE. When bias and coverage probability are comparable, it is preferable to use the model with lower RMSE. 
+Using Figure \@ref(fig:summary) to compare across all models, we see that RMSE tends to increase across all specifications as $\sigma_p$ increases. The pixel-level TWFE model with property unit fixed effects (column 6 of 10 in each subplot) tends to have the lowest RMSE whenever $\sigma_p$ is nonzero. In contrast, the specification with the property as the unit of analysis (column 9 of 10 in each subplot) and pixel-level DID (columns 1-4 in each subplot) tend to have the highest RMSE. When bias and coverage probability are comparable, it is preferable to use the model with lower RMSE. 
 
 <!-- I can easily add column numbers to the plot, but left out to declutter a bit. Thoughts on this decision? -->
 
@@ -409,11 +409,14 @@ We thank the University of California, Santa Barbara's Academic Senate for a Fac
 # References
 <div id="refs"></div>
 
-# Appendix {#appendix}
-<!-- Getting to point where we probably need to number appendices -->
+---
+nocite: | 
+  @koch, @panlasigui2018, @nolte_decentralized_2017, @butsic_effect_2017, @baehr_linking_2021, @benyishay_indigenous_2017, @arriagada_payments_2012, @busch_reductions_2015, @heilmayr_impacts_2016, @blackman_titling_2017, @herrera_impacts_2019, @anderson2018, @araujo_property_2009, @alix-garcia_forest_2017, @wendland_protected_2015, @alix-garcia_avoided_2018, @blackman2018, @carlson_effect_2018, @jones_forest_2017, @tabor_evaluating_2017, @holland_titling_2017, @baylis_conserving_2012, @blackman_strict_2015, @sanchez-azofeifa_costa_2007, @shah_evaluating_2015, @sims_parks_2017
+---
 
- 
-## proof showing pixel level TWFE regression models do not identify $ATT$ {#TWFE-proof}
+# Appendix {#appendix}
+
+## proof showing pixel level TWFE regression models with pixel fixed effects do not identify $ATT$ {#TWFE-proof}
 
 In settings with a binary and unrepeatable outcome variable, the commonly used pixel level TWFE model yields the post-treatment difference in outcomes (single difference), rather than the desired $ATT$.
 
