@@ -42,8 +42,8 @@ full_landscape <- function(nobs, cellsize, ppoints, cpoints){
     st_geometry() %>% #  as geometry only 
     st_union() %>% # unite them 
     st_voronoi() %>% # perform the voronoi tessellation
-    st_collection_extract(type = "POLYGON") #%>% # select the polygons
-    #st_intersection(v_county)  # limit to within county boundaries
+    st_collection_extract(type = "POLYGON") %>% # select the polygons
+    st_intersection(landscape)  # limit to within landscape boundaries
     
   
   #determine which pixels are in each grid 
