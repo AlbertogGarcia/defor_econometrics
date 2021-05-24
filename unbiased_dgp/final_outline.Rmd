@@ -54,7 +54,9 @@ cpoints = 20
 ```{r}
 
 # generate landscape plot
-landscape_map <- landscape_map(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, std_p = .1, cellsize, ppoints, cpoints)$landscape_period2_counter
+
+# grids still need to be added to the landscape- will fix soon
+landscape_map <- landscape_map(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, std_p = 0.1, cellsize, ppoints, cpoints)$landscape_period2_counter
 
 
 ```
