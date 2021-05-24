@@ -159,8 +159,6 @@ b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
 aggregation_1 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
-#aggregation_5$plot
-#ggsave(path = "figs", filename = "aggregation.png", dpi = 500)
 
 
 bias_1 <- aggregation_1$biases
@@ -183,7 +181,6 @@ b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
 aggregation_2 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
-# aggregation_25$plot
 
 bias_2 <- aggregation_2$biases
 fe_bias_2 <- aggregation_2$fe_biases
@@ -205,7 +202,6 @@ b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
 aggregation_3 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
-# aggregation_25$plot
 
 bias_3 <- aggregation_3$biases
 fe_bias_3 <- aggregation_3$fe_biases
@@ -237,8 +233,8 @@ fe_rmse_p <- data.frame(
   , check.names = FALSE
 )
 
-write.csv(rmse_p, "rmse_p.csv")
-write.csv(fe_rmse_p, "fe_rmse_p.csv")
+# write.csv(rmse_p, "rmse_p.csv")
+# write.csv(fe_rmse_p, "fe_rmse_p.csv")
 
 # creating bias csv
 biases_p <- data.frame("0" = colMeans(bias_0) , "0.1" = colMeans(bias_1), "0.2" = colMeans(bias_2), "0.3" = colMeans(bias_3) ,check.names = FALSE)
@@ -247,8 +243,8 @@ fe_biases_p <- data.frame("0" = colMeans(fe_bias_0) , "0.1" = colMeans(fe_bias_1
 
 biases_p <- rbind(biases_p, fe_biases_p)
 
-write.csv(biases_p, "bias_p.csv")
-write.csv(fe_biases_p, "fe_bias_p.csv")
+# write.csv(biases_p, "bias_p.csv")
+# write.csv(fe_biases_p, "fe_bias_p.csv")
 ```
 
 
@@ -271,9 +267,9 @@ fe_coverage <-  fe_cover_0 %>%
          fe_cover_3 = fe_cover_3[,ncol(fe_cover_3)]
          ) 
   
-write.csv(did_coverage, "did_coverage.csv")  
-write.csv(agg_coverage, "agg_coverage.csv") 
-write.csv(fe_coverage, "fe_coverage.csv")  
+# write.csv(did_coverage, "did_coverage.csv")  
+# write.csv(agg_coverage, "agg_coverage.csv") 
+# write.csv(fe_coverage, "fe_coverage.csv")  
 
 ```
 
@@ -285,7 +281,7 @@ rmse_plot_df <- rbind(rmse_p, fe_rmse_p) %>%
   melt(variable.name = "sigma_p", value.name = "RMSE" )%>%
   separate(model, into = c("fixed effects", "uoa"), sep = " ")%>%
   mutate("unit of analysis" = ifelse(is.na(uoa),  "same as fe", "pixel"),
-         "fixed effects" = ifelse(`fixed effects`=="pixel", "none", `fixed effects`)
+         "fixed effects" = ifelse(`fixed effects`=="pixel", "treatment", `fixed effects`)
          )
 
 plot_rmse = ggplot(data = rmse_plot_df, aes(x = as.numeric(as.character(sigma_p)), y = RMSE,  linetype = `unit of analysis`, colour = `fixed effects`)) +
