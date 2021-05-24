@@ -25,6 +25,8 @@ source('vary_outcome_yr.R')
 source('vary_rate_funcform.R')
 source('vary_rate_funcform_agg.R')
 
+source('landscape_map.R')
+
 ```
 
 
@@ -49,6 +51,14 @@ cpoints = 20
 
 ```
 
+```{r}
+
+# generate landscape plot
+landscape_map <- landscape_map(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, std_p = .1, cellsize, ppoints, cpoints)$landscape_period2_counter
+
+
+```
+
 
 ```{r aggregate, results = 'hide', warning=FALSE}
 
@@ -60,20 +70,27 @@ b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
 b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
-# summary function that estimates 9 different specifications
+# summary function that estimates all of the different specifications
 aggregation <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+
+#outputs density plots of estimate distributions
 #aggregation$plot
 #aggregation$fe_plot
+
+# activate ggsave below in order to save density plots
 #ggsave(plot = aggregation$plot, path = "figs", filename = "aggregated_ua.png", dpi = 500)
 #ggsave(plot = aggregation$fe_plot, path = "figs", filename = "aggregated_fe.png", dpi = 500)
 
+
+# We save the summary measures of the bias and coverage for a subset of the specifications
 bias_0 <- aggregation$biases
 fe_bias_0 <- aggregation$fe_biases
 did_cover_0 <- aggregation$did_coverages_df
-# fe_cover_0 <- aggregation$fe_coverages_df
+fe_cover_0 <- aggregation$fe_coverages_df
+agg_cover_0 <- aggregation$agg_coverages_df
 
 summary_df <- aggregation$summary_df[2:12,]
-write.csv(summary_df, "summary_df.csv")
+# write.csv(summary_df, "summary_df.csv")
 # Looks better when there is an outer margins
 par(oma=c(1,0,1,1))
 

@@ -13,7 +13,7 @@ library(DeclareDesign)
 source('full_landscape.R')
 
 #begin function
-landscape_maps <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, std_p = .1, cellsize, ppoints, cpoints){
+landscape_map <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, std_p = .1, cellsize, ppoints, cpoints){
   
   countyscape = full_landscape(nobs, cellsize, ppoints, cpoints)
   pixloc_df = countyscape$pixloc_df
@@ -217,7 +217,7 @@ landscape_maps <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.2
     guides(shape=FALSE)
   
   ######################################################################
-  outputs = list("landscape_period1" = landscape_period1, "landscape_period2" = landscape_period2, "landscape_period2_nolegend" = landscape_period2_nolegend, "landscape_period2_counter" = landscape_period2_counter)
+  outputs = list("landscape_period1" = landscape_period1, "landscape_period2" = landscape_period2, "landscape_period2_counter" = landscape_period2_counter)
   return(outputs)
   
   #end function  
