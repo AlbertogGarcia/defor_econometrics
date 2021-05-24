@@ -1,11 +1,11 @@
 ---
 title: "Conservation impact evaluation using remotely sensed data"
 subtitle: "UC Environmental Economics Seminar"
-author: "Robert Heilmayr"
+author: "Alberto Garcia and Robert Heilmayr"
 date: "May 28, 2021"
 output:
   xaringan::moon_reader:
-    css: ['default', 'metropolis', 'metropolis-fonts', 'my-css.css']
+    css: ['default', 'metropolis', 'metropolis-fonts']
     # self_contained: true
     nature:
       highlightStyle: github
@@ -100,7 +100,8 @@ Ideally would animate this figure
 
 layout: false
 class: inverse, middle
-# TWFE - proof
+# Analytical proof
+## Pixel-level two-way fixed effects model doesn't estimate $ATT$
 
 ---
 # Proof: Pixel-level TWFE model doesn't estimate ATT
@@ -138,21 +139,74 @@ $$ATT=\frac{1}{\eta_{i:W_i=1}}\sum_{i:W_i=1}^{N}{y_{i,2}(1)-y_{i,2}(0)}$$
 
 ## Data wrinkle
 
-Since $y_{i,t}$ is an irreversible, binary outcome, it is often expressed as:
+Since $y_{i,t}$ is an irreversible, binary outcome, it is typically<sup>†</sup> expressed as:
 
 $$y_{it}= \begin{cases} 
       0 & \text{the pixel has never been deforested}\\
       1 & \text{the pixel was deforested in year }t\\
       NAN & \text{the pixel was deforested in a year }<t\\
-   \end{cases}
-.$$
+   \end{cases}$$
+
+.footnote[
+†  Separate proof in paper shows why this is the preferred solution.
+]
 
 ---
 # Proof: Pixel-level TWFE model doesn't estimate ATT
 
-## TWFE model to estimate $ATT$
+## TWFE model:
+## $$y_{i,t} = \alpha + \beta \times D_i \times \mathbb{1} \{t=2\}  + \gamma_i + \eta_{t=2}+ u_{i,t}$$
+
+--
+
+##  $$\Downarrow$$
+
+$$y_{i,1}=\alpha+\gamma_i+u_{i,1}$$
+--
+$$y_{i2}= \begin{cases} 
+      \alpha+\beta \text{ x }D_i+\gamma_i+\eta_{t=2} + u_{i2} & y_{i1}= 0\\
+      NAN & y_{i1} \neq 0 
+   \end{cases}$$
+--
+
+## $$\Downarrow$$
+$$y_{i2}-y_{i1}= \begin{cases} 
+ \beta \text{ x }D_i + \eta_{t=2} + \Delta u_{i} & y_{i1}= 0\\
+      NAN & y_{i1} \neq 0 
+   \end{cases}$$
 
 
+---
+# Proof: Pixel-level TWFE model doesn't estimate ATT
+
+$\hat{\beta}$ (our estimate of the $ATT$) can also be expressed as a double difference:
+
+$$
+\begin{align*}
+\hat{\beta}&= \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} (y_{i,2}-y_{i,1}) - \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} (y_{i,2} - y_{i,1})
+\end{align*}
+$$
+--
+
+However, this is only valid when $y_{i,1}=0$. Thus, we can restate (and shift to PO notation):
+<!-- $$ -->
+<!-- \begin{align*} -->
+<!-- \hat{\beta}&= \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} (y_{i,2}-0) - \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} (y_{i,2} - 0) -->
+<!-- \end{align*} -->
+<!-- $$ -->
+$$
+\begin{align*}
+\hat{\beta}&= \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y_{i,2}(1) - \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y_{i,2}(0)
+\end{align*}
+$$
+--
+
+Adding and subtracting $\frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y_{i,2}(0)$:
+$$
+\begin{align*}
+\hat{\beta}&= \underbrace{\frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} \left( y_{i,2}(1)-y_{i,2}(0) \right)}_{ATT} + \underbrace{\left( \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y_{i,2}(0) - \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y_{i,2}(0) \right)}_{\text{Pre-treatment difference in mean deforestation rates}}
+\end{align*}
+$$
 
 ---
 
