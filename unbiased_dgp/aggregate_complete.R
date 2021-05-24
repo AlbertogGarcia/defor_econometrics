@@ -14,7 +14,7 @@ library(tidyverse)
 library(tictoc)
 library(fixest)
 library(DeclareDesign)
-source('full_landscape.R')
+source(here::here('unbiased_dgp', 'full_landscape.R'))
 
 #begin function
 aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v = 0.25, std_p = 0.0, cellsize, ppoints, cpoints){
