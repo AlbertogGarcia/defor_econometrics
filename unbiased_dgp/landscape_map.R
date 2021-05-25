@@ -10,6 +10,8 @@ library(DataCombine)
 library(dplyr)
 library(DeclareDesign)
 
+select <- dplyr::select
+
 source('full_landscape.R')
 
 #begin function
@@ -141,7 +143,8 @@ landscape_map <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25
              "deforested pixels" = "#F0E442", 
              "deforestation in first period" = "red", 
              "deforested pixels in couterfactual without intervention" = "#D55E00",
-             "deforestation in second period" = "gray30")
+             "deforestation in second period" = "gray30",
+             "pixels not deforested" = "#009E73")
   
   shapes <- c("deforested pixel" = 22)
   
