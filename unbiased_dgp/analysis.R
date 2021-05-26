@@ -30,8 +30,9 @@ b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
 b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
-
+# runs simulation for all models
 aggregation_0.03 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+#set long dataframe with summary for each iteration
 summary_long_0.03 <- aggregation_0.03$summary_long
 
 ######################################################################################################################
@@ -62,6 +63,15 @@ base_1 = .03
 trend = -.005
 ATT = -.01
 
+# we'll need to recompute the parameters 
+std_avp = (std_a^2+std_v^2+std_p^2)^.5
+b0 = qnorm(base_0, mean = 0, sd = std_avp)
+b1 = qnorm(base_1, mean = 0, sd = std_avp) - b0
+b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
+b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
+b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
+
+
 aggregation_0.01 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
 summary_long_0.01 <- aggregation_0.01$summary_long
 
@@ -75,5 +85,23 @@ base_1 = .02
 trend = -.005
 ATT = -.01
 
+# we'll need to recompute the parameters 
+std_avp = (std_a^2+std_v^2+std_p^2)^.5
+b0 = qnorm(base_0, mean = 0, sd = std_avp)
+b1 = qnorm(base_1, mean = 0, sd = std_avp) - b0
+b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
+b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
+b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
+
+
 aggregation_0.00 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
 summary_long_0.00 <- aggregation_0.00$summary_long
+
+
+######################################################################################################################
+#
+######################################################################################################################
+
+# bind dataframes together with different parameterizations and write summary_long as csv
+
+summary_long <- rbind(summary_long_0.00, summary_long_0.01, summary_long_0.02, summary_long_0.03)
