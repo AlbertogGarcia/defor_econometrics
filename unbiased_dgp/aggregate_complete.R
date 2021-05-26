@@ -612,6 +612,9 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
     mutate_at(1:13, as.logical)%>%
     dplyr::select(mean_bias, everything())
   
+  summary_long <- summary_long %>%
+    select(iteration, everything())
+  
   
   outputs = list(
     #"plot" = plot, "fe_plot" = fe_plot, 
