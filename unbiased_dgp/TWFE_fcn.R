@@ -13,6 +13,16 @@ TWFE_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v 
   #preallocate n x 4 matrix
   coeffmatrix <- matrix(nrow = n, ncol = 2)
   
+  n_mod = 2
+  summ_row <- n_mod * n
+  
+  summary_long <- data.frame('b0'= rep(b0, summ_row), 'b1'= rep(b1, summ_row), 'b2_0'= rep(b2_0, summ_row), 'b2_1'= rep(b2_1, summ_row), 'b3'= rep(b3, summ_row), 
+                             'std_a'= rep(std_a, summ_row), 'std_v'= rep(std_v, summ_row), 'std_p'= rep(0, summ_row),
+                             'iteration' = rep(NA, summ_row), 
+                             'model'=rep(NA, summ_row),
+                             'bias'=rep(NA, summ_row), 
+                             stringsAsFactors=FALSE)
+  
   for(i in 1:n){
     
     # call defor_sim function to simulate dataframe, returned as panels  
@@ -29,7 +39,20 @@ TWFE_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v 
     coeffmatrix[i, 2] <- feols(y_it ~  post*treat|year+pixels, data = panels
     )$coefficients - ATT
     
+    firstcol = which(colnames(summary_long)=="iteration")
+    lastcol = which(colnames(summary_long)=="bias")
     
+    summary_long[i+n,c(firstcol:lastcol)] <- c(
+      i,
+      "DID",
+      coeffmatrix[i,1]
+    )
+    
+    summary_long[i+n*2,c(firstcol:lastcol)] <- c(
+      i,
+      "TWFE",
+      coeffmatrix[i,2]
+    )
    
     
     #end for loop
@@ -60,8 +83,11 @@ TWFE_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v 
                                                                         )
     )
   
+  summary_long <- summary_long %>%
+    select(iteration, everything())
   
-  outputs = list("plot" = plot, "did_biases" = b_coeff)
+  
+  outputs = list("plot" = plot, "did_biases" = b_coeff, "summary_long" = summary_long)
   return(outputs)
   
   #end function  
