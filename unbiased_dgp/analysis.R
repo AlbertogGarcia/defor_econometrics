@@ -1,7 +1,7 @@
 # script to perform simulation runs and export csv files
 
 source(here::here('unbiased_dgp', 'aggregate_complete.R'))
-
+source(here::here('unbiased_dgp', 'TWFE_fcn.R'))
 
 # we start with our base parameterization without property level perturbations
 std_a = 0.1
@@ -121,8 +121,10 @@ TWFE_long_0 <- TWFE_0$summary_long
 # summary_long <- rbind(summary_long_0.00, summary_long_0.01, summary_long_0.02, summary_long_0.03)
 
 
-TWFE_long <- rbind(TWFE_long_0, TWFE_long_0.01, TWFE_long_0.02, TWFE_long_0.03)
+TWFE_long <- rbind(TWFE_long_0, TWFE_long_0.01, TWFE_long_0.02, TWFE_long_0.03)%>%
+  group_by(b0, b1, b2_0, b2_1, b3)%>%
+  mutate(paramterization =cur_group_id())
 
-
+write.csv(TWFE_long, "TWFE_long.csv")
 
 
