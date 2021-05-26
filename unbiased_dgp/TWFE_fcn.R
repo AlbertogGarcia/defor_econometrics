@@ -42,13 +42,13 @@ TWFE_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v 
     firstcol = which(colnames(summary_long)=="iteration")
     lastcol = which(colnames(summary_long)=="bias")
     
-    summary_long[i+n,c(firstcol:lastcol)] <- c(
+    summary_long[i,c(firstcol:lastcol)] <- c(
       i,
       "DID",
       coeffmatrix[i,1]
     )
     
-    summary_long[i+n*2,c(firstcol:lastcol)] <- c(
+    summary_long[i+n,c(firstcol:lastcol)] <- c(
       i,
       "TWFE",
       coeffmatrix[i,2]
