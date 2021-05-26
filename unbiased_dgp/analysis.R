@@ -1,7 +1,6 @@
 # script to perform simulation runs and export csv files
 
 source(here::here('unbiased_dgp', 'aggregate_complete.R'))
-source(here::here('unbiased_dgp', 'TWFE_fcn.R'))
 
 # we start with our base parameterization without property level perturbations
 std_a = 0.1
@@ -31,9 +30,9 @@ b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
 # runs simulation for all models
-# aggregation_0.03 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
-# #set long dataframe with summary for each iteration
-# summary_long_0.03 <- aggregation_0.03$summary_long
+aggregation_0.03 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+#set long dataframe with summary for each iteration
+summary_long_0.03 <- aggregation_0.03$summary_long
 
 TWFE_0.03 <- TWFE_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
 TWFE_long_0.03 <- TWFE_0.03$summary_long
@@ -54,12 +53,12 @@ b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
 b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
-# aggregation_0.02 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
-# summary_long_0.02 <- aggregation_0.02$summary_long
+aggregation_0.02 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+summary_long_0.02 <- aggregation_0.02$summary_long
 
 
 TWFE_0.02 <- TWFE_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
-TWFE_long_0.02 <- TWFE_0.03$summary_long
+TWFE_long_0.02 <- TWFE_0.02$summary_long
 
 ######################################################################################################################
 #
@@ -79,8 +78,8 @@ b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
 # 
-# aggregation_0.01 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
-# summary_long_0.01 <- aggregation_0.01$summary_long
+aggregation_0.01 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+summary_long_0.01 <- aggregation_0.01$summary_long
 
 
 TWFE_0.01 <- TWFE_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
@@ -104,8 +103,8 @@ b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
 
-# aggregation_0.00 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
-# summary_long_0.00 <- aggregation_0.00$summary_long
+aggregation_0.00 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+summary_long_0.00 <- aggregation_0.00$summary_long
 
 
 TWFE_0 <- TWFE_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
