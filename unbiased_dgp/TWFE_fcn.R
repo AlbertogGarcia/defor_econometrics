@@ -27,30 +27,10 @@ TWFE_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v 
     
     # run two-way fixed effects    
     coeffmatrix[i, 2] <- feols(y_it ~  post*treat|year+pixels, data = panels
-      # plm(y_it ~  post*treat, 
-      #                        data   = panels, 
-      #                        method = "within", #fixed effects model
-      #                        effect = "twoway", #unit and year fixed effects
-      #                        index  = c("pixels", "year")
     )$coefficients - ATT
     
     
-    
-    
-    # DID keeping variables
-    
-    # coeffmatrix[i, 3] <- lm(defor ~  post*treat, 
-    #                         data = panels
-    # )$coefficients[4] - ATT
-    # 
-    # # run two-way fixed effects    
-    # coeffmatrix[i, 4] <- plm(defor ~  post*treat, 
-    #                          data   = panels, 
-    #                          method = "within", #fixed effects model
-    #                          effect = "twoway", #unit and year fixed effects
-    #                          index  = c("pixels", "year")
-    # )$coefficients - ATT
-    
+   
     
     #end for loop
     print(i)
