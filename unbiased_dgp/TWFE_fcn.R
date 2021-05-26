@@ -5,7 +5,8 @@ library(ggplot2)
 library(plm)
 library(Metrics)
 library(fixest)
-source('deforestation_DGP.R')
+source(here::here('unbiased_dgp', 'deforestation_DGP.R'))
+#source('deforestation_DGP.R')
 #begin function
 
 TWFE_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v = 0.25){
