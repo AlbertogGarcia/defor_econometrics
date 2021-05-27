@@ -1,6 +1,7 @@
 # script to perform simulation runs and export csv files
 
 source(here::here('unbiased_dgp', 'aggregate_complete.R'))
+source(here::here('unbiased_dgp', 'TWFE_fcn.R'))
 
 # we start with our base parameterization without property level perturbations
 std_a = 0.1
