@@ -145,7 +145,6 @@ TWFE_long_n0.03 <- TWFE_n0.03$summary_long
 
 # summary_long <- rbind(summary_long_0.00, summary_long_0.01, summary_long_0.02, summary_long_0.03)
 
-
 TWFE_long <- rbind(TWFE_long_0, TWFE_long_0.01, TWFE_long_0.02, TWFE_long_0.03, TWFE_long_n0.03)%>%
   group_by(b0, b1, b2_0, b2_1, b3)%>%
   mutate(parameterization = cur_group_id())
