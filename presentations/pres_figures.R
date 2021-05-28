@@ -1,7 +1,6 @@
 
 library(patchwork)
 library(tidyverse)
-
 library(ggplot2)
 library(clubSandwich)
 library(matrixStats)
@@ -13,6 +12,7 @@ library(dplyr)
 library(DeclareDesign)
 library(data.table)
 source(here::here("unbiased_dgp", "schart.R"))
+library(ggpubr)
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -54,13 +54,13 @@ f <- function(x) gsub("^(\\s*[+|-]?)0\\.", "\\1.", as.character(x))
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 palette <- list("white" = "#FAFAFA",
-             "light_grey" = "#d9d9d9",
-             "dark" = "#0c2230",
-             "red" = "#ed195a",
-             "blue" = "#1c86ee",
-             "green" = "#7CAE7A",
-             "dark_green" = "#496F5D",
-             "gold" = "#DAA520")
+                "light_grey" = "#d9d9d9",
+                "dark" = "#0c2230",
+                "red" = "#ed195a",
+                "blue" = "#1c86ee",
+                "green" = "#7CAE7A",
+                "dark_green" = "#496F5D",
+                "gold" = "#DAA520")
 
 results_dir <- paste0(getwd()[1], '/unbiased_dgp/')
 out_dir <- paste0(getwd()[1], '/presentations/figs/')
@@ -95,6 +95,7 @@ countyscape = full_landscape(nobs, cellsize, ppoints, cpoints)
 pixloc_df = countyscape$pixloc_df
 control_area = countyscape$control_area
 intervention_area = countyscape$intervention_area
+intervention_area_merge = intervention_area %>% st_union()
 p_bounds = countyscape$p_bounds
 c_bounds = countyscape$c_bounds
 
@@ -212,44 +213,80 @@ for (i in seq(2,6)){
 }
 
 
-# Overlaying county boundaries
-plot_df <- data_df %>%
-  filter(year == 2)
+# Visualizing exposure to treatment
+plot_df <- data_df %>% 
+  filter(year==2) %>% 
+  mutate(plot_var = ifelse(y_it %in% c("Deforested", "Previously deforested"), as.character(y_it), as.character(treat)))
+plot_df$plot_var <- factor(plot_df$plot_var, levels = c("Deforested", "Previously deforested", "Stable forest - treated", "Stable forest - not treated"))
+
+
+intervention_plot <- ggplot() + 
+  geom_sf(data = plot_df, aes(fill = plot_var), color = "white", shape = 22, alpha = 1, size = 2.8) +
+  scale_fill_manual(values = fills)
+# geom_sf(data = c_bounds, aes(color = "county boundaries"), size = 1.5, fill = "NA", color = palette$white)
+intervention_plot %>% 
+  format_fig() %>% 
+  save_separated(paste0("intervention")) 
+
+
+# Treatment-level analysis
+treat_plot <- ggplot() + 
+  geom_sf(data = plot_df, aes(fill = plot_var), color = "black", shape = 22, alpha = 1, size = 2.8) +
+  geom_sf(data = intervention_area_merge, size = 1.5, fill = "NA", color = palette$white) +
+  scale_fill_manual(values = fills)
+treat_plot %>% 
+  format_fig() %>% 
+  save_separated(paste0("treatment")) 
+
+
+# County-level analysis
 county_plot <- ggplot() + 
-  geom_sf(data = plot_df, aes(fill = y_it), color = "white", shape = 22, alpha = 1, size = 2.8) +
-  geom_sf(data = c_bounds, aes(color = "county boundaries"), size = 1.5, fill = "NA", color = palette$white) +
+  geom_sf(data = plot_df, aes(fill = plot_var), color = "black", shape = 22, alpha = 1, size = 2.8) +
+  geom_sf(data = c_bounds, size = 1.5, fill = "NA", color = palette$white) +
   scale_fill_manual(values = fills)
 county_plot %>% 
   format_fig() %>% 
   save_separated(paste0("county")) 
 
 
-# Visualizing exposure to treatment
-plot_df <- data_df %>% 
-  filter(year==2) %>% 
-  mutate(plot_var = ifelse(y_it %in% c("Deforested", "Previously deforested"), as.character(y_it), as.character(treat)))
+# Grid-level analysis
+grid_plot <- ggplot() + 
+  geom_sf(data = plot_df, aes(fill = plot_var), color = "black", shape = 22, alpha = 1, size = 2.8) +
+  scale_fill_manual(values = fills)  + 
+  geom_vline(xintercept = c(0,8,16,24,32), color="white", size=1.25) + 
+  geom_hline(yintercept = c(0,8,16,24,32), color="white", size=1.25) +
+  xlab("") +
+  ylab("")
 
 
-plot_df$plot_var <- factor(plot_df$plot_var, levels = c("Deforested", "Previously deforested", "Stable forest - treated", "Stable forest - not treated"))
-intervention_plot <- ggplot() + 
-  geom_sf(data = plot_df, aes(fill = plot_var), color = "white", shape = 22, alpha = 1, size = 2.8) +
-  scale_fill_manual(values = fills) +
-  geom_sf(data = c_bounds, aes(color = "county boundaries"), size = 1.5, fill = "NA", color = palette$white)
-intervention_plot %>% 
+grid_plot <- grid_plot %>% 
   format_fig() %>% 
-  save_separated(paste0("intervention")) 
+  save_separated(paste0("grid")) 
 
 
-# Add property boundaries
+# Property-level analysis
 prop_plot <- ggplot() + 
-  geom_sf(data = plot_df, aes(fill = plot_var, color = plot_var), shape = 22, alpha = 1, size = 2.8) +
-  scale_color_manual(values = fills) +
-  scale_fill_manual(values = fills) +
-  geom_sf(data = c_bounds, aes(color = "county boundaries"), size = 1.5, fill = "NA", color = palette$white) +
-  geom_sf(data = p_bounds, aes(color = "property boundaries"), fill = "NA", color = palette$gold)
+  geom_sf(data = plot_df, aes(fill = plot_var), color = "black", shape = 22, alpha = 1, size = 2.8) +
+  geom_sf(data = p_bounds, size = 1.5, fill = "NA", color = palette$white) +
+  scale_fill_manual(values = fills)
 prop_plot %>% 
   format_fig() %>% 
   save_separated(paste0("property")) 
+
+
+
+
+
+# # Add property boundaries
+# prop_plot <- ggplot() + 
+#   geom_sf(data = plot_df, aes(fill = plot_var, color = plot_var), shape = 22, alpha = 1, size = 2.8) +
+#   scale_color_manual(values = fills) +
+#   scale_fill_manual(values = fills) +
+#   geom_sf(data = c_bounds, aes(color = "county boundaries"), size = 1.5, fill = "NA", color = palette$white) +
+#   geom_sf(data = p_bounds, aes(color = "property boundaries"), fill = "NA", color = palette$gold)
+# prop_plot %>% 
+#   format_fig() %>% 
+#   save_separated(paste0("property")) 
 
 
 
