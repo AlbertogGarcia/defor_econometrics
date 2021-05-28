@@ -43,6 +43,7 @@ palette <- list("white" = "#FAFAFA",
              "dark_green" = "#496F5D",
              "gold" = "#DAA520")
 
+results_dir <- paste0(getwd()[1], '/unbiased_dgp/')
 out_dir <- paste0(getwd()[1], '/presentations/figs/')
 
 nobs <- 1000
@@ -140,3 +141,4 @@ prop_plot %>%
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Simulation plots --------------------------------------------------------
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+twfe_df <- read.csv(paste0(results_dir, "TWFE_long.csv"))

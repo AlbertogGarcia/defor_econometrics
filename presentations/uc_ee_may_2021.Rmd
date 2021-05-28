@@ -459,9 +459,40 @@ At time $t_0$, counties are randomly assigned to treatment $(D=1)$
 
 
 ---
-# Confirm proof
+# Simulated bias in TWFE model
 
-## Flicker through plots of TWFE bias as a function of pre-treatment differences / alternate parameterizations
+```{r, echo=FALSE}
+knitr::include_graphics("../presentations/figs/twfe_0.png")
+```
+
+
+---
+# Simulated bias in TWFE model
+
+```{r, echo=FALSE}
+knitr::include_graphics("../presentations/figs/twfe_1.png")
+```
+
+---
+# Simulated bias in TWFE model
+
+```{r, echo=FALSE}
+knitr::include_graphics("../presentations/figs/twfe_2.png")
+```
+
+---
+# Simulated bias in TWFE model
+
+```{r, echo=FALSE}
+knitr::include_graphics("../presentations/figs/twfe_3.png")
+```
+
+---
+# Simulated bias in TWFE model
+
+```{r, echo=FALSE}
+knitr::include_graphics("../presentations/figs/twfe_4.png")
+```
 
 ---
 # Solution 1 - Aggregate fixed effects

@@ -120,6 +120,8 @@ base_0 = .05
 base_1 = .02
 trend = -.005
 ATT = -.01
+<<<<<<< HEAD
+=======
 
 # we'll need to recompute the parameters 
 std_avp = (std_a^2+std_v^2+std_p^2)^.5
@@ -136,6 +138,35 @@ summary_long_n0.03 <- aggregation_n0.03$summary_long
 TWFE_n0.03 <- TWFE_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
 TWFE_long_n0.03 <- TWFE_n0.03$summary_long
 
+
+######################################################################################################################
+#
+######################################################################################################################
+
+# bind dataframes together with different parameterizations and write summary_long as csv
+>>>>>>> 521ee4a29a7f079857683df66dcb0fee6d2386c3
+
+# we'll need to recompute the parameters 
+std_avp = (std_a^2+std_v^2+std_p^2)^.5
+b0 = qnorm(base_0, mean = 0, sd = std_avp)
+b1 = qnorm(base_1, mean = 0, sd = std_avp) - b0
+b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
+b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
+b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
+
+<<<<<<< HEAD
+aggregation_n0.03 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+summary_long_n0.03 <- aggregation_n0.03$summary_long
+
+
+TWFE_n0.03 <- TWFE_fcn(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
+TWFE_long_n0.03 <- TWFE_n0.03$summary_long
+
+=======
+TWFE_long <- rbind(TWFE_long_0, TWFE_long_0.01, TWFE_long_0.02, TWFE_long_0.03, TWFE_long_n0.03)%>%
+  group_by(b0, b1, b2_0, b2_1, b3)%>%
+  mutate(parameterization = cur_group_id())
+>>>>>>> 521ee4a29a7f079857683df66dcb0fee6d2386c3
 
 ######################################################################################################################
 #
