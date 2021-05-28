@@ -12,6 +12,13 @@ output:
       highlightLines: true
       countIncrementalSlides: false
       ratio: 16:9
+header-includes:
+  \usepackage{bbm} 
+  \usepackage{graphicx}
+  \usepackage{amsmath}
+  \usepackage{amssymb}
+  \usepackage{sectsty}
+  \usepackage{mathtools} 
 ---
 class: inverse, middle
 
@@ -72,13 +79,17 @@ myBib <- ReadBib("../paper/deforestation_econometrics.bib", check = FALSE)
 
 .pull-left[
 ### Remotely sensed land cover data has facilitated new insights into:
-- Corruption and illegal deforestation (e.g. Burgess et al., 2012)
+- Corruption and illegal deforestation  
+(e.g. Burgess et al., 2012)
 
-- Environmental consequences of agricultural intensification (e.g. Abman et al., 2020)
+- Environmental consequences of intensification  
+(e.g. Abman et al., 2020)
 
-- Effectiveness of environmental policies (e.g. Jayachandran et al., 2016)
+- Effectiveness of environmental policies  
+(e.g. Jayachandran et al., 2016)
 
-- Economic consequences of tenure reform (e.g. Jordán and Heilmayr, 2021)
+- Economic impact of tenure reform  
+(e.g. Jordán and Heilmayr, 2021)
 ]
 
 --
@@ -336,7 +347,7 @@ knitr::include_graphics("../presentations/figs/intervention.png")
 - Aggregate fixed effects
 - Aggregate units of observation
 
-### Benefits of structuring model to match level of decisionmaking
+### Benefits of structuring model to match scale of decisionmaking
 ]
 
 
@@ -512,6 +523,9 @@ At time $t_0$, counties are randomly assigned to treatment $(D=1)$
 
 - Decision to deforest is modeled a function of a continuous, latent random variable $(y^*_{i,v,t})$ representing the return to clearing (Pfaff and Sanchez-Azofeifa, 2004).
 
+$$(y^*_{i,v,t})=\psi_0 + \psi_1 D_i + \psi_2  (1 -  D_i ) 1\{  t \geq t_0  \} + \psi_3  D_i 1\{  t \geq t_0  \} + \alpha_i + \rho_v+u_{i,t}$$
+
+
 --
 
 - "Researcher" observes binary deforestation:
@@ -526,11 +540,10 @@ At time $t_0$, counties are randomly assigned to treatment $(D=1)$
 
 --
 
-- DGP constrains $(y^*_{i,v,t})$ based on eight parameters:
+- DGP constrains $(y^*_{i,v,t})$ based on seven parameters:
   - $baseline_0 = E[y_{i,v,t}(0) |  t<t_0, D_i=0]$
   - $baseline_1 = E[y_{i,v,t}(0) |  t<t_0, D_i=1]$
   - $trend_0 = E[y_{i,v,t}(0) |  t\geq t_0, D_i=0] - E[y_{i,v,t}(0) |  t<t_0, D_i=0]$
-  - $trend_1 = E[y_{i,v,t}(0) |  t\geq t_0, D_i=1] - E[y_{i,v,t}(0) |  t<t_0, D_i=1]$
   - $ATT = E[y_{i,v,t}(1) - y_{i,v,t}(0) |  t\geq t_0, D_i=1]$
   - $\alpha_i \sim N(0,\sigma_a^2)$
   - $\rho_v \sim N(0, \sigma_p^2)$
@@ -538,11 +551,11 @@ At time $t_0$, counties are randomly assigned to treatment $(D=1)$
 
 
 ---
-# Econometric models
+# Candidate econometric models
 
 .pull-left[
-### Scale of fixed effects
-- Pixel
+### Scale of fixed effects or unit of observation
+- Pixel (e.g. Alix-Garcia et al., 2018)
 ]
 
 .pull-right[
@@ -552,12 +565,12 @@ knitr::include_graphics("../presentations/figs/intervention.png")
 ]
 
 ---
-# Econometric models
+# Candidate econometric models
 
 .pull-left[
-### Scale of fixed effects
-- Pixel
-- Treatment
+### Scale of fixed effects or unit of observation
+- Pixel (e.g. Alix-Garcia et al., 2018)
+- Treatment (e.g. Arriagada et al., 2012)
 ]
 
 .pull-right[
@@ -567,13 +580,13 @@ knitr::include_graphics("../presentations/figs/treatment.png")
 ]
 
 ---
-# Econometric models
+# Candidate econometric models
 
 .pull-left[
-### Scale of fixed effects
-- Pixel
-- Treatment
-- County
+### Scale of fixed effects or unit of observation
+- Pixel (e.g. Alix-Garcia et al., 2018)
+- Treatment (e.g. Arriagada et al., 2012)
+- County (e.g. Blackman, 2015)
 ]
 
 .pull-right[
@@ -584,14 +597,14 @@ knitr::include_graphics("../presentations/figs/county.png")
 
 
 ---
-# Econometric models
+# Candidate econometric models
 
 .pull-left[
-### Scale of fixed effects
-- Pixel
-- Treatment
-- County
-- Grid cell
+### Scale of fixed effects or unit of observation
+- Pixel (e.g. Alix-Garcia et al., 2018)
+- Treatment (e.g. Arriagada et al., 2012)
+- County (e.g. Blackman, 2015)
+- Grid cell (e.g. BenYishay et al., 2017)
 ]
 
 .pull-right[
@@ -601,15 +614,15 @@ knitr::include_graphics("../presentations/figs/grid.png")
 ]
 
 ---
-# Econometric models
+# Candidate econometric models
 
 .pull-left[
-### Scale of fixed effects
-- Pixel
-- Treatment
-- County
-- Grid cell
-- Property
+### Scale of fixed effects or unit of observation
+- Pixel (e.g. Alix-Garcia et al., 2018)
+- Treatment (e.g. Arriagada et al., 2012)
+- County (e.g. Blackman, 2015)
+- Grid cell (e.g. BenYishay et al., 2017)
+- Property (e.g. Heilmayr and Lambin, 2016)
 ]
 
 .pull-right[
@@ -620,17 +633,15 @@ knitr::include_graphics("../presentations/figs/property.png")
 
 
 ---
-# Econometric models
+# Candidate econometric models
 
 .pull-left[
-### Scale of fixed effects
-- Pixel
-- Treatment
-- County
-- Grid cell
-- Property
-
-### Aggregated units of observation 
+### Scale of fixed effects or unit of observation
+- Pixel (e.g. Alix-Garcia et al., 2018)
+- Treatment (e.g. Arriagada et al., 2012)
+- County (e.g. Blackman, 2015)
+- Grid cell (e.g. BenYishay et al., 2017)
+- Property (e.g. Heilmayr and Lambin, 2016)
 
 ### Functional form
 
@@ -644,7 +655,7 @@ knitr::include_graphics("../presentations/figs/property.png")
 ]
 
 ---
-# Simulated bias in TWFE model
+# Bias in TWFE model
 
 ```{r, echo=FALSE}
 knitr::include_graphics("../presentations/figs/twfe_0.png")
@@ -652,28 +663,28 @@ knitr::include_graphics("../presentations/figs/twfe_0.png")
 
 
 ---
-# Simulated bias in TWFE model
+# Bias in TWFE model
 
 ```{r, echo=FALSE}
 knitr::include_graphics("../presentations/figs/twfe_1.png")
 ```
 
 ---
-# Simulated bias in TWFE model
+# Bias in TWFE model
 
 ```{r, echo=FALSE}
 knitr::include_graphics("../presentations/figs/twfe_2.png")
 ```
 
 ---
-# Simulated bias in TWFE model
+# Bias in TWFE model
 
 ```{r, echo=FALSE}
 knitr::include_graphics("../presentations/figs/twfe_3.png")
 ```
 
 ---
-# Simulated bias in TWFE model
+# Bias in TWFE model
 
 ```{r, echo=FALSE}
 knitr::include_graphics("../presentations/figs/twfe_4.png")
@@ -732,18 +743,41 @@ class: inverse, middle
 # Conclusions
 
 ---
-# Additional considerations
+# Conclusions
 
-## Non-classical measurement error (Alix-Garcia and Millimet; Jain)
+.pull-left[
+### Pixel-level, two-way fixed effects models do not yield expected estimand
 
-## Broader concerns about TWFE
+### Multiple alternate model structures provide (much less) biased estimates
+
+### Aligning model structure to scale of decisionmaking improves model performance
+]
+
+.pull-right[
+### Aggregated units of observation
+```{r, echo=FALSE, out.width = "95%", fig.align = "left"}
+knitr::include_graphics("../presentations/figs/spec_did_agg.png")
+```
+]
+
 
 ---
-# Future work
+# Potential extensions
 
-## Weighting
+## Impact of weighting in presence of heterogeneous treatment effects
 
-## 
+## Comparisons to survival models
+
+## Bias stemming from non-random sample selection
+
+## Shiny App to enable researchers to test alternate parameterizations?
+
+---
+
+layout: false
+class: inverse, middle
+# Thanks!
+Albert Garcia (agarcia@bren.ucsb.edu) and Robert Heilmayr (rheilmayr@ucsb.edu)
 
 <!-- --- -->
 <!-- # References -->
