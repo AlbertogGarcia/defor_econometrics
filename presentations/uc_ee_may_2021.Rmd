@@ -191,6 +191,20 @@ knitr::include_graphics("../presentations/figs/defor_3_lgd.png")
 ```
 ]
 
+---
+# Data setting
+.pull-left[
+```{r, echo=FALSE}
+knitr::include_graphics("../presentations/figs/defor_5.png")
+```
+]
+
+.pull-right[
+### Data characteristics
+- Wall to wall data
+- Fine spatial scales
+- Relatively long time series
+]
 
 ---
 # Data setting
@@ -246,9 +260,8 @@ knitr::include_graphics("../presentations/figs/defor_5.png")
 - Irreversible
 
 ### Do traditional econometric models generate unbiased estimates in this setting?
-- Importance of scale (Baylis, XX)
-- Sensor (Jain, XX)
-- Non-classical measurement error (Alix-Garcia and Millimet, XX)
+- Importance of scale (Avelino et al., 2016)
+- Nonclassical measurement error (Jain, 2020; Alix-Garcia and Millimet, 2020)
 
 ]
 
@@ -282,7 +295,7 @@ knitr::include_graphics("../presentations/figs/intervention_lgd.png")
 
 
 ---
-# Data setting
+# Conservation policy impact evaluation
 .pull-left[
 ```{r, echo=FALSE}
 knitr::include_graphics("../presentations/figs/intervention.png")
@@ -315,7 +328,7 @@ knitr::include_graphics("../presentations/figs/intervention.png")
 
 .pull-right[
 <br />
-#### $$defor_{i,t}=\beta D_{i,t} + \gamma_i + \alpha_t + u_{i,t}$$
+### $$defor_{i,t}=\beta D_{i,t} + \gamma_i + \alpha_t + u_{i,t}$$
 
 ### $\hat{\beta}$ is a biased estimate of $ATT$
 
@@ -525,9 +538,110 @@ At time $t_0$, counties are randomly assigned to treatment $(D=1)$
 
 
 ---
-# Overview of econometric models
+# Econometric models
 
-## Cover possible ways of aggregating data
+.pull-left[
+### Scale of fixed effects
+- Pixel
+]
+
+.pull-right[
+```{r, echo=FALSE}
+knitr::include_graphics("../presentations/figs/intervention.png")
+```
+]
+
+---
+# Econometric models
+
+.pull-left[
+### Scale of fixed effects
+- Pixel
+- Treatment
+]
+
+.pull-right[
+```{r, echo=FALSE}
+knitr::include_graphics("../presentations/figs/treatment.png")
+```
+]
+
+---
+# Econometric models
+
+.pull-left[
+### Scale of fixed effects
+- Pixel
+- Treatment
+- County
+]
+
+.pull-right[
+```{r, echo=FALSE}
+knitr::include_graphics("../presentations/figs/county.png")
+```
+]
+
+
+---
+# Econometric models
+
+.pull-left[
+### Scale of fixed effects
+- Pixel
+- Treatment
+- County
+- Grid cell
+]
+
+.pull-right[
+```{r, echo=FALSE}
+knitr::include_graphics("../presentations/figs/grid.png")
+```
+]
+
+---
+# Econometric models
+
+.pull-left[
+### Scale of fixed effects
+- Pixel
+- Treatment
+- County
+- Grid cell
+- Property
+]
+
+.pull-right[
+```{r, echo=FALSE}
+knitr::include_graphics("../presentations/figs/property.png")
+```
+]
+
+
+---
+# Econometric models
+
+.pull-left[
+### Scale of fixed effects
+- Pixel
+- Treatment
+- County
+- Grid cell
+- Property
+
+### Aggregated units of observation 
+
+### Functional form
+
+### Calculation of deforestation rate
+]
+
+.pull-right[
+```{r, echo=FALSE}
+knitr::include_graphics("../presentations/figs/property.png")
+```
+]
 
 ---
 # Simulated bias in TWFE model
@@ -609,6 +723,8 @@ knitr::include_graphics("../presentations/figs/spec_prop_fe.png")
 knitr::include_graphics("../presentations/figs/spec_prop_agg.png")
 ```
 ]
+
+
 ---
 
 layout: false
