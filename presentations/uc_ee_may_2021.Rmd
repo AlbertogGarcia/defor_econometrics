@@ -12,6 +12,13 @@ output:
       highlightLines: true
       countIncrementalSlides: false
       ratio: 16:9
+header-includes:
+  \usepackage{bbm} 
+  \usepackage{graphicx}
+  \usepackage{amsmath}
+  \usepackage{amssymb}
+  \usepackage{sectsty}
+  \usepackage{mathtools} 
 ---
 class: inverse, middle
 
@@ -68,49 +75,50 @@ myBib <- ReadBib("../paper/deforestation_econometrics.bib", check = FALSE)
 # Motivation
 
 ---
-# What policies can slow deforestation?
+# Motivation
 
-## Why should we care about deforestation?
+.pull-left[
+### Remotely sensed land cover data has facilitated new insights into:
+- Corruption and illegal deforestation  
+(e.g. Burgess et al., 2012)
 
-## Opportunity from remotely sensed data.
+- Environmental consequences of intensification  
+(e.g. Abman et al., 2020)
 
-## Role of econometrics to answer this question
+- Effectiveness of environmental policies  
+(e.g. Jayachandran et al., 2016)
 
----
-# Rapid growth in literature
+- Economic impact of tenure reform  
+(e.g. Jordán and Heilmayr, 2021)
+]
 
-## Plot of gscholar cites
+--
+.pull-right[
+### Papers using econometric methods<sup>†</sup> that cite Hansen et al., 2013
 
-## Types of questions being answered (maybe from UC-EE scholars?)
+```{r, bar1, echo=FALSE, fig.height = 5.5, dev = "svg"}
+cite_df <- tibble("year" = c(2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020), 
+                  "ncites" = c(2, 30, 69, 85, 112, 133, 154, 189))
 
----
-# Overview
-
-## Pixel-level TWFE recommended, but yield biased results
-
-## Multiple solutions can yield unbiased estimates
-
-## Opportunity to better integrate appropriate unit of decision-making
-
----
-# Description of data setting
-
-## Raster of discrete observations
-
-## Panel
-
-## Irreversible outcome
-
-## Example figures from Hansen data?
+cite_plot <- cite_df %>% 
+  ggplot(aes(x = year, y = ncites)) +
+  geom_bar(stat = "identity", fill = "#0c2230") +
+  ylab("Number of papers") +
+  xlab("Year") +
+  theme_bw(base_size = 18) +
+  theme(plot.background = element_rect(fill = "#FAFAFA",colour = "#FAFAFA"),
+        panel.background = element_rect(fill = "#FAFAFA",colour = "#FAFAFA"))
 
 
----
-# Researcher's objective
+cite_plot
+```
 
-## Recover average treatment effect on the treated
+.footnote[
+†  Google scholar search string: (econometric* or "causal inference" or "impact evaluation" or "fixed effects" or "regression discontinuity" or "instrumental variable")
+]
 
-<!-- --- -->
-<!-- ![]("../presentations/figs/blank_raster.png") ![]("../presentations/figs/blank_raster_lgd.png") -->
+]
+
 
 ---
 # Data setting
@@ -198,34 +206,79 @@ knitr::include_graphics("../presentations/figs/defor_3_lgd.png")
 # Data setting
 .pull-left[
 ```{r, echo=FALSE}
-knitr::include_graphics("../presentations/figs/defor_3.png")
+knitr::include_graphics("../presentations/figs/defor_5.png")
 ```
 ]
 
-
 .pull-right[
-```{r, echo=FALSE, out.width = "100%", fig.align = 'left'}
-knitr::include_graphics("../presentations/figs/defor_3_lgd.png")
-```
+### Data characteristics
+- Wall to wall data
+- Fine spatial scales
+- Relatively long time series
 ]
 
 ---
 # Data setting
 .pull-left[
 ```{r, echo=FALSE}
-knitr::include_graphics("../presentations/figs/county.png")
+knitr::include_graphics("../presentations/figs/defor_5.png")
 ```
 ]
 
-
 .pull-right[
-```{r, echo=FALSE, out.width = "100%", fig.align = 'left'}
-knitr::include_graphics("../presentations/figs/county_lgd.png")
-```
+### Data characteristics
+- Wall to wall data
+- Fine spatial scales
+- Relatively long time series
+- Binary
+- Irreversible
 ]
 
 ---
 # Data setting
+.pull-left[
+```{r, echo=FALSE}
+knitr::include_graphics("../presentations/figs/defor_5.png")
+```
+]
+
+.pull-right[
+### Data characteristics
+- Wall to wall data
+- Fine spatial scales
+- Relatively long time series
+- Binary
+- Irreversible
+
+### Do traditional econometric models generate unbiased estimates in this setting?
+
+]
+
+---
+# Data setting
+.pull-left[
+```{r, echo=FALSE}
+knitr::include_graphics("../presentations/figs/defor_5.png")
+```
+]
+
+.pull-right[
+### Data characteristics
+- Wall to wall data
+- Fine spatial scales
+- Relatively long time series
+- Binary
+- Irreversible
+
+### Do traditional econometric models generate unbiased estimates in this setting?
+- Importance of scale (Avelino et al., 2016)
+- Nonclassical measurement error (Jain, 2020; Alix-Garcia and Millimet, 2020)
+
+]
+
+
+---
+# Conservation policy impact evaluation
 .pull-left[
 ```{r, echo=FALSE}
 knitr::include_graphics("../presentations/figs/intervention.png")
@@ -234,14 +287,48 @@ knitr::include_graphics("../presentations/figs/intervention.png")
 
 
 .pull-right[
-## Year 4 deforestation
-```{r, echo=FALSE, out.width = "100%", fig.align = 'left'}
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+## <br />
+
+
+
+```{r, echo=FALSE, out.width = "75%", fig.align = 'left'}
+knitr::include_graphics("../presentations/figs/intervention_lgd.png")
+```
+]
+
+
+---
+# Conservation policy impact evaluation
+.pull-left[
+```{r, echo=FALSE}
+knitr::include_graphics("../presentations/figs/intervention.png")
+```
+]
+
+
+.pull-right[
+
+### Researcher wants to estimate $ATT$ from intervention
+
+### Follows common guidance (e.g. Jones and Lewis, 2015) and estimates a two-way fixed model:
+### $$defor_{i,t}=\beta D_{i,t} + \gamma_i + \alpha_t + u_{i,t}$$
+
+
+```{r, echo=FALSE, out.width = "75%", fig.align = 'left'}
 knitr::include_graphics("../presentations/figs/intervention_lgd.png")
 ```
 ]
 
 ---
-# Preview
+# Preview of results
 
 .pull-left[
 ```{r, echo=FALSE}
@@ -251,13 +338,16 @@ knitr::include_graphics("../presentations/figs/intervention.png")
 
 
 .pull-right[
-### $\hat{\beta}$ returned by this model is not a consistent estimate of the $ATT$
+<br />
+### $$defor_{i,t}=\beta D_{i,t} + \gamma_i + \alpha_t + u_{i,t}$$
 
-### Multiple possible corrections
+### $\hat{\beta}$ is a biased estimate of $ATT$
+
+### Multiple possible solutions
 - Aggregate fixed effects
 - Aggregate units of observation
 
-### Benefits of matching units of observation to level of decisionmaking
+### Benefits of structuring model to match scale of decisionmaking
 ]
 
 
@@ -433,6 +523,9 @@ At time $t_0$, counties are randomly assigned to treatment $(D=1)$
 
 - Decision to deforest is modeled a function of a continuous, latent random variable $(y^*_{i,v,t})$ representing the return to clearing (Pfaff and Sanchez-Azofeifa, 2004).
 
+$$(y^*_{i,v,t})=\psi_0 + \psi_1 D_i + \psi_2  (1 -  D_i ) 1\{  t \geq t_0  \} + \psi_3  D_i 1\{  t \geq t_0  \} + \alpha_i + \rho_v+u_{i,t}$$
+
+
 --
 
 - "Researcher" observes binary deforestation:
@@ -447,11 +540,10 @@ At time $t_0$, counties are randomly assigned to treatment $(D=1)$
 
 --
 
-- DGP constrains $(y^*_{i,v,t})$ based on eight parameters:
-  - $baseline_0 = E[y_{i,t}(0) |  t<t_0, D_i=0$
-  - $baseline_1 = E[y_{i,t}(0) |  t<t_0, D_i=1]$
+- DGP constrains $(y^*_{i,v,t})$ based on seven parameters:
+  - $baseline_0 = E[y_{i,v,t}(0) |  t<t_0, D_i=0]$
+  - $baseline_1 = E[y_{i,v,t}(0) |  t<t_0, D_i=1]$
   - $trend_0 = E[y_{i,v,t}(0) |  t\geq t_0, D_i=0] - E[y_{i,v,t}(0) |  t<t_0, D_i=0]$
-  - $trend_1 = E[y_{i,v,t}(0) |  t\geq t_0, D_i=1] - E[y_{i,v,t}(0) |  t<t_0, D_i=1]$
   - $ATT = E[y_{i,v,t}(1) - y_{i,v,t}(0) |  t\geq t_0, D_i=1]$
   - $\alpha_i \sim N(0,\sigma_a^2)$
   - $\rho_v \sim N(0, \sigma_p^2)$
@@ -459,7 +551,111 @@ At time $t_0$, counties are randomly assigned to treatment $(D=1)$
 
 
 ---
-# Simulated bias in TWFE model
+# Candidate econometric models
+
+.pull-left[
+### Scale of fixed effects or unit of observation
+- Pixel (e.g. Alix-Garcia et al., 2018)
+]
+
+.pull-right[
+```{r, echo=FALSE}
+knitr::include_graphics("../presentations/figs/intervention.png")
+```
+]
+
+---
+# Candidate econometric models
+
+.pull-left[
+### Scale of fixed effects or unit of observation
+- Pixel (e.g. Alix-Garcia et al., 2018)
+- Treatment (e.g. Arriagada et al., 2012)
+]
+
+.pull-right[
+```{r, echo=FALSE}
+knitr::include_graphics("../presentations/figs/treatment.png")
+```
+]
+
+---
+# Candidate econometric models
+
+.pull-left[
+### Scale of fixed effects or unit of observation
+- Pixel (e.g. Alix-Garcia et al., 2018)
+- Treatment (e.g. Arriagada et al., 2012)
+- County (e.g. Blackman, 2015)
+]
+
+.pull-right[
+```{r, echo=FALSE}
+knitr::include_graphics("../presentations/figs/county.png")
+```
+]
+
+
+---
+# Candidate econometric models
+
+.pull-left[
+### Scale of fixed effects or unit of observation
+- Pixel (e.g. Alix-Garcia et al., 2018)
+- Treatment (e.g. Arriagada et al., 2012)
+- County (e.g. Blackman, 2015)
+- Grid cell (e.g. BenYishay et al., 2017)
+]
+
+.pull-right[
+```{r, echo=FALSE}
+knitr::include_graphics("../presentations/figs/grid.png")
+```
+]
+
+---
+# Candidate econometric models
+
+.pull-left[
+### Scale of fixed effects or unit of observation
+- Pixel (e.g. Alix-Garcia et al., 2018)
+- Treatment (e.g. Arriagada et al., 2012)
+- County (e.g. Blackman, 2015)
+- Grid cell (e.g. BenYishay et al., 2017)
+- Property (e.g. Heilmayr and Lambin, 2016)
+]
+
+.pull-right[
+```{r, echo=FALSE}
+knitr::include_graphics("../presentations/figs/property.png")
+```
+]
+
+
+---
+# Candidate econometric models
+
+.pull-left[
+### Scale of fixed effects or unit of observation
+- Pixel (e.g. Alix-Garcia et al., 2018)
+- Treatment (e.g. Arriagada et al., 2012)
+- County (e.g. Blackman, 2015)
+- Grid cell (e.g. BenYishay et al., 2017)
+- Property (e.g. Heilmayr and Lambin, 2016)
+
+### Functional form
+
+### Calculation of deforestation rate
+]
+
+.pull-right[
+```{r, echo=FALSE}
+knitr::include_graphics("../presentations/figs/property.png")
+```
+]
+
+---
+# Bias in TWFE model
 
 ```{r, echo=FALSE}
 knitr::include_graphics("../presentations/figs/twfe_0.png")
@@ -467,64 +663,78 @@ knitr::include_graphics("../presentations/figs/twfe_0.png")
 
 
 ---
-# Simulated bias in TWFE model
+# Bias in TWFE model
 
 ```{r, echo=FALSE}
 knitr::include_graphics("../presentations/figs/twfe_1.png")
 ```
 
 ---
-# Simulated bias in TWFE model
+# Bias in TWFE model
 
 ```{r, echo=FALSE}
 knitr::include_graphics("../presentations/figs/twfe_2.png")
 ```
 
 ---
-# Simulated bias in TWFE model
+# Bias in TWFE model
 
 ```{r, echo=FALSE}
 knitr::include_graphics("../presentations/figs/twfe_3.png")
 ```
 
 ---
-# Simulated bias in TWFE model
+# Bias in TWFE model
 
 ```{r, echo=FALSE}
 knitr::include_graphics("../presentations/figs/twfe_4.png")
 ```
 
 ---
-# Solution 1 - Aggregate fixed effects
+# Aggregation as a solution
 
-- Plot 1: Highlight difference between standard TWFE and traditional DID
+.pull-left[
+### Aggregated fixed effects
+```{r, echo=FALSE, out.width = "95%", fig.align = "left"}
+knitr::include_graphics("../presentations/figs/spec_did_fe.png")
+```
+]
 
-- Plot 2: Contrast with further FE models with county / property / grid FEs
+--
+
+.pull-right[
+### Aggregated units of observation
+```{r, echo=FALSE, out.width = "95%", fig.align = "left"}
+knitr::include_graphics("../presentations/figs/spec_did_agg.png")
+```
+]
 
 ---
-# Solution 2 - Aggregate unit of observation
+# Impacts of property-level disturbances on DID
 
-- Plot: Contrast previous slide to county / property / grid-level aggregation
-
----
-# Relative performance of two approaches
-- Key insight: Similar performance
-- Plot: Show county FE model against county observation model. Flicker through alternate parameterizations
+```{r, echo=FALSE, out.width = "55%", fig.align = "left"}
+knitr::include_graphics("../presentations/figs/spec_prop_did.png")
+```
 
 ---
-# Property-level fixed effects
+# Benefits of property-level models $(\sigma_p=0.3)$
 
-## Slide 1: Highlight degradation in performance of DID as property-level error increases
-- Plot: Four sequential panels - pixel-level DID under increasing sigma_p
+.pull-left[
+### Aggregated fixed effects 
+```{r, echo=FALSE, out.width = "90%", fig.align = "left"}
+knitr::include_graphics("../presentations/figs/spec_prop_fe.png")
+```
+]
 
-<!-- ## Slide 2: Clustering can improve the poor coverage, but obviously wouldn't address bias / RMSE -->
-<!-- - Plot: Hold sigma_p at a high level, compare performance of DID across -->
+--
 
-## Slide 2: Reduction in bias by using alternate fixed effects / units of analysis. Both methods work well
-- Plots: Hold sigma_p at a high level, compare against county/grid/property FE models; or county/grid/property unit of analysis
+.pull-right[
+### Aggregated units of analysis
+```{r, echo=FALSE, out.width = "90%", fig.align = "left"}
+knitr::include_graphics("../presentations/figs/spec_prop_agg.png")
+```
+]
 
-## Slide 3: Emphasize value of property-level data if available
-- Plot: HOld sigma_p high, compare property level model performance county/grid cell models
 
 ---
 
@@ -533,12 +743,41 @@ class: inverse, middle
 # Conclusions
 
 ---
-# Additional considerations
+# Conclusions
 
-## Non-classical measurement error (Alix-Garcia and Millimet; Jain)
+.pull-left[
+### Pixel-level, two-way fixed effects models do not yield expected estimand
 
-## Broader concerns about TWFE
+### Multiple alternate model structures provide (much less) biased estimates
 
+### Aligning model structure to scale of decisionmaking improves model performance
+]
+
+.pull-right[
+### Aggregated units of observation
+```{r, echo=FALSE, out.width = "95%", fig.align = "left"}
+knitr::include_graphics("../presentations/figs/spec_did_agg.png")
+```
+]
+
+
+---
+# Potential extensions
+
+## Impact of weighting in presence of heterogeneous treatment effects
+
+## Comparisons to survival models
+
+## Bias stemming from non-random sample selection
+
+## Shiny App to enable researchers to test alternate parameterizations?
+
+---
+
+layout: false
+class: inverse, middle
+# Thanks!
+Albert Garcia (agarcia@bren.ucsb.edu) and Robert Heilmayr (rheilmayr@ucsb.edu)
 
 <!-- --- -->
 <!-- # References -->

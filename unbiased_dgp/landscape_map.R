@@ -12,7 +12,7 @@ library(DeclareDesign)
 
 select <- dplyr::select
 
-source('full_landscape.R')
+source(here::here("unbiased_dgp", 'full_landscape.R'))
 
 #begin function
 landscape_map <- function(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v = 0.25, std_p = .1, cellsize, ppoints, cpoints){
