@@ -110,35 +110,35 @@ my_event_study = function(data, yname, idname, gname, tname, xformla = NULL, hor
   if(is.null(tidy_did)) cli::cli_warn("Callaway and Sant'Anna (2020) Failed")
   
   # sunab ------------------------------------------------------------------------
-  
-  cli::cli_text("Estimating using Sun and Abraham (2020)")
-  
-  tidy_sunab = NULL
-  
-  try({
-    # Format xformla for inclusion
-    if(is.null(xformla)) {
-      sunab_xformla = "1"
-    } else {
-      sunab_xformla = paste0("1 + ", as.character(xformla)[[2]])
-    }
-    
-    sunab_formla = stats::as.formula(glue::glue("{yname} ~ {sunab_xformla} + sunab({gname}, {tname})"))
-    
-    est_sunab = fixest::feols(sunab_formla, data = data)
-    
-    tidy_sunab = broom::tidy(est_sunab) %>%
-      filter(stringr::str_detect(term, glue::glue("{tname}::"))) %>%
-      dplyr::mutate(
-        term = stringr::str_replace(term, glue::glue("{tname}::"), ""),
-        term = as.numeric(term)
-      ) %>%
-      dplyr::select(term, estimate, std.error) %>%
-      dplyr::mutate(estimator = "Sun and Abraham (2020)")
-  })
-  
-  if(is.null(tidy_sunab)) cli::cli_warn("Sun and Abraham (2020) Failed")
-  
+
+  # cli::cli_text("Estimating using Sun and Abraham (2020)")
+  # 
+  # tidy_sunab = NULL
+  # 
+  # try({
+  #   # Format xformla for inclusion
+  #   if(is.null(xformla)) {
+  #     sunab_xformla = "1"
+  #   } else {
+  #     sunab_xformla = paste0("1 + ", as.character(xformla)[[2]])
+  #   }
+  # 
+  #   sunab_formla = stats::as.formula(glue::glue("{yname} ~ {sunab_xformla} + sunab({gname}, {tname})"))
+  # 
+  #   est_sunab = fixest::feols(sunab_formla, data = data)
+  # 
+  #   tidy_sunab = broom::tidy(est_sunab) %>%
+  #     filter(stringr::str_detect(term, glue::glue("{tname}::"))) %>%
+  #     dplyr::mutate(
+  #       term = stringr::str_replace(term, glue::glue("{tname}::"), ""),
+  #       term = as.numeric(term)
+  #     ) %>%
+  #     dplyr::select(term, estimate, std.error) %>%
+  #     dplyr::mutate(estimator = "Sun and Abraham (2020)")
+  # })
+  # 
+  # if(is.null(tidy_sunab)) cli::cli_warn("Sun and Abraham (2020) Failed")
+  # 
   # did_imputation ---------------------------------------------------------------
   
   # cli::cli_text("Estimating using Borusyak, Jaravel, Spiess (2021)")
@@ -147,7 +147,7 @@ my_event_study = function(data, yname, idname, gname, tname, xformla = NULL, hor
   # 
   # try({
   #   impute_first_stage = stats::as.formula(glue::glue("~ {xformla_null} | {idname} + {tname}"))
-  #   
+  # 
   #   tidy_impute = did2s::did_imputation(data,
   #                                       yname = yname, gname = gname, tname = tname, idname = idname,
   #                                       first_stage = impute_first_stage, horizon = TRUE, pretrends = TRUE) %>%
@@ -156,32 +156,32 @@ my_event_study = function(data, yname, idname, gname, tname, xformla = NULL, hor
   # })
   # 
   # if(is.null(tidy_impute)) cli::cli_warn("Borusyak, Jaravel, Spiess (2021) Failed")
-  # 
-  # # staggered --------------------------------------------------------------------
-  # 
-  # cli::cli_text("Estimatng using Roth and Sant'Anna (2021)")
-  # 
-  # tidy_staggered = NULL
-  # 
-  # try({
-  #   tidy_staggered = staggered::staggered(
-  #     data %>%
-  #       dplyr::mutate(!!rlang::sym(gname) := dplyr::if_else(!!rlang::sym(gname) == 0, Inf, !!rlang::sym(gname))),
-  #     i = idname, t = tname, g = gname, y = yname, estimand = "eventstudy",
-  #     eventTime = event_time[is.finite(event_time) & event_time != -1]
-  #   ) %>%
-  #     dplyr::select(term = eventTime, estimate, std.error = se) %>%
-  #     dplyr::mutate(estimator = "Roth and Sant'Anna (2021)")
-  # })
-  # 
-  # if(is.null(tidy_staggered)) cli::cli_warn("Roth and Sant'Anna (2021) Failed")
-  # 
-  # 
-  # 
+
+  # staggered --------------------------------------------------------------------
+
+  cli::cli_text("Estimatng using Roth and Sant'Anna (2021)")
+
+  tidy_staggered = NULL
+
+  try({
+    tidy_staggered = staggered::staggered(
+      data %>%
+        dplyr::mutate(!!rlang::sym(gname) := dplyr::if_else(!!rlang::sym(gname) == 0, Inf, !!rlang::sym(gname))),
+      i = idname, t = tname, g = gname, y = yname, estimand = "eventstudy",
+      eventTime = event_time[is.finite(event_time) & event_time != -1]
+    ) %>%
+      dplyr::select(term = eventTime, estimate, std.error = se) %>%
+      dplyr::mutate(estimator = "Roth and Sant'Anna (2021)")
+  })
+
+  if(is.null(tidy_staggered)) cli::cli_warn("Roth and Sant'Anna (2021) Failed")
+
+
+
   
   # Bind results together --------------------------------------------------------
   
-  out = dplyr::bind_rows(tidy_twfe, tidy_did2s, tidy_did, tidy_sunab)#, tidy_impute, tidy_staggered)
+  out = dplyr::bind_rows(tidy_twfe, tidy_did2s, tidy_did, tidy_staggered)#, tidy_sunab, tidy_impute)
   
   return(out)
   

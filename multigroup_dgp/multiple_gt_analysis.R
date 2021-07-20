@@ -1,4 +1,6 @@
 source(here::here('multigroup_dgp', 'multipleGT.R'))
+source(here::here('multigroup_dgp', 'my_event_study_plot.R'))
+library(staggered)
 base_a = .07
 base_b = .04
 base_c = .02
@@ -22,36 +24,46 @@ n=100
 multiGT <- multipleGT(n, nobs, base_a, base_b, base_c, trend1, trend2, trend3, ATT, dyn_ATT = 0, std_a = 0.0, std_v = 0.25, std_p = 0.0, cellsize=10, ppoints=50, cpoints)
   
 library(rio)
-export(multiGT$county_es_long, "county_es_long.rds")
-export(multiGT$pixel_es_long, "pixel_es_long.rds")
+export(multiGT$es_long, "es_long_main.rds")
 
-county_es <- multiGT$county_es_long %>%
-  group_by(term, estimator)%>%
+es <- multiGT$es_long %>%
+  group_by(term, estimator, uoa)%>%
   mutate(estimate = as.numeric(estimate))%>%
   summarise(q05 = quantile(estimate, probs = 0.05),
             q95 = quantile(estimate, probs = 0.95),
             estimate = mean(estimate))
-
-pixel_es <- multiGT$pixel_es_long %>%
-  group_by(term, estimator)%>%
-  summarise(q05 = quantile(estimate, probs = 0.05),
-            q95 = quantile(estimate, probs = 0.95),
-            estimate = mean(estimate))
-
-num_cores = 2
-iterations_per_core=1
-library(snow)
-
-clus <- makeCluster(num_cores)
-# character vector of needed pieces
-these_vars <- c("iterations_per_core", "pixloc", "std_a", "std_p", "b0a", "b1a", "b2a", "b3a", "b4a", "b0b", "b1b", "b2b", "b3b", "b4b", "b0c", "b1c", "b2c", "b3c", "b4c", "tau_a", "tau_a2", "tau_a3", "tau_b", "tau_b2")
-# need to export all objects to each node
-clusterExport(clus,these_vars)
+county_es <- subset(es, uoa=="county"|estimator=="Truth")%>%
+  filter(estimator!="Sun and Abraham (2020)")%>%
+  mutate_at(vars(term, q05,q95, estimate), as.numeric)
+pixel_es <- subset(es, uoa=="pixel"|estimator=="Truth")%>%
+  filter(estimator!="Sun and Abraham (2020)")%>%
+  mutate_at(vars(term, q05,q95, estimate), as.numeric)
 
 
-x <- parLapply(clus,
-               1:num_cores,
-       event_simulation(iterations_per_core, pixloc, std_a, std_p, b0a, b1a, b2a, b3a, b4a, b0b, b1b, b2b, b3b, b4b, b0c, b1c, b2c, b3c, b4c, tau_a, tau_a2, tau_a3, tau_b, tau_b2)
-)
-       
-       
+my_event_study_plot(pixel_es, seperate = FALSE)+
+  ggtitle("estimates with pixel unit of analysis")+
+  geom_segment(aes(x = -2.5, y = 0, xend = -0.5, yend = 0), color = "limegreen")+
+  geom_segment(aes(x = -0.5, y = -0.02, xend = 2.5, yend = -0.02), color = "limegreen")+
+  ylim(-0.04, 0.05)
+my_event_study_plot(county_es, seperate = FALSE)+
+  ggtitle("estimates with aggregated unit of analysis (county)")+
+  geom_segment(aes(x = -2.5, y = 0, xend = -0.5, yend = 0), color = "limegreen")+
+  geom_segment(aes(x = -0.5, y = -0.02, xend = 2.5, yend = -0.02), color = "limegreen")+
+  ylim(-0.04, 0.05)
+
+plot_df <- panels %>%
+  group_by(G, year)%>%
+  summarise(defor = mean(y, na.rm=TRUE))%>%
+  mutate(Group = ifelse(G==0, "never", "early group\n(treated in year 3)"),
+         Group = ifelse(G==4, "late group\n(treated in year 4", Group))
+
+ggplot(data=plot_df, aes(x=year, y=defor, colour=Group))+
+  geom_line(size=1.5)+
+  ylab("deforestation rate")+
+  scale_y_continuous(labels = scales::percent)+
+  ggtitle("Annual deforestation with multiple groups and periods")+
+  theme_minimal()+
+  theme(#legend.key = element_rect(color = NA, fill = NA),
+        legend.key.size = unit(1.5, "cm")) +
+  theme(legend.title.align = 0.5)
+  

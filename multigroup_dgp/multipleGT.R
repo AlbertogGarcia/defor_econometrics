@@ -3,6 +3,7 @@ library(tictoc)
 library(fixest)
 library(here)
 library(DeclareDesign)
+library(DataCombine)
 library(did2s)
 source(here::here('multigroup_dgp', 'multi_group_landscape.R'))
 source(here::here('multigroup_dgp', 'my_event_study.R'))
@@ -172,7 +173,7 @@ multipleGT <- function(n, nobs, base_a, base_b, base_c, trend1, trend2, trend3, 
            estimate = as.numeric(estimate),
            term = as.numeric(term))
   
-  #plot_event_study(county_es_long, seperate = TRUE, horizon = NULL)
+  # plot_event_study(county_es, seperate = TRUE, horizon = NULL)
   
   #end for loop
   print(i)
@@ -183,7 +184,8 @@ multipleGT <- function(n, nobs, base_a, base_b, base_c, trend1, trend2, trend3, 
                  "estimate" = c(0,0,ATT, ATT+dyn_ATT, ATT+dyn_ATT+dyn_ATT), 
                  "std.error"= 0, 
                  "estimator" = "Truth", 
-                 "iteration" = NA)
+                 "iteration" = NA,
+                 "uoa" = NA)
   
   es_long <- rbind(pixel_es_long, county_es_long, truth)
 
