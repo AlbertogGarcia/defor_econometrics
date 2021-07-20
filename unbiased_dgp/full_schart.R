@@ -42,14 +42,16 @@ index.ci <- match(c("q05","q95"), names(test))
 
 # One could also add information about model fit to this chart
 
-topline = -0.035
+topline = -0.03
 midline = topline-0.03
-ylim <- c(midline-0.015,0.065)
+ylim <- c(midline-0.015,0.0475)
 #Create the plot
 
-schart(test,labels, ylim = ylim, index.ci=index.ci, ylab="Bias"#col.est=c("grey50", "blue") #, highlight=c(1:7, 15:21)
+schart(test,labels, ylim = ylim, index.ci=index.ci, ylab="Bias", highlight=c(6,9, 16, 19, 26,29,36,39), col.est=c("grey50","#DF8F44"),
+       col.dot=c("grey50","lightgrey","red","#DF8F44"),
+       bg.dot=c("grey50","lightgrey","white","#DF8F44"),
        #,band.ref=c(-.05, .04)
-       , axes = FALSE, n=10
+        axes = FALSE, n=10
        #, col.band.ref="#c7e9f9"
 ) # make some room at the bottom
 Axis(side=2, at = 0, labels=TRUE)
@@ -59,10 +61,10 @@ abline(v=11, lty="dashed")
 abline(v=22, lty="dashed")
 abline(v=33, lty="dashed")
 lapply(1:length(RMSE), function(i) {
-  rect(xleft=i-.3, ybottom=midline, xright=i+.3, ytop=midline+RMSE[i]*1.5, border=NA, col="#E69F00")
+  rect(xleft=i-.3, ybottom=midline, xright=i+.3, ytop=midline+RMSE[i]*1.5, border=NA, col="#00A1D5")
   #mtext(paste0(column_indic[i]), side=1, at = i, font=2, cex=.9)#, line=1, at=-1)
   text(x= i, y=midline+RMSE[i]*1.5+0.004, paste0(RMSE_print[i]), col="black", font=1, cex=.7)
-  text(x= i, y=midline-0.01, paste0(c_print[i]), col="black", font=1, cex=.825 )
+  text(x= i, y=midline-0.01, paste0(c_print[i]), col="black", font=1, cex=.88 )
 })
 # text(x=5#mean(1:nrow(test))
 #      , y=topline-0.0075, "RMSE", col="black", font=2)
@@ -71,11 +73,12 @@ mtext("RMSE", side=2, at = midline+0.015, font=2, las=1, line=.5)
 #      , y=midline-0.0075, "coverage probability", col="black", font=2)
 mtext("Coverage\nprobability", side=2, at = midline-0.01, font=2, las=1, line=.5)
 text(x=1
-     , y=.065, expression(paste(sigma[p],"=0.0")), col="black", font=2)
+     , y=.0475, expression(paste(sigma[p],"=0.0")), col="black", font=2, cex = 1.1)
 text(x=12.5
-     , y=.065, expression(paste(sigma[p],"=0.1")), col="black", font=2)
+     , y=.0475, expression(paste(sigma[p],"=0.1")), col="black", font=2, cex = 1.1)
 text(x=23.5
-     , y=.065, expression(paste(sigma[p],"=0.2")), col="black", font=2)
+     , y=.0475, expression(paste(sigma[p],"=0.2")), col="black", font=2, cex = 1.1)
 text(x=34.5
-     , y=.065, expression(paste(sigma[p],"=0.3")), col="black", font=2)
-legend(x=29.5, y=0.065, col = c("grey60"), legend = c("0.05 to 0.95 quantile\nof estimate distribution"), inset = 0.005,  box.lty=0, cex=0.75,  seg.len=0.37, lty = 1, horiz=TRUE, lwd = 4, bg="transparent")
+     , y=.0475, expression(paste(sigma[p],"=0.3")), col="black", font=2, cex = 1.1)
+legend(x=-2.75, y=0.0475, col = c("#DF8F44"), legend = c("specifications incorporating\nproperty"), inset = 0.005,  box.lty=0, cex=0.95
+       ,  seg.len=0.37, lty = 1, horiz=TRUE, lwd = 4, bg="transparent")
