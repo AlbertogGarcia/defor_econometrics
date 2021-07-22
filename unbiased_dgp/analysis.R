@@ -4,16 +4,16 @@ source(here::here('unbiased_dgp', 'aggregate_complete.R'))
 source(here::here('unbiased_dgp', 'TWFE_fcn.R'))
 
 # we start with our base parameterization without property level perturbations
-std_a = 0#.1
+std_a = 0.1
 std_v = 0.25
 years = 2
-nobs = 10000
-n = 250
+nobs = 14400
+n = 200
 
 cellsize = 10
-ppoints = 50
+ppoints = 70
 std_p = 0
-cpoints = 20
+cpoints = 40
 
 # here are the landscape characteristics in this parameterization
 # note that the bias for the TWFE model will be equal to the pre-treatment difference in deforestation rtes, which is 0.03

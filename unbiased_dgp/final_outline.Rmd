@@ -154,17 +154,36 @@ full_summary <- summary_full %>%
   spread(std_p, cover)
 
 
+
 did_cover <- full_summary %>%
-  filter(pixel==TRUE & treatment.fe ==TRUE)
+  filter(pixel==TRUE & treatment.fe ==TRUE)%>%
+  mutate(`unit of analysis` = "pixel",
+         `fixed effects` = "treatment",
+         se = ifelse(se_pixel, "clustered at pixel", ifelse(se_county, "clustered at county", ifelse(se_property, "clustered at property", ifelse(se_grid, "clustered at grid", NA))))
+  )%>%
+  subset( select=c(`unit of analysis`, `fixed effects`, se, `0`, `0.1`, `0.2`, `0.3`))
 
 fix_cover <- full_summary %>%
-  filter(pixel==TRUE & treatment.fe ==FALSE)
+  filter(pixel==TRUE & treatment.fe ==FALSE)%>%
+  mutate(`unit of analysis` = "pixel",
+         `fixed effects` = ifelse(county.fe, "county", ifelse(property.fe, "property", ifelse(grid.fe, "grid", NA))),
+         se = ifelse(se_pixel, "clustered at pixel", ifelse(se_county, "clustered at county", ifelse(se_property, "clustered at property", ifelse(se_grid, "clustered at grid", NA))))
+  )%>%
+  subset( select=c(`unit of analysis`, `fixed effects`, se, `0`, `0.1`, `0.2`, `0.3`))
 
 agg_cover <- full_summary %>%
-  filter(property==TRUE | county ==TRUE | grid == TRUE)
+  filter(property==TRUE | county ==TRUE | grid == TRUE)%>%
+  mutate(`unit of analysis` = ifelse(county, "county", ifelse(property, "property", ifelse(grid, "grid", NA))),
+         `fixed effects` = ifelse(county.fe, "county", ifelse(property.fe, "property", ifelse(grid.fe, "grid", NA))),
+         weighted = ifelse(weights, "yes", "no"),
+         se = ifelse(se_pixel, "clustered at pixel", ifelse(se_county, "clustered at county", ifelse(se_property, "clustered at property", ifelse(se_grid, "clustered at grid", NA))))
+  )%>%
+  subset( select=c(`unit of analysis`, `fixed effects`, weighted, se, `0`, `0.1`, `0.2`, `0.3`))
 
 
-
+write.csv(agg_cover, "agg_cover.csv")
+write.csv(fix_cover, "fix_cover.csv")
+write.csv(did_cover, "did_cover.csv")
 
 
 
