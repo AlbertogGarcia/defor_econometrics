@@ -88,20 +88,20 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
     
     condition_1 <- subset(panels, treat==1)%>%
       group_by(pixels)%>%
-      mutate(conditional = (b0 +b1 +a_i+v_it+p_err <= 0)*1*(1-post))%>%
+      mutate(conditional = (y== 0)*1*(1-post))%>%
       filter(max(conditional==1) & post ==1)%>%
       mutate(
-        if_term_1 = (b0 +b1 + b2_1 + b3 +a_i+v_it+p_err > 0)*1*post
+        if_term_1 = (y==1)*1*post
       )
     
     term_1 = mean(condition_1$if_term_1)
     
     condition_2 <- subset(panels, treat==0 )%>%
       group_by(pixels)%>%
-      mutate(conditional = (b0 +a_i+v_it+p_err <= 0)*1*(1-post))%>%
+      mutate(conditional = (y== 0)*1*(1-post))%>%
       filter(max(conditional==1) & post ==1)%>%
       mutate(
-        if_term_2 = (b0 + b2_0  +a_i+v_it+p_err > 0)*1*post
+        if_term_2 = (y== 1)*1*post
       )
     
     term_2 = mean(condition_2$if_term_2)
