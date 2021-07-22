@@ -103,6 +103,13 @@ knitr::include_graphics("figs/lscape.png")
 
 ## Modeling deforestation pressure
 
+
+<!-- So I was thinking it could be useful to have a more general definition of our y_{ivt} that can vary between 0 and 1 across periods. This way, we can motivate the selection bias through the underlying latent variable. I added the bare bones of a second model that isn't dynamic in the way the the pfaff/kerr model is. With the pfaff/kerr model, I had a hard time reconciling the fact that the landowner chooses time t (even though the sufficient condition for clearing is just the returns along the latent variable) with the fact that y_ivt can vary. Would love to hear whether you think the model is necessary at all or which model would be better motivation. -->
+
+<!-- Alternatively, if the selection shouldn't come into play at all if the observed y^o_{ivt} that drops deforested pixels really should be the true y_ivt. Then our common trends and ATT would just reflect that selection -->
+
+
+
 <!-- We dynamically model deforestation pressure following @kerr2003 and @pfaff2004a. A risk-neutral landowner decides when to clear forested pixel $i$ in property $v$ by maximizing the expected present discounted value of returns: -->
 
 <!-- $$ \max\limits_T \int^T_0 S_{ivt}e^{-rt}dt + \int^\infty_TR_{ivt}e^{-rt} - C_Te^{-rt}$$ -->
@@ -183,6 +190,7 @@ Researchers generally cannot observe $y^*_{ivt}$ directly. Instead, they observe
       NAN & \text{if pixel $i$ was deforested prior to time $t$}
    \end{cases}
 \end{align*}
+
 
 The typical DID regression model includes a dummy variable equal to one for units in the treatment group, a dummy variable equal to one for observations in the period after the intervention, and their interaction. 
 
@@ -342,9 +350,13 @@ knitr::include_graphics("figs/selection_schart.png")
 
 # The value of linking model structure to the spatial process of deforestation
 
+<!-- Largely, I changed the discussion from reflecting the decision-making unit as the preferred scale to just accounting for the spatial process - since property level aggregation was no longer the clear front runner after accounting for the selection  -->
+
 Connecting the econometric model to the process by which land use change occurs on the ground has clear benefits for estimation and inference in deforestation impact evaluation. Table \@ref(tab:table-lit) shows that researchers often use a binary point, pixel, or grid cell as the unit of analysis. While this may sometimes be the preferred unit, it may lead to biased results if the land use change process operates at a different scale. Property level unobservables impact both treatment effect estimates and coverage probabilities. This is likely to be a factor when land use decisions are made at the property level, or the intervention seeks to alter underlying landowner incentives. In our Monte Carlo simulations, we vary the standard deviation of the time-invariant property level disturbances in the initial DGP, $\sigma_p$, in order to account for these unobservables. 
 
 The introduction of property level unobservables changes the relative performance of each specification. Figure \@ref(fig:summary) demonstrates that specifications incorporating spatially aggregated units into the analysis, whether with fixed effects (Regression 3) or units of analysis (Regression 4), suffer from less bias than those that only incorporate the pixel. This difference is exacerbated as $\sigma_p$, the standard error governing the property level disturbances, increases, even when accounting for non-random selection. Ultimately, all models that incorporate spatial aggregation suffer from relatively little bias and incur less bias than the simple pixel-level DID. 
+
+<!-- Even accounting for the non-random selection, there still seems to be a slight downward bias. Unclear if this is actually remaining bias or if I'm undercounting the bias from non-random selection -->
 
 Using Figure \@ref(fig:summary) to compare across all models, we see that RMSE tends to increase across all specifications as $\sigma_p$ increases. The pixel-level TWFE specifications with spatially aggregated unit fixed effects tend to have the lowest RMSE whenever $\sigma_p$ is nonzero. In contrast, the specification with the property as the unit of analysis and pixel-level DID tend to have the highest RMSE. When bias and coverage probability are comparable, it is preferable to use the model with lower RMSE. 
 
@@ -380,7 +392,6 @@ kable(coverage_pixel, format = "latex", row.names = FALSE,  booktabs = T,
 
 Table \@ref(tab:cover) demonstrates how the presence of property level unobservables impacts coverage probability in pixel-level specifications, either as the simple DID (Regression 1; rows 1-4) or with spatially aggregated unit fixed effects (Regression 3; rows 5-7). The level at which standard errors are clustered clearly has an impact on coverage probability. Looking at the pixel-level DID, we see that the introduction of property-level unobservables causes coverage probability to decline rapidly when the spatial aspect of the deforestation process is ignored. As such, clustering at the pixel level is clearly ill-advised. 
 
-<!-- ^This paragraph feels a bit dense, but I think the takeaway comes across -->
 
 ```{r agg-cover, results = "asis", fig.show='hold'}
 
@@ -400,6 +411,8 @@ kable(coverage_agg, format = "latex", row.names = FALSE, booktabs = T,
 Table \@ref(tab:agg-cover) demonstrates how coverage probabilities are impacted by property-level unobservables for TWFE models with aggregated units of analysis and unit fixed effects. Property and county-level specifications both perform relatively well in the presence of property-level unobservables. Coverage probability declined after the introduction of property-level unobservables for the grid-level specification. This also occured in the pixel-level specification with grid unit fixed effects (Table \@ref(tab:cover)). Despite having on average higher RMSE, specifications with aggregated units of analysis and unit fixed effect have higher coverage probabilities relative to their pixel-level counterparts. 
 
 Authors frequently choose to use a pixel or grid cell as their preferred unit of analysis for purposes of interpretation. The coefficient of interest from a specification using the pixel as the unit of analysis can be interpreted as the effect of the intervention across the landscape. In contrast, if a property is used, the coefficient should be interpreted as the effect of the intervention on the characteristic property in the sample. In order to reobtain a landscape-scale interpretation, one must weight the regression by the area of the unit of analysis (i.e. property). Table \@ref(tab:cover) and Figure \@ref(fig:summary) include. In our case, weighting does not seem to have a major impact on bias, RMSE, or coverage probability.  
+
+<!-- Probably should try to find citation for above section -->
 
 Overall, this section highlights the benefits of structuring one's econometric modeling decisions to match the scale that drives landscape heterogeneity. In some instances, researchers do not have access to geospatial boundaries of these relevant administrative units. In these cases, utilizing a grid cell or alternative administrative unit to capture some spatial heterogeneity is likely preferable to pixel level DID models for purposes of both estimation and inference. 
 
@@ -436,12 +449,13 @@ We plan to undertake the following extensions in future iterations of this paper
 
 <!-- a.     Failure of TWFE -->
 <!-- b.     Point-level with aggregated FE and aggregated outcomes both work -->
-<!-- c.     Benefits from connecting empirical model structure to the level of decision-making -->
+<!-- c.     Non-random selection -->
+<!-- d.     Benefits from connecting empirical model structure to the level of decision-making -->
 
 
 Despite past guidance to the contrary, models that incorporate fixed effects for individual points are unable to yield unbiased estimates of a policy's $ATT$ when applied to irreversible, binary observations of deforestation. This is due to the fact that when pixels are dropped after they first become deforested, TWFE models cannot identify off of points deforested in the pre-treatment periods. This novel finding casts doubt on the reliability of a number of estimates in the avoided deforestation literature. 
 
-In order to avoid issues associated with TWFE models that incorporate point fixed effects, researchers can take advantage of aggregated spatial units. TWFE models with aggregated units of analysis and point level TWFE models with aggregated fixed effects are both viable solutions. Which spatial unit of aggregation is preferable depends upon the process by which land use change actually occurs. Bias can arise when the unit of analysis differs from the scale of the process determining land use change. As such, we explore the benefits of conducting estimation and inference at the level of the relevant decision-making unit and provide guidance for when the researcher does not have access to geospatial boundaries detailing the relevant units. Ultimately, context plays a role in what is feasible, and researchers should make clear the limits to their impact evaluation strategy. 
+In order to avoid issues associated with TWFE models that incorporate point fixed effects, researchers can take advantage of aggregated spatial units. TWFE models with aggregated units of analysis and point level TWFE models with aggregated fixed effects are both viable solutions. Which spatial unit of aggregation is preferable depends upon the process by which land use change actually occurs. Bias can arise from non-random sample selection when the outcome represents an irreversible state, as is the case in the deforestation setting. It can also arise when the specification is unrelated to the scale of the process determining land use change. As such, we explore the benefits of conducting estimation and inference at the scale that drives landscape heterogeneity and provide guidance for when the researcher does not have access to geospatial boundaries detailing the relevant units. Ultimately, context plays a role in what is feasible, and researchers should make clear the limits to their impact evaluation strategy. 
 
 We do not integrate many aspects of the up and coming literature that explores how remotely sensed data may need special consideration when used in impact evaluation. Aspects of the collection process such as satellite sensor characteristics, atmospheric conditions, and image processing may influence the structure of remotely sensed data products [@jain2020; @alix-garcia2021]. Of particular concern is the propensity for non-classical measurement error, which can lead to biased estimates of the $ATT$ [@wooldridge]. @alix-garcia2021 propose a solution for the case of a remotely sensed binary outcome in which misclassification is non-classical. As the proliferation of research relying on satellite data continues, researchers will need consider the intricacies of particular satellite data sources in order to substantiate causal claims.
 
