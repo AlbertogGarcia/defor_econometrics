@@ -41,12 +41,12 @@ std_a = 0.1
 std_v = 0.25
 years = 3
 nobs = 10000
-n = 200
+n = 250
 
 cellsize = 10
-ppoints = 50
+ppoints = 70
 std_p = 0
-cpoints = 20
+cpoints = 40
 
 
 ```
@@ -63,7 +63,8 @@ landscape_map <- landscape_map(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v =
 
 
 ```{r aggregate, results = 'hide', warning=FALSE}
-
+std_p = 0
+std_a = 0.1
 # we'll need to recompute the parameters if we change the value of sigma_p
 std_avp = (std_a^2+std_v^2+std_p^2)^.5
 b0 = qnorm(base_0, mean = 0, sd = std_avp)
@@ -73,77 +74,18 @@ b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
 # summary function that estimates all of the different specifications
-aggregation <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+aggregation <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints, rm.selection = TRUE)
 
-#outputs density plots of estimate distributions
-#aggregation$plot
-#aggregation$fe_plot
+summary_long <- aggregation$summary_long
 
-# activate ggsave below in order to save density plots
-#ggsave(plot = aggregation$plot, path = "figs", filename = "aggregated_ua.png", dpi = 500)
-#ggsave(plot = aggregation$fe_plot, path = "figs", filename = "aggregated_fe.png", dpi = 500)
+# summary function that estimates all of the different specifications
+aggregation_sel <- aggregate_complete(250, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints, rm.selection = FALSE)
 
+summary_selection <- aggregation_sel$summary_long %>%
+  mutate(iteration = as.integer(iteration))%>%
+  inner_join(aggregation_sel$selection_bias, by = "iteration")
 
-# We save the summary measures of the bias and coverage for a subset of the specifications
-bias_0 <- aggregation$biases
-fe_bias_0 <- aggregation$fe_biases
-did_cover_0 <- aggregation$did_coverages_df
-fe_cover_0 <- aggregation$fe_coverages_df
-agg_cover_0 <- aggregation$agg_coverages_df
-
-summary_df <- aggregation$summary_df[2:12,]
-# write.csv(summary_df, "summary_df.csv")
-# Looks better when there is an outer margins
-par(oma=c(1,0,1,1))
-
-labels <- list("Unit of analysis:" = c("pixel", "grid", "property", "county"),
-               "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE", "treatment FE"),
-               "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
-
-coverage <- summary_df$cover
-RMSE <- summary_df$RMSE
-test <- subset(summary_df, select=-c(cover, RMSE))
-
-index.ci <- match(c("q05","q95"), names(test))
-
-# One could also add information about model fit to this chart
-ylim <- c(-0.035,0.04)
-
-topline = -0.015
-
-midline = topline-0.02-.0025
-
-ylim <- c(midline-.02,0.04)
-#bottomline = (min(ylim)+topline)/2
-#Create the plot
-
-
-schart(test,labels, ylim = ylim, index.ci=index.ci, col.est=c("grey50","#D55E00"), ylab="Bias", highlight=1
-       ,band.ref=c(-.05, .04)
-       , axes = FALSE
-       #, col.band.ref="#c7e9f9"
-) # make some room at the bottom
-Axis(side=2, at = c( 0, 0.03), labels=TRUE)
-abline(h=topline)
-abline(h=midline)
-#abline(h=bottomline)
-lapply(1:length(RMSE), function(i) {
- # text(x= i, y=min(ylim)+.002, paste0(i), col="black", font=2, cex = 1)
-  mtext(paste0(i), side=1, at = i, font=2, cex=.95)#, line=1, at=-1)
-  text(x= i, y=midline+0.005, paste0(round(RMSE[i], digits = 4)), col="black", font=1, cex=.9)
-  text(x= i, y=min(ylim)+0.0025, paste0(round(coverage[i], digits = 3)), col="black", font=1, cex=.9 )
-})
-# mtext('coverage\nprobability', side=2, las=1, at = loc_1, adj = 1, font=2, line=1)
-# mtext('RMSE', side=2, las=1, at = loc_2, font=2, line=1)
-text(x=mean(1:nrow(test))
-     , y=midline-.005, "coverage probability (95% desired)", col="black", font=2)
-text(x=mean(1:nrow(test))
-    , y=topline-.005, "RMSE", col="black", font=2)
-legend(x=6.5, y=0.05, col = "grey50", legend = "0.05 to 0.95 quantile \n of estimate distribution", seg.len=0.65, inset = 0.005,  box.lty=0, cex=0.8, lty = 1, lwd = 4, bg="transparent")
-
-
-summary0_df <- aggregation$summary_df[2:12,]%>%
-  mutate(sigma_p=0)
+export(summary_selection, "summary_selection.rds")
 
 
 ```
@@ -158,16 +100,9 @@ b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
 b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
-aggregation_1 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+aggregation_1 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints, rm.selection = TRUE)
 
-
-bias_1 <- aggregation_1$biases
-fe_bias_1 <- aggregation_1$fe_biases
-cover_1 <- aggregation_1$coverages_df
-fe_cover_1 <- aggregation_1$fe_coverages_df
-
-summary1_df <- aggregation_1$summary_df[2:12,]%>%
-  mutate(sigma_p=.1)
+summary_long_1 <- aggregation_1$summary_long
 
 ```
 
@@ -180,19 +115,15 @@ b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
 b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
-aggregation_2 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+aggregation_2 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints, rm.selection = TRUE)
 
-bias_2 <- aggregation_2$biases
-fe_bias_2 <- aggregation_2$fe_biases
-cover_2 <- aggregation_2$coverages_df
-fe_cover_2 <- aggregation_2$fe_coverages_df
+summary_long_2 <- aggregation_2$summary_long
 
-summary2_df <- aggregation_2$summary_df[2:12,]%>%
-  mutate(sigma_p=.2)
 
 ```
 
 ```{r aggregate sig_p 3, results = 'hide', warning=FALSE}
+
 std_p = 0.3
 std_avp = (std_a^2+std_v^2+std_p^2)^.5
 b0 = qnorm(base_0, mean = 0, sd = std_avp)
@@ -201,51 +132,46 @@ b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
 b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
-aggregation_3 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+aggregation_3 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints, rm.selection = TRUE)
 
-bias_3 <- aggregation_3$biases
-fe_bias_3 <- aggregation_3$fe_biases
-cover_3 <- aggregation_3$coverages_df
-fe_cover_3 <- aggregation_3$fe_coverages_df
+summary_long_3 <- aggregation_3$summary_long
 
-summary3_df <- aggregation_3$summary_df[2:12,]%>%
-  mutate(sigma_p = .3)
+summary_full <- rbind(summary_long, summary_long_1, summary_long_2, summary_long_3)
+library(rio)
+export(summary_full, "summary_full.rds")
+
+
+summary_full <- readRDS("unbiased_dgp/summary_full.rds")
+
+full_summary <- summary_full %>%
+  mutate_at(vars(bias, cover), as.numeric
+  )%>%
+  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
+  )%>%
+  filter(is.na(notes) & pixel.fe == FALSE)%>%
+  group_by(std_p, pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county)%>%
+  summarise(cover = mean(cover))%>%
+  spread(std_p, cover)
+
+
+did_cover <- full_summary %>%
+  filter(pixel==TRUE & treatment.fe ==TRUE)
+
+fix_cover <- full_summary %>%
+  filter(pixel==TRUE & treatment.fe ==FALSE)
+
+agg_cover <- full_summary %>%
+  filter(property==TRUE | county ==TRUE | grid == TRUE)
+
+
+
+
+
 
 ```
 
-```{r agg bias and rmse, results = 'hide', warning=FALSE}
 
-# creating RMSE csv
-RMSE <- function (x) sqrt(mean((x-0)^2))
-rmse_p <- data.frame(
-  "0" = unlist(lapply(bias_0, FUN = RMSE)),
-  "0.1" = unlist(lapply(bias_1, FUN = RMSE)),
-  "0.2" = unlist(lapply(bias_2, FUN = RMSE)),
-  "0.3" = unlist(lapply(bias_3, FUN = RMSE))
-  , check.names = FALSE
-)
 
-fe_rmse_p <- data.frame(
-  "0" = unlist(lapply(fe_bias_0, FUN = RMSE)),
-  "0.1" = unlist(lapply(fe_bias_1, FUN = RMSE)),
-  "0.2" = unlist(lapply(fe_bias_2, FUN = RMSE)),
-  "0.3" = unlist(lapply(fe_bias_3, FUN = RMSE))
-  , check.names = FALSE
-)
-
-# write.csv(rmse_p, "rmse_p.csv")
-# write.csv(fe_rmse_p, "fe_rmse_p.csv")
-
-# creating bias csv
-biases_p <- data.frame("0" = colMeans(bias_0) , "0.1" = colMeans(bias_1), "0.2" = colMeans(bias_2), "0.3" = colMeans(bias_3) ,check.names = FALSE)
-
-fe_biases_p <- data.frame("0" = colMeans(fe_bias_0) , "0.1" = colMeans(fe_bias_1), "0.2" = colMeans(fe_bias_2), "0.3" = colMeans(fe_bias_3) ,check.names = FALSE)
-
-biases_p <- rbind(biases_p, fe_biases_p)
-
-# write.csv(biases_p, "bias_p.csv")
-# write.csv(fe_biases_p, "fe_bias_p.csv")
-```
 
 
 ```{r coverage}
@@ -276,27 +202,6 @@ fe_coverage <-  fe_cover_0 %>%
 
 ```{r plot rmse, results = 'hide', warning=FALSE}
 
-rmse_plot_df <- rbind(rmse_p, fe_rmse_p) %>%
-  rownames_to_column(var = "model") %>%
-  melt(variable.name = "sigma_p", value.name = "RMSE" )%>%
-  separate(model, into = c("fixed effects", "uoa"), sep = " ")%>%
-  mutate("unit of analysis" = ifelse(is.na(uoa),  "same as fe", "pixel"),
-         "fixed effects" = ifelse(`fixed effects`=="pixel", "treatment", `fixed effects`)
-         )
-
-plot_rmse = ggplot(data = rmse_plot_df, aes(x = as.numeric(as.character(sigma_p)), y = RMSE,  linetype = `unit of analysis`, colour = `fixed effects`)) +
-    geom_line(size = 1.25) +
-  geom_segment(aes(x=0, xend=.3, y=0, yend=0), linetype = "dashed", size=1, color="black")+
-  geom_vline(xintercept = 0, size=1)+
-    #theme(plot.caption = element_text(hjust = 0.5))+
-    labs(y = "RMSE", x= expression(sigma[p]))+
-  ggtitle(expression(paste("RMSE as a function of ", sigma[p])))+
-  # theme_classic() +
-  #scale_color_colorblind()+
-  mytheme
-plot_rmse
-
-ggsave(path = "figs", filename = "rmse_p.png", dpi = 500)
 
 biases_p <- read.csv("bias_p.csv",check.names=FALSE,row.names = 1)[1:4,]
 
@@ -333,25 +238,7 @@ ggsave(path = "figs", filename = "bias_uoa.png", dpi = 500)
 
 ```{r plot fe rmse, results = 'hide', warning=FALSE}
 
-fe_rmse_plot_df <- fe_rmse_p %>%
-  rownames_to_column(var = "fe") %>%
-  melt(variable.name = "sigma_p", value.name = "RMSE" )%>%
-  separate(fe, into = c("fixed effects", "uoa"), sep = " ")
-  
 
-fe_plot_rmse = ggplot(data = fe_rmse_plot_df, aes(x = as.numeric(as.character(sigma_p)), y = RMSE, colour = `fixed effects`)) +
-    geom_line(size = 1.1) +
-  geom_segment(aes(x=0, xend=.3, y=0, yend=0), linetype = "dashed", size=1.1, color="black")+
-  geom_vline(xintercept = 0, size=1.1)+
-    #theme(plot.caption = element_text(hjust = 0.5))+
-    labs(y = "coefficient bias", x= expression(sigma[p]), colour = "fixed effects")+
-  ggtitle(expression(paste("coefficient bias as a function of ", sigma[p])))+
-  # theme_classic() +
-  scale_colour_manual(values=cbPalette)+
-  mytheme
-fe_plot_rmse
-
-ggsave(path = "figs", filename = "fe_rmse_p.png", dpi = 500)
 
 fe_biases_p <- read.csv("fe_bias_p.csv",check.names=FALSE,row.names = 1)
 
