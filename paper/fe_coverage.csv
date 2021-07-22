@@ -1,7 +1,0 @@
-"","fix_effects","std_error","coverage","fe_cover_1","fe_cover_2","fe_cover_3"
-"1","grid","classical",0.88,0.84,0.77,0.71
-"2","property","classical",0.88,0.915,0.95,0.905
-"3","county","classical",0.88,0.845,0.83,0.9
-"4","grid","clustered at grid",0.89,0.84,0.77,0.71
-"5","property","clustered at property",0.86,0.915,0.95,0.905
-"6","county","clustered at county",0.82,0.845,0.83,0.9
