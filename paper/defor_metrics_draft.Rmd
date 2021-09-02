@@ -1,7 +1,7 @@
 ---
 title: Conservation impact evaluation using remotely sensed data
 author: "Alberto Garcia and Robert Heilmayr"
-date: "July 17, 2021"
+date: "August 1, 2021"
 output:
   bookdown::pdf_document2:
     latex_engine: xelatex
@@ -45,6 +45,7 @@ knitr::opts_chunk$set(echo = FALSE, warnings = FALSE, messages = FALSE, out.widt
 <!-- make properties more or less heterogeneous -->
 
 
+
 # Abstract {-}
 Conservation practitioners need rigorous evidence measuring the effectiveness of proposed policy interventions. Economists are increasingly generating this evidence by applying methods of impact evaluation to remotely sensed panel data on land use change. However, these applications come with new challenges. Using Monte Carlo simulations and analytical proofs, we demonstrate that many of the panel econometric models employed for avoided deforestation impact evaluation are biased - the significance, magnitude and even direction of estimated effects from many studies are likely incorrect. These errors threaten to undermine the evidence base that underpins conservation policy adoption and design. We review this burgeoning literature and develop guidance for the design of econometric models quantifying conservation policy effectiveness. 
 
@@ -56,7 +57,7 @@ Increasingly, econometric methods of impact evaluation have been used to disenta
 
 However, many commonly used measures of land use change have structural differences from the data used in traditional, linear panel models. For example, deforestation is often measured using data with a similar structure to the Global Forest Change product produced by @hansen2013. When converted to a panel structure, these data yield binary observations detailing the first year in which each 30 by 30m pixel was deforested. Importantly, the data do not allow for the detection of reforestation timing and, as a result, are unable to detect repeated deforestation events in the same location. To date, insufficient attention has been paid to how such binary, irreversible outcome data may affect the performance of standard econometric tools. While many of our results apply to any setting with binary, irreversible data, we focus on the deforestation case. 
 
-Here, we use a combination of analytical proofs and Monte Carlo simulations to demonstrate that many econometric analyses of deforestation are likely biased - significance, magnitude and even direction of estimated effects might be incorrect. These biases arise even when researchers follow common guidance to adopt "rigorous" research designs with valid counterfactuals [@blackman2013; @jones2015]. Our main result shows that two-way fixed effects regressions with pixel unit fixed effects cannot generally identify the desired treatment effect parameter. This result extends to recently developed difference-in-differences estimators that allow for multiple periods and variation in treatment timing (e.g., @callaway2020; @gardner2021). To help guide future impact evaluations, we propose multiple ways in which this bias can be reduced or even eliminated. We then explore non-random selection that arises due to irreversibility in the deforestation setting and how this feature of the data may lead to bias. Finally, we reflect on the econometric benefits that emerge when researchers are able to match their model structure to the relevant scale of the deforestation process. 
+Here, we use a combination of analytical proofs and Monte Carlo simulations to demonstrate that many econometric analyses of deforestation are likely biased - significance, magnitude and even direction of estimated effects might be incorrect. These biases arise even when researchers follow common guidance to adopt "rigorous" research designs with valid counterfactuals [@blackman2013; @jones2015]. Our main result shows that two-way fixed effects regressions with pixel unit fixed effects cannot generally identify the desired treatment effect parameter. Papers published in economics journals as recently as 2021 use this problematic specification to recover treatment effect estimates. This result extends to recently developed difference-in-differences estimators that allow for multiple periods and variation in treatment timing (e.g., @callaway2020; @gardner2021). To help guide future impact evaluations, we propose multiple ways in which this bias can be reduced or even eliminated. We then explore non-random selection that arises due to irreversibility in the deforestation setting and how this feature of the data may lead to bias. Finally, we reflect on the econometric benefits that emerge when researchers are able to match their model structure to the relevant scale of the deforestation process. 
 
 # Conservation impact evaluation using panel methods
 
@@ -132,27 +133,55 @@ knitr::include_graphics("figs/lscape.png")
 
 <!-- We inform our empirical investigations based on this theoretical model.   -->
 
-We inform our empirical investigations with a land rent model based on @deininger2002. For further details we refer the reader to the paper cited, as we try to provide just enough intuition to motivate our empirical investigations. Contemporaneous land rent, $R_{ivk}$,for land use $k$ at any given pixel $i$ located in property $v$ is deﬁned as the difference between the value of outputs and inputs, $Q_{ivk}$ and $X_{ivk}$, at their respective location-speciﬁc prices $P_{ivk}$ and $C_{ivk}$.
+We inform our empirical investigations with a land rent model based on @pfaff1999. For further details we refer the reader to the paper cited, as we try to provide just enough intuition to motivate our empirical investigations. At any point in time, a plot of land is allocated between different land uses to maximize profit. 
+
+$$ \max\limits_{l;I} \pi^l_{ivt} = P^l_{ivt}* Q^l_{ivt} (I_{ivt}) - R_{ivt}*I_{ivt}$$
+, where $l$ represents a given land use; $i$ represents a pixel located in property $v$; $t$ represents the year; and
+
+\begin{align*}
+P^l_{ivt} =&\text{ pixel-level prices for the vector of possible outputs from any given land use $l$,}\\ 
+Q^l_{ivt} =&\text{ the vector of all outputs produced from land use $l$,}\\ 
+I_{ivt} =&\text{ the vector of inputs used in all types of production,}\\ 
+R_{ivt} =&\text{ pixel-level prices for the vector of inputs used.}\\ 
+\end{align*}
+
+Assuming two land uses (we simply consider cleared and uncleared) and privately optimal input choice, we can consider the following clearing decision:
+
+$$\text{choose $l_{ivt}=$ cleared}  \hspace{5mm} iff: V^{cleared}_{ivt}> V^{uncleared}_{ivt},$$
+
+where $V^l_{ivt} = \max\limits_{I | l} \pi^l_{ivt}$. Thus, pixel $i$ in property $v$ would be deforested in time $t$ if $V^{cleared}_{ivt} - V^{uncleared}_{ivt} > 0$. We express deforestation pressure in terms of a latent $y^*_{ivt}$, and its transformation into a binary variable indicating whether there exists deforestation pressure such that the pixel is cleared in time $t$:  -->
 
 \begin{align}
-R_{ivk} = P_{ivk} Q_{ivk} - C_{ivk} X_{ivk}
-\end{align}
-
-We assume Cobb-Douglas production with a productivity shifter $S_{ivk}$ and that prices are affected by a vector, $Z_{ivk}$ of location-speciﬁc variables such as slope, market access, agricultural suitability, etc.. Land rent $R_{ivk}$ can be expressed as a function of the productivity shifters and variables affecting prices, and taking logs and collecting coefficients gives: 
-\begin{align}
-ln R_{ivk} = \alpha + \beta ln Z_{ivk} + \gamma ln S_{ivk} + \epsilon_{ivk}
-\end{align}
-, where $\epsilon_{ivk}$ is an error term. 
-
-We only distinguish between forest ($k=0$) and non-forest ($k=1$) uses of the land. Pixel $i$ in property $v$ would be deforested in time $t$ if $y^*_{ivt} = R_{ivt1} - R_{ivt0} >0$. We express deforestation pressure in terms of a latent $y^*_{ivt}$, and its transformation into a binary variable indicating whether there exists deforestation pressure such that the pixel is cleared in time $t$: 
-
-\begin{align}
- y^*_{ivt} = R_{ivt1} - R_{ivt0} (\#eq:clearing)\\
+ y^*_{ivt} = V^{cleared}_{ivt} - V^{uncleared}_{ivt} (\#eq:clearing)\\
  y_{ivt} = \begin{cases}
       1 &  \text{if $y^*_{ivt}>0$}\\
       0 &  \text{otherwise}
    \end{cases}
 \end{align}
+
+One key factor to understanding our choice of this motivational model is the omission of past land use. In this model, regrowth is sufficiently fast that uncleared land is a viable option for plots which were cleared in the previous observation. In reality, forest regrowth is neither instantaneous nor completely irreversible. However, we make this modeling assumption in order to explore the potential issues that arise when reforestation timing is unaccounted for completely. 
+
+<!-- Contemporaneous land rent, $R_{ivk}$,for land use $k$ at any given pixel $i$ located in property $v$ is deﬁned as the difference between the value of outputs and inputs, $Q_{ivk}$ and $X_{ivk}$, at their respective location-speciﬁc prices $P_{ivk}$ and $C_{ivk}$. -->
+
+<!-- \begin{align} -->
+<!-- R_{ivk} = P_{ivk} Q_{ivk} - C_{ivk} X_{ivk} -->
+<!-- \end{align} -->
+
+<!-- We assume Cobb-Douglas production with a productivity shifter $S_{ivk}$ and that prices are affected by a vector, $Z_{ivk}$ of location-speciﬁc variables such as slope, market access, agricultural suitability, etc.. Land rent $R_{ivk}$ can be expressed as a function of the productivity shifters and variables affecting prices, and taking logs and collecting coefficients gives:  -->
+<!-- \begin{align} -->
+<!-- ln R_{ivk} = \alpha + \beta ln Z_{ivk} + \gamma ln S_{ivk} + \epsilon_{ivk} -->
+<!-- \end{align} -->
+<!-- , where $\epsilon_{ivk}$ is an error term.  -->
+
+<!-- We only distinguish between forest ($k=0$) and non-forest ($k=1$) uses of the land. Pixel $i$ in property $v$ would be deforested in time $t$ if $y^*_{ivt} = R_{ivt1} - R_{ivt0} >0$. We express deforestation pressure in terms of a latent $y^*_{ivt}$, and its transformation into a binary variable indicating whether there exists deforestation pressure such that the pixel is cleared in time $t$:  -->
+
+<!-- \begin{align} -->
+<!--  y^*_{ivt} = R_{ivt1} - R_{ivt0} (\#eq:clearing)\\ -->
+<!--  y_{ivt} = \begin{cases} -->
+<!--       1 &  \text{if $y^*_{ivt}>0$}\\ -->
+<!--       0 &  \text{otherwise} -->
+<!--    \end{cases} -->
+<!-- \end{align} -->
 
 
 
@@ -250,7 +279,7 @@ Each of our simulated landscapes consists of administrative units that are eithe
 We follow equation \@ref(eq:clearing) and model these binary deforestation events as a function of each pixel's unobservable value along the continous, latent variable ($y^*_{ivt}$) indicating the return to clearing pixel $i$, in property $v$, in year $t$. 
 <!-- The latent variable is defined: -->
 \begin{align*}
-y^*_{ivt} = & R_{ivt1} - R_{ivt0}\\
+y^*_{ivt} = & V^{cleared}_{ivt} - V^{uncleared}_{ivt}\\
 =&\beta_0 + \beta_1 D_i +
  \beta_{2,0} (1 -  D_i ) \mathbbm{1}\{  t \geq t_0  \} +(\beta_{2,1} + \beta_3 )D_i \mathbbm{1}\{  t \geq t_0  \} +
  \alpha_i + u_{it} + \rho_{v}
@@ -323,13 +352,13 @@ Columns 9-11 of Figure \@ref(fig:summary-fig) show that the bias of the estimate
 
 # Non-random selection and the spatial nature of the deforestation process {#property}
 
-The irreversible nature of the deforestation process creates the potential for non-random sample selection in the data setting. Because the process of deforestation is irreversible, deforested pixels are no longer at risk of clearing in the periods after they are first deforested. This means the "at risk" set of pixels changes through time as more pixels become deforested. As such, the distribution that describes the returns to clearing the at-risk pixels may change through time as well, leading to the selection issue. For example, pixels with extremely high returns to clearing are more likely to be cleared early on, regardless of treatment status. In subsequent periods, therefore, these high return pixels are less likely to be present in the sample at all. In the context of two-groups and two-periods, only the second period suffers from this non-random sample selection, and we expresss the bias introduced from non-random sample selection below.
+The irreversible nature of the deforestation process creates the potential for non-random sample selection in the data setting. Because the process of deforestation is reflected to be irreversible in the panel, deforested pixels are no longer at risk of clearing in the periods after they are first deforested. This means the "at risk" set of pixels changes through time as more pixels become deforested. As such, the distribution that describes the returns to clearing the at-risk pixels may change through time as well, leading to the selection issue. For example, pixels with extremely high returns to clearing are more likely to be cleared early on, regardless of treatment status. In subsequent periods, therefore, these high return pixels are less likely to be present in the sample at all. In the context of two-groups and two-periods, only the second period suffers from this non-random sample selection, and we expresss the bias introduced from non-random sample selection below.
 
 \textbf{Result:} In the two-group, two-period case, $\beta_{DID}$ suffers from non-random sample selection bias when the $y^o_{ivt}$s are not i.i.d.
 
-\begin{align*}
+\begin{align}
 \beta_{DID} = & ATT +  \underbrace{E[y^o_{ivt}|t\geq t_0, D_i=1]-E[y_{ivt}|t\geq t_0, D_i=1] - (E[y^o_{ivt}|t\geq t_0, D_i=0]-E[y_{ivt}|t\geq t_0, D_i=0])}_\text{{bias emerging from non-random sample selection}}
-\end{align*}
+\end{align}
 <!-- = & ATT +  \\ -->
 <!-- & P[y^o_{it}=1|t\geq t_0, D_i=1]-P[y_{it}=1|t\geq t_0, D_i=1] - (P[y^o_{it}=1|t\geq t_0, D_i=0]-P[y_{it}=1|t\geq t_0, D_i=0])\\ -->
 <!-- = & ATT +  \\ -->
@@ -342,7 +371,7 @@ In essence, the first and third expectations in the bias term are conditional on
 
 Non-random selection was not an issue in our initial simulations, since we assumed away time-invariant pixel and property-level disturbances. The sample of at risk pixels in each time period did not depend on the deforestation that occurred the previous period, since the $y^o_{ivt}$s were i.i.d.. However, once time-invariant disturbances enter the DGP, the distribution of the $y^o_{iv2}s$ is potentially different from that of the $y^o_{iv1}$s. This is likely to be the case in reality, since each plot of land will have time-invariant characterisitcs such as slope, elevation, market access, agricultural suitability, etc. that impact its expected returns to clearing. 
 
-In order to see how this non-random selection influences estimates in our simulated setting, we set $\sigma_a$, the standard error of the time-invariant pixel-level disturbances equal to $0.01$. Figure \@ref(fig:selection-fig) shows that non-random selection introduces a slight downward bias across every specification (specifications ordered from least to most bias). Pixel-level specifications suffer slightly more than specifications with a spatially aggregated unit of analysis in terms of bias and coverage. For the remainder of the paper, we remove the bias due to non-random selection.
+In order to see how this non-random selection influences estimates in our simulated setting, we set $\sigma_a$, the standard error of the time-invariant pixel-level disturbances equal to $0.01$. Figure \@ref(fig:selection-fig) shows that non-random selection introduces a slight downward bias across every specification (specifications ordered from least to most bias). Pixel-level specifications suffer slightly more than specifications with a spatially aggregated unit of analysis in terms of bias and coverage. We note that in practice, researchers cannot recover the second and fourth terms of the bias term in equation 10, meaning that the magnitude of this bias is unknown to the researcher. However, this bias is likely to be of a smaller magnitude in reality than in our simulated setting, since our simulated time frame for forest regrowth is likely to short to reflect true reforestation timing. For the remainder of the paper, we remove the bias due to non-random selection (only possible in the simulation setting). 
 
 ```{r selection-fig, fig.cap="Non-random selection introduces bias into estimates. Specifications are ordered by mean bias (least to most). ",  out.width="100%"}
 knitr::include_graphics("figs/selection_schart.png")
@@ -410,11 +439,16 @@ kable(coverage_agg, format = "latex", row.names = FALSE, booktabs = T,
 
 Table \@ref(tab:agg-cover) demonstrates how coverage probabilities are impacted by property-level unobservables for TWFE models with aggregated units of analysis and unit fixed effects. Property and county-level specifications both perform relatively well in the presence of property-level unobservables. Coverage probability declined after the introduction of property-level unobservables for the grid-level specification. This also occured in the pixel-level specification with grid unit fixed effects (Table \@ref(tab:cover)). Despite having on average higher RMSE, specifications with aggregated units of analysis and unit fixed effect have higher coverage probabilities relative to their pixel-level counterparts. 
 
-Authors frequently choose to use a pixel or grid cell as their preferred unit of analysis for purposes of interpretation. The coefficient of interest from a specification using the pixel as the unit of analysis can be interpreted as the effect of the intervention across the landscape. In contrast, if a property is used, the coefficient should be interpreted as the effect of the intervention on the characteristic property in the sample. In order to reobtain a landscape-scale interpretation, one must weight the regression by the area of the unit of analysis (i.e. property). Table \@ref(tab:cover) and Figure \@ref(fig:summary) include. In our case, weighting does not seem to have a major impact on bias, RMSE, or coverage probability.  
+Authors frequently choose to use a pixel or grid cell as their preferred unit of analysis for purposes of interpretation. The coefficient of interest from a specification using the pixel as the unit of analysis can be interpreted as the effect of the intervention across the landscape. In contrast, if a property is used, the coefficient should be interpreted as the effect of the intervention on the characteristic property in the sample. In order to reobtain a landscape-scale interpretation, one must weight the regression by the area of the unit of analysis (i.e. property). Table \@ref(tab:cover) and Figure \@ref(fig:summary) include. In our case, weighting does not seem to have a major impact on bias, RMSE, or coverage probability. It should be noted that the use of area weights is likely to be most useful when the $ATT$ for the characteristic property differs from the $ATT$ across the landscape. In our current framework, these are the same, making it dificult to highlight to potential benefits of area weights. We plan to extend the paper on this front. 
+
+
+```{r grid-size, fig.align="center", fig.cap="bias depends on grid size when property level unobservables are present.", out.width = "100%", fig.pos='H', fig.show='hold'}
+knitr::include_graphics("figs/grid_size.png")
+```
 
 <!-- Probably should try to find citation for above section -->
 
-Overall, this section highlights the benefits of structuring one's econometric modeling decisions to match the scale that drives landscape heterogeneity. In some instances, researchers do not have access to geospatial boundaries of these relevant administrative units. In these cases, utilizing a grid cell or alternative administrative unit to capture some spatial heterogeneity is likely preferable to pixel level DID models for purposes of both estimation and inference. 
+In some instances, researchers do not have access to geospatial boundaries of these relevant administrative units. In these cases, utilizing a grid cell or alternative administrative unit to capture some spatial heterogeneity is likely preferable to pixel level DID models for purposes of both estimation and inference. The scale of this grid cell or alternative unit relative to the process of land use change is important. Figure \@ref(fig:summary) shows that grid cell size plays a role in the when property level unobservables are present ($\sigma_p = 0.25$). In our parameterization, the bias is decreasing in grid cell size, and bias is minimized when the grid cell is near the scale of the property. This furhter demonstrates the benefits of conducting the analysis at the scale of the relevant decision-making unit. Future iterations of this paper will more fully explore the interaction of grid cell size and bias for given parameterizations. Overall, this section highlights the benefits of structuring one's econometric modeling decisions to match the scale that drives landscape heterogeneity.
 
 # Extension to multiple groups and time periods {#multipleGT}
 
@@ -441,7 +475,8 @@ knitr::include_graphics(c("figs/pixel_multiGT.png", "figs/county_multiGT.png"))
 We plan to undertake the following extensions in future iterations of this paper:
 
 \begin{itemize}
-\item multiple grid sizes (i.e. larger than and smaller than average property)
+\item Many of our analyses may benefit from incorporation of heterogeneous treatment effects. This may be particularly interesting to vary at the property-level. This may better highlight the transition many economists are making to the newer suite of DID methods with multiple groups and time periods (Right now, the TWFE estimator performs great in Figure \@ref(fig:multiGT)b). Further, the use of area weights is likely to be most useful when the $ATT$ for the characteristic property differs from the $ATT$ across the landscape. In our current framework, these are the same, making it dificult to highlight to potential benefits of area weights. In many settings, researchers want to highlight the landscape $ATT$ rather than the property-level. 
+\item (partially implemented) multiple grid sizes (i.e. larger than and smaller than average property). A clear experiment if which grid cells move closer to/further from the scale of properties may help clarify the benefits of matching scale to the scale at which heterogeneity is driven. 
 \item incorporate binary outcome variable equal to one if any deforestation occurs in administrative unit during time $t$. This outcome has been used with increasing frequency, and the coefficient has been interpreted as a deforestation rate. This measure may perform better when heterogeneity is present. 
 \end{itemize}
 
@@ -459,7 +494,7 @@ In order to avoid issues associated with TWFE models that incorporate point fixe
 
 We do not integrate many aspects of the up and coming literature that explores how remotely sensed data may need special consideration when used in impact evaluation. Aspects of the collection process such as satellite sensor characteristics, atmospheric conditions, and image processing may influence the structure of remotely sensed data products [@jain2020; @alix-garcia2021]. Of particular concern is the propensity for non-classical measurement error, which can lead to biased estimates of the $ATT$ [@wooldridge]. @alix-garcia2021 propose a solution for the case of a remotely sensed binary outcome in which misclassification is non-classical. As the proliferation of research relying on satellite data continues, researchers will need consider the intricacies of particular satellite data sources in order to substantiate causal claims.
 
-Several econometric considerations relevant to model design and interpretation were not explored in this paper. TWFE regression models have received substantial attention in the econometrics literature recently, regarding concerns surrounding their viability and interpretability [e.g. @kropko2020]. For example, properties of TWFE regression models that arise when treatment effects are heterogeneous across groups or over time may lead to erroneous results [@dechaisemartin2020]. We largely abstract away from choices of scale with regards to grid size or unit of analysis, but biased estimates may result from scale choices that are too large or too small relative to the data generating process or decision unit [@avelino2016]. This makes choice of grid cell size a relevant but unexplored aspect of our study. Lastly, the benefits of pre-matching control and treatment units are not addressed, but they are well understood to be substantial [e.g. @jones2015; @blackman2013].
+Several econometric considerations relevant to model design and interpretation were not explored in this paper. TWFE regression models have received substantial attention in the econometrics literature recently, regarding concerns surrounding their viability and interpretability [e.g. @kropko2020]. For example, properties of TWFE regression models that arise when treatment effects are heterogeneous across groups or over time may lead to erroneous results [@dechaisemartin2020]. We largely abstract away from choices of scale with regards to grid size or unit of analysis, but biased estimates may result from scale choices that are too large or too small relative to the data generating process or decision unit [@avelino2016] (partially implemented). This makes choice of grid cell size a relevant but unexplored aspect of our study. Lastly, the benefits of pre-matching control and treatment units are not addressed, but they are well understood to be substantial [e.g. @jones2015; @blackman2013].
 
 Without clear guidance on key econometric decisions, a wide variety of methods have been used in the literature using quasi-experimental methods for avoided deforestation impact evaluation. We show that a number of studies use specifications that suffer from estimation bias and imprecise inference. The observations made here may apply to a wider audience beyond the set of researchers investigating the impacts of conservation interventions on deforestation. Any evaluation of interventions implemented at a spatial scale may benefit from this discussion. These results further apply to many settings in which the outcome represents an irreversible binary event. For example, studies addressing technology adoption as an outcome may fall prey to the same issues we describe with a point level analysis. Moving forward, it is imperative that researchers use methods that minimize bias and allow inference at expected levels of confidence. Misleading results may lead policymakers to avoid impactful policy designs or adopt policy that worsens environmental damages. 
 
@@ -789,7 +824,24 @@ solving for $\beta_3$
 &\beta_3 = F^{-1}(ATT + F(\beta_0 + \beta_1 +\beta_{2,1}) )- (\beta_0 + \beta_1 +\beta_{2,1})\\
 \end{align*}
 
+with hetergeneous treatment effects
+\begin{align*}
+ATT&= E(\beta_0 + \beta_1 +\beta_{2,1} +\beta_3) - E(\beta_0 + \beta_1 +\beta_{2,1})\\
+&=P(-\alpha_i -u_{it} - \beta_3 < \beta_0 + \beta_1 +\beta_{2,1} + \mu) - P(-\alpha_i -u_{it} < \beta_0 + \beta_1 +\beta_{2,1})\\
+&= G(\beta_0 + \beta_1 +\beta_{2,1} + \mu) - F(\beta_0 + \beta_1 +\beta_{2,1})
+\end{align*}
+, where $\beta_3 \sim N(\mu, \sigma_{te}^2)$ and $G()$ is the CDF of a $N(0, \sigma^2_a + \sigma^2_u + \sigma^2_p + \sigma_{te}^2)$
+and 
 
+\begin{align*}
+&ATT= G(\beta_0 + \beta_1 +\beta_{2,1} ) - F(\beta_0 + \beta_1 +\beta_{2,1})\\
+\Leftrightarrow \\
+&ATT + F(\beta_0 + \beta_1 +\beta_{2,1}) = G(\beta_0 + \beta_1 +\beta_{2,1} +\mu) \\
+\Leftrightarrow \\
+&G^{-1}(ATT + F(\beta_0 + \beta_1 +\beta_{2,1}) )= \beta_0 + \beta_1 +\beta_{2,1} +\mu\\
+\Leftrightarrow \\
+&\mu = G^{-1}(ATT + F(\beta_0 + \beta_1 +\beta_{2,1}) )- (\beta_0 + \beta_1 +\beta_{2,1})\\
+\end{align*}
 
 ## Calculating deforestation rates {#rate-formula}
 
