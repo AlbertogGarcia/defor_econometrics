@@ -149,7 +149,7 @@ Assuming two land uses (we simply consider cleared and uncleared) and privately 
 
 $$\text{choose $l_{ivt}=$ cleared}  \hspace{5mm} iff: V^{cleared}_{ivt}> V^{uncleared}_{ivt},$$
 
-where $V^l_{ivt} = \max\limits_{I | l} \pi^l_{ivt}$. Thus, pixel $i$ in property $v$ would be deforested in time $t$ if $V^{cleared}_{ivt} - V^{uncleared}_{ivt} > 0$. We express deforestation pressure in terms of a latent $y^*_{ivt}$, and its transformation into a binary variable indicating whether there exists deforestation pressure such that the pixel is cleared in time $t$:  -->
+where $V^l_{ivt} = \max\limits_{I | l} \pi^l_{ivt}$. Thus, pixel $i$ in property $v$ would be deforested in time $t$ if $V^{cleared}_{ivt} - V^{uncleared}_{ivt} > 0$. We express deforestation pressure in terms of a latent $y^*_{ivt}$, and its transformation into a binary variable indicating whether there exists deforestation pressure such that the pixel is cleared in time $t$:  
 
 \begin{align}
  y^*_{ivt} = V^{cleared}_{ivt} - V^{uncleared}_{ivt} (\#eq:clearing)\\
@@ -159,7 +159,7 @@ where $V^l_{ivt} = \max\limits_{I | l} \pi^l_{ivt}$. Thus, pixel $i$ in property
    \end{cases}
 \end{align}
 
-One key factor to understanding our choice of this motivational model is the omission of past land use. In this model, regrowth is sufficiently fast that uncleared land is a viable option for plots which were cleared in the previous observation. In reality, forest regrowth is neither instantaneous nor completely irreversible. However, we make this modeling assumption in order to explore the potential issues that arise when reforestation timing is unaccounted for completely. 
+One key factor to understanding our choice of this motivational model is the omission of past land use. In this model, regrowth is sufficiently fast that uncleared land is a viable option for pixels which were cleared in the previous observation [@pfaff1999]. In reality, forest regrowth is neither instantaneous nor is deforestation irreversible. We make this modeling assumption in order to explore the potential issues that arise when reforestation timing is ignored and assumed to be irreversible. This aspect of the model becomes relevant in Section \@ref(property).
 
 <!-- Contemporaneous land rent, $R_{ivk}$,for land use $k$ at any given pixel $i$ located in property $v$ is deﬁned as the difference between the value of outputs and inputs, $Q_{ivk}$ and $X_{ivk}$, at their respective location-speciﬁc prices $P_{ivk}$ and $C_{ivk}$. -->
 
@@ -448,7 +448,7 @@ knitr::include_graphics("figs/grid_size.png")
 
 <!-- Probably should try to find citation for above section -->
 
-In some instances, researchers do not have access to geospatial boundaries of these relevant administrative units. In these cases, utilizing a grid cell or alternative administrative unit to capture some spatial heterogeneity is likely preferable to pixel level DID models for purposes of both estimation and inference. The scale of this grid cell or alternative unit relative to the process of land use change is important. Figure \@ref(fig:summary) shows that grid cell size plays a role in the when property level unobservables are present ($\sigma_p = 0.25$). In our parameterization, the bias is decreasing in grid cell size, and bias is minimized when the grid cell is near the scale of the property. This furhter demonstrates the benefits of conducting the analysis at the scale of the relevant decision-making unit. Future iterations of this paper will more fully explore the interaction of grid cell size and bias for given parameterizations. Overall, this section highlights the benefits of structuring one's econometric modeling decisions to match the scale that drives landscape heterogeneity.
+In some instances, researchers do not have access to geospatial boundaries of these relevant administrative units. In these cases, utilizing a grid cell or alternative administrative unit to capture some spatial heterogeneity is likely preferable to pixel level DID models for purposes of both estimation and inference. The scale of this grid cell or alternative unit relative to the process of land use change is important. Figure \@ref(fig:grid-size) shows that grid cell size plays a role in the when property level unobservables are present ($\sigma_p = 0.25$). In our parameterization, the bias is decreasing in grid cell size, and bias is minimized when the grid cell is near the scale of the property. This further demonstrates the benefits of conducting the analysis at the scale of the relevant decision-making unit. Future iterations of this paper will more fully explore the relationship of grid cell size and bias for given parameterizations. Overall, this section highlights the benefits of structuring one's econometric modeling decisions to match the scale that drives landscape heterogeneity.
 
 # Extension to multiple groups and time periods {#multipleGT}
 
