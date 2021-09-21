@@ -219,7 +219,8 @@ multiple_gridsize_clean <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_
   
   
   outputs = list(
-    "summary_long" = summary_long##,
+    "summary_long" = summary_long,
+    "pixloc_df" = pixloc##,
    # "selection_bias" = selection_bias
    )
   return(outputs)

@@ -1,6 +1,60 @@
 #####################################################################
 #### r script that generates specification charts for paper
 #####################################################################
+source(here::here('unbiased_dgp', 'schart.R'))
+
+specchart_long <- summary_pweights
+
+summary <- specchart_long %>%
+  mutate_at(vars(bias, cover, ATT, ls_ATT, p_ATT), as.numeric
+  )%>%
+  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
+  )%>%
+  filter(is.na(notes) & pixel.fe == FALSE)%>%
+  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county)%>%
+  summarise(RMSE = rmse(bias, 0),
+            q05 = quantile(bias, probs = .05),
+            q95 = quantile(bias, probs = .95),
+            Bias = mean(bias),
+            cover = mean(cover),
+            ls_ATT = mean(ls_ATT),
+            ATT = mean(ATT),
+            p_ATT = mean(p_ATT))%>%
+  select(Bias, everything())
+
+df_summary <- summary %>%
+  select(-c(ls_ATT, p_ATT, ATT))
+
+#df_summary <- rbind(df_summary[11,], df_summary[4:10,], df_summary[1:3,])
+
+par(oma=c(1,0,1,1))
+
+labels <- list("Unit of analysis:" = c("pixel", "grid", "property", "county"),
+               "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE", "treatment FE"),
+               "Weights:" = c("area weights"),
+               "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
+f <- function(x) gsub("^(\\s*[+|-]?)0\\.", "\\1.", as.character(x))
+coverage <- f(round(df_summary$cover, digits=3))
+RMSE <- f(round(df_summary$RMSE, digits=5))
+test <- as.data.frame(subset(df_summary, select=-c(cover, RMSE)))
+
+index.ci <- match(c("q05","q95"), names(test))
+
+# One could also add information about model fit to this chart
+ylim <- c(-0.02,0.02)
+#bottomline = (min(ylim)+topline)/2
+#Create the plot
+
+schart(test,labels, ylim = ylim, index.ci=index.ci, col.est=c("grey50","#D55E00")
+       , ylab="Bias"#, highlight=1
+       ,band.ref=c(-.05, .04)
+       , axes = FALSE
+       #, col.band.ref="#c7e9f9"
+) # make some room at the bottom
+Axis(side=2, at = c( 0, 0.03), labels=TRUE)
+#abline(h=mean(summary$ATT), col = "green")
+#abline(h=mean(summary$ls_ATT), col = "red")
+abline(h=mean(summary$p_ATT), col = "blue")
 
 
 
@@ -176,6 +230,8 @@ full_summary <- summary_full %>%
             cover = mean(cover))%>%
   select(Bias, everything())%>%
   ungroup()
+
+
 
 full_summary <- full_summary %>%  
   dplyr::arrange(std_p, abs(Bias), by.group=TRUE)
