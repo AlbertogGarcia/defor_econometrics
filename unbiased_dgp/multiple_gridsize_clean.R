@@ -36,7 +36,7 @@ multiple_gridsize_clean <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_
   n_mod = length(cellsize_list)*2
   summ_row <- n_mod * n
   
-  summary_long <- data.frame('b0'= rep(b0, summ_row), 'b1'= rep(b1, summ_row), 'b2_0'= rep(b2_0, summ_row), 'b2_1'= rep(b2_1, summ_row), 'std_b3'= rep(std_b3, summ_row), 
+  summary_long <- data.frame('b0'= rep(b0, summ_row), 'b1'= rep(b1, summ_row), 'b2_0'= rep(b2_0, summ_row), 'b2_1'= rep(b2_1, summ_row),  
                              'std_a'= rep(std_a, summ_row), 'std_v'= rep(std_v, summ_row), 'std_p'= rep(std_p, summ_row),
                              'grid fe'=rep(1, summ_row), 'parea' = rep(mean(prop_area$parea), summ_row),
                              'pixel'=rep(NA, summ_row), 'grid'=rep(NA, summ_row),
