@@ -42,7 +42,7 @@ my_event_study_plot = function(out, seperate = TRUE, horizon = NULL) {
   
   ggplot2::ggplot(out, ggplot2::aes(x = term, y = estimate, color = estimator, ymin = ci_lower, ymax = ci_upper)) +
     { if(seperate) ggplot2::facet_wrap(~ estimator, scales="free") } +
-    ggplot2::geom_point(position = position) +
+    ggplot2::geom_point(position = position, size = 2) +
     ggplot2::geom_errorbar(position = position) +
     ggplot2::geom_vline(xintercept = -0.5, linetype = "dashed") +
     #ggplot2::geom_hline(yintercept = 0, linetype = "dashed") +
