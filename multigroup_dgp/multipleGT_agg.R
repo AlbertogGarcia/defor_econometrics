@@ -180,11 +180,16 @@ multipleGT_agg <- function(n, nobs, base_a, base_b, base_c, trend1, trend2, tren
     toc()
   }  
   
+  countyloc <- pixloc %>%
+    group_by(county) %>%
+    summarise(G = mean(G))
+    
+  
   n_a = length(
-    unique(subset(pixloc, G == 3)$pixels)
+    unique(subset(countyloc, G == 3)$county)
   )
   n_b = length(
-    unique(subset(pixloc, G == 4)$pixels)
+    unique(subset(countyloc, G == 4)$county)
   )
   
   n_t = n_a+n_b
@@ -193,15 +198,15 @@ multipleGT_agg <- function(n, nobs, base_a, base_b, base_c, trend1, trend2, tren
   ATT = n_a/n_t *ATT_a + n_b/n_t *ATT_b
   
   
-  dyn_ATT_a1 = pnorm(b0a+b1a+b2a+tau_a2, mean = 0, sd = std_avp) - pnorm(b0a+b1a+b2a, mean = 0, sd = std_avp)
-  dyn_ATT_b1 = pnorm(b0b+b1b+b2b+b3b +tau_b2, mean = 0, sd = std_avp) - pnorm(b0b+b1b+b2b+b3b, mean = 0, sd = std_avp) 
+  dyn_ATT_a1 = pnorm(b0a+b1a+b2a+b3a+tau_a + tau_a2, mean = 0, sd = std_avp) - pnorm(b0a+b1a+b2a+b3a + tau_a, mean = 0, sd = std_avp)
+  dyn_ATT_b1 = pnorm(b0b+b1b+b2b+b3b +tau_b + tau_b2, mean = 0, sd = std_avp) - pnorm(b0b+b1b+b2b+b3b + tau_b, mean = 0, sd = std_avp) 
   dyn_ATT = n_a/n_t *dyn_ATT_a1 + n_b/n_t *dyn_ATT_b1
   
-  dyn_ATT_a2 = pnorm(b0a+b1a+b2a+b3a+b4a+tau_a3, mean = 0, sd = std_avp) - pnorm(b0a+b1a+b2a+b3a+b4a, mean = 0, sd = std_avp)
+  dyn_ATT_a2 = pnorm(b0a+b1a+b2a+b3a+b4a + tau_a + tau_a2 + tau_a3, mean = 0, sd = std_avp) - pnorm(b0a+b1a+b2a+b3a+b4a+ tau_a + tau_a2 , mean = 0, sd = std_avp)
   dyn_ATT_2 = dyn_ATT_a2
   
   truth <- cbind("term" = c(-2, -1, 0, 1, 2), 
-                 "estimate" = c(0,0,ATT, ATT + dyn_ATT, ATT + dyn_ATT + dyn_ATT_2), 
+                 "estimate" = c(0,0,ATT, ATT + dyn_ATT, ATT_a + dyn_ATT_a1 + dyn_ATT_2), 
                  "std.error"= 0, 
                  "estimator" = "Truth", 
                  "iteration" = NA,

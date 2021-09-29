@@ -132,48 +132,6 @@ multipleGT_pix <- function(n, nobs, base_a, base_b, base_c, trend1, trend2, tren
              estimate = as.numeric(estimate),
              term = as.numeric(term))
     
-    #plot_event_study(pixel_es_long, seperate = TRUE, horizon = NULL)
-    
-    #########################################################################
-    ######### county level dataframe  
-    #########################################################################
-    
-    
-    # countylevel_df <- panels %>%
-    #   group_by(county, year, G) %>% 
-    #   dplyr::summarise(defor = mean(defor),
-    #                    G = mean(G),
-    #                    county = as.numeric(county))%>%
-    #   distinct()
-    # 
-    # countylevel_df <- countylevel_df[order(countylevel_df$county, countylevel_df$year),]
-    # countylevel_df <- slide(countylevel_df, Var = "defor", GroupVar = "county", NewVar = "deforlag",
-    #                         slideBy = -1, reminder = FALSE)%>%
-    #   mutate(forshare = 1-defor,
-    #          forsharelag = 1 - deforlag,
-    #          deforrate = (forsharelag- forshare) / forsharelag
-    #   ) %>% 
-    #   filter_all(all_vars(!is.infinite(.)))%>%
-    #   drop_na(deforrate)
-    
-    #########################################################################
-    ######### county estimates  
-    #########################################################################
-    
-    # county_es <- my_event_study(yname = "deforrate",
-    #                             tname = "year",
-    #                             idname = "county",
-    #                             gname = "G",
-    #                             data = countylevel_df) %>%
-    #   mutate(iteration = i,
-    #          uoa = "county")
-    # 
-    # county_es_long <- rbind(county_es_long, county_es)%>%
-    #   mutate(std.error = as.numeric(ifelse(is.na(std.error), 0.0, std.error)),
-    #          estimate = as.numeric(estimate),
-    #          term = as.numeric(term))
-    # 
-    # plot_event_study(county_es, seperate = TRUE, horizon = NULL)
     
     #end for loop
     print(i)
@@ -193,15 +151,15 @@ multipleGT_pix <- function(n, nobs, base_a, base_b, base_c, trend1, trend2, tren
   ATT = n_a/n_t *ATT_a + n_b/n_t *ATT_b
   
   
-  dyn_ATT_a1 = pnorm(b0a+b1a+b2a+tau_a2, mean = 0, sd = std_avp) - pnorm(b0a+b1a+b2a, mean = 0, sd = std_avp)
-  dyn_ATT_b1 = pnorm(b0b+b1b+b2b+b3b +tau_b2, mean = 0, sd = std_avp) - pnorm(b0b+b1b+b2b+b3b, mean = 0, sd = std_avp) 
+  dyn_ATT_a1 = pnorm(b0a+b1a+b2a+b3a+tau_a + tau_a2, mean = 0, sd = std_avp) - pnorm(b0a+b1a+b2a+b3a + tau_a, mean = 0, sd = std_avp)
+  dyn_ATT_b1 = pnorm(b0b+b1b+b2b+b3b +tau_b + tau_b2, mean = 0, sd = std_avp) - pnorm(b0b+b1b+b2b+b3b + tau_b, mean = 0, sd = std_avp) 
   dyn_ATT = n_a/n_t *dyn_ATT_a1 + n_b/n_t *dyn_ATT_b1
   
-  dyn_ATT_a2 = pnorm(b0a+b1a+b2a+b3a+b4a+tau_a3, mean = 0, sd = std_avp) - pnorm(b0a+b1a+b2a+b3a+b4a, mean = 0, sd = std_avp)
+  dyn_ATT_a2 = pnorm(b0a+b1a+b2a+b3a+b4a + tau_a + tau_a2 + tau_a3, mean = 0, sd = std_avp) - pnorm(b0a+b1a+b2a+b3a+b4a+ tau_a + tau_a2 , mean = 0, sd = std_avp)
   dyn_ATT_2 = dyn_ATT_a2
   
   truth <- cbind("term" = c(-2, -1, 0, 1, 2), 
-                 "estimate" = c(0,0,ATT, ATT + dyn_ATT, ATT + dyn_ATT + dyn_ATT_2), 
+                 "estimate" = c(0,0,ATT, ATT + dyn_ATT, ATT_a + dyn_ATT_a1 + dyn_ATT_2), 
                  "std.error"= 0, 
                  "estimator" = "Truth", 
                  "iteration" = NA,
