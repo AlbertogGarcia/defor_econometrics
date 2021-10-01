@@ -1,7 +1,7 @@
 ---
 title: Conservation impact evaluation using remotely sensed data
 author: "Alberto Garcia and Robert Heilmayr"
-date: "September 15, 2021"
+date: "October 1, 2021"
 output:
   bookdown::pdf_document2:
     latex_engine: xelatex
@@ -262,7 +262,11 @@ Despite widespread use of pixel level analyses of deforestation, the application
 
 \textbf{Proof:} Appendix \@ref(TWFE-proof) Q.E.D.
 
-Thus, regression 2 forgoes the benefits that panel methods provide. If the treated area has a different baseline deforestation rate than the control, the researcher will present a biased estimate of the intervention's impact. This is often the case in the context of interventions that seek to reduce a landscape's deforestation rate, because the intervention is implemented in a given area precisely because of a desire to reduce deforestation. It is conceivable that this bias could not only lead to changes in the magnitude of estimates, but changes in its sign, thereby influencing policymakers to adopt ineffective policies or ignore effective program designs. In cases where the researcher has two groups and two distinct time periods, the simple DID model can still identify the $ATT$, however, TWFE models with pixel fixed effects as described by Regression 2 cannot be used to convincingly identify the $ATT$.
+Thus, regression 2 forgoes the benefits that panel methods provide. In Appendix \@ref(ex-post), we show that $\hat{\beta}_{TWFE}$ is unchanged if the researcher runs a TWFE regression on a dataset where all pixels deforested in the pre-treatment period are simply dropped from the dataset completely. This remains the case even when the dataset contains more than two years worth of observations. 
+
+If the treated area has a different baseline deforestation rate than the control, the researcher will present a biased estimate of the intervention's impact. This is often the case in the context of interventions that seek to reduce a landscape's deforestation rate, because the intervention is implemented in a given area precisely because of a desire to reduce deforestation. It is conceivable that this bias could not only lead to changes in the magnitude of estimates, but changes in sign, thereby influencing policymakers to adopt ineffective policies or ignore effective program designs. In cases where the researcher has two groups and two distinct time periods, the simple DID model can still identify the $ATT$, however, TWFE models with pixel fixed effects as described by Regression 2 cannot be used to convincingly identify the $ATT$.
+
+
 
 Researchers often find themselves in situations where the more flexible TWFE model is preferable to the simple DID, such as in the case of multiple groups and time periods. While many economists may be transitioning to newly developed estimators to address settings in which multiple groups undergo treatment in different time periods [e.g., @callaway2020; @gardner2021], we show in section \@ref(multipleGT) that many of these estimators suffer from the same issue. 
 
@@ -393,19 +397,24 @@ Property level unobservables impact both treatment effect estimates and coverage
 
 In many instances, researchers do not have access to geospatial boundaries of these relevant administrative units. In these cases, utilizing a grid cell or alternative administrative unit to capture spatial heterogeneity is likely preferable to pixel level DID models for purposes of both estimation and inference. The scale of this grid cell or alternative unit relative to the process of land use change is important. Grid cell size plays a role in bias, RMSE, and coverage probability, particularly when property level unobservables are present. 
 
-Figure \@ref(fig:grid-fe) shows how bias and coverage probability depend on grid size in pixel-level TWFE regressions with grid unit fixed effects (Regression 3, where $j$ represents grid cell $j$). The top panel of Figure \@ref(fig:grid-fe) shows how bias is affected by grid size. Note that even in the absence of property-level unobservables ($\sigma_p = 0$), too small of grids result in biased estimates of the $ATT$. The introduction of these unobservables exacerbates the issue, causing undersized grids to suffer even more. The bottom panel of Figure \@ref(fig:grid-fe) shows how coverage probability is affected by grid size.
+Figure \@ref(fig:grid-fe) shows how bias, coverage probability, and RMSE depend on grid size in pixel-level TWFE regressions with grid unit fixed effects (Regression 3, where $j$ represents grid cell $j$). Grid cells near to or slightly larger than the size of the average property tend to perform better than undersized or particularly large grid cells. 
 
-```{r grid-fe, fig.align="center", fig.cap="bias depends on grid size when property level unobservables are present.", out.width = "65%", fig.pos='H', fig.show='hold'}
-knitr::include_graphics(c("figs/bias_gridsize_fe.png", "figs/cover_gridsize_fe.png"))
+The top panel of Figure \@ref(fig:grid-fe) shows that even in the absence of property-level unobservables ($\sigma_p = 0$), too small of grids result in biased estimates of the $ATT$. The introduction of property unobservables exacerbates the issue with small grid cells, causing undersized grids to result in upward bias much more severe than when property unobservables play a lesser role. For any given value of $\sigma_p$, the middle panel shows that RMSE tends to approach its minimum near the scale of the average property, and in the bottom panel, we see that coverage probability is nearest the desired 95\% near that scale as well. 
+
+```{r grid-fe, fig.align="center", fig.cap="Regression 3 with grid unit fixed effects; bias, coverage, and rmse depend on grid size when property level unobservables are present. Note: x-axis begins at 2x2 grid cells to ensure grid cells are not simply pixels.", out.width = "90%", fig.pos='H', fig.show='hold'}
+knitr::include_graphics(c("figs/gridsize_bias_fe.png", "figs/gridsize_cover_fe.png", "figs/gridsize_rmse_fe.png"))
 ```
 
-Figure \@ref(fig:grid-uoa) shows how bias and coverage probability depend on grid size in grid-level TWFE regressions (Regression 4, where $j$ represents grid cell $j$). The top panel of Figure \@ref(fig:grid-uoa) shows how bias is affected by grid size. Note that even in the absence of property-level unobservables ($\sigma_p = 0$), too small of grids result in biased estimates of the $ATT$. The introduction of these unobservables exacerbates the issue, causing undersized grids to suffer even more. The bottom panel of Figure \@ref(fig:grid-uoa) shows how coverage probability is affected by grid size.
+Figure \@ref(fig:grid-uoa) shows how bias, coverage probability, and RMSE depend on grid size in grid-level TWFE regressions (Regression 4, where $j$ represents grid cell $j$). Again, undersized or particularly large grid cells suffer in terms of bias, coverage probability, and RMSE relative to grid cells near the scale of the average property. In the presence of significant heterogeneity at the property scale ($\sigma_p = 0.2$ or $\sigma_p = 0.3$), undersized grids suffer from severe bias. This manifests in poor coverage probability and RMSE for these undersized grids as well. As grid cells become particularly large, all parameterizations begin to suffer in tems of RMSE and coverage, making the use of very low resolution grid cells a potential concern in some cases. 
 
-```{r grid-uoa, fig.align="center", fig.cap="bias depends on grid size when property level unobservables are present.", out.width = "65%", fig.pos='H', fig.show='hold'}
-knitr::include_graphics(c("figs/bias_gridsize_uoa.png", "figs/cover_gridsize_uoa.png"))
+The findings in this section demonstrate the benefits of conducting the analysis near the scale of the relevant decision-making unit. Overall, this section highlights the benefits of structuring one's econometric modeling decisions to match the scale that drives landscape heterogeneity.
+
+
+```{r grid-uoa, fig.align="center", fig.cap="Regression 4 with grid as unit of analysis; bias, coverage, and rmse depend on grid size when property level unobservables are present. Note: x-axis begins at 2x2 grid cells to ensure grid cells are not simply pixels.", out.width = "90%", fig.pos='H', fig.show='hold'}
+knitr::include_graphics(c("figs/gridsize_bias_uoa.png", "figs/gridsize_cover_uoa.png", "figs/gridsize_rmse_uoa.png"))
 ```
 
-These findings further demonstrate the benefits of conducting the analysis at the scale of the relevant decision-making unit. Overall, this section highlights the benefits of structuring one's econometric modeling decisions to match the scale that drives landscape heterogeneity.
+
 
 <!-- The introduction of property level unobservables changes the relative performance of each specification. Figure \@ref(fig:summary) demonstrates that specifications incorporating spatially aggregated units into the analysis, whether with fixed effects (Regression 3) or units of analysis (Regression 4), suffer from less bias than those that only incorporate the pixel. This difference is exacerbated as $\sigma_p$, the standard error governing the property level disturbances, increases, even when accounting for non-random selection. Ultimately, all models that incorporate spatial aggregation suffer from relatively little bias and incur less bias than the simple pixel-level DID. -->
 
@@ -645,6 +654,8 @@ E[\hat{\beta}_{TWFE}]&=ATT+Diff\\
 \beta_{TWFE}&=ATT+Diff\\
 \blacksquare &
 \end{align*}
+
+## TWFE with pixel fixed effects is equivalent to running TWFE on dataset after dropping all pixels that were deforested in the first period {#ex-post}
 
 ## Analytical expression of  non-random sample selection bias in two-period two-group setting {#selection-proof}
 
