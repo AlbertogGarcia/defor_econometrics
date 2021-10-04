@@ -307,7 +307,7 @@ Rather than directly observing deforestation rates across the landscape in each 
 
 It is not uncommon to see annual treatment effects amounting to less than a 1 percentage point reduction in the annual deforestation rate [e.g. @robalino2013; @jones2017]. These modest reductions in the annual deforestation rate, however, can amount to large landscape-scale effects. For example, @alix-garcia2018 find that environmental land registration in Brazil’s Amazonian states of Mato Grosso and Para reduced the annual deforestation rate by an average 0.5 percentage points, which has amounted to an overall deforestation reduction of 10\%. We have parameterized a guiding example, representative of an impactful intervention in a high deforestation setting, to explore for the remainder of the paper. 
 
-The initial simulated landscape has the following characteristics: a pre-treatment deforestation rate of 2\% in the control area; a pre-treatment deforestation rate of 5\% in the intervention area; a decrease in the deforestation rate of 0.5 percentage points between the first and second period in the absence of treatment; and an average reduction of 1 percentage point in the deforestation rate in treated units due to the intervention ($ATT = -0.01$). We assume that $\sigma_a = 0.25$. Finally, we begin by assuming away pixel ($\sigma_a = 0$) and property-level disturbances ($\sigma_p = 0$) but relax this assumption in Section \@ref(property). Note that Assumption 1 and 2 are satisfied by construction. The derivations detailing the mapping from the landscape characteristics to the corresponding parameters in $y^*_{ivt}$ can be found in Appendix \@ref(parameter-mapping). 
+The initial simulated landscape has the following characteristics: a pre-treatment deforestation rate of 2\% in the control area; a pre-treatment deforestation rate of 5\% in the intervention area; a decrease in the deforestation rate of 0.5 percentage points between the first and second period in the absence of treatment; and an average reduction of 1 percentage point in the deforestation rate in treated units due to the intervention ($ATT = -0.01$). We assume that $\sigma_u = 0.5$. Finally, we begin by assuming away time invariant pixel ($\sigma_a = 0$) and property-level disturbances ($\sigma_p = 0$) but relax this assumption in Section \@ref(property). Note that Assumption 1 and 2 are satisfied by construction. The derivations detailing the mapping from the landscape characteristics to the corresponding parameters in $y^*_{ivt}$ can be found in Appendix \@ref(parameter-mapping). 
 
 ## Evaluation criteria
 
@@ -377,7 +377,7 @@ In essence, the first and third expectations in the bias term are conditional on
 
 Non-random selection was not an issue in our initial simulations, since we assumed away time-invariant pixel and property-level disturbances. The sample of at risk pixels in each time period did not depend on the deforestation that occurred the previous period, since the $y^o_{ivt}$s were i.i.d.. However, once time-invariant disturbances enter the DGP, the distribution of the $y^o_{iv2}s$ is potentially different from that of the $y^o_{iv1}$s. This is likely to be the case in reality, since each plot of land will have time-invariant characterisitcs such as slope, elevation, market access, agricultural suitability, etc. that impact its expected returns to clearing. 
 
-In order to see how this non-random selection influences estimates in our simulated setting, we set $\sigma_a$, the standard error of the time-invariant pixel-level disturbances equal to $0.1$. Figure \@ref(fig:selection-fig) shows that non-random selection introduces a slight downward bias across every specification (specifications ordered from least to most bias). Pixel-level specifications suffer slightly more than specifications with a spatially aggregated unit of analysis in terms of bias and coverage. 
+In order to see how this non-random selection influences estimates in our simulated setting, we set $\sigma_a$, the standard error of the time-invariant pixel-level disturbances equal to $0.25$. Figure \@ref(fig:selection-fig) shows that non-random selection introduces a slight downward bias across every specification (specifications ordered from least to most bias). Pixel-level specifications suffer slightly more than specifications with a spatially aggregated unit of analysis in terms of bias and coverage. 
 
 Another way to think about this bias is through the lens of reforestation timing. In equation 10, we see that the bias arises when the expectation of the observed $y^o_{ivt}$ and the true $y_{ivt}$ differ. This occurs when the researcher cannot observe reforestation timing in the data, and thus deforestation is irreversible in the panel dataset. We note that in practice, researchers cannot recover the second and fourth terms of the bias term in equation 10, meaning that the magnitude of this bias is unknown to the researcher. However, this bias is likely to be of a smaller magnitude in reality than in our simulated setting, since our simulated time frame for forest regrowth is too short to reflect true reforestation timing. For the remainder of the paper, we remove the bias due to non-random selection (only possible in the simulation setting). 
 
@@ -387,17 +387,48 @@ knitr::include_graphics("figs/selection_schart.png")
 
 # The value of linking model structure to the spatial process of deforestation
 
-Connecting the econometric model to the process by which land use change occurs on the ground has clear benefits for estimation and inference in deforestation impact evaluation. Table \@ref(tab:table-lit) shows that researchers often use a binary point, pixel, or grid cell as the unit of analysis. While this may sometimes be the preferred unit, it may lead to biased results if the land use change process operates at a different scale. 
+Connecting the econometric model to the process by which land use change occurs on the ground has clear benefits for estimation and inference in deforestation impact evaluation. Table \@ref(tab:table-lit) shows that researchers often use a binary point, pixel, or grid cell as the unit of analysis. While this may sometimes be the preferred unit, it may lead to biased results if the land use change process operates at a different scale.
 
 Property level unobservables impact both treatment effect estimates and coverage probabilities. This is likely to be a factor when land use decisions are made at the property level, or the intervention seeks to alter underlying landowner incentives. Characteristics of land are also likely to be similar within the same spatial boundaries. In our Monte Carlo simulations, we reintroduce the standard deviation of the time-invariant property level disturbances in the initial DGP, $\sigma_p$, in order to account for these unobservables. 
 
 ## Matching grid cell resolution to scale of heterogeneity may reduce bias
 
-In many instances, researchers do not have access to geospatial boundaries of these relevant administrative units. In these cases, utilizing a grid cell or alternative administrative unit to capture spatial heterogeneity is likely preferable to pixel level DID models for purposes of both estimation and inference. The scale of this grid cell or alternative unit relative to the process of land use change is important. Grid cell size plays a role in bias, RMSE, and coverage probability, particularly when property level unobservables are present. 
+In many instances, researchers do not have access to geospatial boundaries of these relevant administrative units. In these cases, utilizing a grid cell or alternative administrative unit to capture spatial heterogeneity is likely preferable to pixel level DID models for purposes of both estimation and inference. The scale of this grid cell or alternative unit relative to the process of land use change is important. Grid cell size plays a role in both estimation and inference, particularly when property level unobservables are present. 
+We now vary the grid cell resolution used in our monte carlo simulations to understand the importance of scale when conducting conservation impact evaluations. Table XX helps us to get a sense of relative scale within our synthetic landscapes for this section. We assume pixels are comparable to Landsat resolution (30 m), and so the average property in our landscape is 81 hectares. 
+
+```{r grid-res}
+nobs = 300^2
+ppoints = 100
+avg_parea = nobs/ppoints
+# property: 900 square pixels | 900*900 = 810000 m^2 = 81 ha
+
+
+# unit | grid cell resolution (m) | area (ha) | comparable use in literature
+
+resolution_df <- data.frame(
+  "pix" = c(3, 5 ,10, 20, 30, 50, 100)
+) %>%
+  mutate(resolution = pix*30,
+         area_ha = resolution^2 / 10000#,
+         #obs = round(nobs / pix^2)
+         )
+
+# property: 892.8571 square pixels | 30*30*892.8571 = 803571.4 m^2 = 80.35714 ha
+
+
+kable(resolution_df, format = "latex", row.names = FALSE,  booktabs = T,
+       caption = "Grid cell resolution and comparable area",
+       col.names = NULL) %>% 
+  add_header_above(c("resolution (pixels)"=1,"comparable resolution (m)"=1, "area (hectares)"=1), escape = TRUE, line =TRUE, bold = TRUE)%>% 
+  kable_styling(font_size = 10, latex_options = c("HOLD_position", "striped"), 
+                position = "center")
+
+```
+
 
 Figure \@ref(fig:grid-fe) shows how bias, coverage probability, and RMSE depend on grid size in pixel-level TWFE regressions with grid unit fixed effects (Regression 3, where $j$ represents grid cell $j$). Grid cells near to or slightly larger than the size of the average property tend to perform better than undersized or particularly large grid cells. 
 
-The top panel of Figure \@ref(fig:grid-fe) shows that even in the absence of property-level unobservables ($\sigma_p = 0$), too small of grids result in biased estimates of the $ATT$. The introduction of property unobservables exacerbates the issue with small grid cells, causing undersized grids to result in upward bias much more severe than when property unobservables play a lesser role. For any given value of $\sigma_p$, the middle panel shows that RMSE tends to approach its minimum near the scale of the average property, and in the bottom panel, we see that coverage probability is nearest the desired 95\% near that scale as well. 
+The top panel of Figure \@ref(fig:grid-fe) shows that even in the absence of property-level unobservables ($\sigma_p = 0$), too small of grids result in biased estimates of the $ATT$. The introduction of property unobservables exacerbates the issue with small grid cells, causing undersized grids to result in upward bias much more severe than when property unobservables play a lesser role. For any given value of $\sigma_p$, the middle panel shows that coverage probability is nearest the desired 95\% near the scale of the average property. Also, note that when property unobservables play a significant role and grid size is large, coverage is near 100\%, reflecting large standard errors. Lastly, the bottom panel shows that RMSE tends to approach its minimum near the scale of the average property as well. 
 
 ```{r grid-fe, fig.align="center", fig.cap="Regression 3 with grid unit fixed effects; bias, coverage, and rmse depend on grid size when property level unobservables are present. Note: x-axis begins at 2x2 grid cells to ensure grid cells are not simply pixels.", out.width = "90%", fig.pos='H', fig.show='hold'}
 knitr::include_graphics(c("figs/gridsize_bias_fe.png", "figs/gridsize_cover_fe.png", "figs/gridsize_rmse_fe.png"))
