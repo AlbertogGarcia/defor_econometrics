@@ -47,11 +47,11 @@ knitr::opts_chunk$set(echo = FALSE, warnings = FALSE, messages = FALSE, out.widt
 
 
 # Abstract {-}
-Conservation practitioners need rigorous evidence measuring the effectiveness of proposed policy interventions. Economists are increasingly generating this evidence by applying methods of impact evaluation to remotely sensed panel data on land use change. However, these applications come with new challenges. Using Monte Carlo simulations and analytical proofs, we demonstrate that many of the panel econometric models employed for avoided deforestation impact evaluation are biased - the significance, magnitude and even direction of estimated effects from many studies are likely incorrect. These errors threaten to undermine the evidence base that underpins conservation policy adoption and design. We review this burgeoning literature and develop guidance for the design of econometric models quantifying conservation policy effectiveness. 
+Conservation scientists are increasingly measuring the impacts of conservation interventions by applying quasiexperimental impact evaluation to remotely sensed panel data on land use change. However, these applications come with new challenges. Using Monte Carlo simulations and analytical proofs, we demonstrate that many of the panel econometric models employed for conservation impact evaluation are biased - the significance, magnitude and even direction of estimated effects from many studies are likely incorrect. These errors threaten to undermine the evidence base that underpins conservation policy adoption and design. We review this burgeoning literature and develop guidance for the design of econometric models quantifying conservation policy effectiveness. 
 
 # Introduction
 
-The founding goal of conservation biology was to provide principles and tools to preserve biological diversity [@soule1985]. To live up to this goal, scientists must generate causal evidence detailing the effectiveness of  conservation interventions [@williams2020]. Such evidence is critical for practitioners who grapple with challenging questions of cause and effect. Do marine protected areas stop unsustainable harvesting of fish? Can payments for ecosystem services encourage lasting reforestation? When successful, conservation science provides answers that improve the way society confronts environmental challenges. However, inappropriate methods can yield misleading conclusions and, as a result, risk diverting scarce financial and political resources from the most effective conservation strategies.
+The founding goal of conservation science was to provide principles and tools to preserve biological diversity [@soule1985]. To live up to this goal, scientists must generate causal evidence detailing the effectiveness of  conservation interventions [@williams2020]. Such evidence is critical for practitioners who grapple with challenging questions of cause and effect. Do marine protected areas stop unsustainable harvesting of fish? Can payments for ecosystem services encourage lasting reforestation? When successful, conservation science provides answers that improve the way society confronts environmental challenges. However, inappropriate methods can yield misleading conclusions and, as a result, risk diverting scarce financial and political resources from the most effective conservation strategies.
 
 Increasingly, econometric methods of impact evaluation have been used to disentangle causal relationships in conservation science [@butsic2017; @baylis2016]. These methods can generate accurate estimates of an intervention's impact by comparing observed outcomes to a rigorous counterfactual of what would have happened in the absence of an intervention [@ferraro2009; @meyfroidt2016; @ferraro2019; @ribas2020]. Conservation impact evaluation increasingly makes use of panel data in which units are observed repeatedly through time, thanks, in large part, to the proliferation of remote sensing [@blackman2013; @jones2015]. For example, NASA's landsat missions provide detailed and consistent information on land use spanning the entirety of the world since the 1970s [@hansen2012]. As a result, a scientist hoping to quantify the impacts of a land use policy adopted decades ago can assemble data for treated and control units that span both pre- and post-implementation periods [@jain2020].
 
@@ -60,7 +60,7 @@ However, many commonly used measures of land use change have structural differen
 Here, we use a combination of analytical proofs and Monte Carlo simulations to demonstrate that many econometric analyses of deforestation are likely biased - significance, magnitude and even direction of estimated effects might be incorrect. These biases arise even when researchers follow common guidance to adopt "rigorous" research designs with valid counterfactuals [@blackman2013; @jones2015]. Our main result shows that two-way fixed effects regressions with pixel unit fixed effects cannot identify the desired treatment effect parameter. Papers published in economics journals as recently as 2021 use this problematic specification to recover treatment effect estimates. This result extends to recently developed difference-in-differences estimators that allow for multiple periods and variation in treatment timing (e.g., @callaway2020; @gardner2021). To help guide future impact evaluations, we propose multiple ways in which this bias can be reduced or even eliminated. We then explore non-random selection that arises due to irreversibility in the deforestation setting and how this feature of the data may lead to bias. Finally, we reflect on the econometric benefits that emerge when researchers are able to match their model structure to the relevant scale of the deforestation process. 
 
 # Conservation impact evaluation using panel methods
-
+<!-- NOTE: I think this opening paragraph could probably be integrated into the motivating introduction -->
 While randomized experiments are the gold standard for scientific discovery in both the natural and social sciences [@edwards2020; @jayachandran2017], conservation often poses questions that are prohibitively expensive, unethical or impossible to pursue through experimentation. In such settings, a growing portfolio of statistical techniques enable researchers to draw causal conclusions using observational data [@larsen2019]. Importantly, these methods account for the non-random assignment of interventions that often confound identification of causal relationships; i.e., a low rate of deforestation within a remote protected area may reflect the protected area's effectiveness, or it may be indicative of the remote location's poor suitability for agricultural development [@andam2008; @pfaff2009]. These approaches frequently build upon panel data, in which researchers are able to observe changes in outcomes after the adoption of an intervention [@blackman2013]. When a rigorous research design is applied to panel data, observational studies can yield conclusions that are comparable to what a researcher would discover if they were able to run a randomized experiment [@ferraro2017].
 
 We center our attention on the case in which a researcher would like to quantify the impact of a policy intervention on deforestation rates. We assume that the intervention has clearly defined boundaries (e.g., a protected area, certified concession, or indigenous territory), and that the researcher has access to spatially explicit observations of forest cover and forest loss spanning the periods before and after the intervention was adopted. This general setting describes a broad array of research studies that apply panel methods to remotely sensed data (Table \@ref(tab:table-lit)).
@@ -97,14 +97,12 @@ TODO: -this is the one TODO that still needs to be addressed to a certain extent
 
 In each of the studies detailed in Table \@ref(tab:table-lit), the researcher's goal is to measure the impact that a specific policy had on deforestation within treated units, also known as the \textit{average treatment effect on the treated} ($ATT$). The $ATT$ estimates the difference between the average deforestation rate of treated units with treatment, and the average deforestation rate of treated units without treatment. The fundamental challenge is that, for every treated unit, the researcher is unable to observe the value that the outcome would have taken in the absence of treatment [@holland1986]. In our case, this means that the researcher cannot observe the deforestation that would have occurred in treated units had they not received treatment. Figure \@ref(fig:counterfactual) displays this problem in the context of a simulated conservation intervention that reduced deforestation rates in treated areas --- the landscape is depicted as observed by the researcher at the end of the observation period, including the unobservable counterfactual of what would have happened if the conservation intervention had not been adopted. Note that in untreated areas, there is no counterfactual deforestation, since no intervention ever took place. 
 
-```{r counterfactual, echo=FALSE, fig.cap="This figure shows deforestation that would have ocurred in the absence of the conservation intervention at the same point in time, after implementation of the conservation intervention. Note that no counterfactual deforestation occurs in the control area, since no intervention ocurred.", out.width = "100%"}
+```{r counterfactual, echo=FALSE, fig.cap="A map of a simulated landscape depicting patterns of deforestation under an effective conservation intervention, as well as counterfactual deforestation illustrating what would have happened in the absence of the intervention.", out.width = "100%"}
 knitr::include_graphics("figs/lscape.png")
 ```
 
 
-## Modeling deforestation pressure
-
-
+## Modeling the decision to deforest
 <!-- So I was thinking it could be useful to have a more general definition of our y_{ivt} that can vary between 0 and 1 across periods. This way, we can motivate the selection bias through the underlying latent variable. I added the bare bones of a second model that isn't dynamic in the way the the pfaff/kerr model is. With the pfaff/kerr model, I had a hard time reconciling the fact that the landowner chooses time t (even though the sufficient condition for clearing is just the returns along the latent variable) with the fact that y_ivt can vary. Would love to hear whether you think the model is necessary at all or which model would be better motivation. -->
 
 <!-- Alternatively, if the selection shouldn't come into play at all if the observed y^o_{ivt} that drops deforested pixels really should be the true y_ivt. Then our common trends and ATT would just reflect that selection -->
@@ -133,23 +131,24 @@ knitr::include_graphics("figs/lscape.png")
 
 <!-- We inform our empirical investigations based on this theoretical model.   -->
 
-We inform our empirical investigations with a land rent model based on @pfaff1999. For further details we refer the reader to the paper cited, as we try to provide just enough intuition to motivate our empirical investigations. At any point in time, a plot of land is allocated between different land uses to maximize profit. 
 
-$$ \max\limits_{l;I} \pi^l_{ivt} = P^l_{ivt}* Q^l_{ivt} (I_{ivt}) - R_{ivt}*I_{ivt}$$
-, where $l$ represents a given land use; $i$ represents a pixel located in property $v$; $t$ represents the year; and
+<!-- We inform our empirical investigations with a land rent model based on @pfaff1999. For further details we refer the reader to the paper cited, as we try to provide just enough intuition to motivate our empirical investigations. At any point in time, a plot of land is allocated between different land uses to maximize profit.  -->
 
-\begin{align*}
-P^l_{ivt} =&\text{ pixel-level prices for the vector of possible outputs from any given land use $l$,}\\ 
-Q^l_{ivt} =&\text{ the vector of all outputs produced from land use $l$,}\\ 
-I_{ivt} =&\text{ the vector of inputs used in all types of production,}\\ 
-R_{ivt} =&\text{ pixel-level prices for the vector of inputs used.}\\ 
-\end{align*}
+<!-- $$ \max\limits_{l;I} \pi^l_{ivt} = P^l_{ivt}* Q^l_{ivt} (I_{ivt}) - R_{ivt}*I_{ivt}$$ -->
+<!-- , where $l$ represents a given land use; $i$ represents a pixel located in property $v$; $t$ represents the year; and -->
 
-Assuming two land uses (we simply consider cleared and uncleared) and privately optimal input choice, we can consider the following clearing decision:
+<!-- \begin{align*} -->
+<!-- P^l_{ivt} =&\text{ pixel-level prices for the vector of possible outputs from any given land use $l$,}\\  -->
+<!-- Q^l_{ivt} =&\text{ the vector of all outputs produced from land use $l$,}\\  -->
+<!-- I_{ivt} =&\text{ the vector of inputs used in all types of production,}\\  -->
+<!-- R_{ivt} =&\text{ pixel-level prices for the vector of inputs used.}\\  -->
+<!-- \end{align*} -->
 
-$$\text{choose $l_{ivt}=$ cleared}  \hspace{5mm} iff: V^{cleared}_{ivt}> V^{uncleared}_{ivt},$$
+<!-- One key factor to understanding our choice of this motivational model is the omission of past land use. In this model, regrowth is sufficiently fast that uncleared land is a viable option for pixels which were cleared in the previous observation [@pfaff1999]. In reality, forest regrowth is neither instantaneous nor is deforestation irreversible. We make this modeling assumption in order to explore the potential issues that arise when reforestation timing is ignored and assumed to be irreversible. This aspect of the model becomes relevant in Section \@ref(property). -->
 
-where $V^l_{ivt} = \max\limits_{I | l} \pi^l_{ivt}$. Thus, pixel $i$ in property $v$ would be deforested in time $t$ if $V^{cleared}_{ivt} - V^{uncleared}_{ivt} > 0$. We express deforestation pressure in terms of a latent $y^*_{ivt}$, and its transformation into a binary variable indicating whether there exists deforestation pressure such that the pixel is cleared in time $t$:  
+
+<!-- NOTE: We should expand upon this description of the basic latent > binary decision rule model, and highlight examples from the literature that use this type of cut-off in both dynamic and static settings. Also need to adjust notation given that previous Pfaff model has been removed. -->
+We model deforestation $(y_{ivt})$ as a binary choice by a landowner to clear a small plot of land $i$ within their larger property $v$ at time $t$. The decision to deforest depends upon a latent variable $(y_{ivt}^*)$ that represents the returns of the plot of land in its cleared state $(V_{ivt}^{cleared})$ relative to the returns from its forested state $(V_{ivt}^{uncleared})$, such that:
 
 \begin{align}
  y^*_{ivt} = V^{cleared}_{ivt} - V^{uncleared}_{ivt} (\#eq:clearing)\\
@@ -159,7 +158,48 @@ where $V^l_{ivt} = \max\limits_{I | l} \pi^l_{ivt}$. Thus, pixel $i$ in property
    \end{cases}
 \end{align}
 
-One key factor to understanding our choice of this motivational model is the omission of past land use. In this model, regrowth is sufficiently fast that uncleared land is a viable option for pixels which were cleared in the previous observation [@pfaff1999]. In reality, forest regrowth is neither instantaneous nor is deforestation irreversible. We make this modeling assumption in order to explore the potential issues that arise when reforestation timing is ignored and assumed to be irreversible. This aspect of the model becomes relevant in Section \@ref(property).
+This generic clearing rule underpins a broad class of more specific static and dynamic models that have been used to explore the determinants of deforestation [@pfaff1999].
+<!-- NOTE: Add more citations to past models - in particular, need to add dynamic models (pfaff and kerr?) Maybe add another sentence or two describing what these models have in common? -->
+
+However, this basic model makes an assumption that the decision to deforest is reversible. In reality, a number of characteristics of both the process of deforestation, as well as the methods used to detect deforestation in individual plots, complicate this assumption. First, the goal of many conservation interventions is to prevent the loss of mature forests that may take decades, if not centuries, to regrow (CITE). In such cases, deforestation itself may be considered irreversible in human time scales, focusing the researchers' attention upon the first instance in which a plot is deforested. Even when deforestation of secondary forests is an object of interest, constraints imposed by remotely sensed datasets may force empirical researchers to treat deforestation as irreversible. Gradual processes of reforestation are inherently harder to identify than abrupt losses of forest cover (CITE HANSEN). In addition, determining the precise year in which the extended process of forest regrowth began is currently an active area of research for the remote sensing community, and often requires many years of post-regrowth observations (CITE GRAESSER?). As a result, commonly used deforestation datasets such as the Global Forest Change product often only identify the first year in which a pixel was cleared [@hansen2013]. Whether desired, or due to technical limitations, the resulting inability to observe repeated deforestation events has led many researchers to drop deforested pixels in the periods after they first become deforested [@jones2015; @alix-garcia2017]. As a result of deforestation's assumed irreversibility, the binary deforestation variable $y_{ivt}$ is further modified:
+
+\begin{align*}
+ y^o_{ivt} = \begin{cases}
+      1 &  \text{if pixel $i$ is deforested in time $t$}\\
+      0 &  \text{if pixel $i$ has never been deforested} \\
+      NAN & \text{if pixel $i$ was deforested prior to time $t$}
+   \end{cases}
+\end{align*}
+
+
+<!-- base our empirical investigations on a model of a landowner's decision to deforest a plot of land $i$ located within their property $v$. Across a variety of static [@pfaff1999] -->
+<!-- and dynamic (ADD CITATIONS) settings -->
+
+<!-- in a relatively general class of models that  with a land rent model based on @pfaff1999. For further details we refer the reader to the paper cited, as we try to provide just enough intuition to motivate our empirical investigations. At any point in time, a plot of land is allocated between different land uses to maximize profit. -->
+<!-- [@pfaff1999] -->
+<!-- Assuming two land uses (we simply consider cleared and uncleared) and privately optimal input choice, we can consider the following clearing decision: -->
+
+<!-- $$\text{choose $l_{ivt}=$ cleared}  \hspace{5mm} iff: V^{cleared}_{ivt}> V^{uncleared}_{ivt},$$ -->
+
+<!-- where $V^l_{ivt} = \max\limits_{I | l} \pi^l_{ivt}$. Thus, pixel $i$ in property $v$ would be deforested in time $t$ if $V^{cleared}_{ivt} - V^{uncleared}_{ivt} > 0$. We express deforestation pressure in terms of a latent $y^*_{ivt}$, and its transformation into a binary variable indicating whether there exists deforestation pressure such that the pixel is cleared in time $t$:   -->
+
+
+
+
+<!-- Researchers generally cannot observe $y^*_{ivt}$ directly. Instead, they observe maps depicting pixel-level, binary deforestation, similar to what is depicted in Figure \@ref(fig:counterfactual). In the form of a panel dataset, the researcher observes the year in which a pixel is converted from forest to non-forest, and importantly, deforested pixels do not revert back to forest cover.  -->
+
+
+
+
+<!-- Rather than directly observing deforestation rates across the landscape in each time period, the researcher observes annualized maps depicting pixel-level, binary deforestation $(y^o_{ivt}\ \epsilon \ 0, 1)$ with the following mapping from the latent $y^*_{ivt}$ to the observed $y^o_{ivt}$: -->
+
+<!-- \begin{align} -->
+<!--  y^o_{ivt} = \begin{cases} -->
+<!--       1   & y^*_{ivt} > 0 \text{ and } y^*_{iv \tau} \leq 0 \text{ for all } \tau<t  \\ -->
+<!--       0   &  y^*_{ivt} \leq 0 \text{ and } y^*_{iv \tau} \leq 0 \text{ for all } \tau<t \\ -->
+<!--       NAN & otherwise -->
+<!--    \end{cases} -->
+<!-- \end{align} -->
 
 <!-- Contemporaneous land rent, $R_{ivk}$,for land use $k$ at any given pixel $i$ located in property $v$ is deﬁned as the difference between the value of outputs and inputs, $Q_{ivk}$ and $X_{ivk}$, at their respective location-speciﬁc prices $P_{ivk}$ and $C_{ivk}$. -->
 
@@ -210,15 +250,6 @@ We also evaluate the DID and TWFE models under the following stable unit treatme
 \end{align*}
 
 Assumption 2 requires that the potential outcomes for pixel $i$, $y_{ivt}(1)$ and $y_{ivt}(0)$, do not depend on the treatment status of any other pixel. There also cannot exist unobserved versions of treatment that may affect the potential outcomes. 
-
-Researchers generally cannot observe $y^*_{ivt}$ directly. Instead, they observe maps depicting pixel-level, binary deforestation, similar to what is depicted in Figure \@ref(fig:counterfactual). In the form of a panel dataset, the researcher observes the year in which a pixel is converted from forest to non-forest, and importantly, deforested pixels do not revert back to forest cover. Thus, repeated deforestation events cannot be detected in the same location. In order to correct for this irreversibility, many studies drop deforested pixels in the periods after they first become deforested [@jones2015; @alix-garcia2017]. In the literature, the outcome variable describing pixel $i$, in property $v$, in time $t$ is therefore defined as follows:
-\begin{align*}
- y^o_{ivt} = \begin{cases}
-      1 &  \text{if pixel $i$ is deforested in time $t$}\\
-      0 &  \text{if pixel $i$ has never been deforested} \\
-      NAN & \text{if pixel $i$ was deforested prior to time $t$}
-   \end{cases}
-\end{align*}
 
 
 The typical DID regression model includes a dummy variable equal to one for units in the treatment group, a dummy variable equal to one for observations in the period after the intervention, and their interaction. 
@@ -302,18 +333,6 @@ That is, the returns to deforestation evolve over the two time periods $(\mathbb
 <!-- Note for Albert: Should sub-script on property-level sigma be v?
 -->
 
-
-<!-- Can we just reference back to the previous definition of y^o?
--->
-Rather than directly observing deforestation rates across the landscape in each time period, the researcher observes annualized maps depicting pixel-level, binary deforestation $(y^o_{ivt}\ \epsilon \ 0, 1)$ with the following mapping from the latent $y^*_{ivt}$ to the observed $y^o_{ivt}$:
-
-\begin{align}
- y^o_{ivt} = \begin{cases}
-      1   & y^*_{ivt} > 0 \text{ and } y^*_{iv \tau} \leq 0 \text{ for all } \tau<t  \\
-      0   &  y^*_{ivt} \leq 0 \text{ and } y^*_{iv \tau} \leq 0 \text{ for all } \tau<t \\
-      NAN & otherwise
-   \end{cases}
-\end{align}
 
 ## Assumed parameter values
 For the remainder of the paper, we explore a guiding example that has been parameterized to represent an impactful intervention in a high deforestation setting. In the existing literature, it is not uncommon to see annual treatment effects amounting to less than a 1 percentage point reduction in the annual deforestation rate [e.g. @robalino2013; @jones2017]. These modest reductions in the annual deforestation rate, however, can amount to large landscape-scale effects. For example, @alix-garcia2018 find that environmental land registration in Brazil’s Amazonian states of Mato Grosso and Para reduced the annual deforestation rate by an average 0.5 percentage points, which has amounted to an overall deforestation reduction of 10\%. 
