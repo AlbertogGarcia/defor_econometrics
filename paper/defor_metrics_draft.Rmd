@@ -1,7 +1,7 @@
 ---
 title: Conservation impact evaluation using remotely sensed data
 author: "Alberto Garcia and Robert Heilmayr"
-date: "October 1, 2021"
+date: "October 31, 2021"
 output:
   bookdown::pdf_document2:
     latex_engine: xelatex
@@ -103,49 +103,6 @@ knitr::include_graphics("figs/lscape.png")
 
 
 ## Modeling the decision to deforest
-<!-- So I was thinking it could be useful to have a more general definition of our y_{ivt} that can vary between 0 and 1 across periods. This way, we can motivate the selection bias through the underlying latent variable. I added the bare bones of a second model that isn't dynamic in the way the the pfaff/kerr model is. With the pfaff/kerr model, I had a hard time reconciling the fact that the landowner chooses time t (even though the sufficient condition for clearing is just the returns along the latent variable) with the fact that y_ivt can vary. Would love to hear whether you think the model is necessary at all or which model would be better motivation. -->
-
-<!-- Alternatively, if the selection shouldn't come into play at all if the observed y^o_{ivt} that drops deforested pixels really should be the true y_ivt. Then our common trends and ATT would just reflect that selection -->
-
-
-
-<!-- We dynamically model deforestation pressure following @kerr2003 and @pfaff2004a. A risk-neutral landowner decides when to clear forested pixel $i$ in property $v$ by maximizing the expected present discounted value of returns: -->
-
-<!-- $$ \max\limits_T \int^T_0 S_{ivt}e^{-rt}dt + \int^\infty_TR_{ivt}e^{-rt} - C_Te^{-rt}$$ -->
-
-<!-- , where $S_{it}$ represents returns to forest uses of the land; $R_{it}$ represents returns to non-forest uses of the land; $C_T$ represents the cost of clearing net of obtainable timber value; and $r$ is the interest rate.  -->
-
-<!-- Clearing must be profitable and an arbitrage condition must hold in order for pixel $i$ in property $v$ to be cleared in time $t$: -->
-
-<!-- $$R_{ivt} - S_{ivt} -r_tC_t+\frac{dC_t}{d_t}>0$$ -->
-
-<!-- We express deforestation pressure in terms of a latent variable $y^*_{ivt}$, and its transformation into a binary variable indicating whether there exists deforestation pressure such that the pixel is cleared: -->
-
-<!-- \begin{align} -->
-<!--  y^*_{ivt} = R_{ivt} - S_{ivt} -r_tC_t+\frac{dC_t}{d_t} (\#eq:clearing)\\ -->
-<!--  y_{ivt} = \begin{cases} -->
-<!--       1 &  \text{if $y*_{ivt}>0$}\\ -->
-<!--       0 &  \text{otherwise} -->
-<!--    \end{cases} -->
-<!-- \end{align} -->
-
-<!-- We inform our empirical investigations based on this theoretical model.   -->
-
-
-<!-- We inform our empirical investigations with a land rent model based on @pfaff1999. For further details we refer the reader to the paper cited, as we try to provide just enough intuition to motivate our empirical investigations. At any point in time, a plot of land is allocated between different land uses to maximize profit.  -->
-
-<!-- $$ \max\limits_{l;I} \pi^l_{ivt} = P^l_{ivt}* Q^l_{ivt} (I_{ivt}) - R_{ivt}*I_{ivt}$$ -->
-<!-- , where $l$ represents a given land use; $i$ represents a pixel located in property $v$; $t$ represents the year; and -->
-
-<!-- \begin{align*} -->
-<!-- P^l_{ivt} =&\text{ pixel-level prices for the vector of possible outputs from any given land use $l$,}\\  -->
-<!-- Q^l_{ivt} =&\text{ the vector of all outputs produced from land use $l$,}\\  -->
-<!-- I_{ivt} =&\text{ the vector of inputs used in all types of production,}\\  -->
-<!-- R_{ivt} =&\text{ pixel-level prices for the vector of inputs used.}\\  -->
-<!-- \end{align*} -->
-
-<!-- One key factor to understanding our choice of this motivational model is the omission of past land use. In this model, regrowth is sufficiently fast that uncleared land is a viable option for pixels which were cleared in the previous observation [@pfaff1999]. In reality, forest regrowth is neither instantaneous nor is deforestation irreversible. We make this modeling assumption in order to explore the potential issues that arise when reforestation timing is ignored and assumed to be irreversible. This aspect of the model becomes relevant in Section \@ref(property). -->
-
 
 <!-- NOTE: We should expand upon this description of the basic latent > binary decision rule model, and highlight examples from the literature that use this type of cut-off in both dynamic and static settings. Also need to adjust notation given that previous Pfaff model has been removed. -->
 We model deforestation $(y_{ivt})$ as a binary choice by a landowner to clear a small plot of land $i$ within their larger property $v$ at time $t$. The decision to deforest depends upon a latent variable $(y_{ivt}^*)$ that represents the returns of the plot of land in its cleared state $(V_{ivt}^{cleared})$ relative to the returns from its forested state $(V_{ivt}^{uncleared})$, such that:
@@ -158,7 +115,7 @@ We model deforestation $(y_{ivt})$ as a binary choice by a landowner to clear a 
    \end{cases}
 \end{align}
 
-This generic clearing rule underpins a broad class of more specific static and dynamic models that have been used to explore the determinants of deforestation [@pfaff1999].
+This generic clearing rule underpins a broad class of more specific static and dynamic models that have been used to explore the determinants of deforestation [e.g., @pfaff1999; @kerr; @pfaff2004].
 <!-- NOTE: Add more citations to past models - in particular, need to add dynamic models (pfaff and kerr?) Maybe add another sentence or two describing what these models have in common? -->
 
 However, this basic model makes an assumption that the decision to deforest is reversible. In reality, a number of characteristics of both the process of deforestation, as well as the methods used to detect deforestation in individual plots, complicate this assumption. First, the goal of many conservation interventions is to prevent the loss of mature forests that may take decades, if not centuries, to regrow (CITE). In such cases, deforestation itself may be considered irreversible in human time scales, focusing the researchers' attention upon the first instance in which a plot is deforested. Even when deforestation of secondary forests is an object of interest, constraints imposed by remotely sensed datasets may force empirical researchers to treat deforestation as irreversible. Gradual processes of reforestation are inherently harder to identify than abrupt losses of forest cover (CITE HANSEN). In addition, determining the precise year in which the extended process of forest regrowth began is currently an active area of research for the remote sensing community, and often requires many years of post-regrowth observations (CITE GRAESSER?). As a result, commonly used deforestation datasets such as the Global Forest Change product often only identify the first year in which a pixel was cleared [@hansen2013]. Whether desired, or due to technical limitations, the resulting inability to observe repeated deforestation events has led many researchers to drop deforested pixels in the periods after they first become deforested [@jones2015; @alix-garcia2017]. As a result of deforestation's assumed irreversibility, the binary deforestation variable $y_{ivt}$ is further modified:
@@ -330,8 +287,6 @@ y^*_{ivt} = & V^{cleared}_{ivt} - V^{uncleared}_{ivt}\\
 \end{align*}
 
 That is, the returns to deforestation evolve over the two time periods $(\mathbbm{1}\{  t \geq t_0  \})$, and differ across the control $(  D_i = 0 )$ and treated pixels $(  D_i = 1 )$. In addition, we assume that the value of deforestation is influenced by time-invariant random disturbances at the scale of individual pixels ($\alpha_i \sim N(0, \sigma_a^2)$) or properties ($\rho_v \sim N(0, \sigma_p^2)$), as well as time-varying, pixel-scale disturbances ($u_{it} \sim N(0, \sigma_u^2)$). These disturbances can represent a variety of spatial and temporal processes including, for example, the biophysical characteristics of a location, or the preferences of a property owner. 
-<!-- Note for Albert: Should sub-script on property-level sigma be v?
--->
 
 
 ## Assumed parameter values
