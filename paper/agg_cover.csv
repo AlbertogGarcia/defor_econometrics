@@ -1,6 +1,6 @@
-"","unit of analysis","fixed effects","weighted","se","0","0.1","0.2","0.3"
-"1","county","county","no","clustered at county",0.952,0.944,0.924,0.944
-"2","county","county","yes","clustered at county",0.92,0.952,0.924,0.952
-"3","property","property","no","clustered at property",0.932,0.956,0.932,0.928
-"4","property","property","yes","clustered at property",0.936,0.948,0.94,0.928
-"5","grid","grid","no","clustered at grid",0.94,0.936,0.928,0.9
+"","unit of analysis","fixed effects","weighted","se","0","0.1","0.25"
+"1","county","county","no","clustered at county",0.944,0.936,0.95
+"2","county","county","yes","clustered at county",0.95,0.928,0.948
+"3","property","property","no","clustered at property",0.948,0.928,0.94
+"4","property","property","yes","clustered at property",0.95,0.946,0.946
+"5","grid","grid","no","clustered at grid",0.948,0.944,0.938
