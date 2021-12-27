@@ -64,6 +64,7 @@ However, many commonly used measures of land use change have structural differen
 Here, we use a combination of analytical proofs and Monte Carlo simulations to demonstrate that many econometric analyses of deforestation are likely biased - significance, magnitude and even direction of estimated effects might be incorrect. While we focus on deforestation, many of our results apply to any setting with binary, irreversible data. The resulting biases arise even when researchers follow common guidance to adopt "rigorous" research designs with valid counterfactuals [@blackman2013; @jones2015]. Our main result shows that two-way fixed effects regressions with pixel unit fixed effects cannot identify the desired treatment effect parameter. Papers published in both conservation science and economics journals as recently as 2021 use this problematic specification to recover treatment effect estimates. To help guide future impact evaluations, we identify multiple ways in which this bias can be reduced or even eliminated. We then explore non-random selection that arises due to irreversibility in the deforestation setting and how this feature of the data may lead to bias. Finally, we reflect on the econometric benefits that emerge when researchers are able to match their model structure to the relevant scale of the deforestation process. 
 
 # Measuring avoided deforestation using panel methods
+
 We focus on the case in which a researcher would like to quantify the impact an intervention has had on deforestation. We assume that the intervention has clearly defined boundaries (e.g., a protected area, certified concession, or indigenous territory), and that the researcher has access to spatially explicit observations of forest cover and forest loss spanning the periods before and after the intervention was adopted. This general setting describes a broad array of studies that apply panel methods to remotely sensed data (Table \@ref(tab:table-lit)).
 
 \renewcommand{\arraystretch}{1.5}
@@ -86,8 +87,6 @@ kable(lit_table, format = "latex",
 ```
 \clearpage
 <!-- 
-TODO: -this is the one TODO that still needs to be addressed to a certain extent. I'm thinking that I'll wait to add the studies that use binary "any deforestation within bounds" outcome until we incorporate this outcome into the simulations. At that point, I'll more descriptively include the outcome as something separate from the unit of analysis
-
 1. For "regression" panel methods - what does this mean? Aren't all of these studies using regression? Are these cross-sectional rather than panel models?
 - need to address this in a more informative way, but many are in panel settings but use a model that does not use fixed effects 
 3. Add studies that use binary "any deforestation within bounds" outcome?
@@ -197,13 +196,7 @@ However, this basic model makes an assumption that the decision to deforest is r
 
 <!-- where $V^l_{ivt} = \max\limits_{I | l} \pi^l_{ivt}$. Thus, pixel $i$ in property $v$ would be deforested in time $t$ if $V^{cleared}_{ivt} - V^{uncleared}_{ivt} > 0$. We express deforestation pressure in terms of a latent $y^*_{ivt}$, and its transformation into a binary variable indicating whether there exists deforestation pressure such that the pixel is cleared in time $t$:   -->
 
-
-
-
 <!-- Researchers generally cannot observe $y^*_{ivt}$ directly. Instead, they observe maps depicting pixel-level, binary deforestation, similar to what is depicted in Figure \@ref(fig:counterfactual). In the form of a panel dataset, the researcher observes the year in which a pixel is converted from forest to non-forest, and importantly, deforested pixels do not revert back to forest cover.  -->
-
-
-
 
 <!-- Rather than directly observing deforestation rates across the landscape in each time period, the researcher observes annualized maps depicting pixel-level, binary deforestation $(y^o_{ivt}\ \epsilon \ 0, 1)$ with the following mapping from the latent $y^*_{ivt}$ to the observed $y^o_{ivt}$: -->
 
@@ -236,8 +229,6 @@ However, this basic model makes an assumption that the decision to deforest is r
 <!--       0 &  \text{otherwise} -->
 <!--    \end{cases} -->
 <!-- \end{align} -->
-
-
 
 ## Estimating the $ATT$: difference-in-differences and two-way fixed effects estimators {#ATT}
 
@@ -304,13 +295,16 @@ Despite widespread use of pixel level analyses of deforestation, the application
 Regression 2 thus forgoes the benefits that panel methods provide and, if the treated area has a different baseline deforestation rate than the control, will represent a biased estimate of the intervention's impact. Many conservation interventions are specifically targeted towards locations with either low opportunity costs for conservation, or high threats of conversion. As a result, it is likely that many conservation impact evaluations will have treatment and control units that experienced different pre-treatment deforestation rates. It is important to note that this bias could even lead to changes in the estimated treatment effect's sign, in addition to errors in the effect's magnitude and significance. 
 
 
-<!-- JUST ADDED BACK THIS TEXT SINCE IT IS NOW IN APPENDIX -->
+<!-- JUST ADDED TEXT TO GIVE INTUITION BEHIND PROOF AND JUST ADDED BACK APPENDIX REFERENCE TEXT SINCE IT IS NOW IN APPENDIX -->
 
-In cases where the researcher has two groups and two distinct time periods, the simple DID model can still identify the $ATT$, however, TWFE models with pixel fixed effects as described by Regression 2 cannot be used to convincingly identify the $ATT$. 
+This result stems from researchers' use of pixel fixed effects in the regression specification. By including unit fixed effects in TWFE regressions, researchers hope to control for unit-specific confounders, including pre-treatment differences in the outcome. However, when following common guidance to drop pixels in the periods after they are first deforested, these fixed effects do not behave as the researcher expects. Because the pixels that are deforested in the first period are not observed for the entire panel, these observations go unnacounted for in $\beta_{TWFE}$. Implicitly, the pre-treatment deforestation rates get assigned as 0 for both the treatment and control groups. In Appendix \@ref(ex-post), we show that $\hat{\beta}_{TWFE}$ is equivalent to the coefficient from a regression on a dataset where all pixels deforested in the pre-treatment period are simply dropped from the dataset completely.
 
-Researchers often find themselves in situations where the more flexible TWFE model is preferable to the simple DID, such as in the case of multiple groups and time periods. While many economists may be transitioning to newly developed estimators to address settings in which multiple groups undergo treatment in different time periods [e.g., @callaway2020; @gardner2021], we show in section \@ref(multipleGT) that many of these estimators suffer from the same issue. In Appendix \@ref(ex-post), we show that $\hat{\beta}_{TWFE}$ is equivalent to the coefficient from a regression on a dataset where all pixels deforested in the pre-treatment period are simply dropped from the dataset completely. This remains the case even when the dataset contains more than two years worth of observations.
+<!-- In cases where the researcher has two groups and two distinct time periods, the simple DID model can still identify the $ATT$, however, TWFE models with pixel fixed effects as described by Regression 2 cannot be used to convincingly identify the $ATT$.  -->
+
+Researchers often find themselves in situations where the more flexible TWFE model is preferable to the simple DID, such as in the case of multiple groups and time periods. While many economists may be transitioning to newly developed estimators to address settings in which multiple groups undergo treatment in different time periods [e.g., @callaway2020; @gardner2021], we show in section \@ref(multipleGT) that many of these estimators suffer from the same issue.  
 
 ## Alternative construction of $y^o_{ivt}$ cannot recover $ATT$
+
 Although dropping previously deforested pixels from the panel introduces bias into the TWFE estimate of the $ATT$, keeping observations in the panel after initial deforestation (i.e. using y^_{ivt} as the outcome variable in place of y^o_{ivt}) introduces its own problems. The $ATT$ as defined in Section \@ref(ATT) is an estimate of the impact of an intervention on the frequency of deforestation events (i.e. the decision to clear). Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested would incorrectly imply that it has actively been deforested in each subsequent time period, when in fact, no new deforestation event or clearing decision has occurred. This is intuitively problematic, because the deforestation rate in each period would be monotonically increasing by construction, which is not necessarily the case. We show that pixel-level regression models do not drop deforested pixels in subsequent periods do indeed incur severe bias if used to estimate the $ATT$ as it is defined here (Appendix \@ref(keep-pixels)). 
 
 Alternately, some researchers opt to keep deforested pixels in the panel, and choose to estimate an intervention's impact on deforested area, rather than on deforestation rates. However, when reforestation timing is unaccounted for, as is the case with most data products using a binary measure of deforestation, this is not possible. Rather than measuring deforested area at any given time, this outcome variable measures the stock of ever-deforested area through the current time period. It is unclear that this is a relevant parameter of interest in many cases and should not be interpreted as either a deforestation rate or the deforested area in a given time period. See (Appendix \@ref(keep-pixels)) for further discussion on this point.
@@ -586,10 +580,12 @@ knitr::include_graphics(c("figs/pixel_multiGT2.png","figs/county_multiGT2.png"))
 <!-- We plan to undertake the following extensions in future iterations of this paper: -->
 
 <!-- \begin{itemize} -->
-<!-- \item Many of our analyses may benefit from incorporation of heterogeneous treatment effects. This may be particularly interesting to vary at the property-level. This may better highlight the transition many economists are making to the newer suite of DID methods with multiple groups and time periods (Right now, the TWFE estimator performs great in Figure \@ref(fig:multiGT)b). Further, the use of area weights is likely to be most useful when the $ATT$ for the characteristic property differs from the $ATT$ across the landscape. In our current framework, these are the same, making it dificult to highlight to potential benefits of area weights. In many settings, researchers want to highlight the landscape $ATT$ rather than the property-level.  -->
-<!-- \item (partially implemented) multiple grid sizes (i.e. larger than and smaller than average property). A clear experiment if which grid cells move closer to/further from the scale of properties may help clarify the benefits of matching scale to the scale at which heterogeneity is driven.  -->
 <!-- \item incorporate binary outcome variable equal to one if any deforestation occurs in administrative unit during time $t$. This outcome has been used with increasing frequency, and the coefficient has been interpreted as a deforestation rate. This measure may perform better when heterogeneity is present.  -->
 <!-- \end{itemize} -->
+
+<!-- # An ode to survival models -->
+
+
 
 # Conclusions
 
@@ -720,7 +716,9 @@ E[\hat{\beta}_{TWFE}]&=ATT+Diff\\
 
 ## TWFE with pixel fixed effects is equivalent to running TWFE on dataset after dropping all pixels that were deforested in the first period {#ex-post}
 
-```{r}
+Table \@ref(tab:twfe-comp) shows that the coefficient of interest from the TWFE regression with pixel fixed effects is equivalent to the same regression on a dataset where all pixels deforested in the first period are dropped. We generate a panel of two years pre-and post treatment in order to show that the estimated coefficient is not equivalent to the ex-post difference in means, although both should be estimating the same parameter. This exercies provides further evidence that this commonly used TWFE regression is not adequate for recovering the $ATT$.  
+
+```{r twfe-comp}
 models_of_interest <- c("DID", "TWFE", "TWFE on dataset dropping deforested pixels prior to treatment", "ex-post difference in means")
 
 twfe_comp <- readRDS("TWFE_comp.rds")%>%
