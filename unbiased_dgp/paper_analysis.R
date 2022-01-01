@@ -48,20 +48,6 @@ export(summary_long, "summary_long.rds")
 ###############################################################################################################
 ######## show TWFE is equivalent to dropping all pixels deforested in first period
 ###############################################################################################################
-base_0 = .02
-base_1 = .05
-trend = -.005
-ATT = -.01
-
-# we'll need to compute the parameters 
-std_avp = (std_a^2+std_v^2+std_p^2)^.5
-b0 = qnorm(base_0, mean = 0, sd = std_avp)
-b1 = qnorm(base_1, mean = 0, sd = std_avp) - b0
-b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
-b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
-b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
-
-#ATT = pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2 )^.5) - pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2 )^.5)
 
 estimator_comp <- TWFE_expost(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
 
@@ -236,4 +222,49 @@ write.csv(agg_cover, "agg_cover.csv")
 write.csv(fix_cover, "fix_cover.csv")
 write.csv(did_cover, "did_cover.csv")
 
+###############################################################################################################
+######## alternative parameterization
+###############################################################################################################
+
+std_p = 0.25
+std_a = 0.1
+
+base_0 = .05
+base_1 = .02
+trend = -.005
+ATT = -.01
+
+# we'll need to compute the parameters 
+std_avp = (std_a^2+std_v^2+std_p^2)^.5
+b0 = qnorm(base_0, mean = 0, sd = std_avp)
+b1 = qnorm(base_1, mean = 0, sd = std_avp) - b0
+b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
+b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
+b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
+
+set.seed(0930)
+
+
+aggregation_alt <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints, rm.selection = FALSE)
+
+summary_long_alt <- aggregation_alt$summary_long
+export(summary_long_alt, "summary_long_alt.rds")
+
+base_0 = .02
+base_1 = .05
+trend = -.005
+ATT = .01
+
+# we'll need to compute the parameters 
+std_avp = (std_a^2+std_v^2+std_p^2)^.5
+b0 = qnorm(base_0, mean = 0, sd = std_avp)
+b1 = qnorm(base_1, mean = 0, sd = std_avp) - b0
+b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
+b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
+b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
+
+aggregation_alt2 <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints, rm.selection = FALSE)
+
+summary_long_alt2 <- aggregation_alt2$summary_long
+export(summary_long_alt2, "summary_long_alt2.rds")
 
