@@ -983,7 +983,7 @@ and
 
 ## Property-level models still outperform in alternative parameterizations {#property-alt}
 
-Figure \@ref(fig:alt-param) shows model performance for two alternate landscape parameterizations in the presence of property unobservables ($\sigma_p$), ordered from least to most biased. The top panel considers our initial parameterization, but switches the pre-treatment deforestation rates for the two groups. This leaves a pre-treatment deforestation rate of 5\% in the control areaand 2\% in the intervention area. The bottom panel considers the initial parameterization, but makes the $ATT$ positive (i.e. $ATT = 0.01$ rather then $-0.01$). 
+Figure \@ref(fig:alt-param) shows model performance for two alternate landscape parameterizations in the presence of property unobservables ($\sigma_p$), ordered from least to most biased. The top panel considers our initial parameterization, but switches the pre-treatment deforestation rates for the two groups. This leaves a pre-treatment deforestation rate of 5\% in the control areaand 2\% in the intervention area. The bottom panel considers the initial parameterization, but instead makes the $ATT$ positive (i.e. $ATT = 0.01$ rather than $-0.01$). 
 
 ```{r alt-param, fig.align="center", fig.cap="Property-level specification still outperform others in presence of property unobservables with alternative landscape parameterizations", out.width = "70%", fig.pos='H', fig.show='hold'}
 knitr::include_graphics(c("figs/schart_alt.png", "figs/schart_alt2.png"))
