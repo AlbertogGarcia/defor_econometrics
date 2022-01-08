@@ -197,6 +197,7 @@ for(i in 1:n){
   #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   # Set up survival dataframe ----
   #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  ## Ref: https://cran.r-project.org/web/packages/survival/vignettes/timedep.pdf
   surv_df <- panels %>% 
     mutate(t_start = year - 1,
            t_end = year,
