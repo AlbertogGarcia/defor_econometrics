@@ -55,6 +55,7 @@ rm.selection = FALSE
 # Create panel dataframe using code from aggregate_complete ----
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 hr_list <- numeric(n)
+ci_list <- numeric(n)
 
 countyscape = full_landscape(nobs, cellsize, ppoints, cpoints)
 pixloc_df = countyscape$pixloc_df
@@ -233,7 +234,11 @@ for(i in 1:n){
   print(summary(cox))
   coefs <- cox$coefficients
   hr <- coefs[[2]] %>% exp()
-  
+  ci_lwr <- confint(cox)[[2,1]] %>% exp()
+  ci_upr <- confint(cox)[[2,2]] %>% exp()
+  ci <- c(ci_lwr, ci_upr)
+
   hr_list[i] <- hr
+  ci_list[i] <- ci
   toc()
 }
