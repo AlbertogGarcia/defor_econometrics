@@ -27,7 +27,7 @@ std_a = 0
 std_v = 0.5
 years = 10
 nobs = 14400
-n = 100
+n = 25
 
 cellsize = 10
 ppoints = 70
@@ -54,7 +54,7 @@ b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 hr_list <- numeric(n)
 ci_list <- numeric(n)
-truth_list <- numeric(n)
+hr_cf_list <- numeric(n)
 
 countyscape = full_landscape(nobs, cellsize, ppoints, cpoints)
 pixloc_df = countyscape$pixloc_df
@@ -62,8 +62,8 @@ pixloc_df = countyscape$pixloc_df
 pixloc <- pixloc_df
 
 # COMMENTING OUT LOOP TEMPORARILY ----
-# for(i in 1:n){
-#   tic("loop")
+for(i in 1:n){
+  tic("loop")
   
   Nobs <- length(pixloc$treat)  
   panels <- fabricate(
@@ -189,7 +189,7 @@ pixloc <- pixloc_df
   print(summary(cox_counterfactual))
   coefs <- cox_counterfactual$coefficients
   hr_cf <- coefs[[1]] %>% exp()
-  
+  hr_cf_list[i] <- hr_cf
   # this hr corresponds really well to what we'd expect if the hazard ratio we want is 
   haz_rat <- pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) / pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2 + std_p^2)^.5)
   haz_rat
@@ -258,15 +258,15 @@ pixloc <- pixloc_df
   ci_lwr <- confint(cox)[[2,1]] %>% exp()
   ci_upr <- confint(cox)[[2,2]] %>% exp()
   ci <- c(ci_lwr, ci_upr)
+  
+  hr_list[i] <- hr
+  ci_list[i] <- ci
+  print(i)
+  toc()
+}
 
-  # hr_list[i] <- hr
-  # ci_list[i] <- ci
-  # print(i)
-#   toc()
-# }
-
-# mean(hr_list) 
-# mean(hr_cf_list)
+mean(hr_list)
+mean(hr_cf_list)
 
 haz_rat <- pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) / pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2 + std_p^2)^.5)
 haz_rat
