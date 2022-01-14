@@ -49,52 +49,21 @@ b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
 b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
-rm.selection = FALSE
-
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Create panel dataframe using code from aggregate_complete ----
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 hr_list <- numeric(n)
 ci_list <- numeric(n)
+truth_list <- numeric(n)
 
 countyscape = full_landscape(nobs, cellsize, ppoints, cpoints)
 pixloc_df = countyscape$pixloc_df
 
-
-ATT <- pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) - pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2 + std_p^2)^.5)
-
 pixloc <- pixloc_df
 
-did_covermat <- matrix(nrow = n, ncol = 5)
-agg_covermat <- matrix(nrow = n, ncol = 3)
-weight_covermat <- matrix(nrow = n, ncol = 2)
-bad_covermat <- matrix(nrow = n, ncol = 2)
-fix_covermat <- matrix(nrow = n, ncol = 3)
-
-
-coeffmatrix <- matrix(nrow = n, ncol = 3)
-weight_coeffmatrix <- matrix(nrow = n, ncol = 3)
-bad_coeffmatrix <- matrix(nrow = n, ncol = 2)
-fix_coeffmatrix <- matrix(nrow = n, ncol = 4)
-
-selection_bias <- data.frame('iteration' = rep(NA, n), 
-                             'sample_sel_bias' = rep(NA, n))
-
-n_mod = 14
-summ_row <- n_mod * n
-
-summary_long <- data.frame('b0'= rep(b0, summ_row), 'b1'= rep(b1, summ_row), 'b2_0'= rep(b2_0, summ_row), 'b2_1'= rep(b2_1, summ_row), 'b3'= rep(b3, summ_row), 
-                           'std_a'= rep(std_a, summ_row), 'std_v'= rep(std_v, summ_row), 'std_p'= rep(std_p, summ_row),
-                           'iteration' = rep(NA, summ_row), 
-                           'pixel'=rep(NA, summ_row),'grid'=rep(NA, summ_row),'property'=rep(NA, summ_row),'county'=rep(NA, summ_row),
-                           'pixel fe'=rep(NA, summ_row),'grid fe'=rep(NA, summ_row),'property fe'=rep(NA, summ_row),'county fe'=rep(NA, summ_row),'treatment fe'=rep(NA, summ_row),
-                           'weights'=rep(NA, summ_row),
-                           'se_pixel'=rep(NA, summ_row), 'se_grid'=rep(NA, summ_row), 'se_property'=rep(NA, summ_row), 'se_county'=rep(NA, summ_row),
-                           'bias'=rep(NA, summ_row), 'cover'=rep(NA, summ_row),'notes'=rep(NA, summ_row),
-                           stringsAsFactors=FALSE)
-
-for(i in 1:n){
-  tic("loop")
+# COMMENTING OUT LOOP TEMPORARILY ----
+# for(i in 1:n){
+#   tic("loop")
   
   Nobs <- length(pixloc$treat)  
   panels <- fabricate(
@@ -125,75 +94,57 @@ for(i in 1:n){
            y_cf = (ystar_cf > 0)*1 )
   
   
-  condition_1 <- subset(panels, treat==1)%>%
-    group_by(pixels)%>%
-    mutate(conditional = (y== 0)*1*(1-post))%>%
-    filter(max(conditional==1) & post ==1)%>%
-    mutate(
-      if_term_1 = (y==1)*1*post
-    )
-  
-  term_1 = mean(condition_1$if_term_1)
-  
-  condition_2 <- subset(panels, treat==0 )%>%
-    group_by(pixels)%>%
-    mutate(conditional = (y== 0)*1*(1-post))%>%
-    filter(max(conditional==1) & post ==1)%>%
-    mutate(
-      if_term_2 = (y== 1)*1*post
-    )
-  
-  term_2 = mean(condition_2$if_term_2)
-  
-  term_3 = mean( subset(panels, treat==1&post==1)$y
-  )
-  
-  term_4 = mean( subset(panels, treat==0&post==1)$y
-  )
-  
-  sel_bias = term_1 - term_2 -(term_3 - term_4)
-  
-  
-  selection_bias[i, 1] <- i
-  selection_bias[i, 2] <- sel_bias
-  
-  ATT = mean( subset(panels, treat==1&post==1)$y)-mean( subset(panels, treat==1&post==1)$y_cf)
-  ATT = pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) - pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2 + std_p^2)^.5)
-  
-  if(rm.selection){
-    ATT = ATT+sel_bias  
-  }
-  
-  #need to determine which year deforestation occurred
-  year_df <- panels %>%
-    dplyr::select(pixels, year, y) %>%
-    dcast(pixels ~ year , value.var = "y")
-  
-  rownames(year_df) <- year_df$pixels
-  
-  year_df <- year_df %>%
-    dplyr::select(- pixels)
-  
-  #creating variable for the year a pixel is deforested
-  not_defor <- rowSums(year_df)<1 *1
-  defor_year <- max.col(year_df, ties.method = "first") 
-  defor_df <- transform(year_df, defor_year = ifelse(not_defor==1, years*2+1, defor_year))
-  defor_df <- tibble::rownames_to_column(defor_df)
-  names(defor_df)[1] <- paste("pixels")
-  
-  panels <- defor_df %>%
-    dplyr::select(pixels, defor_year) %>%
-    inner_join(panels, by = "pixels")
-  
-  
-  cols.num <- c("pixels", "grid", "property", "county", "year")
-  panels[cols.num] <- sapply(panels[cols.num],as.numeric)
-  
   panels <- panels %>%
-    mutate(indic = year - defor_year) %>%
-    mutate(defor = ifelse(indic > 0, 1, y))%>%
-    mutate(y_it = ifelse(indic > 0, NA, y))
-    
+    mutate(pixels = as.numeric(pixels),
+           year = as.numeric(year),
+           defor_indic = ifelse(y==1, year, 99),
+           defor_indic_cf = ifelse(y_cf==1, year, 99))%>%
+    group_by(pixels)%>%
+    mutate(defor_year = min(defor_indic),
+           defor_year_cf = min(defor_indic_cf),
+           defor = (year>=defor_year)*1,
+           y_it = ifelse(year>defor_year, NA, defor),
+           defor_cf = (year>=defor_year_cf)*1,
+           y_it_counter = ifelse(year>defor_year_cf, NA, defor_cf)
+    )%>%
+    ungroup()
+  
+  
+  #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  # Create counterfactual panel dataframe ----
+  #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+  # this dataframe only contains treated units, both with and without treatment
+  
+  panels_long_cf <- subset(panels, treat == 1)%>%
+    gather(key = "group", value = "outcome", c(y_it, y_it_counter))%>%
+    mutate(observed = ifelse(group == "y_it", 1, 0)) # observed = 1 means that treatment did actually happen
+  
+  
+  
+  # these_years <- unique(panels$year)
+  # 
+  # haz_ratios <- data.frame()
+  # 
+  # for(k in these_years){
+  #   
+  #   
+  #   haz_ratios <- rbind(haz_ratios, 
+  #                       data.frame("time" = k, 
+  #                                  "observed_prob" = mean(subset(panels, year == k & treat == 1)$y_it, na.rm = TRUE),
+  #                                  "counterfactual_prob" =
+  #                                    mean(subset(panels, year == k & treat == 1)$y_it_counter, na.rm = TRUE)
+  #                       )
+  #   )
+  #   
+  # }
+  # 
+  # haz_ratios <- haz_ratios %>%
+  #   mutate(haz_rat = observed_prob/counterfactual_prob,
+  #          post = (time > max(these_years)/2)*1 )%>%
+  #   filter(post == 1)
+  # 
+  # truth_list[i] <- mean(haz_ratios$haz_rat)
   
   #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   # Set up survival dataframe ----
@@ -205,40 +156,118 @@ for(i in 1:n){
            # t_end = ifelse((t_end==20) & (y_it==0), Inf, t_end),
            outcome = y_it,
            treat_now = treat * post) %>% 
-    select(pixels, t_start, t_end, outcome, treat, treat_now, post) %>% 
+    select(pixels, t_start, t_end, outcome, treat, treat_now, post, year) %>% 
     drop_na()
   
   
-  ## Old structure
-  # y_defor <- panels %>% 
-  #   filter(y_it == 1) %>% 
-  #   mutate(year_defor = year) %>% 
-  #   select(pixels, year_defor)
-  # 
-  # surv_df <- panels %>% 
-  #   select(pixels, treat) %>% 
-  #   distinct() %>% 
-  #   merge(y_defor, by = "pixels", all = TRUE)
-  # 
-  # surv_df <- surv_df %>% 
-  #   mutate(censor = is.na(year_defor),
-  #          year_defor = replace_na(year_defor, years * 2))
+  ### counterfactual survival dataframe
+  surv_cf_df <- panels_long_cf %>% 
+    mutate(t_start = year - 1,
+           t_end = year,
+           # t_end = ifelse((t_end==20) & (y_it==0), Inf, t_end),
+           outcome = outcome,
+           treat_now = observed * post) %>% 
+    select(pixels, t_start, t_end, outcome, treat, group, treat_now, post, year, observed) %>% 
+    drop_na()
+  
+  
   
   
   #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   # Run Cox proportional hazards model ----
   #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+  #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  # counterfactual cox proportional hazards model ----
+  
+  # we use the counterfactual survival dataframe, which only includes the treated observations and either their treated or untreated outcomes
+  cox_counterfactual <- coxph(Surv(t_start, t_end, outcome) ~ treat_now 
+               , data = surv_cf_df)
+  
+  
+  #ggforest(cox)
+  print(summary(cox_counterfactual))
+  coefs <- cox_counterfactual$coefficients
+  hr_cf <- coefs[[1]] %>% exp()
+  
+  # this hr corresponds really well to what we'd expect if the hazard ratio we want is 
+  haz_rat <- pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) / pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2 + std_p^2)^.5)
+  haz_rat
+  
+  
+  ### In the DID world, this hazard ratio would be the ATT parameter, and we'd expect the DID to recover this
+  ### Is there a reason not to expect this here?
+  
+  
+  
+  # # Create the new data
+  # survplot_df <- with(surv_cf_df,
+  #                data.frame(observed = c(0,1)
+  #                )
+  # )
+  # res.cox <- coxph(Surv(t_start, t_end, outcome) ~ observed
+  #                             , data = surv_cf_df)
+  # # Survival curves
+  # fit <- survfit(res.cox, data = surv_cf_df, newdata = survplot_df)
+  # ggsurvplot(fit, conf.int = TRUE, 
+  #            ggtheme = theme_minimal())
+  # 
+  # 
+  # 
+  # these_years <- unique(panels_long_cf$year)
+  # 
+  # surv <- data.frame()
+  # 
+  # for(k in these_years){
+  # 
+  #   surv <- rbind(surv,
+  #                 data.frame("observed" = c(1, 0), "time" = k, "model" = "truth",
+  #                            "surv" = c(1 - mean(subset(panels_long_cf, year == k & observed == 1)$defor_cf, na.rm = TRUE),
+  #                                       1 - mean(subset(panels_long_cf, year == k & observed == 0)$defor, na.rm = TRUE))
+  #                 )
+  #   )
+  # 
+  # 
+  # }
+  # 
+  # survival_df <- rbind(data.frame("observed" = c(rep(0, 20), rep(1, 20)), "time" = c(seq(from = 1, to = 20, by = 1), seq(from = 1, to = 20, by = 1)),
+  #                           "surv" = c(fit$surv[,2], fit$surv[,1]), "model" = "cox ph fit"
+  # ), surv)%>%
+  #   mutate(observed = as.factor(observed))
+  # 
+  # ggplot(data = survival_df, aes(x = time, y = surv, color = observed, linetype = model))+
+  #   geom_line(size = 1.2)+theme_minimal()
+  # 
+  # 
+  
+  #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  # running main cox model ----
+  
   # km_AG_fit <- survfit(Surv(tstart, tend, outcome) ~ treat + treat_now, data=surv_df)
   # autoplot(km_AG_fit)
-  cox <- coxph(Surv(t_start, t_end, outcome) ~ treat + treat_now, data = surv_df)
+  cox <- coxph(Surv(t_start, t_end, outcome) ~ treat + treat_now 
+               , data = surv_df)
+  
+
+  #ggforest(cox)
   print(summary(cox))
+  
+  
   coefs <- cox$coefficients
   hr <- coefs[[2]] %>% exp()
   ci_lwr <- confint(cox)[[2,1]] %>% exp()
   ci_upr <- confint(cox)[[2,2]] %>% exp()
   ci <- c(ci_lwr, ci_upr)
 
-  hr_list[i] <- hr
-  ci_list[i] <- ci
-  toc()
-}
+  # hr_list[i] <- hr
+  # ci_list[i] <- ci
+  # print(i)
+#   toc()
+# }
+
+# mean(hr_list) 
+# mean(hr_cf_list)
+
+haz_rat <- pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) / pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2 + std_p^2)^.5)
+haz_rat
+
