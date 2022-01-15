@@ -55,6 +55,7 @@ b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std
 hr_list <- numeric(n)
 ci_list <- numeric(n)
 hr_cf_list <- numeric(n)
+hr_correction_list <- numeric(n)
 
 countyscape = full_landscape(nobs, cellsize, ppoints, cpoints)
 pixloc_df = countyscape$pixloc_df
@@ -248,15 +249,30 @@ for(i in 1:n){
   cox <- coxph(Surv(t_start, t_end, outcome) ~ treat + treat_now 
                , data = surv_df)
   
-
+  
   #ggforest(cox)
   print(summary(cox))
   
   
-  coefs <- cox$coefficients
+  ## Running corrected Cox model that accounts for pre/post time periods
+  surv_df_correction <- surv_cf_df %>% 
+    mutate(t_start = ifelse(post==1, t_start -10, t_start),
+           t_end = ifelse(post==1, t_end -10, t_end))
+  cox_correction <- coxph(Surv(t_start, t_end, outcome) ~ treat + post + treat_now
+                          , data = surv_df_correction)
+  print(summary(cox_correction))
+  coefs_correction <- cox_correction$coefficients
+  hr_correction <- coefs_correction[[1]] %>% exp()
+  hr_correction_list[i] <- hr_correction
+  
+  
+  
+  output_mod <- cox_correction
+  
+  coefs <- output_mod$coefficients
   hr <- coefs[[2]] %>% exp()
-  ci_lwr <- confint(cox)[[2,1]] %>% exp()
-  ci_upr <- confint(cox)[[2,2]] %>% exp()
+  ci_lwr <- confint(output_mod)[[2,1]] %>% exp()
+  ci_upr <- confint(output_mod)[[2,2]] %>% exp()
   ci <- c(ci_lwr, ci_upr)
   
   hr_list[i] <- hr
@@ -271,3 +287,62 @@ mean(hr_cf_list)
 haz_rat <- pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) / pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2 + std_p^2)^.5)
 haz_rat
 
+
+
+
+
+# summary(cox)
+# summary(cox_test)
+# summary(cox_counterfactual)
+# 
+# 
+# 
+# zph <- cox.zph(cox)
+# plot(zph)
+# zph_test <- cox.zph(cox_test)
+# plot(zph_test)
+# zph_cf <- cox.zph(cox_counterfactual)
+# plot(zph_cf)
+# 
+# 
+# 
+# 
+# surv_df <- surv_df %>% 
+#   arrange(pixels, year)
+# 
+# cox <- coxph(Surv(t_start, t_end, outcome) ~ treat + treat_now + year 
+#              , data = surv_df)
+# summary(cox)
+# 
+# 
+# 
+# 
+# surv_df_test <- surv_df %>% 
+#   mutate(treat_level = ifelse(post==1 & treat==1, 4, ifelse(post==1 & treat==0, 2, ifelse(post==0 & treat==1, 3, 1))),
+#          treat_level = as.factor(treat_level))
+# cox <- coxph(Surv(t_start, t_end, outcome) ~ treat_level
+#              , data = surv_df_test)
+# summary(cox)
+# 
+# 
+# 
+# # base_0 = .02
+# # base_1 = .05
+# # trend = 0
+# # ATT = -.01
+# #
+# 
+# 
+# panels <- panels %>% 
+#   arrange(pixels, year)
+# 
+# 
+# defor_summary <- panels %>% 
+#   group_by(treat, post) %>% 
+#   # group_by(treat, post, year) %>% 
+#   summarise(mean_y_it = mean(y_it, na.rm = TRUE),
+#             mean_y_it_counter = mean(y_it_counter, na.rm = TRUE))
+# 
+# defor_summary
+# summary(cox)
+# summary(cox_counterfactual)
