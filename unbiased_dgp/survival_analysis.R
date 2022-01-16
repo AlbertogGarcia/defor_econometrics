@@ -54,7 +54,6 @@ b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std
 hr_list <- numeric(n)
 ci_list <- numeric(n)
 hr_cf_list <- numeric(n)
-hr_correction_list <- numeric(n)
 
 countyscape = full_landscape(nobs, cellsize, ppoints, cpoints)
 pixloc_df = countyscape$pixloc_df
@@ -253,25 +252,11 @@ for(i in 1:n){
   print(summary(cox))
   
   
-  ## Running corrected Cox model that accounts for pre/post time periods
-  surv_df_correction <- surv_df %>% 
-    mutate(t_start = ifelse(post==1, t_start -10, t_start),
-           t_end = ifelse(post==1, t_end -10, t_end))
-  cox_correction <- coxph(Surv(t_start, t_end, outcome) ~ treat_now+ treat + post
-                          , data = surv_df_correction)
-  print(summary(cox_correction))
-  coefs_correction <- cox_correction$coefficients
-  hr_correction <- coefs_correction[[1]] %>% exp()
-  hr_correction_list[i] <- hr_correction
   
-  
-  
-  output_mod <- cox_correction
-  
-  coefs <- output_mod$coefficients
+  coefs <- cox$coefficients
   hr <- coefs[[2]] %>% exp()
-  ci_lwr <- confint(output_mod)[[2,1]] %>% exp()
-  ci_upr <- confint(output_mod)[[2,2]] %>% exp()
+  ci_lwr <- confint(cox)[[2,1]] %>% exp()
+  ci_upr <- confint(cox)[[2,2]] %>% exp()
   ci <- c(ci_lwr, ci_upr)
   
   hr_list[i] <- hr
@@ -281,7 +266,6 @@ for(i in 1:n){
 }
 
 mean(hr_list)
-mean(hr_correction_list)
 mean(hr_cf_list)
 
 haz_rat <- pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) / pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2 + std_p^2)^.5)
