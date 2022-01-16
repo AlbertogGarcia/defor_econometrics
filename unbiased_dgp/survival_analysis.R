@@ -15,7 +15,6 @@ library(DeclareDesign)
 source(here::here('unbiased_dgp', 'full_landscape.R'))
 
 library(survival)
-library(ranger)
 library(ggplot2)
 library(dplyr)
 library(ggfortify)
@@ -255,10 +254,10 @@ for(i in 1:n){
   
   
   ## Running corrected Cox model that accounts for pre/post time periods
-  surv_df_correction <- surv_cf_df %>% 
+  surv_df_correction <- surv_df %>% 
     mutate(t_start = ifelse(post==1, t_start -10, t_start),
            t_end = ifelse(post==1, t_end -10, t_end))
-  cox_correction <- coxph(Surv(t_start, t_end, outcome) ~ treat + post + treat_now
+  cox_correction <- coxph(Surv(t_start, t_end, outcome) ~ treat_now+ treat + post
                           , data = surv_df_correction)
   print(summary(cox_correction))
   coefs_correction <- cox_correction$coefficients
@@ -282,6 +281,7 @@ for(i in 1:n){
 }
 
 mean(hr_list)
+mean(hr_correction_list)
 mean(hr_cf_list)
 
 haz_rat <- pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) / pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2 + std_p^2)^.5)
@@ -289,6 +289,48 @@ haz_rat
 
 
 
+## Testing conversion of coefficients from multiple cox regressions into
+## hazard ratio of interest
+
+surv_df_correction <- surv_df %>% 
+  mutate(t_start = ifelse(post==1, t_start -10, t_start),
+         t_end = ifelse(post==1, t_end -10, t_end))
+
+# cox_pre <- coxph(Surv(t_start, t_end, outcome) ~ treat
+#                         , data = surv_df_correction %>% filter(post == 0))
+# summary(cox_pre)
+
+cox_post <- coxph(Surv(t_start, t_end, outcome) ~ treat
+                        , data = surv_df_correction %>% filter(post==1))
+summary(cox_post)
+hr_11_01 <- cox_post$coefficients %>% exp()
+
+cox_treat <- coxph(Surv(t_start, t_end, outcome) ~ post
+                  , data = surv_df_correction %>% filter(treat==1))
+summary(cox_treat)
+hr_11_10 <- cox_treat$coefficients %>% exp()
+
+cox_notreat <- coxph(Surv(t_start, t_end, outcome) ~ post
+                   , data = surv_df_correction %>% filter(treat==0))
+summary(cox_notreat)
+hr_01_00 <- cox_notreat$coefficients %>% exp()
+
+hr_11_cf <- 1/(1/hr_11_10 + 1/hr_11_01 - (1/(hr_11_01*hr_01_00)))
+hr_11_cf
+
+summary(cox_counterfactual)
+haz_rat <- pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) / pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2 + std_p^2)^.5)
+haz_rat
+haz_smpl <- (base_1 + trend + ATT) / (base_1 + trend)
+haz_smpl
+
+
+defor_summary <- panels %>%
+  group_by(treat, post) %>%
+  summarise(mean_y_it = mean(y_it, na.rm = TRUE),
+            mean_y_it_counter = mean(y_it_counter, na.rm = TRUE))
+
+defor_summary[4,3] / defor_summary[4,4]
 
 
 # summary(cox)
