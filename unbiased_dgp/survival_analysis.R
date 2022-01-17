@@ -1,15 +1,5 @@
-library(ggplot2)
-library(clubSandwich)
-library(reshape2)
-library(matrixStats)
-library(ggplot2)
-# library(plm)
-library(Metrics)
-library(DataCombine)
-library(dplyr)
 library(tidyverse)
 library(tictoc)
-library(fixest)
 library(here)
 library(DeclareDesign)
 source(here::here('unbiased_dgp', 'full_landscape.R'))
@@ -27,7 +17,7 @@ std_a = 0
 std_v = 0.5
 years = 10
 nobs = 14400
-n = 25
+n = 500
 
 cellsize = 10
 ppoints = 70
@@ -49,7 +39,7 @@ b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
 b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
-
+set.seed(0930)
 
 survival <- survival_did(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
 
@@ -58,11 +48,9 @@ survival_long <- survival$summary_long
 survival_summary <- survival_long %>%
   group_by(model)%>%
   summarize(HRR = mean(as.numeric(HRR)),
-            Bias = mean(as.numeric(bias))
+            Bias = mean(as.numeric(bias)),
+            RMSE = rmse(as.numeric(bias), 0)
             )
-
-
-
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -225,6 +213,10 @@ hr_11_cf <- 1/(1/hr_11_10 + 1/hr_11_01 - (1/(hr_11_01*hr_01_00)))
 hr_11_cf
 
 hr_2 <- hr_11_10/hr_01_00
+
+stratcox_treat <- coxph(Surv(t_start, t_end, outcome) ~  treat_now + post + strata(as.factor(treat))
+                   , data = surv_df_correction )
+summary(stratcox_treat)
 
 summary(cox_counterfactual)
 haz_rat <- pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) / pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2 + std_p^2)^.5)
