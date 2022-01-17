@@ -21,7 +21,7 @@ survival_did <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, st
   
   coeffmatrix <- matrix(nrow = n, ncol = 3)
   
-  n_mod = 4
+  n_mod = 5
   summ_row <- n_mod * n
   
   summary_long <- data.frame('b0'= rep(b0, summ_row), 'b1'= rep(b1, summ_row), 'b2_0'= rep(b2_0, summ_row), 'b2_1'= rep(b2_1, summ_row), 'b3'= rep(b3, summ_row), 
@@ -185,6 +185,8 @@ for(i in 1:n){
   
   hr_11_cf <- 1/(1/hr_11_10 + 1/hr_11_01 - (1/(hr_11_01*hr_01_00)))
   
+  hr_2 <- hr_11_10/hr_01_00
+  
   #### calculating observed deforestation rate to transition to ATT estimate
   defor_summary <- panels %>%
     group_by(treat, post) %>%
@@ -197,6 +199,7 @@ for(i in 1:n){
   
   ATT_11_cf <- d_obs - d_obs/hr_11_cf
   ATT_cox <- d_obs - d_obs/hr
+  ATT_stratcox <- d_obs - d_obs/hr_2
   ATT_cf <- d_obs - d_obs/hr_cf
   ATT_int <- d_obs - d_obs/hr_int
   
@@ -240,6 +243,16 @@ for(i in 1:n){
     ATT_11_cf - ATT, #bias
     NA#cover
   )
+  
+  summary_long[i+n*4,c(firstcol:lastcol)] <- c(
+    i,
+    "cox HR1/HR2",#model
+    hr_2, #HRR
+    d_obs, #d_obs
+    ATT_stratcox - ATT, #bias
+    NA#cover
+  )
+  
   print(i)
   toc()
   

@@ -38,7 +38,7 @@ cpoints = 40
 # note that the bias for the TWFE model will be equal to the pre-treatment difference in deforestation rtes, which is 0.03
 base_0 = .02
 base_1 = .05
-trend = 0#-.005
+trend = -.005
 ATT = -.01
 
 # we'll need to compute the parameters 
@@ -55,7 +55,11 @@ survival <- survival_did(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, s
 
 survival_long <- survival$summary_long
 
-
+survival_summary <- survival_long %>%
+  group_by(model)%>%
+  summarize(HRR = mean(as.numeric(HRR)),
+            Bias = mean(as.numeric(bias))
+            )
 
 
 
@@ -219,6 +223,8 @@ hr_01_00 <- cox_notreat$coefficients %>% exp()
 
 hr_11_cf <- 1/(1/hr_11_10 + 1/hr_11_01 - (1/(hr_11_01*hr_01_00)))
 hr_11_cf
+
+hr_2 <- hr_11_10/hr_01_00
 
 summary(cox_counterfactual)
 haz_rat <- pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) / pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2 + std_p^2)^.5)
