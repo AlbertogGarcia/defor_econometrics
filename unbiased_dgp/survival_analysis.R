@@ -13,6 +13,7 @@ library(fixest)
 library(here)
 library(DeclareDesign)
 source(here::here('unbiased_dgp', 'full_landscape.R'))
+source(here::here('unbiased_dgp', 'survival_did.R'))
 
 library(survival)
 library(ggplot2)
@@ -37,7 +38,7 @@ cpoints = 40
 # note that the bias for the TWFE model will be equal to the pre-treatment difference in deforestation rtes, which is 0.03
 base_0 = .02
 base_1 = .05
-trend = -.005
+trend = 0#-.005
 ATT = -.01
 
 # we'll need to compute the parameters 
@@ -48,21 +49,26 @@ b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
 b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
+
+
+survival <- survival_did(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+
+survival_long <- survival$summary_long
+
+
+
+
+
+
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Create panel dataframe using code from aggregate_complete ----
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-hr_list <- numeric(n)
-ci_list <- numeric(n)
-hr_cf_list <- numeric(n)
 
 countyscape = full_landscape(nobs, cellsize, ppoints, cpoints)
 pixloc_df = countyscape$pixloc_df
 
 pixloc <- pixloc_df
-
-# COMMENTING OUT LOOP TEMPORARILY ----
-for(i in 1:n){
-  tic("loop")
   
   Nobs <- length(pixloc$treat)  
   panels <- fabricate(
@@ -121,30 +127,6 @@ for(i in 1:n){
   
   
   
-  # these_years <- unique(panels$year)
-  # 
-  # haz_ratios <- data.frame()
-  # 
-  # for(k in these_years){
-  #   
-  #   
-  #   haz_ratios <- rbind(haz_ratios, 
-  #                       data.frame("time" = k, 
-  #                                  "observed_prob" = mean(subset(panels, year == k & treat == 1)$y_it, na.rm = TRUE),
-  #                                  "counterfactual_prob" =
-  #                                    mean(subset(panels, year == k & treat == 1)$y_it_counter, na.rm = TRUE)
-  #                       )
-  #   )
-  #   
-  # }
-  # 
-  # haz_ratios <- haz_ratios %>%
-  #   mutate(haz_rat = observed_prob/counterfactual_prob,
-  #          post = (time > max(these_years)/2)*1 )%>%
-  #   filter(post == 1)
-  # 
-  # truth_list[i] <- mean(haz_ratios$haz_rat)
-  
   #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   # Set up survival dataframe ----
   #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -194,51 +176,6 @@ for(i in 1:n){
   haz_rat
   
   
-  ### In the DID world, this hazard ratio would be the ATT parameter, and we'd expect the DID to recover this
-  ### Is there a reason not to expect this here?
-  
-  
-  
-  # # Create the new data
-  # survplot_df <- with(surv_cf_df,
-  #                data.frame(observed = c(0,1)
-  #                )
-  # )
-  # res.cox <- coxph(Surv(t_start, t_end, outcome) ~ observed
-  #                             , data = surv_cf_df)
-  # # Survival curves
-  # fit <- survfit(res.cox, data = surv_cf_df, newdata = survplot_df)
-  # ggsurvplot(fit, conf.int = TRUE, 
-  #            ggtheme = theme_minimal())
-  # 
-  # 
-  # 
-  # these_years <- unique(panels_long_cf$year)
-  # 
-  # surv <- data.frame()
-  # 
-  # for(k in these_years){
-  # 
-  #   surv <- rbind(surv,
-  #                 data.frame("observed" = c(1, 0), "time" = k, "model" = "truth",
-  #                            "surv" = c(1 - mean(subset(panels_long_cf, year == k & observed == 1)$defor_cf, na.rm = TRUE),
-  #                                       1 - mean(subset(panels_long_cf, year == k & observed == 0)$defor, na.rm = TRUE))
-  #                 )
-  #   )
-  # 
-  # 
-  # }
-  # 
-  # survival_df <- rbind(data.frame("observed" = c(rep(0, 20), rep(1, 20)), "time" = c(seq(from = 1, to = 20, by = 1), seq(from = 1, to = 20, by = 1)),
-  #                           "surv" = c(fit$surv[,2], fit$surv[,1]), "model" = "cox ph fit"
-  # ), surv)%>%
-  #   mutate(observed = as.factor(observed))
-  # 
-  # ggplot(data = survival_df, aes(x = time, y = surv, color = observed, linetype = model))+
-  #   geom_line(size = 1.2)+theme_minimal()
-  # 
-  # 
-  
   #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   # running main cox model ----
   
@@ -251,27 +188,8 @@ for(i in 1:n){
   #ggforest(cox)
   print(summary(cox))
   
-  
-  
   coefs <- cox$coefficients
   hr <- coefs[[2]] %>% exp()
-  ci_lwr <- confint(cox)[[2,1]] %>% exp()
-  ci_upr <- confint(cox)[[2,2]] %>% exp()
-  ci <- c(ci_lwr, ci_upr)
-  
-  hr_list[i] <- hr
-  ci_list[i] <- ci
-  print(i)
-  toc()
-}
-
-mean(hr_list)
-mean(hr_cf_list)
-
-haz_rat <- pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) / pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2 + std_p^2)^.5)
-haz_rat
-
-
 
 ## Testing conversion of coefficients from multiple cox regressions into
 ## hazard ratio of interest
@@ -308,6 +226,10 @@ haz_rat
 haz_smpl <- (base_1 + trend + ATT) / (base_1 + trend)
 haz_smpl
 
+## this model is more similar to the traditional DID setup but does not actually recover the desired HRR
+cox_interaction <- coxph(Surv(t_start, t_end, outcome) ~ post*treat
+                         , data = surv_df_correction )
+summary(cox_interaction)
 
 defor_summary <- panels %>%
   group_by(treat, post) %>%
@@ -317,19 +239,25 @@ defor_summary <- panels %>%
 defor_summary[4,3] / defor_summary[4,4]
 
 
+# converting into ATT ---- 
+d_obs = defor_summary[4,3]$mean_y_it
+ATT_hat = d_obs - d_obs/hr_11_cf 
+
+
 # summary(cox)
 # summary(cox_test)
 # summary(cox_counterfactual)
 # 
 # 
-# 
-# zph <- cox.zph(cox)
-# plot(zph)
-# zph_test <- cox.zph(cox_test)
-# plot(zph_test)
-# zph_cf <- cox.zph(cox_counterfactual)
-# plot(zph_cf)
-# 
+
+zph <- cox.zph(cox_int)
+print(zph)
+zph_test <- cox.zph(cox_test)
+plot(zph_test)
+zph_cf <- cox.zph(cox_counterfactual)
+print(zph_cf)
+plot(zph_cf)
+
 # 
 # 
 # 
