@@ -12,6 +12,7 @@ library(dplyr)
 library(DeclareDesign)
 library(data.table)
 source(here::here("unbiased_dgp", "schart.R"))
+source(here::here("unbiased_dgp", "full_landscape.R"))
 library(ggpubr)
 
 
