@@ -5,6 +5,7 @@ library(ggplot2)
 library(plm)
 library(Metrics)
 library(fixest)
+library(dplyr)
 source(here::here('unbiased_dgp', 'deforestation_DGP.R'))
 #source('deforestation_DGP.R')
 #begin function
@@ -62,33 +63,11 @@ TWFE_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v 
   
   # get distribution information from matrix  
   
-  b_coeff <- as.data.frame(coeffmatrix)
-  actual <- rep(0, times = n)
-  
-  names(b_coeff)[1] <- paste("DID1")
-  names(b_coeff)[2] <- paste("tw1")
-  
-  # names(b_coeff)[3] <- paste("DID2")
-  # names(b_coeff)[4] <- paste("tw2")
-  suppressWarnings(cbias <- melt(b_coeff, value.name = "bias"))
-  
-  plot = ggplot(data = cbias, aes(x = bias, fill=variable)) +
-    geom_density(alpha = .2) +
-    guides(fill=guide_legend(title=NULL))+
-    scale_fill_discrete(breaks=c("DID1", "tw1"), labels=c("DID", "TWFE"))+
-    geom_vline(xintercept = 0, linetype = "dashed")+
-    theme(plot.caption = element_text(hjust = 0.5))+
-    labs(x= "Bias", caption = paste("DID mean:", round(colMeans(coeffmatrix)[1], digits = 5),"RMSE:",round(rmse(actual, coeffmatrix[1]), digits = 5), "\n", 
-                                                                        "TWFE mean:", round(colMeans(coeffmatrix)[2], digits = 5), "RMSE:",round(rmse(actual, coeffmatrix[2]), digits = 5)#, "\n",  
-                                                                        #"DID and TWFE keeping obs:",round(colMeans(coeffmatrix)[3], digits = 4) ,"RMSE:",round(rmse(actual, coeffmatrix[3]), digits = 5)
-                                                                        )
-    )
-  
   summary_long <- summary_long %>%
-    select(iteration, everything())
+    dplyr::select(iteration, everything())
   
+  outputs = list("summary_long" = summary_long)
   
-  outputs = list("plot" = plot, "did_biases" = b_coeff, "summary_long" = summary_long)
   return(outputs)
   
   #end function  
