@@ -97,8 +97,8 @@ myBib <- ReadBib("../paper/deforestation_econometrics.bib", check = FALSE)
 ### Papers using econometric methods<sup>†</sup> that cite Hansen et al., 2013
 
 ```{r, bar1, echo=FALSE, fig.height = 5.5, dev = "svg"}
-cite_df <- tibble("year" = c(2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020), 
-                  "ncites" = c(2, 30, 69, 85, 112, 133, 154, 189))
+cite_df <- tibble("year" = c(2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021), 
+                  "ncites" = c(2, 30, 66, 81, 111, 129, 145, 144, 193))
 
 cite_plot <- cite_df %>% 
   ggplot(aes(x = year, y = ncites)) +
