@@ -299,8 +299,6 @@ Regression 2 thus forgoes the benefits that panel methods provide and, if the tr
 
 This result stems from researchers' use of pixel fixed effects in the regression specification. By including unit fixed effects in TWFE regressions, researchers hope to control for unit-specific confounders, including pre-treatment differences in the outcome. However, when following common guidance to drop pixels in the periods after they are first deforested, these fixed effects do not behave as the researcher expects. Because the pixels that are deforested in the first period are not observed for the entire panel, these observations go unnacounted for in $\beta_{TWFE}$. Implicitly, the pre-treatment deforestation rates get assigned as 0 for both the treatment and control groups. In Appendix \@ref(ex-post), we show that $\hat{\beta}_{TWFE}$ is equivalent to the coefficient from a regression on a dataset where all pixels deforested in the pre-treatment period are simply dropped from the dataset completely.
 
-<!-- In cases where the researcher has two groups and two distinct time periods, the simple DID model can still identify the $ATT$, however, TWFE models with pixel fixed effects as described by Regression 2 cannot be used to convincingly identify the $ATT$.  -->
-
 Researchers often find themselves in situations where the more flexible TWFE model is preferable to the simple DID, such as in the case of multiple groups and time periods. While many economists may be transitioning to newly developed estimators to address settings in which multiple groups undergo treatment in different time periods [e.g., @callaway2020; @gardner2021], we show in section \@ref(multipleGT) that many of these estimators suffer from the same issue.  
 
 ## Alternative construction of $y^o_{ivt}$ cannot recover $ATT$
@@ -382,6 +380,17 @@ z_{jt} = \alpha + \beta_{j} \text{ x } D_j \mathbb{1} \{ t\geq t_0\} + \lambda_t
 , where $\lambda_t$ denotes year fixed effects and $\gamma_j$ denotes one of grid, county, or property fixed effects. Note that in these regressions, the level of unit fixed effects matches the unit of analysis. The treatment variable $D_j = \frac{1}{N_j}\sum_{i=1}^{N_j}D_i$, is the average treatment value amongst all pixels in unit $j$.
 
 Columns 9-11 of Figure \@ref(fig:summary-fig) show that the bias of the estimates does not vary dramatically across different levels of aggregation, however, the distributions are varied. In particular, the property-level model had the highest RMSE of unbiased specifications due to the heterogeneity in property sizes across the landscape. At the same time, relative to the pixel level models with spatially aggregated unit fixed effects, the coverage probability of these models is closer to the desired 95\%.
+
+## Survival models
+
+Other literatures have accounted for the irreversibility in the outcome of interest using survival models. For example, many papers in health economics are interested in mortality as the outcome of interest. Survival models ... 
+
+Figure XX shows estimates from a cox proportional hazards model, where the hazard ratio of interest has been converted into the $ATT$. 
+
+While the cox proportional hazards model recovered the appropriate parameter, there are several reasons why survival models may not be preferable in the context of estimating the impacts of conservation interventions on deforestation rates. 
+
+We explore how some of these factors influence the relative performance of various models in the following sections. 
+
 
 # Non-random selection and the spatial nature of the deforestation process {#property}
 
@@ -582,9 +591,6 @@ knitr::include_graphics(c("figs/pixel_multiGT2.png","figs/county_multiGT2.png"))
 <!-- \begin{itemize} -->
 <!-- \item incorporate binary outcome variable equal to one if any deforestation occurs in administrative unit during time $t$. This outcome has been used with increasing frequency, and the coefficient has been interpreted as a deforestation rate. This measure may perform better when heterogeneity is present.  -->
 <!-- \end{itemize} -->
-
-<!-- # An ode to survival models -->
-
 
 
 # Conclusions
@@ -840,10 +846,6 @@ knitr::include_graphics("figs/did_keep.png")
 
 Some authors opt to leave deforested pixels in the panel but adjust the interpretation of the coefficent of interest. Rather than the deforestation rate, researchers recover the impact of the intervention on area ever deforested. One important thing to note, however, is that researchers cannot interpret this as the deforested area in time $t$ if reforestation timing is not available. To illustrate this point, consider a setting in which reforestation timing is instantaneous, as in our definition of $y_{ivt}$. In this case, the deforestation rate is equivalent to the deforested area in time $t$. As we have shown, leaving deforested pixels in the panel cannot lead to identification of the $ATT$ for the deforestation rate and therefore, cannot identify the $ATT$ for the deforested area. This is, of course, an extreme case. Since reforestation timing is instantaneous, the bias is larger than we would expect in reality. However, this exercise helps to illustrate that reforestation timing must be accounted for to recover the deforested area at  a given time. 
 
-
-
-<!-- While dropping pixels in the periods after they first become cleared does generate a small amount of bias, this is inherent to the nature of binary forest cover data. Dropping these observations allows the researcher to attain estimates with bias much closer to zero than would be possible keeping them in the panel. This bias is unrelated to that which may arise from satellite sensor characteristics, satellite angle, or atmospheric conditions [@jain2020]. -->
-
 ## Initial Monte Carlo parameter to $\beta$ coefficient mapping {\#parameter-mapping}
 
 The following five parameters and their definitions inform the simulation parameterizations. 
@@ -990,6 +992,63 @@ knitr::include_graphics(c("figs/schart_alt.png", "figs/schart_alt2.png"))
 ```
 
 ## DGP for multiple groups and variation in treatment timing {#multiDGP}
+
+The following parameters and their definitions inform the simulation parameterizations. 
+
+\begin{align*}
+baseline_a &= E[y_{it}(0) |  t<t_0, G_i = a]\\
+baseline_b &= E[y_{it}(0) |  t<t_0, G_i = b]\\
+baseline_c &= E[y_{it}(0) |  t<t_0, G_i = c]\\
+trend_1 &= E[y_{it}(0) |  t=1, G_i = g] - E[y_{it}(0) |  t=0, G_i = g] \\
+trend_2 &= E[y_{it}(0) |  t=2, G_i = g] - E[y_{it}(0) |  t=1, G_i = g]\\
+trend_3 &= E[y_{it}(0) |  t=3, G_i = g] - E[y_{it}(0) |  t=2, G_i = g]\\
+trend_4 &= E[y_{it}(0) |  t=4, G_i = g] - E[y_{it}(0) |  t=3, G_i = g]\\
+ATT &= E[y_{it}(1) - y_{it}(0) |  t\geq t_0, G_i = g]\\
+\end{align*}
+
+
+Here, three groups, $g\in \{ a, b, c \}$ have different baseline deforestation rates, and all three groups would experience the same trends in the absence of treatment. Group $a$ experiences treatment in time $2$, group $b$ experiences treatment in time $3$, and group $c$ is never treated. The $ATT$ is equal across the two treated groups and there are no dynamic effects.  
+
+The DGP for each observation can be written as follows: 
+
+Group $a$: 
+$$y_{it} = \beta_{0,a} 1\{ t = 0\} + \beta_{1,a}1\{ t = 1\} + \beta_{2,a}1\{ t = 2\} + \beta_{3,a}1\{ t = 3\}+ \beta_{4,a}1\{ t = 4\} + \tau_a 1\{ t \geq 2\} +\alpha_i + u_{it}$$
+
+Group $b$: 
+$$y_{it} = \beta_{0,b} 1\{ t = 0\} + \beta_{1,b}1\{ t = 1\} + \beta_{2,b}1\{ t = 2\} + \beta_{3,b}1\{ t = 3\}+ \beta_{4,b}1\{ t = 4\} + \tau_b 1\{ t \geq 3\} +\alpha_i + u_{it}$$
+
+Group $c$: 
+$$y_{it} = \beta_{0,c} 1\{ t = 0\} + \beta_{1,c}1\{ t = 1\} + \beta_{2,c}1\{ t = 2\} + \beta_{3,c}1\{ t = 3\}+ \beta_{4,c}1\{ t = 4\}  +\alpha_i + u_{it}$$
+
+, where the $\beta$ and $tau$ coefficients are calculated as follows:
+
+
+\begin{align*}
+\beta_{0,a} &= F^{-1}(baseline_a )\\
+\beta_{1,a} &= F^{-1}(trend_1 + baseline_a )- \beta_{0,a}\\
+\beta_{2,a} &= F^{-1}(trend_2 + F(\beta_{0,a} + \beta_{1,a}) )- \beta_{0,a} - \beta_{1,a}\\
+\beta_{3,a} &= F^{-1}(trend_3 + F(\beta_{0,a} + \beta_{1,a} + \beta_{2,a}) )- \beta_{0,a} - \beta_{1,a} - \beta_{2,a}\\
+\beta_{4,a} &= F^{-1}(trend_4 + F(\beta_{0,a} + \beta_{1,a} + \beta_{2,a} + \beta_{3,a}) )- \beta_{0,a} - \beta_{1,a} - \beta_{2,a} - \beta_{3,a}\\
+\tau_a = F^{-1}(ATT + F(\beta_{0,a} + \beta_{1,a} + \beta_{2,a} ) )- \beta_{0,a} - \beta_{1,a}  - \beta_{2,a} \\
+\end{align*}
+
+\begin{align*}
+\beta_{0,b} &= F^{-1}(baseline_b )\\
+\beta_{1,b} &= F^{-1}(trend_1 + baseline_b )- \beta_{0,b}\\
+\beta_{2,b} &= F^{-1}(trend_2 + F(\beta_{0,b} + \beta_{1,b}) )- \beta_{0,b} - \beta_{1,b}\\
+\beta_{3,b} &= F^{-1}(trend_3 + F(\beta_{0,b} + \beta_{1,b} + \beta_{2,b}) )- \beta_{0,b} - \beta_{1,b} - \beta_{2,b}\\
+\beta_{4,b} &= F^{-1}(trend_4 + F(\beta_{0,b} + \beta_{1,b} + \beta_{2,b} + \beta_{3,b}) )- \beta_{0,b} - \beta_{1,b} - \beta_{2,b} - \beta_{3,b}\\
+\tau_b = F^{-1}(ATT + F(\beta_{0,b} + \beta_{1,b} + \beta_{2,b} + \beta_{3,b} ) )- \beta_{0,b} - \beta_{1,b} - \beta_{2,b} - \beta_{3,b} \\
+\end{align*}
+
+\begin{align*}
+\beta_{0,c} &= F^{-1}(baseline_c )\\
+\beta_{1,c} &= F^{-1}(trend_1 + baseline_c )- \beta_{0,c}\\
+\beta_{2,c} &= F^{-1}(trend_2 + F(\beta_{0,c} + \beta_{1,c}) )- \beta_{0,c} - \beta_{1,c}\\
+\beta_{3,c} &= F^{-1}(trend_3 + F(\beta_{0,c} + \beta_{1,c} + \beta_{2,c}) )- \beta_{0,c} - \beta_{1,c} - \beta_{2,c}\\
+\beta_{4,c} &= F^{-1}(trend_4 + F(\beta_{0,c} + \beta_{1,c} + \beta_{2,c} + \beta_{3,c}) )- \beta_{0,c} - \beta_{1,c} - \beta_{2,c} - \beta_{3,c}\\
+\end{align*}
+
 
 ### parameterization for heterogeneous treatment effects example {#multiDGP-param}
 

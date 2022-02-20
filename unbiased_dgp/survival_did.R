@@ -2,12 +2,14 @@ library(tidyverse)
 library(tictoc)
 library(here)
 library(DeclareDesign)
+library(fixest)
 source(here::here('unbiased_dgp', 'full_landscape.R'))
 
 library(survival)
 library(ggplot2)
 library(dplyr)
 library(ggfortify)
+library(msm)
 
 survival_did <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v = 0.25, std_p = 0.0, cellsize, ppoints, cpoints){
   
@@ -21,7 +23,7 @@ survival_did <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, st
   
   coeffmatrix <- matrix(nrow = n, ncol = 3)
   
-  n_mod = 5
+  n_mod = 6
   summ_row <- n_mod * n
   
   summary_long <- data.frame('b0'= rep(b0, summ_row), 'b1'= rep(b1, summ_row), 'b2_0'= rep(b2_0, summ_row), 'b2_1'= rep(b2_1, summ_row), 'b3'= rep(b3, summ_row), 
@@ -51,7 +53,6 @@ for(i in 1:n){
   
   #generate random 
   errortable_property <- data.frame(property = as.character(unique(pixloc$property)), p_err = rnorm(length(unique(pixloc$property)), 0, std_p))
-  #errortable_county <- data.frame(county = as.character(unique(pixloc$county)), c_err = rnorm(length(unique(pixloc$county)), 0, std_c))
   
   panels$pixels <- gsub("(?<![0-9])0+", "", panels$pixels, perl = TRUE)
   
@@ -80,6 +81,9 @@ for(i in 1:n){
     )%>%
     ungroup()
   
+  DID <- feols(y_it ~  post*treat, data = panels) 
+  DID_se <- summary(DID, se = "hetero")$se[4]
+  DID_cover <- dplyr::between(ATT, DID$coefficients[4] - 1.96 * DID_se, DID$coefficients[4] + 1.96 * DID_se)*1
   
   #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   # Create counterfactual panel dataframe ----
@@ -139,6 +143,8 @@ for(i in 1:n){
   
   coefs <- cox$coefficients
   hr <- coefs[[2]] %>% exp()
+  vcoeff <- cox$var[2,2]
+  se_cox <- deltamethod(~ exp(x1), coefs[[2]], vcoeff)
   
   #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   # counterfactual cox proportional hazards model 
@@ -152,6 +158,9 @@ for(i in 1:n){
   coefs <- cox_counterfactual$coefficients
   hr_cf <- coefs[[1]] %>% exp()
   
+  vcoeff <- cox_counterfactual$var
+  se_cox_cf <- deltamethod(~ exp(x1), coefs[[1]], vcoeff)
+  
   # this hr corresponds really well to what we'd expect if the hazard ratio we want is 
   haz_rat <- pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) / pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2 + std_p^2)^.5)
   
@@ -164,6 +173,9 @@ for(i in 1:n){
   #summary(cox_interaction)
   coefs <- cox_interaction$coefficients
   hr_int <- coefs[[3]] %>% exp()
+  
+  vcoeff <- cox_interaction$var[3,3]
+  se_cox_int <- deltamethod(~ exp(x1), coefs[[3]], vcoeff)
   
   #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   ### now we'll try to estimate separately the components of the desired hazard ratio
@@ -185,7 +197,27 @@ for(i in 1:n){
   
   hr_11_cf <- 1/(1/hr_11_10 + 1/hr_11_01 - (1/(hr_11_01*hr_01_00)))
   
+  vcov_hr <- matrix(0, nrow = 3, ncol = 3)
+  vcov_hr[1,1] <- cox_treat$var
+  vcov_hr[2,2] <- cox_post$var
+  vcov_hr[3,3] <- cox_notreat$var
+  
+  se_hr_11_cf <- deltamethod(
+   ~ 1/(1/exp(x1) + 1/exp(x2) - (1/(exp(x2)*exp(x3)))),
+   c(cox_treat$coefficients, cox_post$coefficients, cox_notreat$coefficients),
+   vcov_hr
+  )
+  
   hr_2 <- hr_11_10/hr_01_00
+  
+  vcov_hr <- matrix(0, nrow = 2, ncol = 2)
+  vcov_hr[1,1] <- cox_treat$var
+  vcov_hr[2,2] <- cox_notreat$var
+  se_hr_rat <- deltamethod(
+    ~ exp(x1) / exp(x2) ,
+    c(cox_treat$coefficients, cox_notreat$coefficients),
+    vcov_hr
+  )
   
   #### calculating observed deforestation rate to transition to ATT estimate
   defor_summary <- panels %>%
@@ -202,6 +234,15 @@ for(i in 1:n){
   ATT_stratcox <- d_obs - d_obs/hr_2
   ATT_cf <- d_obs - d_obs/hr_cf
   ATT_int <- d_obs - d_obs/hr_int
+  
+  hr_11_cf_cover <- dplyr::between(haz_rat, hr_11_cf - 1.96 * se_hr_11_cf, hr_11_cf + 1.96 * se_hr_11_cf)*1
+  
+  hr_cover <- dplyr::between(haz_rat, hr - 1.96 * se_cox, hr + 1.96 * se_cox)*1
+  
+  hr_int_cover <- dplyr::between(haz_rat, hr_int - 1.96 * se_cox_int, hr_int + 1.96 * se_cox_int)*1
+  
+  hr_rat_cover <- dplyr::between(haz_rat, hr_2 - 1.96 * se_hr_rat, hr_2 + 1.96 * se_hr_rat)*1
+  
   
   
   
@@ -223,7 +264,7 @@ for(i in 1:n){
     hr, #HRR
     d_obs, #d_obs
     ATT_cox - ATT, #bias
-    NA#cover
+    hr_cover#cover
   )
   
   summary_long[i+n*2,c(firstcol:lastcol)] <- c(
@@ -232,7 +273,7 @@ for(i in 1:n){
     hr_int, #HRR
     d_obs, #d_obs
     ATT_int - ATT, #bias
-    NA#cover
+    hr_int_cover#cover
   )
   
   summary_long[i+n*3,c(firstcol:lastcol)] <- c(
@@ -241,7 +282,7 @@ for(i in 1:n){
     hr_11_cf, #HRR
     d_obs, #d_obs
     ATT_11_cf - ATT, #bias
-    NA#cover
+    hr_11_cf_cover#cover
   )
   
   summary_long[i+n*4,c(firstcol:lastcol)] <- c(
@@ -250,7 +291,16 @@ for(i in 1:n){
     hr_2, #HRR
     d_obs, #d_obs
     ATT_stratcox - ATT, #bias
-    NA#cover
+    hr_rat_cover#cover
+  )
+  
+  summary_long[i+n*5,c(firstcol:lastcol)] <- c(
+    i,
+    "pixel DID",#model
+    NA, #HRR
+    d_obs, #d_obs
+    DID$coefficients[4] - ATT, #bias
+    DID_cover#cover
   )
   
   print(i)

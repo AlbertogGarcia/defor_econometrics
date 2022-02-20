@@ -13,14 +13,14 @@ library(ggfortify)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Parameterization (largely taken from analysis, but longer time periods) ----
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-std_a = 0
 std_v = 0.5
 years = 10
-nobs = 14400
+nobs = 100^2
 n = 500
 
 cellsize = 10
 ppoints = 70
+std_a = 0
 std_p = 0
 cpoints = 40
 
@@ -45,12 +45,63 @@ survival <- survival_did(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, s
 
 survival_long <- survival$summary_long
 
+library(rio)
+export(survival_long, "survival_long.rds")
+
 survival_summary <- survival_long %>%
   group_by(model)%>%
   summarize(HRR = mean(as.numeric(HRR)),
             Bias = mean(as.numeric(bias)),
-            RMSE = rmse(as.numeric(bias), 0)
+            RMSE = rmse(as.numeric(bias), 0),
+            cover = mean(as.numeric(cover), na.rm = TRUE)
             )
+
+
+std_a = 0.1
+std_p = 0.1
+# we'll need to compute the parameters 
+std_avp = (std_a^2+std_v^2+std_p^2)^.5
+b0 = qnorm(base_0, mean = 0, sd = std_avp)
+b1 = qnorm(base_1, mean = 0, sd = std_avp) - b0
+b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
+b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
+b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
+
+set.seed(0930)
+
+survival <- survival_did(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+
+survival_long01 <- survival$summary_long
+
+library(rio)
+export(survival_long01, "survival_long01.rds")
+
+survival_summary01 <- survival_long01 %>%
+  group_by(model)%>%
+  summarize(HRR = mean(as.numeric(HRR)),
+            Bias = mean(as.numeric(bias)),
+            RMSE = rmse(as.numeric(bias), 0),
+            cover = mean(as.numeric(cover), na.rm = TRUE)
+  )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
