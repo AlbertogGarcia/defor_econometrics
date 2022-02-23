@@ -964,7 +964,9 @@ solving for $\beta_3$
 &\beta_3 = F^{-1}(ATT + F(\beta_0 + \beta_1 +\beta_{2,1}) )- (\beta_0 + \beta_1 +\beta_{2,1})\\
 \end{align*}
 
-with hetergeneous treatment effects
+### when treatment effects are correlated with property size {#pweightDGP}
+
+
 \begin{align*}
 ATT&= E(\beta_0 + \beta_1 +\beta_{2,1} +\beta_3) - E(\beta_0 + \beta_1 +\beta_{2,1})\\
 &=P(-\alpha_i -u_{it} - \beta_3 < \beta_0 + \beta_1 +\beta_{2,1} + \mu) - P(-\alpha_i -u_{it} < \beta_0 + \beta_1 +\beta_{2,1})\\
@@ -1012,13 +1014,13 @@ Here, three groups, $g\in \{ a, b, c \}$ have different baseline deforestation r
 The DGP for each observation can be written as follows: 
 
 Group $a$: 
-$$y_{it} = \beta_{0,a} 1\{ t = 0\} + \beta_{1,a}1\{ t = 1\} + \beta_{2,a}1\{ t = 2\} + \beta_{3,a}1\{ t = 3\}+ \beta_{4,a}1\{ t = 4\} + \tau_a 1\{ t \geq 2\} +\alpha_i + u_{it}$$
+$$y^*_{it} = \beta_{0,a} 1\{ t = 0\} + \beta_{1,a}1\{ t = 1\} + \beta_{2,a}1\{ t = 2\} + \beta_{3,a}1\{ t = 3\}+ \beta_{4,a}1\{ t = 4\} + \tau_a 1\{ t \geq 2\} +\alpha_i + u_{it}$$
 
 Group $b$: 
-$$y_{it} = \beta_{0,b} 1\{ t = 0\} + \beta_{1,b}1\{ t = 1\} + \beta_{2,b}1\{ t = 2\} + \beta_{3,b}1\{ t = 3\}+ \beta_{4,b}1\{ t = 4\} + \tau_b 1\{ t \geq 3\} +\alpha_i + u_{it}$$
+$$y^*_{it} = \beta_{0,b} 1\{ t = 0\} + \beta_{1,b}1\{ t = 1\} + \beta_{2,b}1\{ t = 2\} + \beta_{3,b}1\{ t = 3\}+ \beta_{4,b}1\{ t = 4\} + \tau_b 1\{ t \geq 3\} +\alpha_i + u_{it}$$
 
 Group $c$: 
-$$y_{it} = \beta_{0,c} 1\{ t = 0\} + \beta_{1,c}1\{ t = 1\} + \beta_{2,c}1\{ t = 2\} + \beta_{3,c}1\{ t = 3\}+ \beta_{4,c}1\{ t = 4\}  +\alpha_i + u_{it}$$
+$$y^*_{it} = \beta_{0,c} 1\{ t = 0\} + \beta_{1,c}1\{ t = 1\} + \beta_{2,c}1\{ t = 2\} + \beta_{3,c}1\{ t = 3\}+ \beta_{4,c}1\{ t = 4\}  +\alpha_i + u_{it}$$
 
 , where the $\beta$ and $tau$ coefficients are calculated as follows:
 
@@ -1049,10 +1051,77 @@ $$y_{it} = \beta_{0,c} 1\{ t = 0\} + \beta_{1,c}1\{ t = 1\} + \beta_{2,c}1\{ t =
 \beta_{4,c} &= F^{-1}(trend_4 + F(\beta_{0,c} + \beta_{1,c} + \beta_{2,c} + \beta_{3,c}) )- \beta_{0,c} - \beta_{1,c} - \beta_{2,c} - \beta_{3,c}\\
 \end{align*}
 
+, Where $F()$ is the CDF of a $N(0, \sigma^2_a + \sigma^2_u)$
+
 
 ### parameterization for heterogeneous treatment effects example {#multiDGP-param}
 
-## DGP when treatment effects are correlated with property size {#pweightDGP}
+The following parameters and their definitions inform the simulation parameterizations. 
+
+\begin{align*}
+baseline_a &= E[y_{it}(0) |  t<t_0, G_i = a]\\
+baseline_b &= E[y_{it}(0) |  t<t_0, G_i = b]\\
+baseline_c &= E[y_{it}(0) |  t<t_0, G_i = c]\\
+trend_1 &= E[y_{it}(0) |  t=1, G_i = g] - E[y_{it}(0) |  t=0, G_i = g] \\
+trend_2 &= E[y_{it}(0) |  t=2, G_i = g] - E[y_{it}(0) |  t=1, G_i = g]\\
+trend_3 &= E[y_{it}(0) |  t=3, G_i = g] - E[y_{it}(0) |  t=2, G_i = g]\\
+trend_4 &= E[y_{it}(0) |  t=4, G_i = g] - E[y_{it}(0) |  t=3, G_i = g]\\
+ATT_{0,a} &= E[y_{it}(1) - y_{it}(0) |  t= 2, G_i = a]\\
+ATT_{1,a} &= E[y_{it}(1) - y_{it}(0) |  t= 3, G_i = a]\\
+ATT_{2,a} &= E[y_{it}(1) - y_{it}(0) |  t= 4, G_i = a]\\
+ATT_{0,b} &= E[y_{it}(1) - y_{it}(0) |  t= 3, G_i = b]\\
+ATT_{1,b} &= E[y_{it}(1) - y_{it}(0) |  t= 4, G_i = b]\\
+\end{align*}
+
+
+Here, three groups, $g\in \{ a, b, c \}$ have different baseline deforestation rates, and all three groups would experience the same trends in the absence of treatment. Group $a$ experiences treatment in time $2$, group $b$ experiences treatment in time $3$, and group $c$ is never treated. The $ATT$ is equal across the two treated groups and there are no dynamic effects.  
+
+The DGP for each observation can be written as follows: 
+
+Group $a$: 
+$$y_{it} = \beta_{0,a} 1\{ t = 0\} + \beta_{1,a}1\{ t = 1\} + (\beta_{2,a}+\tau_{0,a})1\{ t = 2\} + (\beta_{3,a}+\tau_{1,a})1\{ t = 3\}+ (\beta_{4,a}+\tau_{2,a})1\{ t = 4\}  +\alpha_i + u_{it}$$
+
+Group $b$: 
+$$y_{it} = \beta_{0,b} 1\{ t = 0\} + \beta_{1,b}1\{ t = 1\} + \beta_{2,b}1\{ t = 2\} + (\beta_{3,b}+ \tau_{0,b})1\{ t = 3\}+ (\beta_{4,b} + \tau_{1,b})1\{ t = 4\}  +\alpha_i + u_{it}$$
+
+Group $c$: 
+$$y_{it} = \beta_{0,c} 1\{ t = 0\} + \beta_{1,c}1\{ t = 1\} + \beta_{2,c}1\{ t = 2\} + \beta_{3,c}1\{ t = 3\}+ \beta_{4,c}1\{ t = 4\}  +\alpha_i + u_{it}$$
+
+, where the $\beta$ and $tau$ coefficients are calculated as follows:
+
+
+\begin{align*}
+\beta_{0,a} &= F^{-1}(baseline_a )\\
+\beta_{1,a} &= F^{-1}(trend_1 + baseline_a )- \beta_{0,a}\\
+\beta_{2,a} &= F^{-1}(trend_2 + F(\beta_{0,a} + \beta_{1,a}) )- \beta_{0,a} - \beta_{1,a}\\
+\beta_{3,a} &= F^{-1}(trend_3 + F(\beta_{0,a} + \beta_{1,a} + \beta_{2,a}) )- \beta_{0,a} - \beta_{1,a} - \beta_{2,a}\\
+\beta_{4,a} &= F^{-1}(trend_4 + F(\beta_{0,a} + \beta_{1,a} + \beta_{2,a} + \beta_{3,a}) )- \beta_{0,a} - \beta_{1,a} - \beta_{2,a} - \beta_{3,a}\\
+\tau_{0,a} = F^{-1}(ATT_{0,a} + F(\beta_{0,a} + \beta_{1,a} + \beta_{2,a} ) )- \beta_{0,a} - \beta_{1,a}  - \beta_{2,a} \\
+\tau_{1,a} = F^{-1}(ATT_{1,a} + F(\beta_{0,a} + \beta_{1,a} + \beta_{2,a} +\tau_{0,a}) )- \beta_{0,a} - \beta_{1,a}  - \beta_{2,a} -\tau_{0,a}\\
+\tau_{2,a} = F^{-1}(ATT_{2,a} + F(\beta_{0,a} + \beta_{1,a} + \beta_{2,a} +\tau_{0,a}+\tau_{1,a}) )- \beta_{0,a} - \beta_{1,a}  - \beta_{2,a} -\tau_{0,a}-\tau_{1,a} \\
+\end{align*}
+
+\begin{align*}
+\beta_{0,b} &= F^{-1}(baseline_b )\\
+\beta_{1,b} &= F^{-1}(trend_1 + baseline_b )- \beta_{0,b}\\
+\beta_{2,b} &= F^{-1}(trend_2 + F(\beta_{0,b} + \beta_{1,b}) )- \beta_{0,b} - \beta_{1,b}\\
+\beta_{3,b} &= F^{-1}(trend_3 + F(\beta_{0,b} + \beta_{1,b} + \beta_{2,b}) )- \beta_{0,b} - \beta_{1,b} - \beta_{2,b}\\
+\beta_{4,b} &= F^{-1}(trend_4 + F(\beta_{0,b} + \beta_{1,b} + \beta_{2,b} + \beta_{3,b}) )- \beta_{0,b} - \beta_{1,b} - \beta_{2,b} - \beta_{3,b}\\
+\tau_{b, 0} = F^{-1}(ATT_{0,b} + F(\beta_{0,b} + \beta_{1,b} + \beta_{2,b} + \beta_{3,b} ) )- \beta_{0,b} - \beta_{1,b} - \beta_{2,b} - \beta_{3,b} \\
+\tau_{b, 1} = F^{-1}(ATT_{1,b} + F(\beta_{0,b} + \beta_{1,b} + \beta_{2,b} + \beta_{3,b}+\tau_{b, 0} ) )- \beta_{0,b} - \beta_{1,b} - \beta_{2,b} - \beta_{3,b} - \tau_{b, 0} \\
+\end{align*}
+
+\begin{align*}
+\beta_{0,c} &= F^{-1}(baseline_c )\\
+\beta_{1,c} &= F^{-1}(trend_1 + baseline_c )- \beta_{0,c}\\
+\beta_{2,c} &= F^{-1}(trend_2 + F(\beta_{0,c} + \beta_{1,c}) )- \beta_{0,c} - \beta_{1,c}\\
+\beta_{3,c} &= F^{-1}(trend_3 + F(\beta_{0,c} + \beta_{1,c} + \beta_{2,c}) )- \beta_{0,c} - \beta_{1,c} - \beta_{2,c}\\
+\beta_{4,c} &= F^{-1}(trend_4 + F(\beta_{0,c} + \beta_{1,c} + \beta_{2,c} + \beta_{3,c}) )- \beta_{0,c} - \beta_{1,c} - \beta_{2,c} - \beta_{3,c}\\
+\end{align*}
+
+, Where $F()$ is the CDF of a $N(0, \sigma^2_a + \sigma^2_u )$
+
+
 
 ## Calculating deforestation rates {#rate-formula}
 
