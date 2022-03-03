@@ -17,15 +17,17 @@ library(DeclareDesign)
 source(here::here('unbiased_dgp', 'full_landscape.R'))
 
 #begin function
-aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v = 0.25, std_p = 0.0, cellsize, ppoints, cpoints, rm.selection = FALSE){
+heterogeneous_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3_mu, std_a = 0.1, std_v = 0.25, std_p = 0.0, std_b3 = 0.0, cellsize, ppoints, cpoints, rm.selection = FALSE){
   
   countyscape = full_landscape(nobs, cellsize, ppoints, cpoints)
   pixloc_df = countyscape$pixloc_df
   
   
-  ATT <- pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) - pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2 + std_p^2)^.5)
+  ATT <- pnorm(b0+b1+b2_1+b3_mu, 0, (std_a^2+std_v^2 +std_p^2+std_b3^2)^.5) - pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2 + std_p^2)^.5)
   
   pixloc <- pixloc_df
+  
+  unit_area <- data.frame("county area" = pixloc_df$carea, "property area" = pixloc_df$parea, "grid area" = pixloc_df$garea)
   
   did_covermat <- matrix(nrow = n, ncol = 5)
   agg_covermat <- matrix(nrow = n, ncol = 3)
@@ -39,13 +41,14 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
   bad_coeffmatrix <- matrix(nrow = n, ncol = 2)
   fix_coeffmatrix <- matrix(nrow = n, ncol = 4)
   
+  
   selection_bias <- data.frame('iteration' = rep(NA, n), 
                                'sample_sel_bias' = rep(NA, n))
   
   n_mod = 14
   summ_row <- n_mod * n
   
-  summary_long <- data.frame('b0'= rep(b0, summ_row), 'b1'= rep(b1, summ_row), 'b2_0'= rep(b2_0, summ_row), 'b2_1'= rep(b2_1, summ_row), 'b3'= rep(b3, summ_row), 
+  summary_long <- data.frame('b0'= rep(b0, summ_row), 'b1'= rep(b1, summ_row), 'b2_0'= rep(b2_0, summ_row), 'b2_1'= rep(b2_1, summ_row), 'std_b3'= rep(std_b3, summ_row), 
                              'std_a'= rep(std_a, summ_row), 'std_v'= rep(std_v, summ_row), 'std_p'= rep(std_p, summ_row),
                              'iteration' = rep(NA, summ_row), 
                              'pixel'=rep(NA, summ_row),'grid'=rep(NA, summ_row),'property'=rep(NA, summ_row),'county'=rep(NA, summ_row),
@@ -65,13 +68,15 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
         by = join(pixels, year),
         post = ifelse(year > years, 1, 0),
         v_it = rnorm(N, 0, std_v),
-        ystar = b0 + b1*treat + b2_0*post*(1-treat) + b2_1*post*treat + b3*treat*post + a_i + v_it,
         ystar_cf = b0 + b1*treat + b2_0*post*(1-treat) + b2_1*post*treat + a_i + v_it
       )
     )
     
     #generate random 
-    errortable_property <- data.frame(property = as.character(unique(pixloc$property)), p_err = rnorm(length(unique(pixloc$property)), 0, std_p))
+    errortable_property <- data.frame(property = as.character(unique(pixloc$property)), 
+                                      p_err = rnorm(length(unique(pixloc$property)), 0, std_p),
+                                      p_b3 = rnorm(length(unique(pixloc$property)), b3_mu, std_b3)
+                                      )
     #errortable_county <- data.frame(county = as.character(unique(pixloc$county)), c_err = rnorm(length(unique(pixloc$county)), 0, std_c))
     
     panels$pixels <- gsub("(?<![0-9])0+", "", panels$pixels, perl = TRUE)
@@ -80,10 +85,12 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       inner_join(pixloc, by = c("pixels", "treat")) %>%
       inner_join(errortable_property, by = "property") %>%
       #inner_join(errortable_county, by = "county") %>%
-      mutate(ystar = ystar + p_err,
+      mutate(ystar = ystar_cf + p_b3*post*treat + p_err,
              ystar_cf = ystar_cf + p_err,
              y = (ystar > 0)*1 ,
              y_cf = (ystar_cf > 0)*1 )
+    
+  
     
     #need to determine which year deforestation occurred
     year_df <- panels %>%
@@ -115,10 +122,6 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       mutate(defor = ifelse(indic > 0, 1, y))%>%
       mutate(y_it = ifelse(indic > 0, NA, y))
     
-    
-    ###############
-    ## calculating selestion bias
-    ###############
     treat_post <- subset(panels, treat==1)
     
     control_post <- subset(panels, treat==0 )
@@ -131,16 +134,15 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
     
     sel_bias = y0_treat - y_treat - (y0_control - y_control)
     
-    
     selection_bias[i, 1] <- i
     selection_bias[i, 2] <- sel_bias
     
-    #ATT = mean( subset(panels, treat==1&post==1)$y)-mean( subset(panels, treat==1&post==1)$y_cf)
-    ATT = pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) - pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2 + std_p^2)^.5)
+    ATT = mean( subset(panels, treat==1&post==1)$y)-mean( subset(panels, treat==1&post==1)$y_cf)
     
     if(rm.selection){
       ATT = ATT+sel_bias  
     }
+    
     
     # aggregate up to county in each year 
     suppressWarnings(
@@ -491,7 +493,46 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
   names(fix_bias)[2] <- paste("property fe")
   names(fix_bias)[3] <- paste("county fe")
   names(fix_bias)[4] <- paste("treatment fe")
-
+  # suppressWarnings(fix_cbias <- melt(fix_bias, value.name = "bias"))
+  
+  # ##################################################################
+  # ###### Bias distribution Plots #######
+  # 
+  # plot <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
+  #   geom_density(alpha = .2) +
+  #   guides(fill=guide_legend(title=NULL))+
+  #   scale_fill_discrete(breaks=c("grid", "property", "county", "pixel"), labels=c("aggregated to grids", "aggregated to properties", "aggregated to counties", "pixel"))+
+  #   geom_vline(xintercept = 0, linetype = "dashed")+
+  #   #geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
+  #   #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
+  #   theme(plot.caption = element_text(hjust = 0.5))+
+  #   labs(x= "Bias", caption = paste("Mean grid:", round(mean(coeff_bias$grid), digits = 4),
+  #                                   ", RMSE:", round(rmse(actual, coeff_bias$grid), digits = 4), "\n", 
+  #                                   "Mean property:", round(mean(coeff_bias$property), digits = 4),
+  #                                   ", RMSE:", round(rmse(actual, coeff_bias$property), digits = 4),"\n",
+  #                                   "Mean county:", round(mean(coeff_bias$county), digits = 4),
+  #                                   ", RMSE:", round(rmse(actual, coeff_bias$county), digits = 4), "\n",
+  #                                   "Mean pixel:", round(mean(coeff_bias$pixel), digits = 4),
+  #                                   ", RMSE:", round(rmse(actual, coeff_bias$pixel), digits = 4)) 
+  #   )
+  # 
+  # fe_plot <- ggplot(data = fix_cbias, aes(x = bias, fill=variable)) +
+  #   geom_density(alpha = .2) +
+  #   guides(fill=guide_legend(title=NULL))+
+  #   #scale_fill_discrete(breaks=c("grid fe", "property fe", "county fe"), labels=c("grid fe", "property fe", "county fe"))+
+  #   geom_vline(xintercept = 0, linetype = "dashed")+
+  #   #geom_vline(aes(xintercept= (DID_estimand - ATT), color="DID estimand - ATT"), linetype="dashed")+
+  #   #theme(plot.margin = unit(c(1,1,3,1), "cm"))+
+  #   theme(plot.caption = element_text(hjust = 0.5))+
+  #   labs(x= "Bias", caption = paste("Mean grid fe:", round(mean(fix_bias[,1]), digits = 4),
+  #                                   ", RMSE:", round(rmse(actual, fix_bias[,1]), digits = 4), "\n", 
+  #                                   "Mean property fe:", round(mean(fix_bias[,2]), digits = 4),
+  #                                   ", RMSE:", round(rmse(actual, fix_bias[,2]), digits = 4),"\n",
+  #                                   "Mean county fe:", round(mean(fix_bias[,3]), digits = 4),
+  #                                   ", RMSE:", round(rmse(actual, fix_bias[,3]), digits = 4))
+  #   )
+  
+  
   did_coverages_df <- data.frame(
     aggregation = c('pixel',
                     'pixel',
@@ -661,15 +702,16 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
     mutate_at(1:13, as.logical)%>%
     dplyr::select(mean_bias, everything())
   
-  # summary_long <- summary_long %>%
-  #   select(iteration, everything())
+  summary_long <- summary_long %>%
+    select(iteration, everything())
   
   
   outputs = list(
     #"plot" = plot, "fe_plot" = fe_plot, 
-    "biases" = coeff_bias, "fe_biases" = fix_bias, 
+    #"biases" = coeff_bias, "fe_biases" = fix_bias, 
     #"did_coverages_df" = did_coverages_df, "agg_coverages_df" = agg_coverages_df, "fe_coverages_df" = fix_coverages_df, "summary_df" = summary_df,
     "summary_long" = summary_long,
+    "unit_area" = unit_area,
     "selection_bias" = selection_bias)
   return(outputs)
   

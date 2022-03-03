@@ -1,7 +1,7 @@
 ---
 title: Conservation impact evaluation using remotely sensed data
 author: "Alberto Garcia and Robert Heilmayr"
-date: "October 1, 2021"
+date: "February 1, 2022"
 output:
   bookdown::pdf_document2:
     latex_engine: xelatex
@@ -344,7 +344,8 @@ TWFE models have risen to prominence due to their flexibility in applying DID me
 
 ## Traditional difference-in-differences model
 
-In the two-group, two-period case the typical DID model (Regression 1) is an unbiased estimator of the $ATT$, as shown in columns 2-5 of Figure \@ref(fig:summary-fig) (The typical DID is equivalent to including treatment fixed effects). However, researchers often want to use TWFE models because of their flexibility in situations that do not fall under the typical DID setup. Therefore, researchers should be aware of the trade-offs using aggregated units of analysis and fixed effects when using TWFE models for deforestation impact evaluation. 
+In the two-group, two-period case the typical DID model (Regression 1) is an unbiased estimator of the $ATT$, as shown in columns 2-5 of Figure \@ref(fig:summary-fig) (The typical DID is equivalent to including treatment fixed effects). However, researchers often want to use TWFE models because of their flexibility in situations that do not fall under the typical DID setup. Therefore, researchers should be aware of the trade-offs using aggregated units of analysis and fixed effects when using TWFE models for deforestation impact evaluation.
+
 
 ## Spatially aggregated fixed effects
 
@@ -362,7 +363,6 @@ Columns 6-8 of Figure \@ref(fig:summary-fig) show that pixel level TWFE regressi
 ```{r summary-fig, fig.cap="bias, distribution, and coverage of all models with clustered standard errors. ",  out.width="100%"}
 knitr::include_graphics("figs/schart.png")
 ```
-
 
 ## Spatially aggregated units of analysis
 
@@ -383,13 +383,20 @@ Columns 9-11 of Figure \@ref(fig:summary-fig) show that the bias of the estimate
 
 ## Survival models
 
-Other literatures have accounted for the irreversibility in the outcome of interest using survival models. For example, many papers in health economics are interested in mortality as the outcome of interest. Survival models ... 
+Other literatures have accounted for the irreversibility in the outcome of interest by using survival models. The irreversible outcomes of interest may be mortality (e.g., @friedman2013), ... (e.g., ), or technology adoption (e.g., @beyene2013). In these cases, the researcher is interested in the time each unit remains in the sample, which in our case, corresponds to the time each pixel survives until deforestation. Figure \@ref(fig:cox-fig1) shows difference-in-differences estimates from a cox proportional hazards model as well as the pixel OLS DID (regression 1), where the hazard rate ratio of interest, 
 
-Figure XX shows estimates from a cox proportional hazards model, where the hazard ratio of interest has been converted into the $ATT$. 
+$$ HRR = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, D_i=1]}$$
 
-While the cox proportional hazards model recovered the appropriate parameter, there are several reasons why survival models may not be preferable in the context of estimating the impacts of conservation interventions on deforestation rates. 
+has been converted into the $ATT$ (Model and conversion process in Appendix \@ref(coxph)). 
 
-We explore how some of these factors influence the relative performance of various models in the following sections. 
+```{r cox-fig1, fig.cap=" bias, distribution, and coverage of Cox proportional hazard DID relative to pixel DID using OLS.",  out.width="100%"}
+knitr::include_graphics("figs/coxph1.png")
+```
+We see that the Cox proportional hazards model is also a viable approach to recovering the impact of the conservation intervention in this context. However, while survival analysis recovered the appropriate parameter, there are several reasons why survival models may not be preferable in the context of estimating the impacts of conservation interventions on deforestation rates. 
+
+<!-- One of the primary reasons for the use of survival analysis is censoring. This occurs when the researcher has partial information about the subjects’ survival times but does not have access to precise event times. -->
+
+As we will show in the next sections, when the process of deforestation operates at a scale different than the pixel, an alternatiive unit of analysis may be preferable. We explore how some of these factors influence the relative performance of various models in the following sections. 
 
 
 # Non-random selection and the spatial nature of the deforestation process {#property}
@@ -984,6 +991,43 @@ and
 \Leftrightarrow \\
 &\mu = G^{-1}(ATT + F(\beta_0 + \beta_1 +\beta_{2,1}) )- (\beta_0 + \beta_1 +\beta_{2,1})\\
 \end{align*}
+
+## Cox proportional hazards difference-in-differences {#coxph}
+
+Our hazard rate ratio of interest is 
+
+$$ HRR_{ATT} = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, D_i=1]}$$
+
+Here, the numerator represents the deforestation rate within treated areas after the intervention, while the denominator represents the counterfactual deforestation rate in those areas after the intervention, had the intervention never ocurred. Thus the $HRR$ of interest represents the ration of two deforestation rates. 
+
+The $ATT$ is expressed 
+
+$$ ATT = E[y_{ivt}(1)  |  t\geq t_0, D_i=1] - E[y_{ivt}(0)  |  t\geq t_0, D_i=1]$$.
+
+Note that we observe the $E[y_{ivt}(1)  |  t\geq t_0, D_i=1]$ term, which we denote $d_{obs}$.
+Denote the unobserved counterfactual term, E[y_{ivt}(0)  |  t\geq t_0, D_i=1], $d_{cf}$.
+
+We see that $d_{cf} = \frac{d_{obs} }{HRR}$, and thus that 
+
+$$ATT = d_{obs} - \frac{d_{obs} }{HRR}$$
+
+In order to estimate the $HRR$ using the Cox proportional hazards model, we must combine coefficients from separate Cox regressions. 
+
+
+
+Our three needed hazard rate ratios are:
+\begin{align*}
+HRR_1 = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, D_i=0]}\\
+HRR_2= \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t < t_0, D_i=1]}\\
+HRR_3 = \frac{E[y_{ivt}(0)  |  t\geq t_0, D_i=0]} {E[y_{ivt}(0)  |  t < t_0, D_i=0]}
+\end{align*}
+
+The desired $HRR_{ATT}$ can then be found by:
+
+$$HRR_{ATT} = \frac{1}{1/HRR_1 + 1/HRR_1 - (1/(HRR_2*HRR_3))}$$
+
+Each of $HRR_1$, $HRR_2$, and $HRR_3$ can be estimated individually by Cox regressions. 
+
 
 ## Property-level models still outperform in alternative parameterizations {#property-alt}
 

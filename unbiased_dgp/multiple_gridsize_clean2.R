@@ -17,7 +17,8 @@ library(DeclareDesign)
 source(here::here('unbiased_dgp', 'multigrid_landscape.R'))
 
 #begin function
-multiple_gridsize_clean <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v = 0.25, std_p = 0.0, cellsize_list, ppoints, cpoints, rm.selection = FALSE){
+#begin function
+multiple_gridsize_clean2 <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v = 0.25, std_p = 0.0, cellsize_list, ppoints, cpoints, rm.selection = FALSE){
   
   countyscape = multigrid_landscape(nobs, cellsize_list, ppoints, cpoints)
   pixloc_df = countyscape$pixloc_df

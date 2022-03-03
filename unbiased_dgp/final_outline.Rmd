@@ -37,14 +37,14 @@ base_1 = .05
 trend = -.005
 ATT = -.01
 
-std_a = 0.1
-std_v = 0.25
-years = 3
+std_a = 0
+std_v = 0.5
+years = 2
 nobs = 10000
-n = 250
+n = 100
 
 cellsize = 10
-ppoints = 70
+ppoints = 75
 std_p = 0
 cpoints = 40
 
@@ -64,7 +64,7 @@ landscape_map <- landscape_map(nobs, years, b0, b1, b2, b3, std_a = 0.1, std_v =
 
 ```{r aggregate, results = 'hide', warning=FALSE}
 std_p = 0
-std_a = 0.1
+# std_a = 0.1
 # we'll need to recompute the parameters if we change the value of sigma_p
 std_avp = (std_a^2+std_v^2+std_p^2)^.5
 b0 = qnorm(base_0, mean = 0, sd = std_avp)
@@ -74,18 +74,18 @@ b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
 # summary function that estimates all of the different specifications
-aggregation <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints, rm.selection = TRUE)
+aggregation <- aggregate_complete(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints, rm.selection = FALSE)
 
 summary_long <- aggregation$summary_long
 
-# summary function that estimates all of the different specifications
-aggregation_sel <- aggregate_complete(250, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints, rm.selection = FALSE)
-
-summary_selection <- aggregation_sel$summary_long %>%
-  mutate(iteration = as.integer(iteration))%>%
-  inner_join(aggregation_sel$selection_bias, by = "iteration")
-
-export(summary_selection, "summary_selection.rds")
+# # summary function that estimates all of the different specifications
+# aggregation_sel <- aggregate_complete(100, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints, rm.selection = FALSE)
+# 
+# summary_selection <- aggregation_sel$summary_long %>%
+#   mutate(iteration = as.integer(iteration))%>%
+#   inner_join(aggregation_sel$selection_bias, by = "iteration")
+# 
+# export(summary_selection, "summary_selection.rds")
 
 
 ```
