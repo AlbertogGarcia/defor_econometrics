@@ -1,4 +1,0 @@
-"","unit of analysis","fixed effects","se","0","0.1","0.25"
-"1","pixel","county","clustered at county",0.938,0.92,0.916
-"2","pixel","property","clustered at property",0.944,0.93,0.94
-"3","pixel","grid","clustered at grid",0.944,0.932,0.904

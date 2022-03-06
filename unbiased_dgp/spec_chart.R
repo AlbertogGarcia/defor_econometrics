@@ -1,7 +1,10 @@
 #####################################################################
 #### r script that generates specification charts for paper
 #####################################################################
-library(dplyr)
+library(dplyr, warn.conflicts = FALSE)
+
+# Suppress summarise info
+options(dplyr.summarise.inform = FALSE)
 library(Metrics)
 source(here::here('unbiased_dgp', 'schart.R'))
 summary_pweights <- readRDS("unbiased_dgp/summary_pweights.rds")
@@ -85,7 +88,7 @@ df_summary <- specchart_long %>%
   )%>%
   filter(is.na(notes))%>%
   group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, se_pixel, se_grid, se_property, se_county)%>%
-  summarise(RMSE = rmse(bias, 0),
+  summarize(RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
             q95 = quantile(bias, probs = .95),
             Bias = mean(bias),
@@ -547,11 +550,11 @@ df_summary <- rbind( df_summary[3,],
 
 par(oma=c(1,0,1,1))
 
-labels <- list("", "")
+labels <- list("")
 
-f <- function(x) gsub("^(\\s*[+|-]?)0\\.", "\\1.", as.character(x))
-coverage <- c("", f(round(df_summary$cover[2:3], digits=3)), "")
-RMSE <- c("", f(round(df_summary$RMSE[2:3], digits=5)), "")
+#f <- function(x) gsub("^(\\s*[+|-]?)0\\.", "\\1.", as.character(x))
+coverage <- c("", round(df_summary$cover[2:3], digits=3), "")
+RMSE <- c("", round(df_summary$RMSE[2:3], digits=5), "")
 test <- as.data.frame(subset(df_summary, select=-c(cover, RMSE, model, std_a, std_p)))
 
 index.ci <- match(c("q05","q95"), names(test))
@@ -564,7 +567,7 @@ ylim <- c(midline-.004,0.0075)
 #bottomline = (min(ylim)+topline)/2
 #Create the plot
 
-schart(test,labels, ylim = ylim, index.ci=index.ci, col.est=c("grey50","#D55E00"),
+schart2(test,labels, ylim = ylim, index.ci=index.ci, col.est=c("grey50","#D55E00"),
        col.dot=c("black","white","white","#00A1D5"),
        bg.dot=c("black","white","white","#00A1D5")
        , ylab="    Bias"#, highlight=1

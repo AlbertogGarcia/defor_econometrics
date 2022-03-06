@@ -60,7 +60,6 @@ plot_df <- panels %>%
   mutate(Group = ifelse(G==0, "never", "early group\n(treated in year 3)"),
          Group = ifelse(G==4, "late group\n(treated in year 4", Group))
 
-
 ggplot(data=plot_df, aes(x=year, y=defor, colour=Group))+
   geom_line(size=1.5)+
   ylab("deforestation rate")+

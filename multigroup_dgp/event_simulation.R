@@ -8,6 +8,15 @@ library(did2s)
 
 event_simulation <- function(n, pixloc, st_a, std_v, std_p, b0a, b1a, b2a, b3a, b4a, b0b, b1b, b2b, b3b, b4b, b0c, b1c, b2c, b3c, b4c, tau_a, tau_a2, tau_a3, tau_b, tau_b2){
   
+  pixel_es_long <- data.frame(matrix(ncol = 5, nrow = 0))
+  county_es_long <- data.frame(matrix(ncol = 5, nrow = 0))
+  
+  #provide column names
+  cnames <- c('term', 'estimate', 'std.error', 'estimator', 'iteration')
+  colnames(pixel_es_long) <- cnames
+  colnames(county_es_long) <- cnames
+  
+  
   for(i in 1:n){
     
     Nobs <- length(pixloc$G)  
@@ -121,8 +130,6 @@ event_simulation <- function(n, pixloc, st_a, std_v, std_p, b0a, b1a, b2a, b3a, 
   
   es_long[] <- lapply(es_long, as.character)
   
-  outputs = es_long
-  
-  return(outputs)
+  return("es_long" = es_long)
   
 }

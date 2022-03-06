@@ -132,7 +132,7 @@ multiple_gridsize_clean <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_
                this_garea = paste0("garea_", k))%>%
         select(this_grid, treat, post, year, defor, this_garea, y_it)
       
-      # aggregate up to county in each year 
+      
       this_grid_df <- as.data.frame(this_panel) %>%
         dplyr::group_by(this_grid, year, post) %>%
         dplyr::summarise(this_garea = mean(this_garea),
