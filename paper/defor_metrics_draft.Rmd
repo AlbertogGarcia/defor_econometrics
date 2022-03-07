@@ -636,14 +636,14 @@ Using Figure \@ref(fig:summary) to compare across all models, we see that RMSE t
 
 In many instances, researchers do not have access to geospatial boundaries of these relevant administrative units. In these cases, utilizing a grid cell or alternative administrative unit to capture spatial heterogeneity is likely preferable to pixel level DID models for purposes of both estimation and inference. The scale of this grid cell or alternative unit relative to the process of land use change is important. Grid cell size plays a role in both estimation and inference, particularly when property level unobservables are present. 
 
-We now vary the grid cell resolution used in our monte carlo simulations to understand the importance of scale when conducting conservation impact evaluations. Table \@ref(tab:grid-res) helps us to get a sense of relative scale within our synthetic landscapes for this section. We assume pixels are comparable to Landsat resolution (30 m), and so the average property in our landscape is 81 hectares. This average property area is equivalent to a 30 x 30 pixel grid cell in our setting. 
+We now vary the grid cell resolution used in our monte carlo simulations to understand the importance of scale when conducting conservation impact evaluations. Table \@ref(tab:grid-res) helps us to get a sense of relative scale within our synthetic landscapes for this section. We assume pixels are comparable to Landsat resolution (30 m), and the average property in our landscape is 9 hectares. 
 
 ```{r grid-res}
-nobs = 300^2
-ppoints = 100
+nobs = 150^2
+ppoints = 75
 avg_parea = nobs/ppoints
 # property: 900 square pixels | 900*900 = 810000 m^2 = 81 ha
-
+ha = avg_parea^2 / 10000
 
 # unit | grid cell resolution (m) | area (ha) | comparable use in literature
 
@@ -668,21 +668,202 @@ kable(resolution_df, format = "latex", row.names = FALSE,  booktabs = T,
 ```
 
 
-Figure \@ref(fig:grid-fe) shows how bias, coverage probability, and RMSE depend on grid size in pixel-level TWFE regressions with grid unit fixed effects (Regression 3, where $j$ represents grid cell $j$). Grid cells near to or slightly larger than the size of the average property tend to perform better than undersized or particularly large grid cells. We find that too high of resolution (too small of grid cells) analyses suffer from potentially severe bias, and low resolution (too large of grid cells) analyses, while largely unbiased, suffer from imprecise estimation and inference.
+Figure \@ref(fig:grid-fe) shows how bias, coverage probability, and RMSE depend on grid size in pixel-level TWFE regressions with grid unit fixed effects (Regression 3, where $j$ represents grid cell $j$). Particularly undersized or large grid cells tend to perform relatively worse in terms of bias, coverage and RMSE. We find that too high of resolution (too small of grid cells) analyses suffer from potentially severe bias, and low resolution (too large of grid cells) analyses may be both biased and suffer from imprecise estimation and inference.
 
-The top panel of Figure \@ref(fig:grid-fe) shows that even in the absence of property-level unobservables ($\sigma_p = 0$), too small of grids result in biased estimates of the $ATT$. The introduction of property unobservables exacerbates the issue with small grid cells, causing undersized grids to result in upward bias much more severe than when property unobservables play a lesser role. This results from the fact that small grid cells or pixels do not match the scale at which the deforestation process operates. Larger grid cells account for the spatial autocorrelation introduced within property boundaries by the property unobservables, while pixels and smaller grid cells do not. In the case when property unobservables are extreme ($\sigma_p = 0.25$), we see that bias is decreasing in grid cell size and is minimized at an point where grid cells are approaching the size of the larger properties in the landscape. When property unobservables are present, RMSE and coverage probability stabilize at the point where grid size approaches the scale of the average property. 
+The top panel of Figure \@ref(fig:grid-fe) shows property unobservables exacerbate the issue with small grid cells, causing undersized grids to result in upward bias much more severe than when property unobservables play a lesser role. Larger grid cells account for the spatial autocorrelation introduced within property boundaries by the property unobservables and reduce the risk of dropping grid cells from the analysis unintentially. 
 
-```{r grid-fe, fig.align="center", fig.cap="Regression 3 with grid unit fixed effects; bias, coverage, and rmse depend on grid size when property level unobservables are present. Note: x-axis begins at 2x2 grid cells to ensure grid cells are not simply pixels.", out.width = "90%", fig.pos='H', fig.show='hold'}
-knitr::include_graphics(c("figs/gridsize_bias_fe.png", "figs/gridsize_cover_fe.png", "figs/gridsize_rmse_fe.png"))
+```{r grid-setup, include = FALSE}
+all_gridsizes <- readRDS("results/all_gridsizes_300a01_3.rds")%>%
+  mutate_at(vars(avg_garea, Bias), as.numeric)
+prop_sizes <- readRDS("results/prop_sizes_70.rds")
+
+ua_grid <- all_gridsizes %>%
+  filter(grid == 1)%>%
+  mutate(`unit of analysis` = "grid")
+
+ua_prop0.25 <- subset(all_gridsizes, property == "unit of analysis" & parameterization == "property unobservables (0.25)")
+ua_prop0.1 <- subset(all_gridsizes, property == "unit of analysis" & parameterization == "property unobservables (0.1)")
+ua_prop0.0 <- subset(all_gridsizes, property == "unit of analysis" & parameterization == "no property influence")
+
+ua_pixel <- all_gridsizes %>%
+  filter(grid == 0 & pixel == 1)%>%
+  mutate(`unit of analysis` = "pixel")
+
+fe_prop0.25 <- subset(all_gridsizes, property == "fixed effects" & parameterization == "property unobservables (0.25)")
+fe_prop0.1 <- subset(all_gridsizes, property == "fixed effects" & parameterization == "property unobservables (0.1)")
+fe_prop0.0 <- subset(all_gridsizes, property == "fixed effects" & parameterization == "no property influence")
+
+
+library(ggplot2)
+
+my_breaks = c(9, 30*30, 50*50, 75*75, 100^2)
+my_labels = c("3x3",  "30x30", "50x50", "75x75", "")
+xlimits = c(4, max(ua_grid$avg_garea))
+
 ```
 
-Figure \@ref(fig:grid-uoa) shows how bias, coverage probability, and RMSE depend on grid size in grid-level TWFE regressions (Regression 4, where $j$ represents grid cell $j$). Again, undersized or particularly large grid cells suffer in terms of bias, coverage probability, and RMSE relative to grid cells near the scale of the average property. In the presence of significant heterogeneity at the property scale ($\sigma_p = 0.25$), undersized grids suffer from severe bias. This manifests in poor coverage probability and RMSE for these undersized grids as well. As grid cells become particularly large, all parameterizations begin to suffer in tems of RMSE and coverage, making the use of very low resolution grid cells a potential concern in terms of precision and inference. 
-
-The findings in this section demonstrate the dangers of conducting the analysis at a scale that does not match that which drives landscape heterogeneity or the deforestation process. Using grid cells or pixels at too small of scale is likely to result in biased estimates. If using the grid cell as the unit of analysis rather than simply as the level of unit fixed effects, low resolution grid cells are likely to result in imprecise estimates of the $ATT$ and undesireable inference. 
 
 
-```{r grid-uoa, fig.align="center", fig.cap="Regression 4 with grid as unit of analysis; bias, coverage, and rmse depend on grid size when property level unobservables are present. Note: x-axis begins at 2x2 grid cells to ensure grid cells are not simply pixels.", out.width = "90%", fig.pos='H', fig.show='hold'}
-knitr::include_graphics(c("figs/gridsize_bias_uoa.png", "figs/gridsize_cover_uoa.png", "figs/gridsize_rmse_uoa.png"))
+```{r grid-fe, message = FALSE, results = FALSE, warning = FALSE, fig.align="center", fig.cap="Regression 4 with grid as unit of analysis; bias, coverage, and rmse depend on grid size when property level unobservables are present. Note: x-axis begins at 2x2 grid cells to ensure grid cells are not simply pixels.", out.width = "85%", fig.pos='H',  fig.width = 12, fig.height = 6, fig.show='hold'}
+#knitr::include_graphics(c("figs/gridsize_bias_uoa.png", "figs/gridsize_cover_uoa.png", "figs/gridsize_rmse_uoa.png"))
+
+ua_pixel_bias <- ggplot()+
+  #geom_ribbon(data = ua_pixel, aes(x=avg_garea, ymin=q25, ymax=q75, fill = parameterization), alpha = 0.1)+
+  geom_density(data = prop_sizes, aes(psize), fill = "grey80")+
+  geom_vline(xintercept=my_breaks, colour="grey90") +
+  geom_hline(yintercept = 0, color = "green", linetype = "dashed", size = 1.25) +
+  #geom_hline(yintercept = c(fe_prop0.25$Bias, fe_prop0.1$Bias, fe_prop0.0$Bias), color = c("blue", "green", "red"), linetype = "dashed", size = 1) +
+  geom_line(data = ua_pixel, aes(x = avg_garea, y = Bias, colour = parameterization), size = 1.25) +
+  geom_vline(xintercept = mean(all_gridsizes$parea), linetype = "dashed", color = "red")+
+  ylim(-0.004, 0.0075)+
+  annotate(geom="text", x=75*75, y=0.005, label="average property area",
+           color="red", size = 5)+
+  geom_segment(aes(x = 75*75, y = 0.0045, xend = mean(all_gridsizes$parea) + 10, yend = 0.004), color = "red",
+               arrow = arrow(length = unit(0.5, "cm")))+
+  scale_x_continuous(
+    breaks = my_breaks,
+    labels = my_labels,
+    limits = xlimits,
+    name = "Grid size") +
+  theme_minimal()+
+  theme(text = element_text(size=15),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank()) +
+  ylab("Bias")+
+  ggtitle("bias vs. grid size (as fixed effects)")
+ua_pixel_bias
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#### grid FE coverage
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ua_pixel_cover <- ggplot()+
+  geom_density(data = prop_sizes, aes(psize), fill = "grey80")+
+  geom_vline(xintercept=my_breaks, colour="grey90") +
+  geom_hline(yintercept = 0.95, color = "green", linetype = "dashed", size = 1) +
+  geom_line(data = ua_pixel, aes(x = avg_garea, y = cover, colour = parameterization), size = 1.25) +
+  ylab("coverage probability")+
+  geom_vline(xintercept = mean(all_gridsizes$parea), linetype = "dashed", color = "red")+
+  ylim(0.5, 1)+
+  scale_x_continuous(
+    breaks = my_breaks,
+    labels = my_labels,
+    limits = xlimits,
+    name = "Grid size") +
+  theme_minimal()+
+  theme(text = element_text(size=15),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank()) +
+  ggtitle("coverage vs. grid size (as fixed effects)")
+ua_pixel_cover
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#### grid FE rmse
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ua_pixel_rmse <- ggplot()+
+  geom_density(data = prop_sizes, aes(psize), fill = "grey80")+
+  geom_vline(xintercept=my_breaks, colour="grey90") +
+  geom_hline(yintercept = 0, color = "green", linetype = "dashed", size = 1.25) +
+  geom_line(data = ua_pixel, aes(x = avg_garea, y = RMSE, colour = parameterization), size = 1.25) +
+  ylab("RMSE")+
+  geom_vline(xintercept = mean(all_gridsizes$parea), linetype = "dashed", color = "red")+
+  ylim(0, .0075)+
+  scale_x_continuous(
+    breaks = my_breaks,
+    labels = my_labels,
+    limits = xlimits,
+    name = "Grid size") +
+  theme_minimal()+
+  theme(text = element_text(size=15),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank()) +
+  ggtitle("RMSE vs. grid size (as fixed effects)")
+ua_pixel_rmse
+```
+
+
+Figure \@ref(fig:grid-uoa) shows how bias, coverage probability, and RMSE depend on grid size in grid-level TWFE regressions (Regression 4, where $j$ represents grid cell $j$). Again, undersized or particularly large grid cells suffer in terms of bias, coverage probability, and RMSE relative to grid cells within the distribution of property sizes. In the presence of significant heterogeneity at the property scale ($\sigma_p = 0.25$), undersized grids suffer from severe bias. This manifests in poor coverage probability and RMSE for these undersized grids as well. As grid cells become particularly large, all parameterizations begin to suffer in tems of RMSE and coverage, making the use of very low resolution grid cells a potential concern in terms of precision and inference. 
+
+The findings in this section demonstrate the dangers of conducting the analysis at a scale removed from that which drives landscape heterogeneity or the deforestation process. Using grid cells or pixels at too small of scale is likely to result in biased estimates. If using the grid cell as the unit of analysis rather than simply as the level of unit fixed effects, low resolution grid cells may also result in imprecise estimates of the $ATT$ and undesireable inference. 
+
+
+```{r grid-uoa, message = FALSE, results = FALSE, warning = FALSE, fig.align="center", fig.cap="Regression 3 with grid unit fixed effects; bias, coverage, and rmse depend on grid size when property level unobservables are present. Note: x-axis begins at 2x2 grid cells to ensure grid cells are not simply pixels.", out.width = "85%", fig.width = 12, fig.height = 6, fig.pos='H', fig.show='hold'}
+#knitr::include_graphics(c("figs/gridsize_bias_fe.png", "figs/gridsize_cover_fe.png", "figs/gridsize_rmse_fe.png"))
+
+ua_grid_bias <- ggplot()+
+  geom_density(data = prop_sizes, aes(psize),  fill = "grey80")+
+  geom_vline(xintercept=my_breaks, colour="grey90") +
+  geom_hline(yintercept = 0, color = "green", linetype = "dashed", size = 1.25) +
+  geom_hline(yintercept = c(ua_prop0.25$Bias, ua_prop0.1$Bias, ua_prop0.0$Bias), color = c("blue", "green", "red"), linetype = "dashed", size = 1) +
+  geom_line(data = ua_grid, aes(x = avg_garea, y = Bias, colour = parameterization), size = 1.25) +
+  ylab("Bias")+#xlab("Grid area")+
+  geom_vline(xintercept = mean(all_gridsizes$parea), linetype = "dashed", color = "red")+
+  ylim(-0.004, 0.0075)+
+  annotate(geom="text", x=50*50, y=0.006, label="average property area",
+           color="red", size = 5)+
+  geom_segment(aes(x = 50*50, y = 0.0055, xend = mean(all_gridsizes$parea) + 10, yend = 0.005), color = "red",
+               arrow = arrow(length = unit(0.5, "cm")))+
+  scale_x_continuous(
+    breaks = my_breaks,
+    labels = my_labels,
+    limits = xlimits,
+    name = "Grid size") +
+  theme_minimal()+
+  theme(text = element_text(size=15),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank()) +
+  ggtitle("bias vs. grid size (as unit of analysis)")
+ua_grid_bias
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#### grid unit of analysis coverage
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ua_grid_cover <- ggplot()+
+  geom_density(data = prop_sizes, aes(psize), fill = "grey80")+
+  geom_vline(xintercept=my_breaks, colour="grey90") +
+  geom_hline(yintercept = 0.95, color = "green", linetype = "dashed", size = 1) +
+  geom_line(data = ua_grid, aes(x = avg_garea, y = cover, colour = parameterization), size = 1.25) +
+  ylab("coverage probability")+
+  geom_vline(xintercept = mean(all_gridsizes$parea), linetype = "dashed", color = "red")+
+  ylim(0.5, 1)+
+  scale_x_continuous(
+    breaks = my_breaks,
+    labels = my_labels,
+    limits = xlimits,
+    name = "Grid size") +
+  theme_minimal()+
+  theme(text = element_text(size=15),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank()) +
+  ggtitle("coverage vs. grid size (as unit of analysis)")
+ua_grid_cover
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#### grid unit of analysis rmse
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ua_grid_rmse <- ggplot()+
+  geom_density(data = prop_sizes, aes(psize), fill = "grey80")+
+  geom_vline(xintercept=my_breaks, colour="grey90") +
+  geom_hline(yintercept = 0, color = "green", linetype = "dashed", size = 1.25) +
+  geom_line(data = ua_grid, aes(x = avg_garea, y = RMSE, colour = parameterization), size = 1.25) +
+  ylab("RMSE")+#xlab("Grid area")+
+  geom_vline(xintercept = mean(all_gridsizes$parea), linetype = "dashed", color = "red")+
+  scale_x_continuous(
+    breaks = my_breaks,
+    labels = my_labels,
+    limits = xlimits,
+    name = "Grid size") +
+  theme_minimal()+
+  theme(text = element_text(size=15),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank()) +
+  ggtitle("RMSE vs. grid size (as unit of analysis)")
+ua_grid_rmse
+
 ```
 
 ## Weighting by area recovers landscape scale estimates
@@ -1238,10 +1419,21 @@ HRR_3 = \frac{E[y_{ivt}(0)  |  t\geq t_0, D_i=0]} {E[y_{ivt}(0)  |  t < t_0, D_i
 
 The desired $HRR_{ATT}$ can then be found by:
 
-$$HRR_{ATT} = \frac{1}{1/HRR_1 + 1/HRR_1 - (1/(HRR_2*HRR_3))}$$
+$$HRR_{ATT} = \frac{1}{1/HRR_1 + 1/HRR_2 - (1/(HRR_2*HRR_3))}$$
 
-Each of $HRR_1$, $HRR_2$, and $HRR_3$ can be estimated individually by Cox regressions. 
+Each of $HRR_1$, $HRR_2$, and $HRR_3$ can be estimated individually by Cox regressions. Specifically,
 
+
+$$h(t) =\lambda_0(t) exp(\alpha 1\{ t \geq t_0\} )$$, subsetting to only the treated group;
+$$h(t) =\gamma_0(t) exp( \beta 1\{ D_i = 1\} )$$, subsetting to only the post period; and
+$$h(t) =\lambda_0(t) exp(\delta 1\{ t \geq t_0\} )$$, subsetting to only the untreated group.
+\end{align*}
+, where $h(t)$ is the hazard rate of deforestation at time t. Then
+\begin{align*}
+E[exp(\hat{ \alpha })] &= HRR_1\\
+E[exp(\hat{ \beta })] &= HRR_2\\
+E[exp(\hat{ \delta })] &= HRR_3
+\end{align*}
 
 ## Property-level models still outperform in alternative parameterizations {#property-alt}
 
