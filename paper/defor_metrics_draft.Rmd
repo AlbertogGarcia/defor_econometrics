@@ -360,7 +360,7 @@ $$ HRR = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, 
 has been converted into the $ATT$ for the Cox proportional hazards model (Model and conversion process in Appendix \@ref(coxph)). 
 
 ```{r cox-fig1, fig.cap=" bias, distribution, and coverage of Cox proportional hazard DID relative to pixel DID using OLS.",  out.width="100%"}
-knitr::include_graphics("figs/coxph.png")
+knitr::include_graphics("figs/coxph1.png")
 ```
 We see that the Cox proportional hazards model is a viable approach to recovering the impact of the conservation intervention in this context. However, while survival analysis recovers the appropriate parameter, there are several reasons why survival models may not be preferable in the context of estimating the impacts of conservation interventions on deforestation rates.
 
