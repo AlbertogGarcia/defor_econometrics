@@ -351,22 +351,20 @@ Columns 9-11 of Figure \@ref(fig:summary-fig) show that the bias of the estimate
 
 ## Survival models
 
-Other literatures have accounted for irreversible outcomes of interest such as mortality (e.g., @friedman2013), ... (e.g., ), or technology adoption (e.g., @beyene2013). Many researchers have opted to use survival models, where the researcher is interested in the time each unit remains in the sample. In our case, this corresponds to the time each pixel survives until deforestation. 
+Other literatures have accounted for irreversible outcomes of interest such as mortality (e.g., @friedman2013), ... (e.g., ), or technology adoption (e.g., @beyene2013). Many researchers do so by using survival models, where the researcher is interested in the time each unit remains in the sample. In our context, this corresponds to the time each pixel survives until deforestation. 
 
 We explore whether survival models are also a viable approach in the deforestation setting. Figure \@ref(fig:cox-fig1) shows difference-in-differences estimates from a cox proportional hazards model as well as the pixel OLS DID (regression 1) with a pre-period and post-period of 10 years. The hazard rate ratio of interest, 
 
 $$ HRR = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, D_i=1]}$$
 
-has been converted into the $ATT$ (Model and conversion process in Appendix \@ref(coxph)). 
+has been converted into the $ATT$ for the Cox proportional hazards model (Model and conversion process in Appendix \@ref(coxph)). 
 
 ```{r cox-fig1, fig.cap=" bias, distribution, and coverage of Cox proportional hazard DID relative to pixel DID using OLS.",  out.width="100%"}
-knitr::include_graphics("figs/coxph1.png")
+knitr::include_graphics("figs/coxph.png")
 ```
-We see that the Cox proportional hazards model is also a viable approach to recovering the impact of the conservation intervention in this context. However, while survival analysis recovered the appropriate parameter, there are several reasons why survival models may not be preferable in the context of estimating the impacts of conservation interventions on deforestation rates. 
+We see that the Cox proportional hazards model is a viable approach to recovering the impact of the conservation intervention in this context. However, while survival analysis recovers the appropriate parameter, there are several reasons why survival models may not be preferable in the context of estimating the impacts of conservation interventions on deforestation rates.
 
-<!-- One of the primary reasons for the use of survival analysis is censoring. This occurs when the researcher has partial information about the subjects’ survival times but does not have access to precise event times. -->
-
-As we will show in the next sections, when the process of deforestation operates at a scale different than the pixel, an alternatiive unit of analysis may be preferable. We explore how some of these factors influence the relative performance of various models in the following sections. 
+One of the primary reasons for the use of survival analysis is censoring. This occurs when the researcher has partial information about the subjects’ survival times but does not have access to precise event times. While the researcher may not observe all pixels until they are deforested, mayn other forms of censoring are not a concern in the context of deforestation. Further, the proposed strategy to drop pixels in the periods after they are first deforested successfully addresses the irreversibility in deforestation events. As we will show in the next sections, when the process of deforestation operates at a scale different than the pixel, an alternatiive unit of analysis may be preferable. This is not feasible in survival analysis in the way it is in our alternative OLS specifications. We explore how some of these factors influence the relative performance of various models in the following sections. 
 
 
 # Non-random selection and the spatial nature of the deforestation process {#property}
