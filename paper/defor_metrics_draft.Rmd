@@ -675,6 +675,10 @@ all_gridsizes <- readRDS("results/all_gridsizes_100a01_3.rds")%>%
   mutate_at(vars(avg_garea, Bias), as.numeric)
 prop_sizes <- readRDS("results/prop_sizes.rds")
 
+all_gridsizes <- readRDS("results/all_gridsizesa01_3_200.rds")%>%
+  mutate_at(vars(avg_garea, Bias), as.numeric)
+prop_sizes <- readRDS("results/prop_sizes_200.rds")
+
 ua_grid <- all_gridsizes %>%
   filter(grid == 1)%>%
   mutate(`unit of analysis` = "grid")
