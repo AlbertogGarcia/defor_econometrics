@@ -15,6 +15,8 @@ source(here::here("unbiased_dgp", "schart.R"))
 source(here::here("unbiased_dgp", "full_landscape.R"))
 library(ggpubr)
 
+set.seed(5597)
+
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Helper functions --------------------------------------------------------
@@ -67,10 +69,10 @@ results_dir <- paste0(getwd()[1], '/unbiased_dgp/')
 out_dir <- paste0(getwd()[1], '/presentations/figs/')
 
 
-base_0 = .02
-base_1 = .05
+base_0 = .04
+base_1 = .08
 trend = -.005
-ATT = -.01
+ATT = -.05
 
 std_a = 0.1
 std_v = 0.25
@@ -170,11 +172,17 @@ data_df <- panels %>%
          y_it = y_it %>% recode("-1" = "Previously deforested", 
                                 "0" = "Not deforested", 
                                 "1" = "Deforested"),
+         y_counterfactual = y_counterfactual %>% recode("-1" = "Previously deforested", 
+                                                        "0" = "Not deforested", 
+                                                        "1" = "Deforested"),
+         y = y %>% recode("-1" = "Previously deforested", 
+                                                        "0" = "Not deforested", 
+                                                        "1" = "Deforested"),
          treat = as.factor(treat),
          treat = treat %>% recode("0" = "Stable forest - not treated",
                                   "1" = "Stable forest - treated")) %>% 
   st_as_sf() %>%
-  dplyr::select(pixels, year, treat, defor, y_it) 
+  dplyr::select(pixels, year, treat, defor, y_it, defor_year, y, y_counterfactual) 
 
 
 
@@ -189,17 +197,42 @@ fills = c("Previously deforested" = palette$light_grey,
           "Stable forest - not treated" = palette$blue)
 
 
+y_fills = c("2011" = "#d0d1e6",
+            "2012" = "#a6bddb",
+            "2013" = "#74a9cf",
+            "2014" = "#3690c0",
+            "2015" = "#0570b0",
+            "2016" = palette$dark,
+            "Not deforested" = palette$light_grey)
+
+
 # Pre-deforestation landscape
-plot_df <- data_df %>%
+initial_df <- data_df %>%
   filter(year == 2) %>% 
   mutate(y_it = y_it %>% recode("Deforested" = "Not deforested"))
 
 initial_forest <- ggplot() + 
-  geom_sf(data = plot_df, aes(fill = y_it), color = "white", shape = 22, alpha = 1, size = 2.8) +
+  geom_sf(data = initial_df, aes(fill = y_it), color = "white", shape = 22, alpha = 1, size = 2.8) +
   scale_fill_manual(values= fills)
 initial_forest <- format_fig(initial_forest)
 
 initial_forest %>% save_separated("initial_forest")
+
+
+# Year of deforestation
+plot_df <- data_df %>%
+  filter(year == 2) %>% 
+  mutate(defor_year = as.character(defor_year + 2010) %>%  
+           recode("2017" = "Not deforested"))
+
+defor_year <- ggplot() + 
+  geom_sf(data = plot_df, aes(fill = defor_year), color = "white", shape = 22, alpha = 1, size = 2.8) +
+  scale_fill_manual(values= y_fills)
+
+defor_year <- format_fig(defor_year)
+defor_year
+defor_year %>% save_separated("defor_year")
+
 
 # Period 2-6 deforestation
 for (i in seq(2,6)){
@@ -213,8 +246,31 @@ for (i in seq(2,6)){
     save_separated(paste0("defor_", as.character(i))) 
 }
 
+# Counterfactual in year 2
+i = 5
+plot_df <- data_df %>%
+  filter(year == i)
+defor_plot <- ggplot() + 
+  geom_sf(data = plot_df, aes(fill = y), color = "white", shape = 22, alpha = 1, size = 2.8) +
+  scale_fill_manual(values= fills)
+defor_plot %>% 
+  format_fig %>% 
+  save_separated(paste0("only_defor_baseline", as.character(i)))
+defor_plot
+
+defor_plot <- ggplot() + 
+  geom_sf(data = plot_df, aes(fill = y_counterfactual), color = "white", shape = 22, alpha = 1, size = 2.8) +
+  scale_fill_manual(values= fills)
+defor_plot %>% 
+  format_fig %>% 
+  save_separated(paste0("only_defor_cf", as.character(i)))
+defor_plot
+
 
 # Visualizing exposure to treatment
+data_df <- data_df %>% 
+  mutate(all_forest = "Stable forest - treated")
+
 plot_df <- data_df %>% 
   filter(year==2) %>% 
   mutate(plot_var = ifelse(y_it %in% c("Deforested", "Previously deforested"), as.character(y_it), as.character(treat)))
@@ -231,6 +287,10 @@ intervention_plot %>%
 
 
 # Treatment-level analysis
+plot_df <- data_df %>% 
+  filter(year==3) %>% 
+  mutate(plot_var = ifelse(y_it %in% c("Deforested", "Previously deforested"), as.character(y_it), as.character(treat)))
+
 treat_plot <- ggplot() + 
   geom_sf(data = plot_df, aes(fill = plot_var), color = "black", shape = 22, alpha = 1, size = 2.8) +
   geom_sf(data = intervention_area_merge, size = 1.5, fill = "NA", color = palette$white) +
@@ -238,6 +298,15 @@ treat_plot <- ggplot() +
 treat_plot %>% 
   format_fig() %>% 
   save_separated(paste0("treatment")) 
+
+
+treat_plot_no_defor <- ggplot() + 
+  geom_sf(data = plot_df, aes(fill = treat), color = "black", shape = 22, alpha = 1, size = 2.8) +
+  geom_sf(data = intervention_area_merge, size = 1.5, fill = "NA", color = palette$white) +
+  scale_fill_manual(values = fills)
+treat_plot_no_defor %>% 
+  format_fig() %>% 
+  save_separated(paste0("treatment_nodefor")) 
 
 
 # County-level analysis
@@ -249,6 +318,14 @@ county_plot %>%
   format_fig() %>% 
   save_separated(paste0("county")) 
 
+county_plot <- ggplot() + 
+  geom_sf(data = initial_df, aes(fill = y_it), color = "black", shape = 22, alpha = 1, size = 2.8) +
+  geom_sf(data = c_bounds, size = 1.5, fill = "NA", color = palette$white) +
+  scale_fill_manual(values = fills)
+county_plot %>% 
+  format_fig() %>% 
+  save_separated(paste0("county_all_forest")) 
+
 
 # Grid-level analysis
 grid_plot <- ggplot() + 
@@ -259,10 +336,22 @@ grid_plot <- ggplot() +
   xlab("") +
   ylab("")
 
-
 grid_plot <- grid_plot %>% 
   format_fig() %>% 
   save_separated(paste0("grid")) 
+
+
+grid_plot <- ggplot() + 
+  geom_sf(data = initial_df, aes(fill = y_it), color = "black", shape = 22, alpha = 1, size = 2.8) +
+  scale_fill_manual(values = fills)  + 
+  geom_vline(xintercept = c(0,8,16,24,32), color="white", size=1.25) + 
+  geom_hline(yintercept = c(0,8,16,24,32), color="white", size=1.25) +
+  xlab("") +
+  ylab("")
+
+grid_plot <- grid_plot %>% 
+  format_fig() %>% 
+  save_separated(paste0("grid_all_forest")) 
 
 
 # Property-level analysis
@@ -274,7 +363,13 @@ prop_plot %>%
   format_fig() %>% 
   save_separated(paste0("property")) 
 
-
+prop_plot <- ggplot() + 
+  geom_sf(data = initial_df, aes(fill = y_it), color = "black", shape = 22, alpha = 1, size = 2.8) +
+  geom_sf(data = p_bounds, size = 1.5, fill = "NA", color = palette$white) +
+  scale_fill_manual(values = fills)
+prop_plot %>% 
+  format_fig() %>% 
+  save_separated(paste0("property_all_forest")) 
 
 
 
@@ -291,10 +386,11 @@ prop_plot %>%
 
 
 
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # TWFE vs DID plots --------------------------------------------------------
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-twfe_df <- read.csv(paste0(results_dir, "TWFE_long2.csv")) %>% 
+twfe_df <- read.csv(paste0(results_dir, "TWFE_long.csv")) %>% 
   select(-X)
 
 
@@ -360,7 +456,7 @@ ggplot() +
   scale_fill_manual(values = c("DID"=palette$dark, "TWFE"=palette$blue)) +
   theme_bw(base_size = 10) +
   annotate("text", x = -0.0025, y = 25, color = palette$white, label = "DID", size = 3) +
-  annotate("text", x = 0.02, y = 25, color = palette$dark, label = "TWFE", size = 3) +
+  annotate("text", x = 0.0215, y = 25, color = palette$dark, label = "TWFE", size = 3) +
   annotate("text", x = 0.04, y = 210, label = "Treated baseline = 0.04\nUntreated baseline = 0.02\nATT = -0.01\nTrend = -0.005", size = 3) +
   geom_vline(xintercept = 0, color = palette$red, linetype = "longdash", size = 0.5) +
   theme(legend.position = "none",
@@ -381,7 +477,7 @@ ggplot() +
   scale_fill_manual(values = c("DID"=palette$dark, "TWFE"=palette$blue)) +
   theme_bw(base_size = 10) +
   annotate("text", x = -0.0025, y = 25, color = palette$white, label = "DID", size = 3) +
-  annotate("text", x = 0.03, y = 25, color = palette$dark, label = "TWFE", size = 3) +
+  annotate("text", x = 0.033, y = 25, color = palette$dark, label = "TWFE", size = 3) +
   annotate("text", x = 0.04, y = 210, label = "Treated baseline = 0.05\nUntreated baseline = 0.02\nATT = -0.01\nTrend = -0.005", size = 3) +
   geom_vline(xintercept = 0, color = palette$red, linetype = "longdash", size = 0.5) +
   theme(legend.position = "none",
@@ -394,20 +490,49 @@ ggsave(paste0(out_dir, "twfe_4.png"), width = 5, height = 2.6, units = "in")
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Spec charts: Emphasize aggregation as solution -------------------------
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-full_summary <- read.csv(paste0(results_dir, "full_summary.csv")) %>% 
-  select(-X)
+# full_summary <- read.csv(paste0(results_dir, "full_summary.csv")) %>% 
+#   select(-X)
+
+full_summary <- readRDS(paste0(results_dir, "summary_full2.RDS"))
+
+full_summary <- full_summary %>% 
+  mutate(bias = as.numeric(bias),
+         cover = as.numeric(cover)) %>% 
+  group_by(across(c(-iteration, -bias, -cover))) %>% 
+  mutate(glabel = cur_group_id())
+
+
+full_summary <- full_summary %>%
+  summarize(median_bias = median(bias),
+            cover = mean(cover),
+            q025 = quantile(bias, 0.025),
+            q975 = quantile(bias, 0.975),
+            RMSE = sqrt(mean(bias**2)),
+            glabel = cur_group_id())
 
 ## Option 1 - aggregate FEs
 select_results <- full_summary %>% 
-  filter(sigma_p==0,
+  filter(std_p==0,
          !((se_grid==1 | se_property==1 | se_county==1) & (treatment.fe==1)),
-         pixel==T) %>% 
-  mutate(cover_dif = (cover - 0.95)*100) %>% 
+         pixel==1,
+         is.na(notes)) %>% 
+  mutate(cover = as.numeric(cover),
+         cover_dif = (cover - 0.95)*100) %>% 
   arrange(desc(pixel.fe), desc(treatment.fe), desc(county.fe), desc(grid.fe), desc(property.fe))
 
+
+# ggplot(select_results, aes(y = bias, group = glabel)) +
+#   geom_density()
+
+ggplot(select_results, aes(x = glabel, y=mean_bias)) + 
+  geom_errorbar(aes(ymin=q025, ymax=q975), width=.1) +
+  geom_point() +
+  theme_bw()
+
+
 na_row <- c("mean_bias" = NA,
-            "q05" = NA,
-            "q95" = NA)
+            "q025" = NA,
+            "q975" = NA)
 
 select_results <- rbind(na_row, select_results, na_row)
 
@@ -426,7 +551,7 @@ RMSE_print[is.na(RMSE_print)] <- " "
 schart_results <- select_results %>% 
   # select(c(mean_bias, q05, q95, pixel, county, grid, property, treatment.fe, county.fe, grid.fe, property.fe))
   # select(-c(se_pixel, se_grid, se_property, se_county, RMSE, cover, sigma_p, cover_dif, pixel.fe)) %>% 
-  select(c(mean_bias, q05, q95, pixel.fe, treatment.fe, county.fe, grid.fe, property.fe))
+  select(c(mean_bias, q025, q975, pixel.fe, treatment.fe, county.fe, grid.fe, property.fe))
 index.ci <- match(c("q05","q95"), names(schart_results))
 
 labels <- list("Pixel FE", "Treatment FE", "County FE", "Grid FE", "Property FE")
@@ -441,8 +566,17 @@ png(paste0(out_dir,"spec_did_fe.png"), width = 10, height = 9, units = "in", res
 par(bg = palette$white)
 par(oma=c(1,0,1,1))
 
-schart(schart_results, labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
-       highlight = 2, leftmargin = 20, col.est = c(palette$dark, palette$red), heights = c(3,1), cex = c(1.75,1.75))
+schart(schart_results, 
+       labels = labels, 
+       ylim = ylim, 
+       axes = FALSE, 
+       index.ci=index.ci, 
+       ylab="", 
+       highlight = 2, 
+       leftmargin = 20, 
+       col.est = c(palette$dark, palette$red), 
+       heights = c(3,1), 
+       cex = c(1.75,1.75))
 
 mtext("Bias", side=2, at = 0.038, font=2, las=1, line=.5, cex = 2)
 
@@ -536,18 +670,25 @@ dev.off()
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 select_results <- full_summary %>% 
   filter(treatment.fe==1,
-         !((se_grid==1 | se_property==1 | se_county==1))) %>% 
-  mutate(s0 = sigma_p==0,
-         s1 = sigma_p==0.1,
-         s2 = sigma_p==0.2,
-         s3 = sigma_p==0.3) %>% 
-  arrange(desc(s0), desc(s1), desc(s2), desc(s3))
+         !((se_grid==1 | se_property==1 | se_county==1)),
+         is.na(notes)) %>% 
+  mutate(s0 = std_p==0,
+         s1 = std_p==0.1,
+         s2 = std_p==0.2,
+         s3 = std_p==0.3) %>% 
+  arrange(desc(std_p))
+# arrange(desc(s0), desc(s1), desc(s2), desc(s3))
 
 na_row <- c("mean_bias" = NA,
             "q05" = NA,
             "q95" = NA)
 
 select_results <- rbind(na_row, select_results, na_row)
+
+ggplot(select_results, aes(x = std_p, y=mean_bias)) + 
+  geom_errorbar(aes(ymin=q025, ymax=q975), width=.1) +
+  geom_point() +
+  theme_bw()
 
 
 coverage <- select_results$cover
@@ -605,6 +746,16 @@ dev.off()
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Spec charts: structuring model around unit of analysis ------------------
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+select_results <- full_summary %>% 
+  filter(std_p==0.25,
+         # (pixel==1 & property.fe==1) | (pixel==1 & treatment.fe==1 & se_pixel==1),
+         is.na(notes))
+
+
+ggplot(my_data, aes(x, y, fill = m)) + geom_split_violin()
+
+
+
 # Panel A - Pixel-level analyses
 select_results <- full_summary %>% 
   filter(sigma_p==0.3,
