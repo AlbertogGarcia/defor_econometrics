@@ -42,8 +42,10 @@ multigrid_landscape <- function(nobs, cellsize_list, ppoints, cpoints){
   pixloc_grid <- pixloc_df %>%
     st_set_geometry(NULL)
   
-  for(i in 1:length(cellsize_list)){
-    overgrid <- st_make_grid(landscape, cellsize_list[[i]], square = TRUE)
+  for(i in cellsize_list){
+    
+    
+    overgrid <- st_make_grid(landscape, i, square = TRUE)
     
     #trim grid to landscape
     overgrid <- st_intersection(overgrid, landscape)
@@ -51,18 +53,18 @@ multigrid_landscape <- function(nobs, cellsize_list, ppoints, cpoints){
     wgrid <- st_within(pixloc_df, overgrid, sparse = FALSE, prepared = TRUE)*1
     
     pixloc_df[ , ncol(pixloc_df) + 1] <- as.character(max.col(wgrid))                  # Append new column
-    colnames(pixloc_df)[ncol(pixloc_df)] <- paste0("grid_", cellsize_list[[i]])  # Rename column name
+    colnames(pixloc_df)[ncol(pixloc_df)] <- paste0("grid_", i)  # Rename column name
     
     gareas <- tibble::rownames_to_column(
         data.frame(matrix(unlist(st_area(overgrid))))
         )
     
-    names(gareas)[1] <- paste0("grid_", cellsize_list[[i]])
-    names(gareas)[2] <- paste0("garea_", cellsize_list[[i]])
+    names(gareas)[1] <- paste0("grid_", i)
+    names(gareas)[2] <- paste0("garea_", i)
     
     
     pixloc_df <- pixloc_df %>%
-      inner_join(gareas, by = paste0("grid_", cellsize_list[[i]])
+      inner_join(gareas, by = paste0("grid_", i)
       )
     
   }

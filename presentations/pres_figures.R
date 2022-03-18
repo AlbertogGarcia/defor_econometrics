@@ -785,7 +785,7 @@ RMSE_print[is.na(RMSE_print)] <- " "
 
 schart_results <- select_results %>% 
   # select(c(mean_bias, q05, q95, pixel, county, grid, property, treatment.fe, county.fe, grid.fe, property.fe))
-# select(-c(se_pixel, se_grid, se_property, se_county, RMSE, cover, sigma_p, cover_dif, pixel.fe)) %>% 
+  # select(-c(se_pixel, se_grid, se_property, se_county, RMSE, cover, sigma_p, cover_dif, pixel.fe)) %>% 
   select(c(mean_bias, q05, q95, treatment.fe, county.fe, grid.fe, property.fe))
 index.ci <- match(c("q05","q95"), names(schart_results))
 
@@ -949,5 +949,4 @@ dev.off()
 # mtext("Coverage\nprobability", side=2, at = midline-0.0075, font=2, las=1, line=.5)
 # dev.off()
 # 
-
 

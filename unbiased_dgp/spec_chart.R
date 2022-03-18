@@ -1,7 +1,10 @@
 #####################################################################
 #### r script that generates specification charts for paper
 #####################################################################
-library(dplyr)
+library(dplyr, warn.conflicts = FALSE)
+
+# Suppress summarise info
+options(dplyr.summarise.inform = FALSE)
 library(Metrics)
 source(here::here('unbiased_dgp', 'schart.R'))
 summary_pweights <- readRDS("unbiased_dgp/summary_pweights.rds")
@@ -85,7 +88,7 @@ df_summary <- specchart_long %>%
   )%>%
   filter(is.na(notes))%>%
   group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, se_pixel, se_grid, se_property, se_county)%>%
-  summarise(RMSE = rmse(bias, 0),
+  summarize(RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
             q95 = quantile(bias, probs = .95),
             Bias = mean(bias),
@@ -516,4 +519,85 @@ text(x=41
      , y=.0475, expression(paste(sigma[p],"=0.3")), col="black", font=2, cex = 1.1)
 legend(x=-3, y=0.06, col = c("#00A1D5"), legend = c("specifications\nincorporating\nspatial aggregation"), inset = 0.005,  box.lty=0, cex=0.95
        ,  seg.len=0.25, lty = 1, horiz=TRUE, lwd = 4, bg="transparent")
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+## survival models
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+survival_long <- readRDS("survival_long.rds")
+survival_long01 <- rbind(survival_long, 
+  readRDS("survival_long01.rds"))
+
+df_summary <- survival_long %>%
+  mutate_at(vars(bias, cover), as.numeric
+  )%>%
+  group_by(model, std_a, std_p)%>%
+  summarise(RMSE = rmse(bias, 0),
+            q05 = quantile(bias, probs = .05),
+            q95 = quantile(bias, probs = .95),
+            Bias = mean(bias),
+            cover = mean(cover))%>%
+  mutate("cox DID" = as.logical(ifelse(model == "cox did", 0, 0)),
+         "pixel DID" = as.logical(ifelse(model == "pixel DID", 0, 0)))%>%
+  filter(model %in% c("cox did", "pixel DID"))%>%
+  select(Bias, everything())%>%
+  arrange(std_p)
+
+df_summary[ 3 , ] <- NA
+df_summary <- rbind( df_summary[3,],
+  df_summary)
+
+par(oma=c(1,0,1,1))
+
+labels <- list("")
+
+#f <- function(x) gsub("^(\\s*[+|-]?)0\\.", "\\1.", as.character(x))
+coverage <- c("", round(df_summary$cover[2:3], digits=3), "")
+RMSE <- c("", round(df_summary$RMSE[2:3], digits=5), "")
+test <- as.data.frame(subset(df_summary, select=-c(cover, RMSE, model, std_a, std_p)))
+
+index.ci <- match(c("q05","q95"), names(test))
+
+topline = -0.005
+
+midline = topline-0.005
+
+ylim <- c(midline-.004,0.0075)
+#bottomline = (min(ylim)+topline)/2
+#Create the plot
+
+schart2(test,labels, ylim = ylim, index.ci=index.ci, col.est=c("grey50","#D55E00"),
+       col.dot=c("black","white","white","#00A1D5"),
+       bg.dot=c("black","white","white","#00A1D5")
+       , ylab="    Bias"#, highlight=1
+       ,band.ref=c(-.05, .04)
+       , axes = FALSE
+       #, col.band.ref="#c7e9f9"
+) # make some room at the bottom
+Axis(side=2, at = c( 0), labels=TRUE)
+abline(h=topline)
+abline(h=midline)
+#abline(v=2.5, lty="dashed")
+#abline(h=bottomline)
+lapply(1:length(RMSE), function(i) {
+  # text(x= i, y=min(ylim)+.002, paste0(i), col="black", font=2, cex = 1)
+  #mtext(paste0(i), side=1, at = i, font=2, cex=.95)#, line=1, at=-1)
+  text(x= i, y=topline - 0.0035, paste0(RMSE[i]), col="black", font=1, cex=1.2)
+  text(x= i, y=midline - 0.0035, paste0(coverage[i]), col="black", font=1, cex=1.2 )
+})
+# mtext('coverage\nprobability', side=2, las=1, at = loc_1, adj = 1, font=2, line=1)
+# mtext('RMSE', side=2, las=1, at = loc_2, font=2, line=1)
+#text(x=3.5
+#     , y=.004, expression(paste(sigma[p],"=0.1")), col="black", font=2, cex = 1.1)
+text(x=2.5
+     , y=midline-.001, "coverage probability (95% desired)", col="black", font=2)
+text(x=2.5
+     , y=topline-.001, "RMSE", col="black", font=2)
+text(x=2
+     , y=0.0055, "Cox PH DID", col="grey50", font=2)
+text(x=3
+     , y=0.0055, "Pixel OLS DID", col="grey50", font=2)
+#legend(x=2.75, y=0.0065, col = "grey50", legend = "0.05 to 0.95 quantile \n of estimate distribution", seg.len=0.3, inset = 0.00,  box.lty=0, cex=0.8, lty = 1, lwd = 4, bg="transparent")
+
 

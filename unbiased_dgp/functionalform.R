@@ -1,7 +1,7 @@
 library(margins)
 library(mfx)
 #begin function
-functionalform <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v = 0.25){
+functionalform <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0, std_v = 0.25){
   
   #preallocate n x 3 matrix
   coeffmatrix <- matrix(nrow = n, ncol = 4)

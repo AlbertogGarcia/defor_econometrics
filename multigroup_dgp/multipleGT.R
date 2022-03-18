@@ -38,7 +38,7 @@ multipleGT <- function(n, nobs, base_a, base_b, base_c, trend1, trend2, trend3, 
   b3a = qnorm(trend3 + pnorm(b0a+b1a+b2a, mean = 0, sd = std_avp), mean = 0, sd = std_avp) -b1a - b0a - b2a
   b4a = qnorm(trend3 + pnorm(b0a+b1a+b2a+b3a, mean = 0, sd = std_avp), mean = 0, sd = std_avp) -b1a - b0a - b2a - b3a
   
-  tau_a = qnorm( pnorm(b0a+b1a+b2a, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0a+b1a)
+  tau_a = qnorm( pnorm(b0a+b1a+b2a, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0a+b1a+b2a)
   tau_a2 = qnorm( pnorm(b0a+b1a+b2a+b3a+tau_a, mean = 0, sd = std_avp) + dyn_ATT , mean = 0, sd = std_avp) - (b0a+b1a+b2a+b3a+tau_a)
   tau_a3 = qnorm( pnorm(b0a+b1a+b2a+b3a+b4a+tau_a2, mean = 0, sd = std_avp) + dyn_ATT , mean = 0, sd = std_avp) - (b0a+b1a+b2a+b3a++b4a+tau_a2)
   
