@@ -1,20 +1,51 @@
-# script to perform simulation runs and export csv files
 source(here::here('unbiased_dgp', 'TWFE_fcn.R'))
+source(here::here('unbiased_dgp', 'TWFE_expost.R'))
 
-# we start with our base parameterization without property level perturbations
-# std_a = 0.1
+library(tidyverse)
+
+base_0 = .02
+base_1 = .05
+trend = -.005
+ATT = -.01
+
 std_a = 0
-std_v = 0.5
-years = 2
-nobs = 120^2
-n = 200
+std_v = 0.25
+years = 10
+nobs = 100^2
+n = 500
 
 cellsize = 10
 ppoints = 70
-std_p = 0
 cpoints = 40
 
+###############################################################################################################
+######## set seed
+###############################################################################################################
+
 set.seed(0930)
+
+
+###############################################################################################################
+######## show TWFE is equivalent to dropping all pixels deforested in first period
+###############################################################################################################
+
+estimator_comp <- TWFE_expost(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
+
+summary_coeff <- estimator_comp$summary_long %>%
+  mutate_at(vars(bias), as.numeric)
+
+summary_wide  <- summary_coeff %>%
+  group_by(model)%>%
+  summarise(RMSE = rmse(bias, 0),
+            q25 = quantile(bias, probs = .25),
+            q75 = quantile(bias, probs = .75),
+            Bias = mean(bias))
+
+export(summary_wide, "twfe_comp.rds")
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+### demonstration that TWFE bias is equal to pre-treatment difference
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 # here are the landscape characteristics in this parameterization
 # note that the bias for the TWFE model will be equal to the pre-treatment difference in deforestation rtes, which is 0.03
@@ -112,7 +143,7 @@ TWFE_long_n0.03 <- TWFE_n0.03$summary_long
 # bind dataframes together with different parameterizations and write summary_long as csv
 
 TWFE_long <- rbind(TWFE_long_0, TWFE_long_0.01, TWFE_long_0.02, TWFE_long_0.03#, TWFE_long_n0.03
-                   )%>%
+)%>%
   group_by(b0, b1, b2_0, b2_1, b3)%>%
   mutate(parameterization = cur_group_id())
 
