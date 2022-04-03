@@ -1,7 +1,7 @@
 ---
 title: Conservation impact evaluation using remotely sensed data
 author: "Alberto Garcia and Robert Heilmayr"
-date: "March 1, 2022"
+date: "April 1, 2022"
 output:
   bookdown::pdf_document2:
     latex_engine: xelatex
@@ -40,7 +40,6 @@ Conservation scientists are increasingly measuring the impacts of conservation i
 
 # Introduction
 Policymakers often need to understand the causal impacts of conservation interventions. Do marine protected areas stop unsustainable harvesting of fish? Can payments for ecosystem services encourage lasting reforestation? While randomized experiments are the gold standard for the identification of causal relationships [@edwards2020; @jayachandran2017], conservation often poses questions that are prohibitively expensive, unethical or impossible to pursue through experimentation. In such settings, a growing portfolio of statistical techniques enable researchers to draw causal conclusions using observational data [@larsen2019]. Increasingly, these econometric approaches to impact evaluation are being used to disentangle the causal relationships that underpin conservation decisionmaking [@butsic2017; @baylis2016; @williams2020]. These econometric methods can generate estimates of an intervention's impact by comparing observed outcomes to a statistical counterfactual of what would have happened in the absence of an intervention [@ferraro2009; @meyfroidt2016; @ferraro2019; @ribas2020].
-
 
 <!-- When successful, these methods can provide answers that improve the way society confronts environmental challenges. However, inappropriate methods can yield misleading conclusions and, as a result, risk diverting scarce financial and political resources from the most effective conservation strategies. -->
 
@@ -126,6 +125,7 @@ However, this basic model makes an assumption that the decision to deforest is r
 
 
 ## Estimating the $ATT$: difference-in-differences and two-way fixed effects estimators {#ATT}
+
 Two methods commonly used to estimate the $ATT$ in conservation intervention settings with panel data are Difference-in-Differences (DID) and Two-way Fixed Effects (TWFE) regression (@blackman2013; @jones2015). Our parameter of interest, the $ATT$, is the average effect of the conservation intervention on treated pixels. Let $y_{ivt}(1)$ and $y_{ivt}(0)$ denote the potential outcomes of pixel $i$ in property $v$ in time $t$ with and without the treatment, respectively. In addition, let $t_0$ denote the year that the intervention was implemented and let $D_i$ represent a dummy indicating whether pixel $i$ is ever treated. The $ATT$ can now be expressed as: 
 
 $$ ATT = E[y_{ivt}(1) - y_{ivt}(0) |  t\geq t_0, D_i=1]$$
@@ -175,7 +175,6 @@ Here $\lambda_t$ and $\gamma_i$ represent the year and pixel fixed effects, resp
 
 In the case of two groups and two time periods, the TWFE regression typically gives an estimate equivalent to that of the DID model [@wooldridge]. With this in mind, many researchers, including those in the conservation impact evaluation literature, have used the TWFE model as a "generalized DID" that can be estimated in settings in which units undergo treatment in more than two distinct time periods (Table \@ref(tab:table-lit)). For example, a researcher may use a TWFE regression model to examine the effectiveness of a network of protected areas where the protected areas were created at different times, or a payment for ecosystem services (PES) program that enrolled properties in annual cohorts. 
 
-
 ### Pixel level, TWFE models fail to estimate the $ATT$
 Despite widespread use of pixel level analyses of deforestation, the application of TWFE models to a binary, irreversible process such as deforestation yields a biased estimate of the $ATT$. Specifically, the proof contained in Appendix \@ref(TWFE-proof) shows that, in the two-group, two-period case, the coefficient of interest from the TWFE model $(\beta_{TWFE})$ estimates the post-treatment difference in outcomes (single difference), rather than the desired $ATT$:
 
@@ -183,30 +182,23 @@ Despite widespread use of pixel level analyses of deforestation, the application
 
 Regression 2 thus forgoes the benefits that panel methods provide and, if the treated area has a different baseline deforestation rate than the control, will represent a biased estimate of the intervention's impact. Many conservation interventions are specifically targeted towards locations with either low opportunity costs for conservation, or high threats of conversion. As a result, it is likely that many conservation impact evaluations will have treatment and control units that experienced different pre-treatment deforestation rates. It is important to note that this bias could even lead to changes in the estimated treatment effect's sign, in addition to errors in the effect's magnitude and significance. 
 
-
-<!-- ADDED TEXT TO GIVE INTUITION BEHIND PROOF -->
-
-This result stems from researchers' use of pixel fixed effects in the regression specification. By including unit fixed effects in TWFE regressions, researchers hope to control for unit-specific confounders, including pre-treatment differences in the outcome. However, when following common guidance to drop pixels in the periods after they are first deforested, these fixed effects do not behave as the researcher expects. Because the pixels that are deforested in the first period are not observed for the entire panel, these observations go unnacounted for in $\beta_{TWFE}$. Implicitly, the pre-treatment deforestation rates get assigned as 0 for both the treatment and control groups. In Appendix \@ref(ex-post), we show that $\hat{\beta}_{TWFE}$ is equivalent to the coefficient from a regression on a dataset where all pixels deforested in the pre-treatment period are simply dropped from the dataset completely.
+This result stems from researchers' use of pixel fixed effects in the regression specification. By including unit fixed effects in TWFE regressions, researchers hope to control for unit-specific confounders, including pre-treatment differences in the outcome. However, when following common guidance to drop pixels in the periods after they are first deforested, these fixed effects do not behave as the researcher expects. Because the pixels that are deforested in the first period are not observed for the entire panel, these observations go unaccounted for in $\beta_{TWFE}$. Implicitly, the pre-treatment deforestation rates get assigned as 0 for both the treatment and control groups. In Appendix \@ref(ex-post), we show that $\hat{\beta}_{TWFE}$ is equivalent to the coefficient from a regression on a dataset where all pixels deforested in the pre-treatment period are simply dropped from the dataset completely.
 
 Researchers often find themselves in situations where the more flexible TWFE model is preferable to the simple DID, such as in the case of multiple groups and time periods. While many economists may be transitioning to newly developed estimators to address settings in which multiple groups undergo treatment in different time periods [e.g., @callaway2020; @gardner2021], we show in section \@ref(multipleGT) that many of these estimators suffer from the same issue.  
 
 ### Alternative construction of $y^o_{ivt}$ cannot recover $ATT$
 
-Although dropping previously deforested pixels from the panel introduces bias into the TWFE estimate of the $ATT$, keeping observations in the panel after initial deforestation introduces its own problems. The $ATT$ as defined in Section \@ref(ATT) is an estimate of the impact of an intervention on the frequency of deforestation events (i.e. the decision to clear). Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested would incorrectly imply that it has actively been deforested in each subsequent time period, when in fact, no new deforestation event or clearing decision has occurred. This is intuitively problematic, because the deforestation rate in each period would be monotonically increasing by construction, which is not necessarily the case. We show that pixel-level regression models do not drop deforested pixels in subsequent periods do indeed incur severe bias if used to estimate the $ATT$ as it is defined here (Appendix \@ref(keep-pixels)).
+Although dropping previously deforested pixels from the panel introduces bias into the TWFE estimate of the $ATT$, keeping observations in the panel after initial deforestation introduces its own problems. The $ATT$ as defined in Section \@ref(ATT) is an estimate of the impact of an intervention on the frequency of deforestation events (i.e. the decision to clear). Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested would incorrectly imply that it has actively been deforested in each subsequent time period, when in fact, no new deforestation event or clearing decision has occurred. This is intuitively problematic, because the deforestation rate in each period would be monotonically increasing by construction, which is not necessarily the case. We show that pixel-level regression models that do not drop deforested pixels in subsequent periods do indeed incur severe bias if used to estimate the $ATT$ as it is defined here (Appendix \@ref(keep-pixels)).
 
-Alternately, some researchers opt to keep deforested pixels in the panel, and choose to estimate an intervention's impact on deforested area, rather than on deforestation rates. However, when reforestation timing is unaccounted for, as is the case with most data products using a binary measure of deforestation, this is not possible. Rather than measuring deforested area at any given time, this outcome variable measures the stock of ever-deforested area through the current time period. It is unclear that this is a relevant parameter of interest in many cases and should not be interpreted as either a deforestation rate or the deforested area in a given time period. See (Appendix \@ref(keep-pixels)) for further discussion on this point.
+Alternately, some researchers opt to keep deforested pixels in the panel, and choose to estimate an intervention's impact on deforested area, rather than on deforestation rates. However, when reforestation timing is unaccounted for, as is the case with most data products using a binary measure of deforestation, this is not possible. Rather than measuring deforested area at any given time, this outcome variable measures the stock of ever-deforested area through the current time period. It is unclear that this is a relevant parameter of interest in many cases and should not be interpreted as either a deforestation rate or the deforested area in a given time period.
 
 ## Estimating the $ATT$: survival analysis
 
-While survival models have not frequently been used in the context of avoided deforestation, several other literatures have used them in settings with irreversible outcomes of interest such as mortality (e.g., @friedman) or recidivism (e.g., @mastrobuoni). Here, the researcher is interested in the time each unit remains in the sample, which in our context, corresponds to the time each pixel survives until deforestation. While this class of models cannot estimate the $ATT$ directly, the hazard ratio analog is of similar interest:
+While survival models have not frequently been used in the context of avoided deforestation, several other literatures utilize them in settings with irreversible outcomes of interest such as mortality (e.g., @friedman) or recidivism (e.g., @mastrobuoni). Here, the researcher is interested in the time each unit remains in the sample, which in our context, corresponds to the time each pixel survives until deforestation. While this class of models cannot estimate the $ATT$ directly, we present a hazard ratio analog that should be of similar interest:
 
-$$ HRR_{ATT} = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, D_i=1]}$$
+$$ HRTT = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, D_i=1]}$$
 
-The $HRR_{ATT}$ is the ratio of the hazard rates in the treatment group post-treatment, relative to the counterfactual in that group had treatment not ocurred. Because the numerator of $HRR_{ATT}$ is observable, we can recover the $ATT$ from the observable term and $HRR_{ATT}$:
-
-$$ATT = E[y_{ivt}(1)  |  t\geq t_0, D_i=1] - \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1] }{HRR_{ATT}}$$
-
-In settings with two groups and two time periods, some researchers opt to estimate $HRR$ with a cox proportional hazards model of the following form:
+The $HRTT$ is the ratio of the hazard rates in the treatment group post-treatment, relative to the counterfactual in that group had treatment not ocurred. In settings with two groups and two time periods, some researchers opt to estimate $HRTT$ with a cox proportional hazards model of the following form:
 
 \textbf{Regression 3:} (Cox DID regression)
 Let $\beta_{coxDID}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
@@ -214,15 +206,15 @@ Let $\beta_{coxDID}$ denote the coefficient of the interaction between $D_{i}$ a
 h(t) = \delta_0(t)exp( \alpha_0 + \alpha_1 D_i + \alpha_2 \mathbb{1} \{ t\geq t_0\}+ \beta_{coxDID} \text{ x } D_i \mathbb{1} \{ t\geq t_0\}  + \epsilon_{it})
 \end{align}
 
-, where $h(t)$ is the hazard rate of deforestation, $t$ years into the study period; and $\delta_0(t)$ is the baseline hazard function. Then, the expectation is that $exp(\beta_{coxDID}) = HRR_{ATT}$.
+, where $h(t)$ is the hazard rate of deforestation, $t$ years into the study period; and $\delta_0(t)$ is the baseline hazard function. Then, the expectation is that $exp(\beta_{coxDID}) = HRTT$.
 
 ### Proposing an alternative survival estimator
 
-While models in the form of Regression 3 are an intuitive way to generalize the DID to survival analysis, $exp(\beta_{coxDID})$ generally does not recover the $HRR_{ATT}$. Instead,
+While models in the form of Regression 3 are an intuitive way to generalize the DID to survival analysis, $exp(\beta_{coxDID})$ generally does not recover the $HRTT$. Instead, it recovers a less intuitive product of the two pre- and post-treatment ratios across the two groups:
 
-$$\beta_{coxDID} = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]E[y_{ivt}(0)  |  t < t_0, D_i=0] }{E[y_{ivt}(0)  |  t\geq t_0, D_i=0]E[y_{ivt}(0)  |  t < t_0, D_i=1] }$$
+$$exp(\beta_{coxDID}) = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]E[y_{ivt}(0)  |  t < t_0, D_i=0] }{E[y_{ivt}(0)  |  t\geq t_0, D_i=0]E[y_{ivt}(0)  |  t < t_0, D_i=1] }$$
 
-We propose an alternate estimator to recover the $HRR_{ATT}$ using three separate hazard rate ratios: 
+We propose an alternate estimator to recover the more relevant $HRTT$ parameter using three separate hazard rate ratios: 
 
 \begin{align*}
 HRR_1 &= \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, D_i=0]}\\
@@ -230,8 +222,10 @@ HRR_2 &= \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t < t_0, D_
 HRR_3 &= \frac{E[y_{ivt}(0)  |  t\geq t_0, D_i=0]} {E[y_{ivt}(0)  |  t < t_0, D_i=0]}
 \end{align*}
 
-Each of $HRR_1$, $HRR_2$, and $HRR_3$ can be estimated individually by Cox regressions. Specifically,
+Our estimator is then constructed by:
+$$\widehat{HRTT} = \frac{1}{1/exp(\hat{ \alpha }) + 1/exp(\hat{ \beta }) - 1/(exp(\hat{ \beta })*exp(\hat{ \delta }))}$$
 
+Each of $HRR_1$, $HRR_2$, and $HRR_3$ can easily be estimated individually by Cox regressions. Specifically,
 
 $$h(t) =\lambda_0(t) exp(\alpha 1\{ t \geq t_0\} )$$, subsetting to only the treated group;
 $$h(t) =\gamma_0(t) exp( \beta 1\{ D_i = 1\} )$$, subsetting to only the post period; and
@@ -239,15 +233,12 @@ $$h(t) =\psi_0(t) exp(\delta 1\{ t \geq t_0\} )$$, subsetting to only the untrea
 
 , where $h(t)$ is the hazard rate of deforestation at time t.
 
-Then
+Then,
 \begin{align*}
 exp( \alpha )] &= HRR_1\\
 exp( \beta )] &= HRR_2\\
 exp(\delta )] &= HRR_3
 \end{align*}
-
-Our estimator is then constructed by:
-$$\widehat{HE} = \frac{1}{1/exp(\hat{ \alpha }) + 1/exp(\hat{ \beta }) - 1/(exp(\hat{ \beta })*exp(\hat{ \delta }))}$$
 
 # Monte Carlo simulations to compare alternative model performance
 
@@ -398,8 +389,9 @@ Columns 9-11 of Figure \@ref(fig:summary-fig) show that the bias of the estimate
 
 ## Survival models
 
-We explore whether survival models, including our proposed estimator, are a viable approach to recover treatment effects in the deforestation setting. 
+We explore whether survival models, including our proposed estimator, are a viable approach to recover treatment effects in the deforestation setting. Because the numerator of $HRTT$, $E[y_{ivt}(1)  |  t\geq t_0, D_i=1]$, is observable, we can recover the $ATT$ using the observable term and $HRTT$:
 
+$$ATT = E[y_{ivt}(1)  |  t\geq t_0, D_i=1] - \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1] }{HRTT}$$
 
 ```{r cox-fig1, fig.cap=" bias, distribution, and coverage of Cox proportional hazard DID and our proposed estimator relative to pixel DID using OLS.",  out.width="100%"}
 survival_long <- readRDS("results/survival_long.rds")
@@ -488,11 +480,6 @@ The irreversible nature of the deforestation process creates the potential for n
 \begin{align}
 \beta_{DID} = & ATT +  \underbrace{E[y^o_{ivt}|t\geq t_0, D_i=1]-E[y_{ivt}|t\geq t_0, D_i=1] - (E[y^o_{ivt}|t\geq t_0, D_i=0]-E[y_{ivt}|t\geq t_0, D_i=0])}_\text{{bias emerging from non-random sample selection}}
 \end{align}
-<!-- = & ATT +  \\ -->
-<!-- & P[y^o_{it}=1|t\geq t_0, D_i=1]-P[y_{it}=1|t\geq t_0, D_i=1] - (P[y^o_{it}=1|t\geq t_0, D_i=0]-P[y_{it}=1|t\geq t_0, D_i=0])\\ -->
-<!-- = & ATT +  \\ -->
-<!-- & P[ (y^*_{it}>0|t\geq t_0, D_i=1 ) \ | \ (y^*_{it}\leq 0 | t< t_0, D_i=1)]-P[y^*_{it}>0|t\geq t_0, D_i=1] - \\ -->
-<!-- &(P[ (y^*_{it}>0|t\geq t_0, D_i=0 ) \ | \ (y^*_{it}\leq 0 | t< t_0, D_i=0)]-P[y^*_{it}>0|t\geq t_0, D_i=0])\\ -->
 
 \textbf{Proof:} Appendix \@ref(selection-proof) Q.E.D.
 
@@ -500,9 +487,9 @@ In essence, the first and third expectations in the bias term are conditional on
 
 Non-random selection was not an issue in our initial simulations, since we assumed away time-invariant pixel and property-level disturbances. The sample of at risk pixels in each time period did not depend on the deforestation that occurred the previous period, since the $y^o_{ivt}$s were i.i.d.. However, once time-invariant disturbances enter the DGP, the distribution of the $y^o_{iv2}s$ is potentially different from that of the $y^o_{iv1}$s. This is likely to be the case in reality, since each plot of land will have time-invariant characterisitcs such as slope, elevation, market access, agricultural suitability, etc. that impact its expected returns to clearing. 
 
-In order to see how this non-random selection influences estimates in our simulated setting, we set $\sigma_a$, the standard error of the time-invariant pixel-level disturbances equal to $0.25$. Figure \@ref(fig:selection-fig) shows that non-random selection introduces a slight downward bias across every specification (specifications ordered from least to most bias). Pixel-level specifications suffer slightly more than specifications with a spatially aggregated unit of analysis in terms of bias and coverage. 
+In order to see how this non-random selection influences estimates in our simulated setting, we set $\sigma_a$, the standard error of the time-invariant pixel-level disturbances equal to $0.1$. Figure \@ref(fig:selection-fig) shows that non-random selection introduces a slight downward bias across every specification (specifications ordered from least to most bias). Pixel-level specifications suffer slightly more than specifications with a spatially aggregated unit of analysis in terms of bias and coverage. 
 
-Another way to think about this bias is through the lens of reforestation timing. In equation 10, we see that the bias arises when the expectation of the observed $y^o_{ivt}$ and the true $y_{ivt}$ differ. This occurs when the researcher cannot observe reforestation timing in the data, and thus deforestation is irreversible in the panel dataset. We note that in practice, researchers cannot recover the second and fourth terms of the bias term in equation 10, meaning that the magnitude of this bias is unknown to the researcher. However, this bias is likely to be of a smaller magnitude in reality than in our simulated setting, since our simulated time frame for forest regrowth is too short to reflect true reforestation timing. For the remainder of the paper, we remove the bias due to non-random selection (only possible in the simulation setting). 
+Another way to think about this bias is through the lens of reforestation timing. In equation 10, we see that the bias arises when the expectation of the observed $y^o_{ivt}$ and the true $y_{ivt}$ differ. This occurs when the researcher cannot observe reforestation timing in the data, and thus deforestation is irreversible in the panel dataset. We note that in practice, researchers cannot recover the second and fourth terms of the bias term in equation 10, meaning that the magnitude of this bias is unknown to the researcher. However, this bias is likely to be of a smaller magnitude in reality than in our simulated setting, since our simulated time frame for forest regrowth is too short to reflect true reforestation timing. 
 
 ```{r selection-fig, results = FALSE, warning = FALSE, message = FALSE, fig.cap="Non-random selection introduces bias into estimates. Specifications are ordered by mean bias (least to most). ",  fig.width = 9, fig.height = 5, out.width="100%"}
 # knitr::include_graphics("figs/selection_schart.png")
@@ -586,9 +573,16 @@ legend(x=6.5, y=0.02, col = "#DF8F44", legend = "pixel-level specifications", se
 
 # The value of linking model structure to the spatial process of deforestation
 
-Connecting the econometric model to the process by which land use change occurs on the ground has clear benefits for estimation and inference in deforestation impact evaluation. Table \@ref(tab:table-lit) shows that researchers often use a binary point, pixel, or grid cell as the unit of analysis. While this may sometimes be the preferred unit, it may lead to biased results if the land use change process operates at a different scale.
+Connecting the econometric model to the process by which land use change occurs on the ground has clear benefits for estimation and inference in deforestation impact evaluation. Table \@ref(tab:table-lit) shows that researchers often use a binary point, pixel, or grid cell as the unit of analysis. While this may sometimes be the preferred unit, it can lead to biased results if the land use change process operates at a different scale.
 
-Property level unobservables impact both treatment effect estimates and coverage probabilities. This is likely to be a factor when land use decisions are made at the property level, or the intervention seeks to alter underlying landowner incentives. Characteristics of land are also likely to be similar within the same spatial boundaries. In our Monte Carlo simulations, we reintroduce the standard deviation of the time-invariant property level disturbances in the initial DGP, $\sigma_p$, in order to account for these unobservables. 
+Property level unobservables impact both treatment effect estimates and coverage probabilities. This is likely to be a factor when land use decisions are made at the property level, or the intervention seeks to alter underlying landowner incentives. Characteristics of land are also likely to be similar within the same spatial boundaries. In our Monte Carlo simulations, we introduce the standard deviation of the time-invariant property level disturbances in the initial DGP, $\sigma_p$, in order to account for these unobservables. 
+
+The introduction of $\sigma_p$ changes the relative performance of each specification. Figure XX shows that the pixel-level DID begins to suffer in terms of bias, RMSE, and coverage as these property-level unobservables play a larger role in the data generating process. 
+
+In Figure XX, we see that incorporating spatially aggregated units reduces bias relative to the simple pixel-level DID when the property influence is relatively large ($\sigma_p= 0.5$). This improvement is apparent in both specifications incorporating spatially aggregated units as the level of unit fixed effects (Regression 4) or as the unit of analysis (Regression 5). Further, we see that the scale of aggregation plays a role. Analyses incorporating the property or grid cells near the size of the average property outperform models utilizing larger or smaller scales. Ultimately, all models that incorporate spatial aggregation suffer from relatively little bias and incur less bias than the simple pixel-level DID. In Appendix \@ref(property-alt), we see that specifications incorporating the property tend to outperform other models in alternative parameterizations as well. 
+
+Using Figure \@ref(fig:summary) to compare across all specifications and varying $\sigma_p$, we see that RMSE tends to increase across all specifications as $\sigma_p$ increases. The pixel-level TWFE specifications with spatially aggregated unit fixed effects tend to have the lowest RMSE whenever $\sigma_p$ is nonzero. In contrast, the specification with the property as the unit of analysis and pixel-level DID tend to have the highest RMSE. 
+
 
 ```{r summary, results = FALSE, message = FALSE, warning = FALSE, fig.align="center", fig.cap="bias, distribution, and coverage of all models with clustered standard errors. Each subplot represents simulated landscapes with varying $\\sigma_p$. specifications are ordered within subplots by absolute value of mean bias (by least to most).", fig.width = 12, fig.height = 6, out.width = "100%", fig.pos='H', fig.show='hold'}
 knitr::include_graphics("figs/full_schart.png")
@@ -693,10 +687,6 @@ legend(x=-3, y=0.065, col = c("#00A1D5"), legend = c("specifications\nincorporat
        ,  seg.len=0.25, lty = 1, horiz=TRUE, lwd = 4, bg="transparent")
 
 ```
-
-The introduction of property level unobservables changes the relative performance of each specification. Figure \@ref(fig:summary) demonstrates that specifications incorporating spatially aggregated units into the analysis, whether with fixed effects (Regression 4) or units of analysis (Regression 5), suffer from less bias than those that only incorporate the pixel. This difference is exacerbated as $\sigma_p$, the standard error governing the property level disturbances, increases, even when accounting for non-random selection. In particular, models that incorporate the property (i.e. the level at which heterogeneity enters the landscape) tend to perform best relative to similar models at different spatial units as $\sigma_p$ increases. Ultimately, all models that incorporate spatial aggregation suffer from relatively little bias and incur less bias than the simple pixel-level DID. In Appendix \@ref(property-alt), we see that specifications incorporating the property tend to outperform other models in alternative parameterizations as well. 
-
-Using Figure \@ref(fig:summary) to compare across all models, we see that RMSE tends to increase across all specifications as $\sigma_p$ increases. The pixel-level TWFE specifications with spatially aggregated unit fixed effects tend to have the lowest RMSE whenever $\sigma_p$ is nonzero. In contrast, the specification with the property as the unit of analysis and pixel-level DID tend to have the highest RMSE. When bias and coverage probability are comparable, it is preferable to use the model with lower RMSE.
 
 <!-- As property level unobservables play a larger role, the treatment of standard errors also becomes more important. Standard error clustering is used by nearly every study in the literature for inference. The clustering problem is caused by the presence of a common unobserved random shock at the group level that leads to correlation between all observations within a group [@hansen2007]. We have introduced the random shock at the property level in our guiding example to represent individual landowner preferences or property characteristics. As such, correlation within grids and counties will also be introduced, since they contain multiple pixels within a property. Clustering standard errors relaxes the assumption of no correlation across observations within the spatial unit used for clustering [@jones2015]. -->
 
@@ -1501,7 +1491,6 @@ and
 
 ## Cox proportional hazards difference-in-differences {#coxph}
 
-In order to estimate the $HRR$ using the Cox proportional hazards model, we must combine coefficients from separate Cox regressions. 
 
 
 
