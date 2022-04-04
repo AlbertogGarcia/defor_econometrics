@@ -53,7 +53,7 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
                              'iteration' = rep(NA, summ_row), 
                              'pixel'=rep(NA, summ_row),'grid'=rep(NA, summ_row),'property'=rep(NA, summ_row),'county'=rep(NA, summ_row),
                              'pixel fe'=rep(NA, summ_row),'grid fe'=rep(NA, summ_row),'property fe'=rep(NA, summ_row),'county fe'=rep(NA, summ_row),'treatment fe'=rep(NA, summ_row),
-                             'weights'=rep(NA, summ_row), 'cox'=rep(NA, summ_row),
+                             'weights'=rep(NA, summ_row), 'cox'=rep(NA, summ_row), ' HRRT estimator'=rep(NA, summ_row), 
                              'se_pixel'=rep(NA, summ_row), 'se_grid'=rep(NA, summ_row), 'se_property'=rep(NA, summ_row), 'se_county'=rep(NA, summ_row),
                              'bias'=rep(NA, summ_row), 'cover'=rep(NA, summ_row),'notes'=rep(NA, summ_row),
                              stringsAsFactors=FALSE)
@@ -120,10 +120,14 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       mutate(y_it = ifelse(indic > 0, NA, y))
     
     
-    # aggregate up to county in each year 
-    suppressWarnings(
-      gridlevel_df <-  aggregate(panels, by = list(panels$year, panels$grid), FUN = mean, drop = TRUE)[c("grid", "treat", "post", "year","defor", "garea")]
-    )
+    # aggregate up to county in each year
+    gridlevel_df <- as.data.frame(panels) %>%
+      dplyr::group_by(grid, year, post) %>%
+      dplyr::summarise(defor = mean(defor),
+                       treat = mean(treat),
+                       garea = mean(garea))%>%
+      ungroup()
+    
     
     gridlevel_df <- gridlevel_df[order(gridlevel_df$grid, gridlevel_df$year),]
     gridlevel_df <- slide(gridlevel_df, Var = "defor", GroupVar = "grid", NewVar = "deforlag",
@@ -142,9 +146,12 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       filter_all(all_vars(!is.infinite(.)))
     
     # aggregate up to property in each year 
-    suppressWarnings(
-      proplevel_df <-  aggregate(panels, by = list(panels$property, panels$year), FUN = mean, drop = TRUE)[c("property", "treat", "post", "year","defor", "parea")]
-    )
+    proplevel_df <- as.data.frame(panels) %>%
+      dplyr::group_by(property, year, post) %>%
+      dplyr::summarise(defor = mean(defor),
+                       treat = mean(treat),
+                       parea = mean(parea))%>%
+      ungroup()
     
     
     proplevel_df <- proplevel_df[order(proplevel_df$property, proplevel_df$year),]
@@ -164,10 +171,12 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       filter_all(all_vars(!is.infinite(.)))
     
     # aggregate up to county in each year 
-    suppressWarnings(
-      countylevel_df <-  aggregate(panels, by = list(panels$county, panels$treat, panels$year), FUN = mean, drop = TRUE)[c("county", "property", "treat", "post", "year","defor", "carea")]
-    )
-    
+    countylevel_df <- as.data.frame(panels) %>%
+      dplyr::group_by(county, year, post) %>%
+      dplyr::summarise(defor = mean(defor),
+                       treat = mean(treat),
+                       carea = mean(carea))%>%
+      ungroup()
     
     countylevel_df <- countylevel_df[order(countylevel_df$county, countylevel_df$year),]
     countylevel_df <- slide(countylevel_df, Var = "defor", GroupVar = "county", NewVar = "deforlag",
@@ -185,6 +194,7 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       countylevel_df %>% 
       filter_all(all_vars(!is.infinite(.)))
     
+    
     # aggregated units of analysis
     
     agg_DID1 <- feols(deforrate ~  post*treat|year+grid, data = gridlevel_df)
@@ -200,7 +210,7 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
     weight_DIDp <- feols(deforrate ~  post*treat|year+property, data = proplevel_df, weights = proplevel_df$parea)
     
     
-    weight_DIDc <- feols(deforrate ~  post*treat|year+county, , weights = countylevel_df$carea, data = countylevel_df)
+    weight_DIDc <- feols(deforrate ~  post*treat|year+county, weights = countylevel_df$carea, data = countylevel_df)
     
     # problematic specifications
     
@@ -387,7 +397,7 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       i,
       1,0,0,0,
       0,0,0,0,1,
-      0,0,
+      0,0,0,
       1,0,0,0,
       bad_coeffmatrix[i,1],
       bad_covermat[i,1],
@@ -401,7 +411,7 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       i,
       1,0,0,0,
       1,0,0,0,0,
-      0,0,
+      0,0,0,
       1,0,0,0,
       bad_coeffmatrix[i,2],
       bad_covermat[i,2]
@@ -411,7 +421,7 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       i,
       1,0,0,0,
       0,0,0,0,1,
-      0,0,
+      0,0,0,
       1,0,0,0,
       fix_coeffmatrix[i,4],
       did_covermat[i,2]
@@ -421,7 +431,7 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       i,
       1,0,0,0,
       0,0,0,0,1,
-      0,0,
+      0,0,0,
       0,1,0,0,
       fix_coeffmatrix[i,4],
       did_covermat[i,3]
@@ -431,7 +441,7 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       i,
       1,0,0,0,
       0,0,0,0,1,
-      0,0,
+      0,0,0,
       0,0,1,0,
       fix_coeffmatrix[i,4],
       did_covermat[i,4]
@@ -441,7 +451,7 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       i,
       1,0,0,0,
       0,0,0,0,1,
-      0,0,
+      0,0,0,
       0,0,0,1,
       fix_coeffmatrix[i,4],
       did_covermat[i,5]
@@ -451,7 +461,7 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       i,
       0,1,0,0,
       0,1,0,0,0,
-      0,0,
+      0,0,0,
       0,1,0,0,
       coeffmatrix[i,1],
       agg_covermat[i,1]
@@ -461,7 +471,7 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       i,
       0,0,1,0,
       0,0,1,0,0,
-      0,0,
+      0,0,0,
       0,0,1,0,
       coeffmatrix[i,2],
       agg_covermat[i,2]
@@ -471,7 +481,7 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       i,
       0,0,0,1,
       0,0,0,1,0,
-      0,0,
+      0,0,0,
       0,0,0,1,
       coeffmatrix[i,3],
       agg_covermat[i,3]
@@ -481,7 +491,7 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       i,
       1,0,0,0,
       0,1,0,0,0,
-      0,0,
+      0,0,0,
       0,1,0,0,
       fix_coeffmatrix[i,1],
       fix_covermat[i,1]
@@ -491,7 +501,7 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       i,
       1,0,0,0,
       0,0,1,0,0,
-      0,0,
+      0,0,0,
       0,0,1,0,
       fix_coeffmatrix[i,2],
       fix_covermat[i,2]
@@ -501,7 +511,7 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       i,
       1,0,0,0,
       0,0,0,1,0,
-      0,0,
+      0,0,0,
       0,0,0,1,
       fix_coeffmatrix[i,3],
       fix_covermat[i,3]
@@ -511,7 +521,7 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       i,
       0,0,1,0,
       0,0,1,0,0,
-      1,0,
+      1,0,0,
       0,0,1,0,
       weight_coeffmatrix[i,1],
       weight_covermat[i,1]
@@ -521,35 +531,31 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       i,
       0,0,0,1,
       0,0,0,1,0,
-      1,0,
+      1,0,0,
       0,0,0,1,
       weight_coeffmatrix[i,2],
       weight_covermat[i,2]
     )
     
-    firstcol = which(colnames(summary_long)=="iteration")
-    lastcol = which(colnames(summary_long)=="notes")
-    
+   
     summary_long[i+n*14,c(firstcol:lastcol)] <- c(
       i,
       1,0,0,0,
       0,0,0,0,1,
-      0,1,
+      0,1,0,
       1,0,0,0,
       ATT_cox- ATT,
-      cox_cover,
-      "Cox DID regression"
+      cox_cover
     )
     
     summary_long[i+n*15,c(firstcol:lastcol)] <- c(
       i,
       1,0,0,0,
       0,0,0,0,0,
-      0,1,
+      0,1,1,
       1,0,0,0,
       ATT_11_cf- ATT,
-      hr_11_cf_cover,
-      "Cox HRATT estimator"
+      hr_11_cf_cover
     )
     
     
