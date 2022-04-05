@@ -209,7 +209,7 @@ h(t) = \delta_0(t)exp( \alpha_0 + \alpha_1 D_i + \alpha_2 \mathbb{1} \{ t\geq t_
 
 ### Proposing an alternative survival estimator
 
-While models in the form of Regression 3 are an intuitive way to generalize the DID to survival analysis, $exp(\beta_{coxDID})$ generally does not recover the $HRTT$. Instead, it recovers a less intuitive product of the two pre- and post-treatment ratios across the two groups:
+While models in the form of Regression 3 are an intuitive way to generalize the DID to survival analysis, $exp(\beta_{coxDID})$ generally does not recover the $HRTT$. Instead, it recovers a less intuitive product of pre- and post-treatment ratios across the two groups:
 
 $$exp(\beta_{coxDID}) = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]E[y_{ivt}(0)  |  t < t_0, D_i=0] }{E[y_{ivt}(0)  |  t\geq t_0, D_i=0]E[y_{ivt}(0)  |  t < t_0, D_i=1] }$$
 
@@ -226,11 +226,11 @@ $$\widehat{HRTT} = \frac{1}{1/exp(\hat{ \alpha }) + 1/exp(\hat{ \beta }) - 1/(ex
 
 Each of $HRR_1$, $HRR_2$, and $HRR_3$ can easily be estimated individually by Cox regressions. Specifically,
 
-$$h(t) =\lambda_0(t) exp(\alpha 1\{ t \geq t_0\} )$$, subsetting to only the treated group;
-$$h(t) =\gamma_0(t) exp( \beta 1\{ D_i = 1\} )$$, subsetting to only the post period; and
-$$h(t) =\psi_0(t) exp(\delta 1\{ t \geq t_0\} )$$, subsetting to only the untreated group.
+$$h(t) =\lambda_0(t) exp(\alpha 1\{ t \geq t_0\} ),$$ subsetting to only the treated group;
+$$h(t) =\gamma_0(t) exp( \beta 1\{ D_i = 1\} ),$$ subsetting to only the post period; and
+$$h(t) =\psi_0(t) exp(\delta 1\{ t \geq t_0\} ),$$ subsetting to only the untreated group;
 
-, where $h(t)$ is the hazard rate of deforestation at time t.
+where $h(t)$ is the hazard rate of deforestation at time t.
 
 Then,
 \begin{align*}
@@ -273,7 +273,7 @@ TWFE models have risen to prominence due to their flexibility in applying DID me
 
 ## Traditional difference-in-differences model
 
-In the two-group, two-period case the typical DID (Regression 1) is an unbiased estimator of the $ATT$, as shown in columns 2-5 of Figure \@ref(fig:summary-fig) (The typical DID is equivalent to including treatment fixed effects). However, researchers often want to use TWFE models because of their flexibility in situations that do not fall under the typical DID setup. Therefore, researchers should be aware of the trade-offs using aggregated units of analysis and fixed effects when using TWFE models for deforestation impact evaluation.
+In the two-group, two-period case the traditional DID (Regression 1) is an unbiased estimator of the $ATT$, as shown in column 2 of Figure \@ref(fig:summary-fig) (The typical DID is equivalent to including treatment fixed effects). However, researchers often want to use TWFE models because of their flexibility in situations that do not fall under the typical DID setup. Therefore, researchers should be aware of the trade-offs using aggregated units of analysis and fixed effects when using TWFE models for deforestation impact evaluation.
 
 ## Spatially aggregated fixed effects
 
@@ -286,8 +286,7 @@ y^o_{ivt} = \alpha + \beta_{FE,j} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \la
 \end{align}
 , where $\lambda_t$ denotes year fixed effects and $\gamma_j$ denotes one of grid ($g$), county ($c$), or property ($v$) fixed effects ($j=\{g, c, v \}$).
 
-Columns 6-8 of Figure \@ref(fig:summary-fig) show that pixel level TWFE regressions are unbiased estimators of the $ATT$ when grid, county, or property fixed effects are used rather than pixel fixed effects. We also see that, in the absence of property level perturbations (i.e. $\sigma_p=0$ in the DGP), all three models provide similar estimates and estimate distributions. 
-
+Columns 3-5 of Figure \@ref(fig:summary-fig) show that pixel level TWFE regressions are unbiased estimators of the $ATT$ when grid, county, or property fixed effects are used rather than pixel fixed effects. We also see that, in the absence of property level perturbations (i.e. $\sigma_p=0$ in the DGP), all three models provide similar estimates and estimate distributions. 
 
 ```{r summary-fig, echo = FALSE, warnings = FALSE, results = FALSE, message=FALSE, fig.cap="bias, distribution, and coverage of all models with clustered standard errors.",  fig.width = 9, fig.height = 5.5, out.width="100%"}
 
@@ -296,12 +295,13 @@ Columns 6-8 of Figure \@ref(fig:summary-fig) show that pixel level TWFE regressi
 specchart_long <- readRDS("results/summary_long.rds")
 
 df_summary <- specchart_long %>%
+  filter(weights == 0 & (treatment.fe == 0 | se_pixel == 1)) %>%
   mutate_at(vars(bias, cover), as.numeric
          )%>%
-  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
+  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, X.HRRT.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
   )%>%
   filter(is.na(notes))%>%
-  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, se_pixel, se_grid, se_property, se_county)%>%
+  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, X.HRRT.estimator, se_pixel, se_grid, se_property, se_county)%>%
   summarise(RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
             q95 = quantile(bias, probs = .95),
@@ -309,16 +309,17 @@ df_summary <- specchart_long %>%
             cover = mean(cover))%>%
   select(Bias, everything())
 
-df_summary <- rbind(df_summary[11,], df_summary[4:10,], df_summary[1:3,])
+df_summary <- rbind(df_summary[10,], df_summary[5,], df_summary[7:9,], df_summary[1:3,], df_summary[6,], df_summary[4,])
 
 par(oma=c(1,0,1,1))
 
 labels <- list("Unit of analysis:" = c("pixel", "grid", "property", "county"),
                "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE", "treatment FE"),
+               "Survival" = c("Cox PH", "HE estimator"),
                "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
-f <- function(x) gsub("^(\\s*[+|-]?)0\\.", "\\1.", as.character(x))
-coverage <- f(round(df_summary$cover, digits=3))
-RMSE <- f(round(df_summary$RMSE, digits=5))
+
+coverage <- round(df_summary$cover, digits=3)
+RMSE <- round(df_summary$RMSE, digits=5)
 test <- as.data.frame(subset(df_summary, select=-c(cover, RMSE)))
 
 
@@ -327,7 +328,7 @@ index.ci <- match(c("q05","q95"), names(test))
 # One could also add information about model fit to this chart
 ylim <- c(-0.035,0.04)
 
-topline = -0.015
+topline = -0.012
 
 midline = topline-0.02-.0025
 
@@ -354,10 +355,10 @@ lapply(1:length(RMSE), function(i) {
 # mtext('coverage\nprobability', side=2, las=1, at = loc_1, adj = 1, font=2, line=1)
 # mtext('RMSE', side=2, las=1, at = loc_2, font=2, line=1)
 text(x=mean(1:nrow(test))
-     , y=midline-.005, "coverage probability (95% desired)", col="black", font=2)
+     , y=midline-.005, "coverage probability", col="black", font=2)
 text(x=mean(1:nrow(test))
      , y=topline-.005, "RMSE", col="black", font=2)
-legend(x=6.5, y=0.05, col = "grey50", legend = "0.05 to 0.95 quantile \n of estimate distribution", seg.len=0.65, inset = 0.005,  box.lty=0, cex=0.8, lty = 1, lwd = 4, bg="transparent")
+legend(x=6.5, y=0.045, col = "grey50", legend = "0.05 to 0.95 quantile \n of estimate distribution", seg.len=0.65, inset = 0.005,  box.lty=0, cex=0.8, lty = 1, lwd = 4, bg="transparent")
 
 
 
@@ -379,7 +380,7 @@ z_{jt} = \alpha + \beta_{j} \text{ x } D_j \mathbb{1} \{ t\geq t_0\} + \lambda_t
 \end{align}
 , where $\lambda_t$ denotes year fixed effects and $\gamma_j$ denotes one of grid, county, or property fixed effects. Note that in these regressions, the level of unit fixed effects matches the unit of analysis. The treatment variable $D_j = \frac{1}{N_j}\sum_{i=1}^{N_j}D_i$, is the average treatment value amongst all pixels in unit $j$.
 
-Columns 9-11 of Figure \@ref(fig:summary-fig) show that the bias of the estimates does not vary dramatically across different levels of aggregation, however, the distributions are varied. In particular, the property-level model had the highest RMSE of unbiased specifications due to the heterogeneity in property sizes across the landscape. At the same time, relative to the pixel level models with spatially aggregated unit fixed effects, the coverage probability of these models is closer to the desired 95\%.
+Columns 6-8 of Figure \@ref(fig:summary-fig) show that the bias of the estimates does not vary dramatically across different levels of aggregation, however, the distributions are varied. In particular, the property-level model had the highest RMSE of unbiased specifications due to the heterogeneity in property sizes across the landscape. 
 
 ## Survival models
 
@@ -387,81 +388,8 @@ We explore whether survival models, including our proposed estimator, are a viab
 
 $$ATT = E[y_{ivt}(1)  |  t\geq t_0, D_i=1] - \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1] }{HRTT}$$
 
-```{r cox-fig1, fig.cap=" bias, distribution, and coverage of Cox proportional hazard DID and our proposed estimator relative to pixel DID using OLS.",  out.width="100%"}
-survival_long <- readRDS("results/survival_long.rds")
 
-df_summary <- survival_long %>%
-  mutate_at(vars(bias, cover), as.numeric
-  )%>%
-  group_by(model, std_a, std_p)%>%
-  summarise(RMSE = rmse(bias, 0),
-            q05 = quantile(bias, probs = .05),
-            q95 = quantile(bias, probs = .95),
-            Bias = mean(bias),
-            cover = mean(cover))%>%
-  mutate("cox DID" = as.logical(ifelse(model == "cox interaction", 1, 0)),
-         "pixel OLS DID" = as.logical(ifelse(model == "pixel DID", 1, 0)),
-        "HE estimator" = as.logical(ifelse(model == "cox did", 1, 0)) )%>%
-  filter(model %in% c("cox did", "pixel DID", "cox interaction"))%>%
-  select(Bias, everything())%>%
-  arrange(RMSE)
-
-df_summary[ 4 , ] <- NA
-df_summary <- rbind( df_summary[4,],
-  df_summary)
-
-par(oma=c(1,0,1,1))
-
-labels <- list("Estimator" = c("pixel OLS DID", "Cox PH DID", "HE estimator"))
-
-#f <- function(x) gsub("^(\\s*[+|-]?)0\\.", "\\1.", as.character(x))
-coverage <- c("", round(df_summary$cover[2:4], digits=3), "")
-RMSE <- c("", round(df_summary$RMSE[2:4], digits=5), "")
-test <- as.data.frame(subset(df_summary, select=-c(cover, RMSE, model, std_a, std_p)))
-
-index.ci <- match(c("q05","q95"), names(test))
-
-topline = -0.005
-
-midline = topline-0.005
-
-ylim <- c(midline-.004,0.0075)
-#bottomline = (min(ylim)+topline)/2
-#Create the plot
-
-schart(test,labels, ylim = ylim, index.ci=index.ci, col.est=c("grey50","#D55E00"),
-       col.dot=c("black","white","white","#00A1D5"),
-       bg.dot=c("black","white","white","#00A1D5")
-       , ylab="    Bias"#, highlight=1
-       ,band.ref=c(-.05, .04)
-       , axes = FALSE
-       #, col.band.ref="#c7e9f9"
-) # make some room at the bottom
-Axis(side=2, at = c( 0), labels=TRUE)
-abline(h=topline)
-abline(h=midline)
-#abline(v=2.5, lty="dashed")
-#abline(h=bottomline)
-lapply(1:length(RMSE), function(i) {
-  # text(x= i, y=min(ylim)+.002, paste0(i), col="black", font=2, cex = 1)
-  #mtext(paste0(i), side=1, at = i, font=2, cex=.95)#, line=1, at=-1)
-  text(x= i, y=topline - 0.0035, paste0(RMSE[i]), col="black", font=1, cex=1.2)
-  text(x= i, y=midline - 0.0035, paste0(coverage[i]), col="black", font=1, cex=1.2 )
-})
-# mtext('coverage\nprobability', side=2, las=1, at = loc_1, adj = 1, font=2, line=1)
-# mtext('RMSE', side=2, las=1, at = loc_2, font=2, line=1)
-#text(x=3.5
-#     , y=.004, expression(paste(sigma[p],"=0.1")), col="black", font=2, cex = 1.1)
-text(x=2.5
-     , y=midline-.001, "coverage probability (95% desired)", col="black", font=2)
-text(x=2.5
-     , y=topline-.001, "RMSE", col="black", font=2)
-
-```
-
-
-We see that while the Cox DID regression (Regression 3) does not recover the impact of the conservation intervention in this context, $\widehat{HE}$ does. However, there are several reasons why survival analysis may not be preferable in the context of estimating the impacts of conservation interventions on deforestation rates. One of the primary reasons for the use of survival analysis is censoring. This occurs when the researcher has partial information about the subjects’ survival times but does not have access to precise event times. While the researcher may not observe all pixels until they are deforested, mayn other forms of censoring are not a concern in the context of deforestation. Further, the proposed strategy to drop pixels in the periods after they are first deforested successfully addresses the irreversibility in deforestation events. As we will show in the next sections, when the process of deforestation operates at a scale different than the pixel, an alternatiive unit of analysis may be preferable. This is not feasible in survival analysis in the way it is in our alternative OLS specifications. We explore how some of these factors influence the relative performance of various models in the following sections. 
-
+We see in column 9 that the Cox DID regression (Regression 3) does not recover the impact of the conservation intervention in this context. However, $\widehat{HE}$, as seen in column 10, successfuly recovers our parameter of interest.
 
 # Non-random selection and the spatial nature of the deforestation process {#property}
 
@@ -481,86 +409,81 @@ In essence, the first and third expectations in the bias term are conditional on
 
 Non-random selection was not an issue in our initial simulations, since we assumed away time-invariant pixel and property-level disturbances. The sample of at risk pixels in each time period did not depend on the deforestation that occurred the previous period, since the $y^o_{ivt}$s were i.i.d.. However, once time-invariant disturbances enter the DGP, the distribution of the $y^o_{iv2}s$ is potentially different from that of the $y^o_{iv1}$s. This is likely to be the case in reality, since each plot of land will have time-invariant characterisitcs such as slope, elevation, market access, agricultural suitability, etc. that impact its expected returns to clearing. 
 
-In order to see how this non-random selection influences estimates in our simulated setting, we set $\sigma_a$, the standard error of the time-invariant pixel-level disturbances equal to $0.1$. Figure \@ref(fig:selection-fig) shows that non-random selection introduces a slight downward bias across every specification (specifications ordered from least to most bias). Pixel-level specifications suffer slightly more than specifications with a spatially aggregated unit of analysis in terms of bias and coverage. 
+In order to see how this non-random selection influences estimates in our simulated setting, we set $\sigma_a$, the standard error of the time-invariant pixel-level disturbances equal to $0.1$. Figure \@ref(fig:selection-fig) shows that non-random selection introduces a slight downward bias across every specification.
 
 Another way to think about this bias is through the lens of reforestation timing. In equation 10, we see that the bias arises when the expectation of the observed $y^o_{ivt}$ and the true $y_{ivt}$ differ. This occurs when the researcher cannot observe reforestation timing in the data, and thus deforestation is irreversible in the panel dataset. We note that in practice, researchers cannot recover the second and fourth terms of the bias term in equation 10, meaning that the magnitude of this bias is unknown to the researcher. However, this bias is likely to be of a smaller magnitude in reality than in our simulated setting, since our simulated time frame for forest regrowth is too short to reflect true reforestation timing. 
 
-```{r selection-fig, results = FALSE, warning = FALSE, message = FALSE, fig.cap="Non-random selection introduces bias into estimates. Specifications are ordered by mean bias (least to most). ",  fig.width = 9, fig.height = 5, out.width="100%"}
+```{r selection-fig, results = FALSE, warning = FALSE, message = FALSE, fig.cap="Non-random selection introduces bias into estimates. Specifications are ordered by absolute value of mean bias (least to most bias) ",  fig.width = 10, fig.height = 7, out.width="100%"}
 # knitr::include_graphics("figs/selection_schart.png")
-
 
 specchart_long <- readRDS("results/summary_selection.rds")
 
+
 df_summary <- specchart_long %>%
+  filter(is.na(notes) & pixel.fe == 0 & weights == 0 & (treatment.fe == 0 | se_pixel == 1) & (cox == 0 | X.HRRT.estimator ==1)) %>%
   mutate_at(vars(bias, cover), as.numeric
+         )%>%
+  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, X.HRRT.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
   )%>%
-  mutate_at(vars(pixel, grid, property, county, pixel.fe,grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
-  )%>%
-  filter(is.na(notes))%>%
-  group_by(pixel, grid, property, county, pixel.fe, grid.fe,property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county)%>%
+  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, X.HRRT.estimator, se_pixel, se_grid, se_property, se_county)%>%
   summarise(RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
             q95 = quantile(bias, probs = .95),
             Bias = mean(bias),
             cover = mean(cover))%>%
-  select(Bias, everything())%>%
-  filter(pixel.fe ==FALSE)
+  select(Bias, everything())
 
-#df_summary <- rbind(df_summary[11,], df_summary[4:10,], df_summary[1:3,])
+df_summary <- df_summary %>%  
+  dplyr::arrange(abs(Bias))
+# 
+# df_summary <- rbind(df_summary[5,], df_summary[7:9,], df_summary[1:3,], df_summary[6,], df_summary[4,])
 
 par(oma=c(1,0,1,1))
 
 labels <- list("Unit of analysis:" = c("pixel", "grid", "property", "county"),
-               "Fixed effects:" = c( "grid FE", "property FE", "county FE", "treatment FE"),
-               "Weights:" = c("area"),
+               "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE", "treatment FE"),
+               "Survival" = c("HE estimator"),
                "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
-f <- function(x) gsub("^(\\s*[+|-]?)0\\.", "\\1.", as.character(x))
-coverage <- f(round(df_summary$cover, digits=3))
-RMSE <- f(round(df_summary$RMSE, digits=5))
-test <- as.data.frame(subset(df_summary, select=-c( pixel.fe, cover, RMSE)))
 
-highlight_rows <- which(test[ , "pixel"] == TRUE)
+coverage <- round(df_summary$cover, digits=3)
+RMSE <- round(df_summary$RMSE, digits=5)
+test <- as.data.frame(subset(df_summary, select=-c(cover, RMSE)))
+
 
 index.ci <- match(c("q05","q95"), names(test))
 
-# One could also add information about model fit to this chart
-ylim <- c(-0.035,0.015)
+topline = -0.012
 
-topline = -0.015
+midline = topline-0.007-.001
 
-midline = topline-0.01-.0025
-
-ylim <- c(midline-.01,0.015)
-#bottomline = (min(ylim)+topline)/2
+ylim <- c(midline-.007,0.005)
 #Create the plot
 
-schart(test,labels, ylim = ylim, index.ci=index.ci, 
-       col.est=c("grey50","#DF8F44"),
-       col.dot=c("grey50","lightgrey","red","#DF8F44"),
-       bg.dot=c("grey50","lightgrey","white","#DF8F44")
-       , ylab="Mean bias and\n.05 to .95 quantiles", highlight=highlight_rows
-       ,band.ref=c(-.05, .04)
-       , axes = FALSE
+schart(test,labels, ylim = ylim, index.ci=index.ci, col.est=c("grey50","#D55E00")
+       , ylab="Bias",
+       band.ref=c(-.05, .04),
+heights = c(5,5),
+cex = c(1.25, 1.25),
+leftmargin = 13, 
+        axes = FALSE
        #, col.band.ref="#c7e9f9"
 ) # make some room at the bottom
-Axis(side=2, at = c(-0.01, 0, 0.01), labels=TRUE)
+Axis(side=2, at = c( 0, 0.03), labels=TRUE)
 abline(h=topline)
 abline(h=midline)
-#abline(h=mean(df_summary$sel_bias))
 #abline(h=bottomline)
 lapply(1:length(RMSE), function(i) {
   # text(x= i, y=min(ylim)+.002, paste0(i), col="black", font=2, cex = 1)
-  mtext(paste0(i), side=1, at = i, font=2, cex=.95)#, line=1, at=-1)
-  text(x= i, y=midline+0.005, paste0(RMSE[i]), col="black", font=1, cex=.9)
-  text(x= i, y=min(ylim)+0.0025, paste0(coverage[i]), col="black", font=1, cex=.9 )
+  #mtext(paste0(i), side=1, at = i, font=2, cex=.95)#, line=1, at=-1)
+  text(x= i, y=topline-0.0065, paste0(RMSE[i]), col="black", font=1, cex=1.1)
+  text(x= i, y=midline - 0.007, paste0(coverage[i]), col="black", font=1, cex=1.1 )
 })
 # mtext('coverage\nprobability', side=2, las=1, at = loc_1, adj = 1, font=2, line=1)
 # mtext('RMSE', side=2, las=1, at = loc_2, font=2, line=1)
 text(x=mean(1:nrow(test))
-     , y=midline-.0025, "coverage probability (95% desired)", col="black", font=2)
+     , y=midline-.0025, "coverage probability", col="black", font=2, cex = 1.25)
 text(x=mean(1:nrow(test))
-     , y=topline-0.0025, "RMSE", col="black", font=2)
-legend(x=6.5, y=0.02, col = "#DF8F44", legend = "pixel-level specifications", seg.len=0.65, inset = 0.005,  box.lty=0, cex=0.8, lty = 1, lwd = 4, bg="transparent")
+     , y=topline-.0025, "RMSE", col="black", font=2, cex = 1.25)
 
 
 ```
@@ -571,104 +494,34 @@ Connecting the econometric model to the process by which land use change occurs 
 
 Property level unobservables impact both treatment effect estimates and coverage probabilities. This is likely to be a factor when land use decisions are made at the property level, or the intervention seeks to alter underlying landowner incentives. Characteristics of land are also likely to be similar within the same spatial boundaries. In our Monte Carlo simulations, we introduce the standard deviation of the time-invariant property level disturbances in the initial DGP, $\sigma_p$, in order to account for these unobservables. 
 
-The introduction of $\sigma_p$ changes the relative performance of each specification. Figure XX shows that the pixel-level DID begins to suffer in terms of bias, RMSE, and coverage as these property-level unobservables play a larger role in the data generating process. 
+The introduction of $\sigma_p$ changes the relative performance of each specification. The traditional DID does not account for the spatial nature of the deforestation process, and in Figure @\ref(fig:did-property), we see that the pixel-level DID begins to suffer in terms of bias, RMSE, and coverage as these property-level unobservables play a larger role in the data generating process. 
 
-```{r did-property, results = FALSE, message = FALSE, warning = FALSE, fig.align="center", fig.cap="bias, distribution, and coverage of pixel-level DID as property level disturbances play larger role in the data generating process", fig.width = 10, fig.height = 8, out.width = "100%", fig.pos='H', fig.show='hold'}
-
-#### issue of disturbances on DID
+```{r did-property, results = FALSE, message = FALSE, warning = FALSE, fig.align="center", fig.cap="bias, distribution, and coverage of pixel-level DID as property level disturbances play larger role in the data generating process", fig.width = 10, fig.height = 8, out.width = "75%", fig.pos='H', fig.show='hold'}
 
 full_summary <- readRDS("results/summary_full.rds") %>%
-  filter(treatment.fe == 1 & se_pixel == 1 & is.na(notes)) %>%
-  mutate_at(vars(bias, cover), as.numeric)%>%
-  group_by(std_p)%>%
+  filter(treatment.fe == 1 & se_pixel == 1 & is.na(notes) & cox == 0) %>%
+  mutate_at(vars(bias, cover), as.numeric) %>%
+  group_by(std_p) %>%
   summarise(Bias = mean(bias),
             cover = mean(cover),
             RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
-            q95 = quantile(bias, probs = .95))%>%
+            q95 = quantile(bias, probs = .95)) %>%
   mutate(s0 = std_p==0,
          s1 = std_p==0.1,
-         s2 = std_p==0.25,
-         s3 = std_p==0.5) %>% 
-  arrange(desc(s0), desc(s1), desc(s2), desc(s3))
+         s25 = std_p==0.25,
+         s5 = std_p==0.5) %>% 
+  arrange(desc(s0), desc(s1), desc(s25), desc(s5))
 
-na_row <- c("mean_bias" = NA,
+na_row <- c("Bias" = NA,
             "q05" = NA,
             "q95" = NA)
 
 select_results <- rbind(na_row, full_summary, na_row)
 
-
-coverage <- select_results$cover
-c_print <- round(coverage, digits = 2)
-c_print[is.na(c_print)] <- " "
-
-RMSE <- select_results$RMSE
-RMSE_print<- round(as.numeric(RMSE), digits =3)
-RMSE_print[is.na(RMSE_print)] <- " "
-
-schart_results <- select_results %>% 
-  select(c(Bias, s0, s1, s2, s3, q05, q95))
-index.ci <- match(c("q05","q95"), names(schart_results))
-
-labels <- list("Value of sigma" = c("0", "0.1", "0.25", "0.5"))
-
-
-topline = -0.025
-midline = topline-0.02
-ylim <- c(midline-0.02,0.01)
-
-par(oma=c(1,0,1,1))
-
-schart(as.data.frame(schart_results), labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
-       leftmargin = 16,
-       col.est = c(palette$dark, palette$red),
-       heights = c(8,8), cex = c(1.75,1.75)
-      )
-
-mtext("Bias     ", side=2, at = -0.005, font=2, las=1, line=.5, cex = 2)
-Axis(side=2, at = c(-0.01, 0, 0.01), labels=TRUE, cex = 3)
-abline(h=0, lty=2, lwd = 2)
-abline(h=topline)
-abline(h=midline)
-lapply(1:length(RMSE), function(i) {
-  text(x= i, y=midline+0.01, paste0(RMSE_print[i]), col="black", font=1, cex=2)
-  text(x= i, y=midline-0.01, paste0(c_print[i]), col="black", font=1, cex=2)
-})
-mtext("RMSE", side=2, at = midline+0.01, font=2, las=1, line=.5, cex = 2)
-mtext("Coverage\nprobability", side=2, at = midline-0.01, font=2, las=1, line=.5, cex = 2)
-
-
-```
-
-In Figure XX, we see that incorporating spatially aggregated units reduces bias relative to the simple pixel-level DID when the property influence is relatively large ($\sigma_p= 0.5$). This improvement is apparent in both specifications incorporating spatially aggregated units as the level of unit fixed effects (Regression 4) or as the unit of analysis (Regression 5). Further, we see that the scale of aggregation plays a role. Analyses incorporating the property or grid cells near the size of the average property outperform models utilizing larger or smaller scales. Ultimately, all models that incorporate spatial aggregation suffer from relatively little bias and incur less bias than the simple pixel-level DID. In Appendix \@ref(property-alt), we see that specifications incorporating the property tend to outperform other models in alternative parameterizations as well. 
-
-```{r agg-property, results = FALSE, message = FALSE, warning = FALSE, fig.align="center", fig.cap="bias, distribution, and coverage with $\\sigma_p=0.5$ for Left: specifications with aggregated unit fixed effects; and Right: specifications with aggregatiod units of analysis", fig.width = 10, fig.height = 8, out.width = "100%", fig.pos='H', fig.show='hold'}
-
-full_summary <- readRDS("results/summary_full.rds") %>%
-  mutate_at(vars(bias, cover), as.numeric)%>%
-  filter(std_p==0.5 & is.na(notes) & pixel.fe == 0 & weights == 0)%>%
-  group_by(pixel, grid, property, county, grid.fe, property.fe, county.fe, treatment.fe, se_pixel, se_grid, se_property, se_county)%>%
-  summarise(Bias = mean(bias),
-            cover = mean(cover),
-            RMSE = rmse(bias, 0),
-            q05 = quantile(bias, probs = .05),
-            q95 = quantile(bias, probs = .95))
-  
-
-# Panel A - Pixel-level analyses
-select_results <- full_summary %>% 
-  filter(pixel==1 & (treatment.fe == 0 | se_pixel == 1)) %>% 
-  arrange(desc(treatment.fe), desc(county.fe), desc(grid.fe), desc(property.fe))
-
-na_row <- c("Bias" = NA,
-            "q05" = NA,
-            "q95" = NA)
-select_results <- rbind(na_row, select_results, na_row)
-
 coverage <- select_results$cover
 # coverage[is.na(coverage)] <- 0
-c_print <- round(coverage, digits = 2)
+c_print <- round(coverage, digits = 3)
 c_print[is.na(c_print)] <- " "
 
 RMSE <- select_results$RMSE
@@ -678,149 +531,235 @@ RMSE_print<- round(RMSE, digits =3)
 RMSE_print[is.na(RMSE_print)] <- " "
 
 schart_results <- select_results %>% 
-  select(c(Bias, q05, q95, treatment.fe, county.fe, grid.fe, property.fe))%>%
-  mutate_at(vars(treatment.fe, county.fe, grid.fe, property.fe), ~as.logical(as.numeric(.)))
+  select(c(Bias, s0, s1, s25, s5, q05, q95))
+index.ci <- match(c("q05","q95"), names(schart_results))
+
+labels <- list("Value of sigma" = c("0", "0.1", "0.25", "0.5"))
+
+
+topline = -0.017
+midline = topline-0.012
+ylim <- c(midline-0.011,0.007)
+
+par(oma=c(1,0,1,1))
+
+schart(as.data.frame(schart_results), labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
+       leftmargin = 16, col.est = c(palette$dark, palette$red), heights = c(3.5,2.25), cex = c(1.75,1.75))
+
+mtext("Bias     ", side=2, at = -0.00, font=2, las=1, line=.5, cex = 2)
+Axis(side=2, at = c(-0.015, -0.01, -0.005, 0, 0.005, 0.01), labels=TRUE, cex = 4)
+abline(h=0, lty=2, lwd = 2)
+abline(h=topline)
+abline(h=midline)
+lapply(1:length(RMSE), function(i) {
+  text(x= i, y=midline+0.006, paste0(RMSE_print[i]), col="black", font=1, cex=2)
+  text(x= i, y=midline-0.006, paste0(c_print[i]), col="black", font=1, cex=2)
+})
+mtext("RMSE", side=2, at = midline+0.006, font=2, las=1, line=.5, cex = 2)
+mtext("Coverage\nprobability", side=2, at = midline-0.006, font=2, las=1, line=.5, cex = 2)
+
+```
+
+In Figure \@ref(fig:agg), we see that incorporating spatially aggregated units reduces bias relative to the simple pixel-level DID when the property influence is relatively large ($\sigma_p= 0.5$). This improvement is apparent in both specifications incorporating spatially aggregated units as the level of unit fixed effects (Regression 4; left panel) or as the unit of analysis (Regression 5; right panel). Further, we see that the scale of aggregation plays a role. Analyses incorporating the property or grid cells near the size of the average property outperform models utilizing larger or smaller scales. Ultimately, all models that incorporate spatial aggregation suffer from relatively little bias and incur less bias than the simple pixel-level DID. In Appendix \@ref(property-alt), we see that specifications incorporating the property tend to outperform other models in alternative parameterizations as well. 
+
+<!-- ```{r agg-fe, results = FALSE, message = FALSE, warning = FALSE, fig.align="center", fig.cap="bias, distribution, and coverage with $\\sigma_p=0.5$ for Left: specifications with aggregated unit fixed effects; and Right: specifications with aggregatiod units of analysis", fig.width = 10, fig.height = 6, out.width = "75%", fig.pos='H', fig.show='hold'} -->
+
+<!-- full_summary <- readRDS("results/summary_full.rds") %>% -->
+<!--   mutate_at(vars(bias, cover), as.numeric)%>% -->
+<!--   filter(std_p==0.5 & is.na(notes) & pixel.fe == 0 & weights == 0 & cox == 0)%>% -->
+<!--   group_by(pixel, grid, property, county, grid.fe, property.fe, county.fe, treatment.fe, se_pixel, se_grid, se_property, se_county)%>% -->
+<!--   summarise(Bias = mean(bias), -->
+<!--             cover = mean(cover), -->
+<!--             RMSE = rmse(bias, 0), -->
+<!--             q05 = quantile(bias, probs = .05), -->
+<!--             q95 = quantile(bias, probs = .95)) -->
+
+
+<!-- # Panel A - Pixel-level analyses -->
+<!-- select_results <- full_summary %>%  -->
+<!--   filter(pixel==1 & (treatment.fe == 0 | se_pixel == 1)) %>%  -->
+<!--   arrange(desc(treatment.fe), desc(county.fe), desc(grid.fe), desc(property.fe)) -->
+
+<!-- na_row <- c("Bias" = NA, -->
+<!--             "q05" = NA, -->
+<!--             "q95" = NA) -->
+<!-- select_results <- rbind(na_row, select_results, na_row) -->
+
+<!-- coverage <- select_results$cover -->
+<!-- # coverage[is.na(coverage)] <- 0 -->
+<!-- c_print <- round(coverage, digits = 3) -->
+<!-- c_print[is.na(c_print)] <- " " -->
+
+<!-- RMSE <- select_results$RMSE -->
+<!-- # RMSE[is.na(RMSE)] <- 0 -->
+<!-- RMSE <- as.numeric(RMSE) -->
+<!-- RMSE_print<- round(RMSE, digits =3) -->
+<!-- RMSE_print[is.na(RMSE_print)] <- " " -->
+
+<!-- schart_results <- select_results %>%  -->
+<!--   select(c(Bias, q05, q95, treatment.fe, county.fe, grid.fe, property.fe))%>% -->
+<!--   mutate_at(vars(treatment.fe, county.fe, grid.fe, property.fe), ~as.logical(as.numeric(.))) -->
+
+<!-- index.ci <- match(c("q05","q95"), names(schart_results)) -->
+
+<!-- labels <- list( "Treatment FE", "County FE", "Grid FE", "Property FE") -->
+
+<!-- topline = -0.017 -->
+<!-- midline = topline-0.012 -->
+<!-- ylim <- c(midline-0.011,0.008) -->
+
+
+<!-- #par(bg = palette$white) -->
+<!-- par(oma=c(1,0,1,1)) -->
+
+<!-- schart(as.data.frame(schart_results), labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="",  -->
+<!--        highlight = 5,  leftmargin = 14, col.est = c(palette$dark, palette$red), heights = c(3,1.5), cex = c(1.75, 1.75)) -->
+
+<!-- mtext("Bias     ", side=2, at = -0.00, font=2, las=1, line=.5, cex = 2) -->
+<!-- Axis(side=2, at = c(-0.01, 0, 0.01), labels=TRUE, cex = 3) -->
+<!-- abline(h=0, lty=2, lwd = 2) -->
+<!-- abline(h=topline) -->
+<!-- abline(h=midline) -->
+<!-- lapply(1:length(RMSE), function(i) { -->
+<!--   text(x= i, y=midline+0.006, paste0(RMSE_print[i]), col="black", font=1, cex=2) -->
+<!--   text(x= i, y=midline-0.006, paste0(c_print[i]), col="black", font=1, cex=2) -->
+<!-- }) -->
+<!-- mtext("RMSE", side=2, at = midline+0.006, font=2, las=1, line=.5, cex = 2) -->
+<!-- mtext("Coverage\nprobability", side=2, at = midline-0.006, font=2, las=1, line=.5, cex = 2) -->
+
+
+<!-- # Panel B - aggregate-level analyses -->
+<!-- select_results <- full_summary %>%  -->
+<!--   filter(pixel==0) %>%  -->
+<!--   arrange(desc(pixel), desc(treatment.fe), desc(county.fe), desc(grid.fe), desc(property.fe)) -->
+
+<!-- na_row <- c("Bias" = NA, -->
+<!--             "q05" = NA, -->
+<!--             "q95" = NA) -->
+<!-- select_results <- rbind(na_row, select_results, na_row) -->
+
+
+<!-- labels <- list("Grid", "County", "Property") -->
+<!-- coverage <- select_results$cover -->
+<!-- c_print <- f(round(coverage, digits = 2)) -->
+<!-- c_print[is.na(c_print)] <- " " -->
+
+<!-- RMSE <- select_results$RMSE -->
+<!-- RMSE <- as.numeric(RMSE) -->
+<!-- RMSE_print<- f(round(RMSE, digits =3)) -->
+<!-- RMSE_print[is.na(RMSE_print)] <- " " -->
+
+<!-- schart_results <- select_results %>%  -->
+<!--   select(c(Bias, q05, q95, grid, county, property)) -->
+<!-- index.ci <- match(c("q05","q95"), names(schart_results)) -->
+
+<!-- topline = -0.015 -->
+<!-- midline = topline-0.012 -->
+<!-- ylim <- c(midline-0.011,0.015) -->
+
+
+<!-- #par(bg = palette$white) -->
+<!-- par(oma=c(1,0,1,1)) -->
+
+<!-- schart(as.data.frame(schart_results), labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="",  -->
+<!--        highlight = 4,  leftmargin = 13, col.est = c(palette$dark, palette$red), heights = c(3, 1.5), cex = c(1.75, 1.75)) -->
+
+
+<!-- mtext("Bias    ", side=2, at = 0.0, font=2, las=1, line=.5, cex = 2) -->
+<!-- Axis(side=2, at = c(-0.01, 0, 0.01), labels=TRUE, cex = 3) -->
+<!-- abline(h=topline) -->
+<!-- abline(h=midline) -->
+<!-- lapply(1:length(RMSE), function(i) { -->
+<!--   text(x= i, y=midline+0.006, paste0(RMSE_print[i]), col="black", font=1, cex=2) -->
+<!--   text(x= i, y=midline-0.006, paste0(c_print[i]), col="black", font=1, cex=2) -->
+<!-- }) -->
+<!-- mtext("RMSE", side=2, at = midline+0.006, font=2, las=1, line=.5, cex = 2) -->
+<!-- mtext("Coverage\nprobability", side=2, at = midline-0.006, font=2, las=1, line=.5, cex = 2) -->
+
+
+<!-- ``` -->
+
+
+
+
+```{r agg, results = FALSE, message = FALSE, warning = FALSE, fig.align="center", fig.cap="bias, distribution, and coverage with $\\sigma_p=0.5$ for Left: specifications with aggregated unit fixed effects; and Right: specifications with aggregated units of analysis", fig.width = 12, fig.height = 8, out.width = "100%", fig.pos='H', fig.show='hold'}
+
+full_summary <- readRDS("results/summary_full.rds") %>%
+  mutate_at(vars(bias, cover), as.numeric)%>%
+  filter(std_p==0.5 & is.na(notes) & pixel.fe == 0 & weights == 0 & cox == 0 & (treatment.fe == 0 | se_pixel == 1))%>%
+  group_by(pixel, grid, property, county, grid.fe, property.fe, county.fe, treatment.fe, se_pixel, se_grid, se_property, se_county)%>%
+  summarise(Bias = mean(bias),
+            cover = mean(cover),
+            RMSE = rmse(bias, 0),
+            q05 = quantile(bias, probs = .05),
+            q95 = quantile(bias, probs = .95))
+  
+
+# Panel A - Pixel-level analyses
+select_results_A <- full_summary %>% 
+  filter(pixel==1 ) %>% 
+  arrange(desc(treatment.fe), desc(county.fe), desc(grid.fe), desc(property.fe))
+
+select_results_B <- full_summary %>% 
+  filter(pixel==0) %>% 
+  arrange(desc(pixel), desc(treatment.fe), desc(county.fe), desc(grid.fe), desc(property.fe))
+
+
+na_row <- c("Bias" = NA,
+            "q05" = NA,
+            "q95" = NA)
+select_results <- rbind(na_row, select_results_A, na_row, select_results_B, na_row)
+
+coverage <- select_results$cover
+c_print <- round(coverage, digits = 2)
+c_print[is.na(c_print)] <- " "
+
+RMSE <- select_results$RMSE
+RMSE <- as.numeric(RMSE)
+RMSE_print<- round(RMSE, digits =3)
+RMSE_print[is.na(RMSE_print)] <- " "
+
+schart_results <- select_results %>% 
+  select(c(Bias, q05, q95, pixel, grid, county, property, treatment.fe, grid.fe, county.fe, property.fe))%>%
+  mutate_at(vars(pixel, grid, county, property, treatment.fe, grid.fe, county.fe, property.fe), ~as.logical(as.numeric(.)))
 
 index.ci <- match(c("q05","q95"), names(schart_results))
 
-labels <- list("Treatment FE", "County FE", "Grid FE", "Property FE")
+labels <- list("Unit of analysis:" = c("pixel", "grid","county", "property"),
+               "Fixed effects:" = c("treatment FE", "grid FE", "county FE", "property FE")
+               )
 
-topline = -0.025
-midline = topline-0.015
-ylim <- c(midline-0.015,0.012)
+
+
+topline = -0.018
+midline = topline-0.012
+ylim <- c(midline-0.011,0.015)
 
 
 #par(bg = palette$white)
 par(oma=c(1,0,1,1))
 
 schart(as.data.frame(schart_results), labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
-       highlight = 5,  col.est = c(palette$dark, palette$red), cex = c(1.75, 1.75))
+       highlight = c(5, 9),  leftmargin = 16, col.est = c(palette$dark, palette$red), heights = c(3, 3), cex = c(1.75, 1.75)
+       )
 
-mtext("Bias     ", side=2, at = 0.018, font=2, las=1, line=.5, cex = 2)
+
+mtext("Bias    ", side=2, at = 0.0, font=2, las=1, line=.5, cex = 2)
 Axis(side=2, at = c(-0.01, 0, 0.01), labels=TRUE, cex = 3)
-abline(h=0, lty=2, lwd = 2)
 abline(h=topline)
 abline(h=midline)
 lapply(1:length(RMSE), function(i) {
-  text(x= i, y=midline+0.0075, paste0(RMSE_print[i]), col="black", font=1, cex=2)
-  text(x= i, y=midline-0.0075, paste0(c_print[i]), col="black", font=1, cex=2)
+  text(x= i, y=midline+0.006, paste0(RMSE_print[i], " "), col="black", font=1, cex=1.5)
+  text(x= i, y=midline-0.006, paste0(c_print[i]), col="black", font=1, cex=1.5)
 })
-mtext("RMSE", side=2, at = midline+0.0075, font=2, las=1, line=.5, cex = 2)
-mtext("Coverage\nprobability", side=2, at = midline-0.0075, font=2, las=1, line=.5, cex = 2)
-
+mtext("RMSE", side=2, at = midline+0.006, font=2, las=1, line=.5, cex = 1.75)
+mtext("Coverage\nprobability", side=2, at = midline-0.006, font=2, las=1, line=.5, cex = 1.6)
+abline(v = 6)
 
 
 ```
 
-Using Figure \@ref(fig:summary) to compare across all specifications and varying $\sigma_p$, we see that RMSE tends to increase across all specifications as $\sigma_p$ increases. The pixel-level TWFE specifications with spatially aggregated unit fixed effects tend to have the lowest RMSE whenever $\sigma_p$ is nonzero. In contrast, the specification with the property as the unit of analysis and pixel-level DID tend to have the highest RMSE. 
-
-
-```{r summary, results = FALSE, message = FALSE, warning = FALSE, fig.align="center", fig.cap="bias, distribution, and coverage of all models with clustered standard errors. Each subplot represents simulated landscapes with varying $\\sigma_p$. specifications are ordered within subplots by absolute value of mean bias (by least to most).", fig.width = 12, fig.height = 6, out.width = "100%", fig.pos='H', fig.show='hold'}
-#knitr::include_graphics("figs/full_schart.png")
-
-summary_full <- readRDS("results/summary_full.rds")
-
-full_summary <- summary_full %>%
-  mutate_at(vars(bias, cover), as.numeric
-  )%>%
-  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
-  )%>%
-  filter(is.na(notes) & pixel.fe == FALSE)%>%
-  group_by(std_a, std_v, std_p, pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county)%>%
-  summarise(RMSE = rmse(bias, 0),
-            q05 = quantile(bias, probs = .05),
-            q95 = quantile(bias, probs = .95),
-            Bias = mean(bias),
-            cover = mean(cover))%>%
-  select(Bias, everything())%>%
-  ungroup()
-
-
-
-full_summary <- full_summary %>%  
-  dplyr::arrange(std_p, abs(Bias), by.group=TRUE)
-
-library(data.table)
-full_summary <- setDT(full_summary)[full_summary[, c(.I, NA), std_p]$V1][!.N]
-
-par(oma=c(1,0,1,1))
-
-labels <- list(#"Model:" = " ",
-  "Unit of analysis:" = c("pixel", "grid", "property", "county"),
-  "Fixed effects:" = c("grid FE", "property FE", "county FE", "treatment FE"),
-  "Weights:" = c("unit area"),
-  "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
-
-
-f <- function(x) gsub("^(\\s*[+|-]?)0\\.", "\\1.", as.character(x))
-
-coverage <- full_summary$cover
-coverage[is.na(coverage)] <- 0
-c_print <- f(round(full_summary$cover, digits = 2))
-c_print[is.na(c_print)] <- " "
-
-RMSE <- full_summary$RMSE
-RMSE[is.na(RMSE)] <- 0
-RMSE <- as.numeric(RMSE)
-
-RMSE_print<- f(round(full_summary$RMSE, digits =3))
-RMSE_print[is.na(RMSE_print)] <- " "
-
-column_indic <- c(1:12, " ", 13:22, " ", 23:32, " ", 33:42, " ")
-
-test <- as.data.frame(subset(full_summary, select=-c(pixel.fe, cover, RMSE, std_p, std_v, std_a)))%>%
-  filter(pixel=="TRUE"|pixel=="FALSE")%>%
-  mutate_at(vars(Bias, q05, q95), as.numeric)
-
-highlight_rows <- which(test[ , "treatment.fe"] == FALSE )
-
-index.ci <- match(c("q05","q95"), names(test))
-
-# One could also add information about model fit to this chart
-
-topline = -0.03
-midline = topline-0.03
-ylim <- c(midline-0.015,0.0475)
-#Create the plot
-
-schart(test,labels, ylim = ylim, index.ci=index.ci, ylab="Bias", highlight=highlight_rows,
-       col.est=c("black","#00A1D5"),
-       col.dot=c("black","lightgrey","red","#00A1D5"),
-       bg.dot=c("black","lightgrey","white","#00A1D5"),
-       #,band.ref=c(-.05, .04)
-       axes = FALSE, n=12
-       #, col.band.ref="#c7e9f9"
-) # make some room at the bottom
-Axis(side=2, at = 0, labels=TRUE)
-abline(h=topline)
-abline(h=midline)
-abline(v=13, lty="dashed")
-abline(v=26, lty="dashed")
-abline(v=39, lty="dashed")
-lapply(1:length(RMSE), function(i) {
-  rect(xleft=i-.3, ybottom=midline, xright=i+.3, ytop=midline+RMSE[i]*2.2, border=NA, col="#D55E00")
-  #mtext(paste0(column_indic[i]), side=1, at = i, font=2, cex=.9)#, line=1, at=-1)
-  #text(x= i, y=midline+RMSE[i]*1.5+0.004, paste0(RMSE_print[i]), col="black", font=1, cex=.65)
-  text(x= i, y=midline-0.01, paste0(c_print[i]), col="black", font=1, cex=.75 )
-})
-# text(x=5#mean(1:nrow(test))
-#      , y=topline-0.0075, "RMSE", col="black", font=2)
-mtext("RMSE", side=2, at = midline+0.015, font=2, las=1, line=.5)
-# text(x=5#mean(1:nrow(test))
-#      , y=midline-0.0075, "coverage probability", col="black", font=2)
-mtext("Coverage\nprobability", side=2, at = midline-0.01, font=2, las=1, line=.5)
-text(x=1
-     , y=.0475, expression(paste(sigma[p],"=0.0")), col="black", font=2, cex = 1.1)
-text(x=15
-     , y=.0475, expression(paste(sigma[p],"=0.1")), col="black", font=2, cex = 1.1)
-text(x=28
-     , y=.0475, expression(paste(sigma[p],"=0.25")), col="black", font=2, cex = 1.1)
-text(x=41
-     , y=.0475, expression(paste(sigma[p],"=0.5")), col="black", font=2, cex = 1.1)
-legend(x=-3, y=0.06, col = c("#00A1D5"), legend = c("specifications\nincorporating\nspatial aggregation"), inset = 0.005,  box.lty=0, cex=0.95
-       ,  seg.len=0.25, lty = 1, horiz=TRUE, lwd = 4, bg="transparent")
-
-```
+While incorporating spatially aggregated units in OLS specifications may improve analysis, there is no clear analog with survival models. In fact, Figure \@ref(fig:summary) in the appendix shows that $\hat{HE}$ suffers significantly as $sigma_p$ increases. As such, when the pixel is not the preferred unit of analysis, survival analysis is not likely to be the preferred method for estimating the impact of conservation interventions.<!-- One of the primary reasons for the use of survival analysis is censoring. This occurs when the researcher has partial information about the subjects’ survival times but does not have access to precise event times. While the researcher may not observe all pixels until they are deforested, many other forms of censoring are not a concern in the context of deforestation. Further, the proposed strategy to drop pixels in the periods after they are first deforested successfully addresses the irreversibility in deforestation events.   -->
 
 <!-- As property level unobservables play a larger role, the treatment of standard errors also becomes more important. Standard error clustering is used by nearly every study in the literature for inference. The clustering problem is caused by the presence of a common unobserved random shock at the group level that leads to correlation between all observations within a group [@hansen2007]. We have introduced the random shock at the property level in our guiding example to represent individual landowner preferences or property characteristics. As such, correlation within grids and counties will also be introduced, since they contain multiple pixels within a property. Clustering standard errors relaxes the assumption of no correlation across observations within the spatial unit used for clustering [@jones2015]. -->
 
@@ -1159,7 +1098,7 @@ labels <- list("Unit of analysis:" = c("pixel", "grid", "property", "county"),
 index.ci <- match(c("q05","q95"), names(test))
 
 # limits
-ylim <- c(-0.0125,0.01)
+ylim <- c(-0.01,0.0075)
 #Create the plot
 
 schart(test,labels, ylim = ylim, index.ci=index.ci#,# col.est=c("grey50","#00A1D5")
@@ -1383,7 +1322,7 @@ kable(twfe_comp, format = "latex", row.names = FALSE,  booktabs = T,
 
 ```
 
-## Analytical expression of  non-random sample selection bias in two-period two-group setting {#selection-proof}
+## Analytical expression of non-random sample selection bias in two-period two-group setting {#selection-proof}
 
 In the two-group, two-period case, the bias can be expressed by the difference between the $DID$ estimand and the $ATT$: 
 \begin{align*}
@@ -1623,9 +1562,119 @@ and
 &\mu = G^{-1}(ATT + F(\beta_0 + \beta_1 +\beta_{2,1}) )- (\beta_0 + \beta_1 +\beta_{2,1})\\
 \end{align*}
 
-## Cox proportional hazards difference-in-differences {#coxph}
+## Full summary figure from all specifications and values of $\sigma_p$ {#full-summary}
+
+Using Figure \@ref(fig:summary) to compare across all specifications and varying $\sigma_p$, we see that RMSE tends to increase across all specifications as $\sigma_p$ increases. The pixel-level TWFE specifications with spatially aggregated unit fixed effects tend to have the lowest RMSE whenever $\sigma_p$ is nonzero. In contrast, the specification with the property as the unit of analysis and pixel-level DID tend to have the highest RMSE. 
 
 
+```{r summary, results = FALSE, message = FALSE, warning = FALSE, fig.align="center", fig.cap="bias, distribution, and coverage of all models with clustered standard errors. Each subplot represents simulated landscapes with varying $\\sigma_p$. specifications are ordered within subplots by absolute value of mean bias (by least to most).", fig.width = 12, fig.height = 12, out.width = "100%", fig.pos='H', fig.show='hold'}
+#knitr::include_graphics("figs/full_schart.png")
+
+summary_full <- readRDS("results/summary_full.rds")
+
+full_summary <- summary_full %>%
+  mutate_at(vars(bias, cover), as.numeric
+  )%>%
+  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county, cox, X.HRRT.estimator), ~ as.logical(as.integer(.))
+  )%>%
+  filter(is.na(notes) & pixel.fe == FALSE & (treatment.fe == 0 | se_pixel == TRUE))%>%
+  group_by(std_a, std_v, std_p, pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights,  cox, X.HRRT.estimator, se_pixel, se_grid, se_property, se_county)%>%
+  summarise(RMSE = rmse(bias, 0),
+            q05 = quantile(bias, probs = .05),
+            q95 = quantile(bias, probs = .95),
+            Bias = mean(bias),
+            cover = mean(cover))%>%
+  select(Bias, everything())%>%
+  ungroup()
+
+
+
+full_summary <- full_summary %>%  
+  dplyr::arrange(std_p, abs(Bias), by.group=TRUE)
+
+library(data.table)
+full_summary <- setDT(full_summary)[full_summary[, c(.I, NA), std_p]$V1][!.N]
+
+par(oma=c(1,0,1,1))
+
+labels <- list(#"Model:" = " ",
+  "Unit of analysis:" = c("pixel", "grid", "property", "county"),
+  "Fixed effects:" = c("grid FE", "property FE", "county FE", "treatment FE"),
+  "Weights:" = c("unit area"),
+  "Survival:" = c("Cox PH", "HE estimator"),
+  "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
+
+
+f <- function(x) gsub("^(\\s*[+|-]?)0\\.", "\\1.", as.character(x))
+
+coverage <- full_summary$cover
+#coverage[is.na(coverage)] <- 0
+c_print <- f(round(full_summary$cover, digits = 2))
+c_print[is.na(c_print)] <- " "
+
+RMSE <- full_summary$RMSE
+RMSE[is.na(RMSE)] <- 0
+RMSE <- as.numeric(RMSE)
+
+RMSE_print<- f(round(full_summary$RMSE, digits =3))
+RMSE_print[is.na(RMSE_print)] <- " "
+
+#column_indic <- c(1:14, " ", 15:24, " ", 25:34, " ", 35:44, " ")
+
+test <- as.data.frame(subset(full_summary, select=-c(pixel.fe, cover, RMSE, std_p, std_v, std_a)))%>%
+  filter(pixel=="TRUE"|pixel=="FALSE")%>%
+  mutate_at(vars(Bias, q05, q95), as.numeric)
+
+highlight_rows <- which(test[ , "property.fe"] == TRUE )
+
+index.ci <- match(c("q05","q95"), names(test))
+
+# One could also add information about model fit to this chart
+
+topline = -0.042
+
+ylim <- c(topline,0.0175)
+#Create the plot
+
+schart(test,labels, ylim = ylim, index.ci=index.ci, ylab="Bias", #highlight=highlight_rows,
+       heights = c(5, 5), cex = c(1.75, 1.75),
+       col.est=c("black","#00A1D5"),
+       col.dot=c("black","lightgrey","red","#00A1D5"),
+       bg.dot=c("black","lightgrey","white","#00A1D5"),
+       #,band.ref=c(-.05, .04)
+       axes = FALSE, n=11
+       #, col.band.ref="#c7e9f9"
+) # make some room at the bottom
+Axis(side=2, at = c(-0.03,-.02, -.01, 0, 0.01, 0.015), labels=TRUE)
+#abline(h=topline)
+#abline(h=midline)
+abline(v=12, lty="dashed")
+abline(v=24, lty="dashed")
+abline(v=36, lty="dashed")
+#lapply(1:length(RMSE), function(i) {
+  #rect(xleft=i-.3, ybottom=midline, xright=i+.3, ytop=midline+RMSE[i]*1.5, border=NA, col="#D55E00")
+  #mtext(paste0(column_indic[i]), side=1, at = i, font=2, cex=.9)#, line=1, at=-1)
+  #text(x= i, y=midline+RMSE[i]*1.5+0.004, paste0(RMSE_print[i]), col="black", font=1, cex=.65)
+#  text(x= i, y=midline-0.01, paste0(c_print[i]), col="black", font=1, cex=.75 )
+#})
+# text(x=5#mean(1:nrow(test))
+#      , y=topline-0.0075, "RMSE", col="black", font=2)
+#mtext("RMSE", side=2, at = midline+0.015, font=2, las=1, line=.5)
+# text(x=5#mean(1:nrow(test))
+#      , y=midline-0.0075, "coverage probability", col="black", font=2)
+#mtext("Coverage\nprobability", side=2, at = midline-0.01, font=2, las=1, line=.5)
+text(x=2
+     , y=.017, expression(paste(sigma[p],"=0.0")), col="black", font=2, cex = 1.2)
+text(x=14
+     , y=.017, expression(paste(sigma[p],"=0.1")), col="black", font=2, cex = 1.2)
+text(x=26
+     , y=.017, expression(paste(sigma[p],"=0.2")), col="black", font=2, cex = 1.2)
+text(x=38
+     , y=.017, expression(paste(sigma[p],"=0.3")), col="black", font=2, cex = 1.2)
+#legend(x=-3, y=0.06, col = c("#00A1D5"), legend = c("specifications\nincorporating\nspatial aggregation"), inset = 0.005,  box.lty=0, cex=0.95
+#       ,  seg.len=0.25, lty = 1, horiz=TRUE, lwd = 4, bg="transparent")
+
+```
 
 
 ## Property-level models still outperform in alternative parameterizations {#property-alt}
