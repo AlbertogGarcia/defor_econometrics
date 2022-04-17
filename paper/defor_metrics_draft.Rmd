@@ -31,6 +31,8 @@ library(tidyverse)
 library(Metrics)
 
 source(here::here('paper', 'schart.R'))
+source(here::here('paper', 'my_event_study_plot.R'))
+
 
 knitr::opts_chunk$set(echo = FALSE, warnings = FALSE, messages = FALSE, out.width="49%", fig.align = "center")
 
@@ -44,8 +46,10 @@ palette <- list("white" = "#FAFAFA",
                 "gold" = "#DAA520")
 ```
 
+
+
 # Abstract {-}
-Conservation scientists are increasingly measuring the impacts of conservation interventions by applying quasiexperimental impact evaluation to remotely sensed panel data on land use change. However, these applications come with new challenges. Using Monte Carlo simulations and analytical proofs, we demonstrate that many of the panel econometric models employed for conservation impact evaluation are biased - the significance, magnitude and even direction of estimated effects from many studies are likely incorrect. These errors threaten to undermine the evidence base that underpins conservation policy adoption and design. We review this burgeoning literature and develop guidance for the design of econometric models quantifying conservation policy effectiveness. 
+Conservation scientists are increasingly measuring the impacts of conservation interventions by applying quasiexperimental impact evaluation to remotely sensed panel data on land use change. However, these applications come with new challenges. Using Monte Carlo simulations and analytical proofs, we demonstrate that many of the panel econometric models employed for conservation impact evaluation are biased - the significance, magnitude and even direction of estimated effects from many studies are likely incorrect. These errors threaten to undermine the evidence base that underpins conservation policy adoption and design. We review the methods in this burgeoning literature and develop guidance for the design of econometric models quantifying conservation policy effectiveness. 
 
 # Introduction
 Policymakers often need to understand the causal impacts of conservation interventions. Do marine protected areas stop unsustainable harvesting of fish? Can payments for ecosystem services encourage lasting reforestation? While randomized experiments are the gold standard for the identification of causal relationships [@edwards2020; @jayachandran2017], conservation often poses questions that are prohibitively expensive, unethical or impossible to pursue through experimentation. In such settings, a growing portfolio of statistical techniques enable researchers to draw causal conclusions using observational data [@larsen2019]. Increasingly, these econometric approaches to impact evaluation are being used to disentangle the causal relationships that underpin conservation decisionmaking [@butsic2017; @baylis2016; @williams2020]. These econometric methods can generate estimates of an intervention's impact by comparing observed outcomes to a statistical counterfactual of what would have happened in the absence of an intervention [@ferraro2009; @meyfroidt2016; @ferraro2019; @ribas2020].
@@ -222,7 +226,7 @@ HRR_3 &= \frac{E[y_{ivt}(0)  |  t\geq t_0, D_i=0]} {E[y_{ivt}(0)  |  t < t_0, D_
 \end{align*}
 
 Our estimator is then constructed by:
-$$\widehat{HRTT} = \frac{1}{1/exp(\hat{ \alpha }) + 1/exp(\hat{ \beta }) - 1/(exp(\hat{ \beta })*exp(\hat{ \delta }))}$$
+$$\widehat{HE} = \frac{1}{1/exp(\hat{ \alpha }) + 1/exp(\hat{ \beta }) - 1/(exp(\hat{ \beta })*exp(\hat{ \delta }))}$$
 
 Each of $HRR_1$, $HRR_2$, and $HRR_3$ can easily be estimated individually by Cox regressions. Specifically,
 
@@ -234,10 +238,16 @@ where $h(t)$ is the hazard rate of deforestation at time t.
 
 Then,
 \begin{align*}
-exp( \alpha )] &= HRR_1\\
-exp( \beta )] &= HRR_2\\
-exp(\delta )] &= HRR_3
+exp( \alpha ) &= HRR_1\\
+exp( \beta ) &= HRR_2\\
+exp(\delta ) &= HRR_3
 \end{align*}
+
+Because the numerator of $HRTT$, $E[y_{ivt}(1)  |  t\geq t_0, D_i=1]$, is observable, we can recover the $ATT$ using the observable term and $HRTT$:
+
+$$ATT = E[y_{ivt}(1)  |  t\geq t_0, D_i=1] - \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1] }{HRTT}$$
+
+Here, we have shown that the simple extension of the traditional DID to the survival setting does not clearly recover a parameter of interest to researchers interested in the impact evaluation. In contrast, our proposed estimator, which relies on separate estimation of relevant hazard rate ratios, does recover the relevant analog of the $ATT$. We explore the performance of $\hat{HE}$ relative to the proposed OLS regressions under various circumstances likely to arise in the deforestation setting in the next sections. 
 
 # Monte Carlo simulations to compare alternative model performance
 
@@ -258,6 +268,7 @@ y^*_{ivt} = & V^{cleared}_{ivt} - V^{uncleared}_{ivt}\\
 That is, the returns to deforestation evolve over the two time periods $(\mathbbm{1}\{  t \geq t_0  \})$, and differ across the control $(  D_i = 0 )$ and treated pixels $(  D_i = 1 )$. In addition, we assume that the value of deforestation is influenced by time-invariant random disturbances at the scale of individual pixels ($\alpha_i \sim N(0, \sigma_a^2)$) or properties ($\rho_v \sim N(0, \sigma_p^2)$), as well as time-varying, pixel-scale disturbances ($u_{it} \sim N(0, \sigma_u^2)$). These disturbances can represent a variety of spatial and temporal processes including, for example, the biophysical characteristics of a location, or the preferences of a property owner. 
 
 ## Assumed parameter values
+
 For the remainder of the paper, we explore a guiding example that has been parameterized to represent an impactful intervention in a high deforestation setting. Conservation interventions often have annual treatment effects smaller than a 1 percentage point reduction in the annual deforestation rate [e.g. @robalino2013; @jones2017]. These modest reductions in the annual deforestation rate, however, can amount to large landscape-scale effects. For example, @alix-garcia2018 find that environmental land registration in Brazil’s Amazonian states of Mato Grosso and Para reduced the annual deforestation rate by an average of 0.5 percentage points, which has resulted in an overall reduction in deforestation of 10\%. 
 
 The initial simulated landscape has the following characteristics: a pre-treatment deforestation rate of 2\% in the control area; a pre-treatment deforestation rate of 5\% in the intervention area; a decrease in the deforestation rate of 0.5 percentage points between the first and second period in the absence of treatment; and an average reduction of 1 percentage point in the deforestation rate in treated units due to the intervention ($ATT = -0.01$). We assume that $\sigma_u = 0.5$. Finally, we begin by assuming away time invariant pixel ($\sigma_a = 0$) and property-level disturbances ($\sigma_p = 0$) but relax this assumption in Section \@ref(property). Note that Assumptions 1 and 2 are satisfied by construction. The derivations detailing the mapping from the landscape characteristics to the corresponding parameters in $y^*_{ivt}$ can be found in Appendix \@ref(parameter-mapping). 
@@ -269,7 +280,9 @@ We compare econometric models using a combination of estimate bias, root mean sq
 
 # Alternative specifications can yield unbiased estimates of the $ATT$
 
-TWFE models have risen to prominence due to their flexibility in applying DID methods to settings with multiple groups and variation in treatment timing. However, TWFE models with pixel fixed effects are not a viable approach to estimate the $ATT$ in deforestation impact evaluations. Column 1 of Figure \@ref(fig:summary-fig) shows the bias associated with Regression 2, a TWFE regression with pixel unit fixed effects. In our guiding example, the ex-post single difference is 0.02 (the $ATT$ plus the post-treatment group difference in deforestation rates), when the true $ATT$ is equal to -0.01. This means that a positive bias of 0.03 results from the use of this regression model. However, we show that multiple alternate model specifications enable researchers to generate unbiased estimates of the $ATT$. We describe three straightforward solutions to this challenge below.
+TWFE models have risen to prominence due to their flexibility in applying DID methods to settings with multiple groups and variation in treatment timing. However, TWFE models with pixel fixed effects are not a viable approach to estimate the $ATT$ in deforestation impact evaluations. Column 1 of Figure \@ref(fig:summary-fig) shows the bias associated with Regression 2, a TWFE regression with pixel unit fixed effects. In our guiding example, the ex-post single difference is 0.02 (the $ATT$ plus the post-treatment group difference in deforestation rates), when the true $ATT$ is equal to -0.01. This means that a positive bias of 0.03 results from the use of this regression model. However, we show that multiple alternate model specifications enable researchers to generate unbiased estimates of the $ATT$. We describe several straightforward solutions to this challenge below.
+
+Survival analysis is one potential alernative to traditional econometric estimators in the context of deforestation. The simple cox DID, however, is not a viable solution. Column 2 of Figure \@ref(fig:summary-fig) shows the bias associated with Regression 3. While the two methods discussed here generally cannot recover the $ATT$, several relatively straightforward solutions exist for researchers in this context. 
 
 ## Traditional difference-in-differences model
 
@@ -282,9 +295,9 @@ One can also use fixed effects at the level of a spatially aggregated unit rathe
 \textbf{Regression 4:} (pixel level TWFE regression with spatially aggregated unit fixed effects)
 Let $\beta_{FE,j}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
 \begin{align}
-y^o_{ivt} = \alpha + \beta_{FE,j} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \lambda_t + \gamma_j + \epsilon_{it}
+y^o_{ivt} = \alpha + \beta_{FE,j} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \alpha_1 D_i + \lambda_t + \gamma_j + \epsilon_{it}
 \end{align}
-, where $\lambda_t$ denotes year fixed effects and $\gamma_j$ denotes one of grid ($g$), county ($c$), or property ($v$) fixed effects ($j=\{g, c, v \}$).
+, where $\lambda_t$ denotes year fixed effects and $\gamma_j$ denotes one of grid ($g$), county ($c$), or property ($v$) fixed effects ($j=\{g, c, v \}$). 
 
 Columns 3-5 of Figure \@ref(fig:summary-fig) show that pixel level TWFE regressions are unbiased estimators of the $ATT$ when grid, county, or property fixed effects are used rather than pixel fixed effects. We also see that, in the absence of property level perturbations (i.e. $\sigma_p=0$ in the DGP), all three models provide similar estimates and estimate distributions. 
 
@@ -295,13 +308,12 @@ Columns 3-5 of Figure \@ref(fig:summary-fig) show that pixel level TWFE regressi
 specchart_long <- readRDS("results/summary_long.rds")
 
 df_summary <- specchart_long %>%
-  filter(weights == 0 & (treatment.fe == 0 | se_pixel == 1)) %>%
+  filter(is.na(notes) & weights == 0 & (grid.fe == 0 | gridsize == 12)) %>%
   mutate_at(vars(bias, cover), as.numeric
          )%>%
-  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, X.HRRT.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
+  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, HE.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
   )%>%
-  filter(is.na(notes))%>%
-  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, X.HRRT.estimator, se_pixel, se_grid, se_property, se_county)%>%
+  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, HE.estimator, se_pixel, se_grid, se_property, se_county)%>%
   summarise(RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
             q95 = quantile(bias, probs = .95),
@@ -309,7 +321,7 @@ df_summary <- specchart_long %>%
             cover = mean(cover))%>%
   select(Bias, everything())
 
-df_summary <- rbind(df_summary[10,], df_summary[5,], df_summary[7:9,], df_summary[1:3,], df_summary[6,], df_summary[4,])
+df_summary <- rbind(df_summary[10,], df_summary[6,],  df_summary[5,], df_summary[1:3,], df_summary[7:9,], df_summary[4,])
 
 par(oma=c(1,0,1,1))
 
@@ -336,8 +348,8 @@ ylim <- c(midline-.02,0.04)
 #bottomline = (min(ylim)+topline)/2
 #Create the plot
 
-schart(test,labels, ylim = ylim, index.ci=index.ci, col.est=c("grey50","#D55E00")
-       , ylab="Bias", highlight=1
+schart(test,labels, ylim = ylim, index.ci=index.ci, col.est = c(palette$dark, palette$red)
+       , ylab="Bias", highlight=c(1,2)
        ,band.ref=c(-.05, .04)
        , axes = FALSE
        #, col.band.ref="#c7e9f9"
@@ -378,18 +390,15 @@ Let $\beta_{j}$ denote the coefficient of the interaction between $D_{j}$ and $\
 \begin{align}
 z_{jt} = \alpha + \beta_{j} \text{ x } D_j \mathbb{1} \{ t\geq t_0\} + \lambda_t + \gamma_j + \epsilon_{jt}
 \end{align}
-, where $\lambda_t$ denotes year fixed effects and $\gamma_j$ denotes one of grid, county, or property fixed effects. Note that in these regressions, the level of unit fixed effects matches the unit of analysis. The treatment variable $D_j = \frac{1}{N_j}\sum_{i=1}^{N_j}D_i$, is the average treatment value amongst all pixels in unit $j$.
+, where $\lambda_t$ denotes year fixed effects and $\gamma_j$ denotes one of grid, county, or property fixed effects. The treatment variable $D_j = \frac{1}{N_j}\sum_{i=1}^{N_j}D_i$, is the average treatment value amongst all pixels in unit $j$. Note that in these regressions, the level of unit fixed effects matches the unit of analysis. 
 
 Columns 6-8 of Figure \@ref(fig:summary-fig) show that the bias of the estimates does not vary dramatically across different levels of aggregation, however, the distributions are varied. In particular, the property-level model had the highest RMSE of unbiased specifications due to the heterogeneity in property sizes across the landscape. 
 
-## Survival models
+## Survival analysis: newly proposed estimator
 
-We explore whether survival models, including our proposed estimator, are a viable approach to recover treatment effects in the deforestation setting. Because the numerator of $HRTT$, $E[y_{ivt}(1)  |  t\geq t_0, D_i=1]$, is observable, we can recover the $ATT$ using the observable term and $HRTT$:
+In light of the fact that the simple Cox DID is not a viable analog to the traditional DID, we explore whether our proposed estimator, recovers relevant treatment effect parameters in the deforestation setting. We see in column 10 that $\widehat{HE}$ indeed recovers our parameter of interest.
 
-$$ATT = E[y_{ivt}(1)  |  t\geq t_0, D_i=1] - \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1] }{HRTT}$$
-
-
-We see in column 9 that the Cox DID regression (Regression 3) does not recover the impact of the conservation intervention in this context. However, $\widehat{HE}$, as seen in column 10, successfuly recovers our parameter of interest.
+One of the primary reasons for the use of survival analysis is censoring. This occurs when the researcher has partial information about the subjects’ survival times but does not have access to precise event times. While the researcher may not observe all pixels until they are deforested, many other forms of censoring are not a concern in the context of deforestation. Further, the proposed strategy to drop pixels in the periods after they are first deforested successfully addresses the irreversibility in deforestation events. As we show in the coming sections, survival analysis is likely to suffer from bias when unobservables enter the landscape at a scale different than the unit of analysis. While researchers can account for this in OLS specifications, there is no clear solution in survival analysis. 
 
 # Non-random selection and the spatial nature of the deforestation process {#property}
 
@@ -420,12 +429,12 @@ specchart_long <- readRDS("results/summary_selection.rds")
 
 
 df_summary <- specchart_long %>%
-  filter(is.na(notes) & pixel.fe == 0 & weights == 0 & (treatment.fe == 0 | se_pixel == 1) & (cox == 0 | X.HRRT.estimator ==1)) %>%
+  filter(is.na(notes) & pixel.fe == 0 & weights == 0 & (treatment.fe == 0 | se_pixel == 1) & (cox == 0 | HE.estimator ==1) & (grid.fe == 0 | gridsize == 12)) %>%
   mutate_at(vars(bias, cover), as.numeric
          )%>%
-  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, X.HRRT.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
+  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, HE.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
   )%>%
-  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, X.HRRT.estimator, se_pixel, se_grid, se_property, se_county)%>%
+  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, HE.estimator, se_pixel, se_grid, se_property, se_county)%>%
   summarise(RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
             q95 = quantile(bias, probs = .95),
@@ -459,7 +468,7 @@ midline = topline-0.007-.001
 ylim <- c(midline-.007,0.005)
 #Create the plot
 
-schart(test,labels, ylim = ylim, index.ci=index.ci, col.est=c("grey50","#D55E00")
+schart(test,labels, ylim = ylim, index.ci=index.ci, col.est = c(palette$dark, palette$red)
        , ylab="Bias",
        band.ref=c(-.05, .04),
 heights = c(5,5),
@@ -520,21 +529,22 @@ na_row <- c("Bias" = NA,
 select_results <- rbind(na_row, full_summary, na_row)
 
 coverage <- select_results$cover
-# coverage[is.na(coverage)] <- 0
 c_print <- round(coverage, digits = 3)
 c_print[is.na(c_print)] <- " "
 
 RMSE <- select_results$RMSE
-# RMSE[is.na(RMSE)] <- 0
 RMSE <- as.numeric(RMSE)
-RMSE_print<- round(RMSE, digits =3)
+RMSE_print<- round(RMSE, digits = 3)
 RMSE_print[is.na(RMSE_print)] <- " "
 
-schart_results <- select_results %>% 
-  select(c(Bias, s0, s1, s25, s5, q05, q95))
+schart_results <- select_results %>%
+  mutate(F_col = FALSE,
+         F_col2 = FALSE)%>%
+  select(c(Bias, F_col, F_col2, q05, q95))
 index.ci <- match(c("q05","q95"), names(schart_results))
 
-labels <- list("Value of sigma" = c("0", "0.1", "0.25", "0.5"))
+labels <- list("",
+               "")
 
 
 topline = -0.017
@@ -543,12 +553,16 @@ ylim <- c(midline-0.011,0.007)
 
 par(oma=c(1,0,1,1))
 
-schart(as.data.frame(schart_results), labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
-       leftmargin = 16, col.est = c(palette$dark, palette$red), heights = c(3.5,2.25), cex = c(1.75,1.75))
+schart(as.data.frame(schart_results), labels = labels, 
+       ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
+       #leftmargin = 16, 
+       col.est = c(palette$dark, palette$red), 
+       bg.dot=c("white", "white", "white", "white"),
+       col.dot=c("white", "white", "white", "white"),
+       heights = c(6,1), cex = c(1.75,1.75))
 
 mtext("Bias     ", side=2, at = -0.00, font=2, las=1, line=.5, cex = 2)
 Axis(side=2, at = c(-0.015, -0.01, -0.005, 0, 0.005, 0.01), labels=TRUE, cex = 4)
-abline(h=0, lty=2, lwd = 2)
 abline(h=topline)
 abline(h=midline)
 lapply(1:length(RMSE), function(i) {
@@ -557,6 +571,11 @@ lapply(1:length(RMSE), function(i) {
 })
 mtext("RMSE", side=2, at = midline+0.006, font=2, las=1, line=.5, cex = 2)
 mtext("Coverage\nprobability", side=2, at = midline-0.006, font=2, las=1, line=.5, cex = 2)
+mtext(paste0(0), side=1, at = 2, font=2, cex=2, line=3)
+mtext(paste0(0.1), side=1, at = 3, font=2, cex=2, line=3)
+mtext(paste0(0.25), side=1, at = 4, font=2, cex=2, line=3)
+mtext(paste0(0.5), side=1, at = 5, font=2, cex=2, line=3)
+mtext(bquote("Value of " ~ sigma[p]), side=1, at = 0, font=2, cex=2.5, line=3)
 
 ```
 
@@ -686,23 +705,22 @@ In Figure \@ref(fig:agg), we see that incorporating spatially aggregated units r
 
 full_summary <- readRDS("results/summary_full.rds") %>%
   mutate_at(vars(bias, cover), as.numeric)%>%
-  filter(std_p==0.5 & is.na(notes) & pixel.fe == 0 & weights == 0 & cox == 0 & (treatment.fe == 0 | se_pixel == 1))%>%
-  group_by(pixel, grid, property, county, grid.fe, property.fe, county.fe, treatment.fe, se_pixel, se_grid, se_property, se_county)%>%
+  filter(std_p==0.5 & is.na(notes) & pixel.fe == 0 & weights == 0 & cox == 0 & (treatment.fe == 0 | se_pixel == 1) , is.na(gridsize) | gridsize == max(gridsize, na.rm = T)) %>%
+  group_by(pixel, grid, property, county, grid.fe, property.fe, county.fe, treatment.fe, se_pixel, se_grid, se_property, se_county, gridsize)%>%
   summarise(Bias = mean(bias),
             cover = mean(cover),
             RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
             q95 = quantile(bias, probs = .95))
-  
 
 # Panel A - Pixel-level analyses
 select_results_A <- full_summary %>% 
   filter(pixel==1 ) %>% 
-  arrange(desc(treatment.fe), desc(county.fe), desc(grid.fe), desc(property.fe))
+  arrange(desc(treatment.fe), desc(grid.fe), desc(county.fe), desc(property.fe))
 
 select_results_B <- full_summary %>% 
   filter(pixel==0) %>% 
-  arrange(desc(pixel), desc(treatment.fe), desc(county.fe), desc(grid.fe), desc(property.fe))
+  arrange(desc(pixel), desc(treatment.fe), desc(grid.fe),  desc(county.fe), desc(property.fe))
 
 
 na_row <- c("Bias" = NA,
@@ -719,17 +737,26 @@ RMSE <- as.numeric(RMSE)
 RMSE_print<- round(RMSE, digits =3)
 RMSE_print[is.na(RMSE_print)] <- " "
 
+gridsize_print <- select_results$gridsize
+gridsize_print[is.na(gridsize_print)] <- " "
+
 schart_results <- select_results %>% 
-  select(c(Bias, q05, q95, pixel, grid, county, property, treatment.fe, grid.fe, county.fe, property.fe))%>%
+ # mutate(F_col = FALSE)%>%
+  select(c(Bias, q05, q95, pixel, county, property, grid, treatment.fe, county.fe, property.fe, grid.fe#,  
+           #F_col
+           ))%>%
   mutate_at(vars(pixel, grid, county, property, treatment.fe, grid.fe, county.fe, property.fe), ~as.logical(as.numeric(.)))
 
 index.ci <- match(c("q05","q95"), names(schart_results))
 
-labels <- list("Unit of analysis:" = c("pixel", "grid","county", "property"),
-               "Fixed effects:" = c("treatment FE", "grid FE", "county FE", "property FE")
+labels <- list("Unit of analysis:" = c("pixel","county", "property", "grid"),
+               "Fixed effects:" = c("treatment FE", "county FE", "property FE", "grid FE"),
+               "Grid size" = c("")
                )
 
-
+labels <- list("Unit of analysis:" = c("pixel","county", "property", "grid"),
+               "Fixed effects:" = c("treatment FE", "county FE", "property FE", "grid FE")
+               )
 
 topline = -0.018
 midline = topline-0.012
@@ -742,8 +769,6 @@ par(oma=c(1,0,1,1))
 schart(as.data.frame(schart_results), labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
        highlight = c(5, 9),  leftmargin = 16, col.est = c(palette$dark, palette$red), heights = c(3, 3), cex = c(1.75, 1.75)
        )
-
-
 mtext("Bias    ", side=2, at = 0.0, font=2, las=1, line=.5, cex = 2)
 Axis(side=2, at = c(-0.01, 0, 0.01), labels=TRUE, cex = 3)
 abline(h=topline)
@@ -751,6 +776,7 @@ abline(h=midline)
 lapply(1:length(RMSE), function(i) {
   text(x= i, y=midline+0.006, paste0(RMSE_print[i], " "), col="black", font=1, cex=1.5)
   text(x= i, y=midline-0.006, paste0(c_print[i]), col="black", font=1, cex=1.5)
+#  mtext(gridsize_print[i], side=1, at = i, font=2, cex=1.5, line=16)
 })
 mtext("RMSE", side=2, at = midline+0.006, font=2, las=1, line=.5, cex = 1.75)
 mtext("Coverage\nprobability", side=2, at = midline-0.006, font=2, las=1, line=.5, cex = 1.6)
@@ -759,7 +785,7 @@ abline(v = 6)
 
 ```
 
-While incorporating spatially aggregated units in OLS specifications may improve analysis, there is no clear analog with survival models. In fact, Figure \@ref(fig:summary) in the appendix shows that $\hat{HE}$ suffers significantly as $sigma_p$ increases. As such, when the pixel is not the preferred unit of analysis, survival analysis is not likely to be the preferred method for estimating the impact of conservation interventions.<!-- One of the primary reasons for the use of survival analysis is censoring. This occurs when the researcher has partial information about the subjects’ survival times but does not have access to precise event times. While the researcher may not observe all pixels until they are deforested, many other forms of censoring are not a concern in the context of deforestation. Further, the proposed strategy to drop pixels in the periods after they are first deforested successfully addresses the irreversibility in deforestation events.   -->
+While incorporating spatially aggregated units in OLS specifications may improve analysis, there is no clear analog with survival models. In fact, Figure \@ref(fig:summary) in the appendix shows that $\hat{HE}$ suffers significantly as $sigma_p$ increases. As such, when the pixel is not the preferred unit of analysis, survival analysis is not likely to be the preferred method for estimating the impact of conservation interventions.
 
 <!-- As property level unobservables play a larger role, the treatment of standard errors also becomes more important. Standard error clustering is used by nearly every study in the literature for inference. The clustering problem is caused by the presence of a common unobserved random shock at the group level that leads to correlation between all observations within a group [@hansen2007]. We have introduced the random shock at the property level in our guiding example to represent individual landowner preferences or property characteristics. As such, correlation within grids and counties will also be introduced, since they contain multiple pixels within a property. Clustering standard errors relaxes the assumption of no correlation across observations within the spatial unit used for clustering [@jones2015]. -->
 
@@ -1045,52 +1071,50 @@ While incorporating spatially aggregated units in OLS specifications may improve
 
 Authors frequently choose to use a pixel or grid cell as their preferred unit of analysis for purposes of interpretation. The coefficient of interest from a specification using the pixel as the unit of analysis can be interpreted as the effect of the intervention across the landscape. In contrast, if a property is used, the coefficient should be interpreted as the effect of the intervention on the characteristic property in the sample. In order to reobtain a landscape-scale interpretation, one must weight the regression by the area of the unit of analysis (i.e. property). 
 
-Above, weighting did not seem to have a major impact on bias, RMSE, or coverage probability. The use of area weights is likely to be most useful when the $ATT$ for the characteristic property differs from the $ATT$ across the landscape. We now consider the case when treatment effects are correlated with property size. The full DGP for this case can be found in Appendix \@ref(pweightDGP). The treatment effect now varies across properties, and properties with greater areas experience treatment effects of a lower magnitude than smaller properties. The $ATT$ across the landscape is still $-0.01$. However, because the treatment is more impactful in properties of smaller size, the treatment effect for the average property is less than $-0.01$, which is the landscape $ATT$.  
+Above, weighting did not seem to have a major impact on bias, RMSE, or coverage probability. The use of area weights is likely to be most useful when the $ATT$ for the characteristic property differs from the $ATT$ across the landscape. We now consider the case when treatment effects are correlated with property size. The full DGP for this case can be found in Appendix \@ref(pweightDGP). The treatment effect now varies across properties, and properties with greater areas experience treatment effects of a lower magnitude than smaller properties. The $ATT$ across the landscape is still $-0.01$. However, because the treatment is more impactful in properties of smaller size, the treatment effect for the average property is less than $-0.01$.
 
-```{r pweight, fig.align="center", results = FALSE, warning = FALSE, message = FALSE, fig.cap="weighting recovers landscape scale interpretation", fig.pos='H', fig.width = 9, fig.height = 5, out.width= "100%", fig.show='hold'}
+```{r pweight, fig.align="center", results = FALSE, warning = FALSE, message = FALSE, fig.cap="weighting recovers landscape scale interpretation", fig.pos='H', fig.width = 8, fig.height = 6, out.width= "100%", fig.show='hold'}
 # knitr::include_graphics(c("figs/pweight_schart.png"))
 
 summary_pweights <- readRDS("results/summary_pweights.rds")
-specchart_long <- summary_pweights
 
-summary <- specchart_long %>%
-  mutate_at(vars(bias, cover, ATT_diff, ls_ATT, p_ATT), as.numeric
+summary <- summary_pweights %>%
+  mutate_at(vars(estimate, cover, given_ATT, p_ATT), as.numeric
   )%>%
   mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
   )%>%
-  filter(is.na(notes) & pixel.fe == FALSE)%>%
-  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county)%>%
-  summarise(RMSE = rmse(bias, 0),
+  filter(is.na(notes) & (county.fe == T | property.fe == T) )%>%
+  mutate(bias = estimate - given_ATT,
+         ATT_diff = p_ATT - given_ATT)%>%
+  group_by(pixel, property, county, property.fe, county.fe, weights, se_property, se_county)%>%
+  summarise(RMSE = rmse(estimate, ATT),
             q05 = quantile(bias, probs = .05),
             q95 = quantile(bias, probs = .95),
             Bias = mean(bias),
             cover = mean(cover),
-            ls_ATT = mean(ls_ATT),
+            ATT = mean(given_ATT),
             ATT_diff = mean(ATT_diff),
             p_ATT = mean(p_ATT))%>%
   select(Bias, everything())
 
 df_summary <- summary %>%
-  select(-c(ls_ATT, p_ATT, ATT_diff))
-
-#df_summary <- rbind(df_summary[11,], df_summary[4:10,], df_summary[1:3,])
+  select(-c( ATT, p_ATT, ATT_diff))
 
 par(oma=c(1,0,1,1))
 
-labels <- list("Unit of analysis:" = c("pixel", "grid", "property", "county"),
-               "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE", "treatment FE"),
+labels <- list("Unit of analysis:" = c("pixel", "property", "county"),
+               "Fixed effects:" = c("property FE", "county FE"),
                "Weights:" = c("area weights"),
-               "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
-f <- function(x) gsub("^(\\s*[+|-]?)0\\.", "\\1.", as.character(x))
-coverage <- f(round(df_summary$cover, digits=3))
-RMSE <- f(round(df_summary$RMSE, digits=5))
+               "SE structure:" = c("clustered at property", "clustered at county"))
+coverage <- round(df_summary$cover, digits=3)
+RMSE <- round(df_summary$RMSE, digits=5)
 test <- as.data.frame(subset(df_summary, select=-c(cover, RMSE)))
 
-test <- subset(test, select=-c(se_pixel, se_grid, se_property, se_county))%>%
+test <- subset(test, select=-c(se_property, se_county))%>%
   distinct()
 
-labels <- list("Unit of analysis:" = c("pixel", "grid", "property", "county"),
-               "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE", "treatment FE"),
+labels <- list("Unit of analysis:" = c("pixel", "property", "county"),
+               "Fixed effects:" = c("property FE", "county FE"),
                "Weights:" = c("area weights")
 )
 
@@ -1098,23 +1122,21 @@ labels <- list("Unit of analysis:" = c("pixel", "grid", "property", "county"),
 index.ci <- match(c("q05","q95"), names(test))
 
 # limits
-ylim <- c(-0.01,0.0075)
+ylim <- c(-0.015, 0.005)
 #Create the plot
 
-schart(test,labels, ylim = ylim, index.ci=index.ci#,# col.est=c("grey50","#00A1D5")
-       , ylab="Bias                              "
-       , highlight=c(3,4), 
-       col.est=c("black","#00A1D5"),
-       col.dot=c("black","lightgrey","red","#00A1D5"),
-       bg.dot=c("black","lightgrey","white","#00A1D5")
-       ,band.ref=c(-.05, .04)
+schart(test,labels, ylim = ylim, index.ci=index.ci, col.est = c(palette$dark, palette$red)
+       , ylab="                              "
+       , highlight=c(3,4)
+       # , col.dot=c("black","lightgrey","red","#00A1D5"),
+       # bg.dot=c("black","lightgrey","white","#00A1D5")
+       # ,band.ref=c(-.05, .04)
        , axes = FALSE
        #, col.band.ref="#c7e9f9"
 ) # make some room at the bottom
-abline(h=mean(summary$ATT_diff), col = "#00A1D5", lty = "dashed")
+abline(h=mean(summary$ATT_diff), col = palette$red, lty = "dashed")
 mtext("property level\nATT", side=2, at = mean(summary$ATT_diff), font=2, las=1, line=.5, cex = .75)
 mtext("landscape\nATT", side=2, at = 0, font=2, las=1, line=.5, cex = .75)
-
 
 
 ```
@@ -1127,7 +1149,7 @@ Figure \@ref(fig:pweight) shows the $ATT$ at both the property and landscape sca
 # Extension to multiple groups and time periods {#multipleGT}
 
 The typical DID regression applies to settings with two-groups and two-periods, however, many times researchers use TWFE regressions to exploit variation across groups of units that receive treatment at different times. Recent work has show that in these cases, TWFE regressions identify a weighted average of all possible two-group/two-period DID estimators in the data [@goodman-bacon2021]. 
-Further, when estimating the $ATT$, some weights on each group-time treatment effect parameter may actually be negative, which could lead for instance, to a negative regression coefficient while all the treatment effect parameters are positive [@dechaisemartin2020]. Newly developed estimators [e.g., @callaway2020; @gardner2021] seek to address these weighting issues by individually calculating two-period, two-group DID parameters before aggregating them to a summary measure of the overall $ATT$. 
+Further, when estimating the $ATT$, some weights on each group-time treatment effect parameter may actually be negative, which could lead for instance, to a negative regression coefficient while all the treatment effect parameters are positive [@dechaisemartin2020]. Newly developed estimators [e.g., @callaway2020; @gardner2021; @boryusak2020] seek to address these weighting issues by individually calculating two-period, two-group DID parameters before aggregating them to a summary measure of the overall $ATT$. 
 
 One might conclude that these new estimators solve the issues with pixel level TWFE regressions that we present here, since some of these estimators involve separately calculating all two period/two-group treatment effects. We consider the estimators developed in this burgeoning literature in order to show that the issue with pixel unit fixed effects can still plague researchers' estimates even with this new suite of methods. 
 
@@ -1139,15 +1161,27 @@ knitr::include_graphics("figs/defor_multiGT.png")
 
 ```
 
-The left panel of Figure \@ref(fig:multiGT) shows that the estimators developed in @callaway2020 and @gardner2021 suffer from similar bias to TWFE regressions with pixel unit fixed effects if the pixel is used as the unit of analysis. All methods yield a treatment effect greater than or equal to 0 in all post-treatment periods, reflecting the fact that pre-treatment period deforestation rates are unaccounted for by the estimators. This is particularly  clear in the @callaway2020 estimator in which pre-treatment periods are all precisely zero, indicating that the estimator could only compute treatment effects using pixels that survived until the end of the observation period. The right panel of Figure \@ref(fig:multiGT) shows that this bias is eliminated when one uses an aggregated unit of analysis with binary treatment (e.g., county). We do not include pixel-level TWFE regressions with spatially aggregated fixed effects, because most recently developed estimators do not allow for a comparable implementation. Therefore if the researcher wants to obtain a landscape-scale interpretation, they must use an aggregated grid cell or weight the regression by the unit area. 
+The left panel of Figure \@ref(fig:multiGT) shows that the estimators developed in @callaway2020, @gardner2021, and @boryusak2020 suffer from similar bias to TWFE regressions with pixel unit fixed effects if the pixel is used as the unit of analysis. All methods yield a treatment effect greater than or equal to 0 in all post-treatment periods, reflecting the fact that pre-treatment period deforestation rates are unaccounted for by the estimators. This is particularly  clear in the @callaway2020 estimator in which pre-treatment periods are all precisely zero, indicating that the estimator could only compute treatment effects using pixels that survived until the end of the observation period. The right panel of Figure \@ref(fig:multiGT) shows that this bias is eliminated when one uses an aggregated unit of analysis with binary treatment (e.g., county). We do not include pixel-level TWFE regressions with spatially aggregated fixed effects, because most recently developed estimators do not allow for a comparable implementation. Therefore if the researcher wants to obtain a landscape-scale interpretation, they must use an aggregated grid cell or weight the regression by the unit area. 
 
-```{r multiGT, fig.cap="New estimators, similar to TWFE regressions with pixel unit fixed effects, cannot identify ATT with pixel as unit of analysis", fig.pos='H', fig.show='hold'}
-knitr::include_graphics(c("figs/pixel_multiGT.png", "figs/county_multiGT.png"))
+```{r multiGT, results = FALSE, warning = FALSE, fig.cap="New estimators, similar to TWFE regressions with pixel unit fixed effects, cannot identify ATT with pixel as unit of analysis", fig.pos='H', fig.width = 6, fig.height = 5, fig.show='hold'}
+#knitr::include_graphics(c("figs/pixel_multiGT.png", "figs/county_multiGT.png"))
+
+county_es <- readRDS("results/county_es.rds")
+pixel_es <- readRDS("results/pixel_es.rds")%>%
+  filter(estimator != "Borusyak, Jaravel, Spiess (2021)")
+
+my_event_study_plot(county_es, seperate = FALSE)+
+  ggtitle("Estimates with aggregated unit of analysis")+
+  ylim(-0.045, 0.045)
+
+my_event_study_plot(pixel_es, seperate = FALSE)+
+  ggtitle("Estimates with pixel unit of analysis")+
+  ylim(-0.045, 0.045)
 ```
 
 ## Evidence of weighting concerns in the TWFE estimator
 
-We now examine the performance of the @callaway2020 and @gardner2021 estimators relative to TWFE regressions when treatment effects vary across time and across groups. We again work with an early, late and untreated group. The full parameterization and DGP can be found in Appendix \@ref(multiDGP-param) Figure \@ref(fig:observed-multiGT2) shows deforestation rates in each of the three groups through time.
+We now examine the performance of the alternative estimators relative to TWFE regressions when treatment effects vary across time and across groups. We again work with an early, late and untreated group. The full parameterization and DGP can be found in Appendix \@ref(multiDGP-param) Figure \@ref(fig:observed-multiGT2) shows deforestation rates in each of the three groups through time.
 
 ```{r observed-multiGT2, fig.cap="Observed deforestation in simulated example when treatment effects vary across groups and through time", fig.pos='H', fig.show='hold'}
 
@@ -1155,28 +1189,17 @@ knitr::include_graphics("figs/defor_multiGT2.png")
 
 ```
 
-Figure \@ref(fig:multiGT2) shows the event study estimates produced by each of the three estimators as well as the "truth" for both pixel and county-level analyses. Again, none of the estimators yield the $ATT$ with pixel-level analyses. In the county-level estimates, we see that the @callaway2020 and @gardner2021 estimators slightly outperform the TWFE estimator. This is evidence of the weighting that has become a concern with TWFE estimators in these type of settings. While each estimator produces a weighted average of group-time treatment effects, the weights do not neccessarily correspond to each groups representation in the sample for a given event-time treatment effect as do the weights in the alternative estimators.
+Figure \@ref(fig:multiGT2) shows the event study estimates produced by each of the three estimators as well as the "truth" for both pixel and county-level analyses. Again, none of the estimators yield the $ATT$ with pixel-level analyses. In the county-level estimates, we see that the newer estimators slightly outperform the TWFE estimator. This is evidence of the weighting that has become a concern with TWFE estimators in these type of settings. While each estimator produces a weighted average of group-time treatment effects, the weights do not neccessarily correspond to each groups representation in the sample for a given event-time treatment effect as do the weights in the alternative estimators.
 
 ```{r multiGT2, fig.cap="TWFE regressions suffer from weighting concerns when treatment effects vary across groups and through time", fig.pos='H', fig.show='hold'}
+
 knitr::include_graphics(c("figs/pixel_multiGT2.png","figs/county_multiGT2.png"))
+
 ```
 
-<!-- # Planned extensions -->
-
-<!-- We plan to undertake the following extensions in future iterations of this paper: -->
-
-<!-- \begin{itemize} -->
-<!-- \item incorporate binary outcome variable equal to one if any deforestation occurs in administrative unit during time $t$. This outcome has been used with increasing frequency, and the coefficient has been interpreted as a deforestation rate. This measure may perform better when heterogeneity is present.  -->
-<!-- \end{itemize} -->
 
 
 # Conclusions
-
-<!-- a.     Failure of TWFE -->
-<!-- b.     Point-level with aggregated FE and aggregated outcomes both work -->
-<!-- c.     Non-random selection -->
-<!-- d.     Benefits from connecting empirical model structure to the level of decision-making -->
-
 
 Despite past guidance to the contrary, models that incorporate fixed effects for individual points are unable to yield unbiased estimates of a policy's $ATT$ when applied to irreversible, binary observations of deforestation. This is due to the fact that when pixels are dropped after they first become deforested, TWFE models cannot identify off of points deforested in the pre-treatment periods. This novel finding casts doubt on the reliability of a number of estimates in the avoided deforestation literature. 
 
@@ -1321,68 +1344,6 @@ kable(twfe_comp, format = "latex", row.names = FALSE,  booktabs = T,
   row_spec(4, hline_after = TRUE)
 
 ```
-
-## Analytical expression of non-random sample selection bias in two-period two-group setting {#selection-proof}
-
-In the two-group, two-period case, the bias can be expressed by the difference between the $DID$ estimand and the $ATT$: 
-\begin{align*}
-\beta_{DID} -ATT = &E[y^o_{ivt} |  t\geq t_0, D_i=1] - E[y^o_{ivt} |  t<t_0, D_i=1] - (E[y^o_{ivt} |  t\geq t_0, D_i=0] - E[y^o_{ivt} |  t<t_0, D_i=0] )\\
-&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=1])
-\end{align*}
-
-In the first period, the expectation of $y^o_{ivt}$ is the same as that of $y_{ivt}$, giving: 
-\begin{align*}
-\beta_{DID} -ATT=& E[y^o_{ivt} |  t\geq t_0, D_i=1] - E[y_{ivt} |  t<t_0, D_i=1] - (E[y^o_{ivt} |  t\geq t_0, D_i=0] - E[y_{ivt} |  t<t_0, D_i=0] )\\
-&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=1])
-\end{align*}
-
-Applying potential outcomes:
-\begin{align*}
-\beta_{DID} -ATT =& E[y^o_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t<t_0, D_i=1] - (E[y^o_{ivt}(0) |  t\geq t_0, D_i=0] - E[y_{ivt}(0) |  t<t_0, D_i=0] )\\
-&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=1])
-\end{align*}
-
-
-Applying our common trends assumption:
-\begin{align*}
-\beta_{DID} -ATT =& E[y^o_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t<t_0, D_i=0] - (E[y^o_{ivt}(0) |  t\geq t_0, D_i=0] - E[y_{ivt}(0) |  t<t_0, D_i=0] )\\
-&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=0])
-\end{align*}
-
-Simplifying: 
-\begin{align*}
-\beta_{DID} -ATT =& E[y^o_{ivt}(1) |  t\geq t_0, D_i=1] - E[y^o_{ivt}(0) |  t\geq t_0, D_i=0]  \\
-&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=0])
-\end{align*}
-
-\textbf{Extending to our simulations:}
-
-In the context of our monte carlo simulations, this can be extended:
-
-\begin{align*}
-\beta_{DID} -ATT =& P[y^o_{ivt}(1)=1 |  t\geq t_0, D_i=1] - P[y^o_{ivt}(0)=1 |  t\geq t_0, D_i=0]  \\
-&-(P[y_{ivt}(1)=1 |  t\geq t_0, D_i=1] - P[y_{ivt}(0)=1 |  t\geq t_0, D_i=0])
-\end{align*}
-
-\begin{align*}
-\beta_{DID} -ATT =& P[(y_{ivt}(1)=1 |  t\geq t_0, D_i=1) | (y_{ivt}(0)=0 |  t< t_0, D_i=1)]\\
-&- P[(y_{ivt}(0)=1 |  t\geq t_0, D_i=0) | (y_{ivt}(0)=0 |  t< t_0, D_i=0)]  \\
-&-(P[y_{ivt}(1)=1 |  t\geq t_0, D_i=1] - P[y_{ivt}(0)=1 |  t\geq t_0, D_i=0])
-\end{align*}
-
-\begin{align*}
-\beta_{DID} -ATT =& P[(y^*_{ivt}(1)>0 |  t\geq t_0, D_i=1) | (y^*_{ivt}(0) \leq 0 |  t< t_0, D_i=1)]\\
-&- P[(y^*_{ivt}(0)>0 |  t\geq t_0, D_i=0) | (y^*_{ivt}(0) \leq 0 |  t< t_0, D_i=0)]  \\
-&-(P[y^*_{ivt}(1)>0 |  t\geq t_0, D_i=1] - P[y^*_{ivt}(0)>0 |  t\geq t_0, D_i=0])
-\end{align*}
-
-Here, we let $t \in \{ 1,2 \}$ denote the first and second periods, respectively:
-
-\begin{align*}
-\beta_{DID} -ATT =& P[(\beta_0+\beta_1+\beta_{2,1}+\beta_3+\alpha_i + u_{i2} + \rho_{v}>0 |  t\geq t_0, D_i=1) | (\beta_0+\beta_1 +\alpha_i + u_{i1} + \rho_{v}\leq 0 |  t< t_0, D_i=1)]\\
-&- P[(\beta_0+\beta_{2,0}+\alpha_i + u_{i2} + \rho_{v}>0 |  t\geq t_0, D_i=0) | (\beta_0+\alpha_i + u_{i1} + \rho_{v} \leq 0 |  t< t_0, D_i=0)]  \\
-&-(P[\beta_0+\beta_1+\beta_{2,1}+\beta_3+\alpha_i + u_{i2} + \rho_{v}>0|  t\geq t_0, D_i=1] - P[\beta_0+\beta_{2,0}+\alpha_i + u_{i2} + \rho_{v}>0|  t\geq t_0, D_i=0])
-\end{align*}
 
 
 ## Keeping pixels in periods after they are first deforested is not a viable solution  {#keep-pixels}
@@ -1562,6 +1523,70 @@ and
 &\mu = G^{-1}(ATT + F(\beta_0 + \beta_1 +\beta_{2,1}) )- (\beta_0 + \beta_1 +\beta_{2,1})\\
 \end{align*}
 
+## Analytical expression of non-random sample selection bias in two-period two-group setting {#selection-proof}
+
+In the two-group, two-period case, the bias can be expressed by the difference between the $DID$ estimand and the $ATT$: 
+\begin{align*}
+\beta_{DID} -ATT = &E[y^o_{ivt} |  t\geq t_0, D_i=1] - E[y^o_{ivt} |  t<t_0, D_i=1] - (E[y^o_{ivt} |  t\geq t_0, D_i=0] - E[y^o_{ivt} |  t<t_0, D_i=0] )\\
+&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=1])
+\end{align*}
+
+In the first period, the expectation of $y^o_{ivt}$ is the same as that of $y_{ivt}$, giving: 
+\begin{align*}
+\beta_{DID} -ATT=& E[y^o_{ivt} |  t\geq t_0, D_i=1] - E[y_{ivt} |  t<t_0, D_i=1] - (E[y^o_{ivt} |  t\geq t_0, D_i=0] - E[y_{ivt} |  t<t_0, D_i=0] )\\
+&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=1])
+\end{align*}
+
+Applying potential outcomes:
+\begin{align*}
+\beta_{DID} -ATT =& E[y^o_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t<t_0, D_i=1] - (E[y^o_{ivt}(0) |  t\geq t_0, D_i=0] - E[y_{ivt}(0) |  t<t_0, D_i=0] )\\
+&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=1])
+\end{align*}
+
+
+Applying our common trends assumption:
+\begin{align*}
+\beta_{DID} -ATT =& E[y^o_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t<t_0, D_i=0] - (E[y^o_{ivt}(0) |  t\geq t_0, D_i=0] - E[y_{ivt}(0) |  t<t_0, D_i=0] )\\
+&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=0])
+\end{align*}
+3
+Simplifying: 
+\begin{align*}
+\beta_{DID} -ATT =& E[y^o_{ivt}(1) |  t\geq t_0, D_i=1] - E[y^o_{ivt}(0) |  t\geq t_0, D_i=0]  \\
+&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=0])
+\end{align*}
+
+\textbf{Extending to our simulations:}
+
+In the context of our monte carlo simulations, this can be extended:
+
+\begin{align*}
+\beta_{DID} -ATT =& P[y^o_{ivt}(1)=1 |  t\geq t_0, D_i=1] - P[y^o_{ivt}(0)=1 |  t\geq t_0, D_i=0]  \\
+&-(P[y_{ivt}(1)=1 |  t\geq t_0, D_i=1] - P[y_{ivt}(0)=1 |  t\geq t_0, D_i=0])
+\end{align*}
+
+\begin{align*}
+\beta_{DID} -ATT =& P[(y_{ivt}(1)=1 |  t\geq t_0, D_i=1) | (y_{ivt}(0)=0 |  t< t_0, D_i=1)]\\
+&- P[(y_{ivt}(0)=1 |  t\geq t_0, D_i=0) | (y_{ivt}(0)=0 |  t< t_0, D_i=0)]  \\
+&-(P[y_{ivt}(1)=1 |  t\geq t_0, D_i=1] - P[y_{ivt}(0)=1 |  t\geq t_0, D_i=0])
+\end{align*}
+
+\begin{align*}
+\beta_{DID} -ATT =& P[(y^*_{ivt}(1)>0 |  t\geq t_0, D_i=1) | (y^*_{ivt}(0) \leq 0 |  t< t_0, D_i=1)]\\
+&- P[(y^*_{ivt}(0)>0 |  t\geq t_0, D_i=0) | (y^*_{ivt}(0) \leq 0 |  t< t_0, D_i=0)]  \\
+&-(P[y^*_{ivt}(1)>0 |  t\geq t_0, D_i=1] - P[y^*_{ivt}(0)>0 |  t\geq t_0, D_i=0])
+\end{align*}
+
+Here, we let $t \in \{ 1,2 \}$ denote the first and second periods, respectively:
+
+\begin{align*}
+\beta_{DID} -ATT =& P[(\beta_0+\beta_1+\beta_{2,1}+\beta_3+\alpha_i + u_{i2} + \rho_{v}>0 |  t\geq t_0, D_i=1) | (\beta_0+\beta_1 +\alpha_i + u_{i1} + \rho_{v}\leq 0 |  t< t_0, D_i=1)]\\
+&- P[(\beta_0+\beta_{2,0}+\alpha_i + u_{i2} + \rho_{v}>0 |  t\geq t_0, D_i=0) | (\beta_0+\alpha_i + u_{i1} + \rho_{v} \leq 0 |  t< t_0, D_i=0)]  \\
+&-(P[\beta_0+\beta_1+\beta_{2,1}+\beta_3+\alpha_i + u_{i2} + \rho_{v}>0|  t\geq t_0, D_i=1] - P[\beta_0+\beta_{2,0}+\alpha_i + u_{i2} + \rho_{v}>0|  t\geq t_0, D_i=0])
+\end{align*}
+
+
+
 ## Full summary figure from all specifications and values of $\sigma_p$ {#full-summary}
 
 Using Figure \@ref(fig:summary) to compare across all specifications and varying $\sigma_p$, we see that RMSE tends to increase across all specifications as $\sigma_p$ increases. The pixel-level TWFE specifications with spatially aggregated unit fixed effects tend to have the lowest RMSE whenever $\sigma_p$ is nonzero. In contrast, the specification with the property as the unit of analysis and pixel-level DID tend to have the highest RMSE. 
@@ -1575,10 +1600,10 @@ summary_full <- readRDS("results/summary_full.rds")
 full_summary <- summary_full %>%
   mutate_at(vars(bias, cover), as.numeric
   )%>%
-  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county, cox, X.HRRT.estimator), ~ as.logical(as.integer(.))
+  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county, cox, HE.estimator), ~ as.logical(as.integer(.))
   )%>%
-  filter(is.na(notes) & pixel.fe == FALSE & (treatment.fe == 0 | se_pixel == TRUE))%>%
-  group_by(std_a, std_v, std_p, pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights,  cox, X.HRRT.estimator, se_pixel, se_grid, se_property, se_county)%>%
+  filter(is.na(notes) & pixel.fe == FALSE & (treatment.fe == 0 | se_pixel == TRUE) & (grid.fe == 0 | gridsize == 12))%>%
+  group_by(std_a, std_v, std_p, pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights,  cox, HE.estimator, se_pixel, se_grid, se_property, se_county)%>%
   summarise(RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
             q95 = quantile(bias, probs = .95),
@@ -1638,9 +1663,9 @@ ylim <- c(topline,0.0175)
 
 schart(test,labels, ylim = ylim, index.ci=index.ci, ylab="Bias", #highlight=highlight_rows,
        heights = c(5, 5), cex = c(1.75, 1.75),
-       col.est=c("black","#00A1D5"),
-       col.dot=c("black","lightgrey","red","#00A1D5"),
-       bg.dot=c("black","lightgrey","white","#00A1D5"),
+       col.est = c(palette$dark, palette$red),
+       # col.dot=c("black","lightgrey","red","#00A1D5"),
+       # bg.dot=c("black","lightgrey","white","#00A1D5"),
        #,band.ref=c(-.05, .04)
        axes = FALSE, n=11
        #, col.band.ref="#c7e9f9"
@@ -1676,7 +1701,6 @@ text(x=38
 
 ```
 
-
 ## Property-level models still outperform in alternative parameterizations {#property-alt}
 
 Figure \@ref(fig:alt-param) shows model performance for two alternate landscape parameterizations in the presence of property unobservables ($\sigma_p$), ordered from least to most biased. The top panel considers our initial parameterization, but switches the pre-treatment deforestation rates for the two groups. This leaves a pre-treatment deforestation rate of 5\% in the control areaand 2\% in the intervention area. The bottom panel considers the initial parameterization, but instead makes the $ATT$ positive (i.e. $ATT = 0.01$ rather than $-0.01$). 
@@ -1690,7 +1714,7 @@ df_summary <- readRDS("results/summary_long_alt.rds") %>%
   )%>%
   mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
   )%>%
-  filter(is.na(notes) & pixel.fe == FALSE)%>%
+  filter(is.na(notes) & pixel.fe == FALSE & (treatment.fe ==0 | se_pixel == 1))%>%
   group_by(pixel, grid, property, county, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county)%>%
   summarize(RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
@@ -1711,9 +1735,8 @@ labels <- list(#"Model:" = " ",
   "Weights:" = c("unit area"),
   "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
 
-f <- function(x) gsub("^(\\s*[+|-]?)0\\.", "\\1.", as.character(x))
-coverage <- f(round(df_summary$cover, digits=3)*100)
-RMSE <- f(round(df_summary$RMSE, digits=4))
+coverage <- round(df_summary$cover, digits=3)
+RMSE <- round(df_summary$RMSE, digits=4)
 test <- as.data.frame(subset(df_summary, select=-c(cover, RMSE)))
 highlight_rows <- which(test[ , "property.fe"] == TRUE )
 
@@ -1721,20 +1744,18 @@ highlight_rows <- which(test[ , "property.fe"] == TRUE )
 index.ci <- match(c("q05","q95"), names(test))
 
 # One could also add information about model fit to this chart
-ylim <- c(-0.04,0.03)
-
-topline = -0.02
+topline = -0.025
 
 midline = topline-0.02-.0025
 
-ylim <- c(midline-.02,0.04)
+ylim <- c(midline-.02,0.055)
 #bottomline = (min(ylim)+topline)/2
 #Create the plot
 
 schart(test,labels = labels, ylim = ylim, index.ci=index.ci, 
-       col.est=c("black","#00A1D5"),
-       col.dot=c("black","lightgrey","red","#00A1D5"),
-       bg.dot=c("black","lightgrey","white","#00A1D5")
+       col.est = c(palette$dark, palette$red)
+       # col.dot=c("black","lightgrey","red","#00A1D5"),
+       # bg.dot=c("black","lightgrey","white","#00A1D5")
        , ylab="Bias", highlight=highlight_rows
        ,band.ref=c(-.05, .04)
        , axes = FALSE
@@ -1753,10 +1774,10 @@ lapply(1:length(RMSE), function(i) {
 # mtext('coverage\nprobability', side=2, las=1, at = loc_1, adj = 1, font=2, line=1)
 # mtext('RMSE', side=2, las=1, at = loc_2, font=2, line=1)
 text(x=mean(1:nrow(test))
-     , y=midline-.005, "coverage probability (%)", col="black", font=2)
+     , y=midline-.005, "coverage probability", col="black", font=2)
 text(x=mean(1:nrow(test))
      , y=topline-.005, "RMSE", col="black", font=2)
-legend(x=6.5, y=0.05, col = "#00A1D5", legend = "specifications\nincorporating\nproperty", seg.len=0.65, inset = 0.005,  box.lty=0, cex=0.8, lty = 1, lwd = 4, bg="transparent")
+legend(x=3.5, y=0.055, col = palette$red, legend = "specifications incorporating property", seg.len=0.65, inset = 0.005,  box.lty=0, cex=0.8, lty = 1, lwd = 4, bg="transparent")
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ######### creating chart for other alternate parameterization
@@ -1766,7 +1787,7 @@ df_summary <- readRDS("results/summary_long_alt2.rds") %>%
   )%>%
   mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
   )%>%
-  filter(is.na(notes) & pixel.fe == FALSE)%>%
+  filter(is.na(notes) & pixel.fe == FALSE & (treatment.fe ==0 | se_pixel == 1))%>%
   group_by(pixel, grid, property, county, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county)%>%
   summarize(RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
@@ -1787,9 +1808,8 @@ labels <- list(#"Model:" = " ",
   "Weights:" = c("unit area"),
   "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
 
-f <- function(x) gsub("^(\\s*[+|-]?)0\\.", "\\1.", as.character(x))
-coverage <- f(round(df_summary$cover, digits=3)*100)
-RMSE <- f(round(df_summary$RMSE, digits=4))
+coverage <- round(df_summary$cover, digits=3)
+RMSE <- round(df_summary$RMSE, digits=4)
 test <- as.data.frame(subset(df_summary, select=-c(cover, RMSE)))
 highlight_rows <- which(test[ , "property.fe"] == TRUE )
 
@@ -1797,20 +1817,18 @@ highlight_rows <- which(test[ , "property.fe"] == TRUE )
 index.ci <- match(c("q05","q95"), names(test))
 
 # One could also add information about model fit to this chart
-ylim <- c(-0.04,0.03)
-
-topline = -0.02
+topline = -0.067
 
 midline = topline-0.02-.0025
 
-ylim <- c(midline-.02,0.04)
+ylim <- c(midline-.02,0.025)
 #bottomline = (min(ylim)+topline)/2
 #Create the plot
 
 schart(test,labels = labels, ylim = ylim, index.ci=index.ci, 
-       col.est=c("black","#00A1D5"),
-       col.dot=c("black","lightgrey","red","#00A1D5"),
-       bg.dot=c("black","lightgrey","white","#00A1D5")
+       col.est = c(palette$dark, palette$red)
+       # col.dot=c("black","lightgrey","red","#00A1D5"),
+       # bg.dot=c("black","lightgrey","white","#00A1D5")
        , ylab="Bias", highlight=highlight_rows
        ,band.ref=c(-.05, .04)
        , axes = FALSE
@@ -1829,10 +1847,10 @@ lapply(1:length(RMSE), function(i) {
 # mtext('coverage\nprobability', side=2, las=1, at = loc_1, adj = 1, font=2, line=1)
 # mtext('RMSE', side=2, las=1, at = loc_2, font=2, line=1)
 text(x=mean(1:nrow(test))
-     , y=midline-.005, "coverage probability (%)", col="black", font=2)
+     , y=midline-.005, "coverage probability", col="black", font=2)
 text(x=mean(1:nrow(test))
      , y=topline-.005, "RMSE", col="black", font=2)
-legend(x=6.5, y=0.05, col = "#00A1D5", legend = "specifications\nincorporating\nproperty", seg.len=0.65, inset = 0.005,  box.lty=0, cex=0.8, lty = 1, lwd = 4, bg="transparent")
+legend(x=3.5, y=0.025, col = palette$red, legend = "specifications incorporating property", seg.len=0.65, inset = 0.005,  box.lty=0, cex=0.8, lty = 1, lwd = 4, bg="transparent")
 
 
 ```
@@ -1991,20 +2009,23 @@ Lastly, we consider a formula derived from the Compound Interest Law that has al
 knitr::include_graphics("figs/outcome.png")
 ```
 
-Figure \@ref(fig:deforrates) demonstrates that outcome 1 results in the least bias in our guiding example. The other outcomes result in relatively greater bias, although this difference seems minimal in our setting. RMSE is also comparable across the three outcomes. 
-
-We express concern surrounding the use of the initial observed baseline forest cover in the calculation of deforestation rates, as in formula (2). As the rate is calculated in periods further away from the baseline, the deforestation rate will be increasingly high, even if the rate has not changed over time. We demonstrate this issue in Figure \@ref(fig:formula-length) by examining how bias behaves as a function of the length of study period. Formula (2) is indeed the least robust to changes in the length of study period. We set $trend =0$ and $ATT=0$ to show a basic case where the intervention had no effect and deforestation rates in the treated and untreated group are stable though time.
+Figure \@ref(fig:deforrates) demonstrates that outcome 1 results in the least bias in our guiding example. The other outcomes result in relatively greater bias, although this difference seems minimal in our setting. RMSE is also comparable across the three outcomes. We express concern surrounding the use of the initial observed baseline forest cover in the calculation of deforestation rates, as in formula (2). As the rate is calculated in periods further away from the baseline, the deforestation rate will be increasingly high, even if the rate has not changed over time. 
 
 Regardless of authors' choice of formula, we advise that this formula be explicitly stated in the paper. This will help to avoid confusion as to which formula was used and help researchers understand which methods are the standard within the literature. Moving forward in our paper, all specifications using aggregated data use outcome 1. In our guiding example, it resulted in the least bias and lowest RMSE, and it is currently the most common deforestation rate calculation used in the literature. 
 
-Here, we show that outcome formula 2) is problematic in our context. We examine the performance of the three outcomes in an example where $ATT=0$ and $trend=0$. This simple exercise allows us to gauge how the outcomes behave through time. As we see below, outcome 2) is the least robust to changes in the study period length, while outcomes 1) and 2) behave nearly identically. 
 
 
-```{r formula-length, echo=FALSE, out.width="75%", fig.cap="Bias as a function of study period length with ATT =0 and no time trend", fig.pos='H', fig.align='center'}
 
-knitr::include_graphics("figs/outcome_byyr1.png")
 
-```
+
+<!-- Here, we show that outcome formula 2) is problematic in our context. We examine the performance of the three outcomes in an example where $ATT=0$ and $trend=0$. This simple exercise allows us to gauge how the outcomes behave through time. As we see below, outcome 2) is the least robust to changes in the study period length, while outcomes 1) and 2) behave nearly identically.  -->
+
+
+<!-- ```{r formula-length, echo=FALSE, out.width="75%", fig.cap="Bias as a function of study period length with ATT =0 and no time trend", fig.pos='H', fig.align='center'} -->
+
+<!-- knitr::include_graphics("figs/outcome_byyr1.png") -->
+
+<!-- ``` -->
 
 <!-- ## Unit of Analysis -->
 
