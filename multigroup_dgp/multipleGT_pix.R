@@ -75,6 +75,7 @@ multipleGT_pix <- function(n, nobs, base_a, base_b, base_c, trend1, trend2, tren
       year = add_level(N = 5, nest = FALSE),
       obs = cross_levels(
         by = join(pixels, year),
+        year = as.numeric(year),
         post = (year >= G)*1,
         GU = (G==0)*1,
         G3 = (G==3)*1,
