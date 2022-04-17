@@ -143,7 +143,8 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
     #gridlevel_df <- subset(gridlevel_df, select = -c(geometry))
     gridlevel_df <- 
       gridlevel_df %>% 
-      filter_all(all_vars(!is.infinite(.)))
+      filter_all(all_vars(!is.infinite(.)))%>%
+      drop_na(deforrate)
     
     # aggregate up to property in each year 
     proplevel_df <- as.data.frame(panels) %>%
@@ -168,7 +169,11 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
     
     proplevel_df <- 
       proplevel_df %>% 
-      filter_all(all_vars(!is.infinite(.)))
+      filter_all(all_vars(!is.infinite(.)))%>%
+      na.omit(deforrate)%>%
+      drop_na(deforrate)
+    
+    
     
     # aggregate up to county in each year 
     countylevel_df <- as.data.frame(panels) %>%
@@ -192,8 +197,8 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
     
     countylevel_df <- 
       countylevel_df %>% 
-      filter_all(all_vars(!is.infinite(.)))
-    
+      filter_all(all_vars(!is.infinite(.)))%>%
+      drop_na(deforrate)
     
     # aggregated units of analysis
     
