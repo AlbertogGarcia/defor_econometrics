@@ -1087,12 +1087,13 @@ summary <- summary_pweights %>%
   mutate(bias = estimate - given_ATT,
          ATT_diff = p_ATT - given_ATT)%>%
   group_by(pixel, property, county, property.fe, county.fe, weights, se_property, se_county)%>%
-  summarise(RMSE = rmse(estimate, ATT),
+  summarise(RMSE = rmse(estimate, given_ATT),
             q05 = quantile(bias, probs = .05),
             q95 = quantile(bias, probs = .95),
             Bias = mean(bias),
             cover = mean(cover),
             ATT = mean(given_ATT),
+            ls_ATT = mean(ls_ATT),
             ATT_diff = mean(ATT_diff),
             p_ATT = mean(p_ATT))%>%
   select(Bias, everything())
@@ -1122,7 +1123,7 @@ labels <- list("Unit of analysis:" = c("pixel", "property", "county"),
 index.ci <- match(c("q05","q95"), names(test))
 
 # limits
-ylim <- c(-0.015, 0.005)
+ylim <- c(-0.02, 0.005)
 #Create the plot
 
 schart(test,labels, ylim = ylim, index.ci=index.ci, col.est = c(palette$dark, palette$red)
@@ -1183,9 +1184,21 @@ my_event_study_plot(pixel_es, seperate = FALSE)+
 
 We now examine the performance of the alternative estimators relative to TWFE regressions when treatment effects vary across time and across groups. We again work with an early, late and untreated group. The full parameterization and DGP can be found in Appendix \@ref(multiDGP-param) Figure \@ref(fig:observed-multiGT2) shows deforestation rates in each of the three groups through time.
 
-```{r observed-multiGT2, fig.cap="Observed deforestation in simulated example when treatment effects vary across groups and through time", fig.pos='H', fig.show='hold'}
+```{r observed-multiGT2, out.width="100%", fig.cap="Observed deforestation in simulated example when treatment effects vary across groups and through time", fig.pos='H', fig.show='hold'}
 
-knitr::include_graphics("figs/defor_multiGT2.png")
+#knitr::include_graphics("figs/defor_multiGT2.png")
+het_landscape <- readRDS("results/het_landscape.rds")
+
+ggplot(data=het_landscape, aes(x=year, y=defor, colour=Group))+
+  geom_line(size=2)+
+  ylab("deforestation rate")+
+  scale_y_continuous(labels = scales::percent)+
+  ggtitle("Annual deforestation")+
+  theme_minimal(base_size = 22)+
+  theme(#legend.key = element_rect(color = NA, fill = NA),
+        legend.key.size = unit(1, "cm")) +
+  theme(legend.title.align = 0.5)
+  
 
 ```
 
@@ -2005,17 +2018,29 @@ Lastly, we consider a formula derived from the Compound Interest Law that has al
 \text{Outcome 3)} &= ln(F_{i,t-1}/F_{it})
 \end{align}
 
-```{r deforrates, echo=FALSE,out.width="75%", fig.cap="Distribution of estimates produced by different outcome variable formulae", fig.pos='H', fig.align='center'}
-knitr::include_graphics("figs/outcome.png")
+```{r deforrates, message=FALSE,out.width="75%", fig.cap="Distribution of estimates produced by different outcome variable formulae", fig.pos='H', fig.align='center'}
+#knitr::include_graphics("figs/outcome.png")
+outcome <- readRDS("results/outcomes.rds")
+ suppressWarnings(cbias <- melt(outcome, value.name = "bias"))
+  
+ggplot(data = cbias, aes(x = bias, fill=variable)) +
+    geom_density(alpha = .8) +
+    guides(fill=guide_legend(title=NULL))+
+    geom_vline(xintercept = 0, linetype = "dashed")+
+    theme(plot.caption = element_text(hjust = 0.5))+
+    labs(x= "Bias", caption = paste("Outcome 1:", round(mean(outcome$outcome1), digits = 4),"RMSE:",round(rmse(0, outcome$outcome1), digits = 5), "\n", 
+                                    "Outcome 2:", round(mean(outcome$outcome2), digits = 4),"RMSE:",round(rmse(0, outcome$outcome2), digits = 5), "\n", 
+                                    "Outcome 3:", round(mean(outcome$outcome3), digits = 4),"RMSE:",round(rmse(0, outcome$outcome3), digits = 5)
+                                    )
+    )+
+    theme_minimal(base_size = 22)+
+  scale_fill_manual(labels=c("Outcome 1", "Outcome 2", "Outcome 3"), values = c(palette$red, palette$blue, palette$green)
+                    )
 ```
 
-Figure \@ref(fig:deforrates) demonstrates that outcome 1 results in the least bias in our guiding example. The other outcomes result in relatively greater bias, although this difference seems minimal in our setting. RMSE is also comparable across the three outcomes. We express concern surrounding the use of the initial observed baseline forest cover in the calculation of deforestation rates, as in formula (2). As the rate is calculated in periods further away from the baseline, the deforestation rate will be increasingly high, even if the rate has not changed over time. 
+Figure \@ref(fig:deforrates) demonstrates that outcome 1 results in the least bias in our guiding example. The other outcomes result in relatively greater bias, although this difference seems minimal in our setting. RMSE is also comparable across the three outcomes. We express concern surrounding the use of the initial observed baseline forest cover in the calculation of deforestation rates, as in formula (2). As the rate is calculated in periods further away from the baseline, the deforestation rate will be increasingly high, even if the rate has not changed over time. This concern is echoed by the fact that this outcome results in the most biased estimates of the $ATT$. 
 
 Regardless of authors' choice of formula, we advise that this formula be explicitly stated in the paper. This will help to avoid confusion as to which formula was used and help researchers understand which methods are the standard within the literature. Moving forward in our paper, all specifications using aggregated data use outcome 1. In our guiding example, it resulted in the least bias and lowest RMSE, and it is currently the most common deforestation rate calculation used in the literature. 
-
-
-
-
 
 
 <!-- Here, we show that outcome formula 2) is problematic in our context. We examine the performance of the three outcomes in an example where $ATT=0$ and $trend=0$. This simple exercise allows us to gauge how the outcomes behave through time. As we see below, outcome 2) is the least robust to changes in the study period length, while outcomes 1) and 2) behave nearly identically.  -->
