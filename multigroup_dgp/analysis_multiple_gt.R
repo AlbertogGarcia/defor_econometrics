@@ -2,15 +2,18 @@ source(here::here('multigroup_dgp', 'multipleGT.R'))
 source(here::here('multigroup_dgp', 'multipleGT_agg.R'))
 source(here::here('multigroup_dgp', 'multipleGT_pix.R'))
 source(here::here('multigroup_dgp', 'my_event_study_plot.R'))
-library(staggered)
+
 base_a = .07
 base_b = .05
 base_c = .02
 trend1 = .00
 trend2 = .00
 trend3 = .00
-ATT = -.02
-dyn_ATT = 0
+
+dyn_ATT_a = 0
+dyn_ATT_b = 0
+ATT_a = -0.02
+ATT_b =  -0.02
 
 std_a = 0.0
 std_v = 0.5
@@ -18,41 +21,42 @@ std_p = 0.0
 
 cpoints = 40
 cellsize=10 
-ppoints=75
+ppoints=100
 
-nobs = 120^2
-n=100
+nobs = 100^2
+n=200
 
 set.seed(0930)
-multiGT <- multipleGT(n, nobs, base_a, base_b, base_c, trend1, trend2, trend3, ATT, dyn_ATT = 0, std_a = 0.0, std_v = 0.25, std_p = 0.0, cellsize=10, ppoints=50, cpoints)
-  
-library(rio)
-export(multiGT$es_long, "es_long_main.rds")
 
-es <- multiGT$es_long %>%
+multiGT_agg <- multipleGT_agg(n, nobs, base_a, base_b, base_c, trend1, trend2, trend3, ATT_a, ATT_b, dyn_ATT_a, dyn_ATT_b, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+
+export(multiGT_agg$es_long, "results_multi/county_long.rds")
+
+county_es <- multiGT_agg$es_long %>%
   group_by(term, estimator, uoa)%>%
   mutate(estimate = as.numeric(estimate))%>%
   summarise(q05 = quantile(estimate, probs = 0.05),
             q95 = quantile(estimate, probs = 0.95),
-            estimate = mean(estimate))
-county_es <- subset(es, uoa=="county"|estimator=="Truth")%>%
-  filter(estimator!="Sun and Abraham (2020)")%>%
-  mutate_at(vars(term, q05,q95, estimate), as.numeric)
-pixel_es <- subset(es, uoa=="pixel"|estimator=="Truth")%>%
-  filter(estimator!="Sun and Abraham (2020)")%>%
+            estimate = mean(estimate))%>%
   mutate_at(vars(term, q05,q95, estimate), as.numeric)
 
+export(county_es, "multigroup_dgp/results_multi/county_es.rds")
 
-my_event_study_plot(pixel_es, seperate = FALSE)+
-  ggtitle("estimates with pixel unit of analysis")+
-  geom_segment(aes(x = -2.5, y = 0, xend = -0.5, yend = 0), color = "limegreen")+
-  geom_segment(aes(x = -0.5, y = -0.02, xend = 2.5, yend = -0.02), color = "limegreen")+
-  ylim(-0.04, 0.05)
-my_event_study_plot(county_es, seperate = FALSE)+
-  ggtitle("estimates with aggregated unit of analysis (county)")+
-  geom_segment(aes(x = -2.5, y = 0, xend = -0.5, yend = 0), color = "limegreen")+
-  geom_segment(aes(x = -0.5, y = -0.02, xend = 2.5, yend = -0.02), color = "limegreen")+
-  ylim(-0.04, 0.05)
+
+n=10
+multiGT_pix <- multipleGT_pix(n, nobs, base_a, base_b, base_c, trend1, trend2, trend3, ATT_a, ATT_b, dyn_ATT_a, dyn_ATT_b, std_a, std_v, std_p, cellsize=10, ppoints=50, cpoints)
+
+export(multiGT_pix$es_long, "multigroup_dgp/results_multi/pixel_long.rds")
+
+pixel_es <- multiGT_pix$es_long %>%
+  group_by(term, estimator, uoa)%>%
+  mutate(estimate = as.numeric(estimate))%>%
+  summarise(q05 = quantile(estimate, probs = 0.05, na.rm = T),
+            q95 = quantile(estimate, probs = 0.95, na.rm = T),
+            estimate = mean(estimate, na.rm = T))%>%
+  mutate_at(vars(term, q05,q95, estimate), as.numeric)
+
+export(pixel_es, "multigroup_dgp/results_multi/pixel_es.rds")
 
 
 plot_df <- panels %>%
@@ -77,8 +81,14 @@ dyn_ATT_a = 0.01
 dyn_ATT_b =  -0.02
 ATT_a = -0.03
 ATT_b =  -0.02
+
+n= 200
+
 set.seed(0930)
+
 multiGT_agg <- multipleGT_agg(n, nobs, base_a, base_b, base_c, trend1, trend2, trend3, ATT_a, ATT_b, dyn_ATT_a, dyn_ATT_b, std_a, std_v, std_p, cellsize=10, ppoints=50, cpoints)
+
+export(multiGT_pix$es_long, "results_multi/county_long_hetTE.rds")
 
 county_es <- multiGT_agg$es_long %>%
   group_by(term, estimator, uoa)%>%
@@ -86,10 +96,10 @@ county_es <- multiGT_agg$es_long %>%
   summarise(q05 = quantile(estimate, probs = 0.05),
             q95 = quantile(estimate, probs = 0.95),
             estimate = mean(estimate))%>%
-  filter(estimator!="Roth and Sant'Anna (2021)")%>%
   mutate_at(vars(term, q05,q95, estimate), as.numeric)
 
-export(county_es, "results/county_heterogTE.rds")
+export(county_es, "multigroup_dgp/results_multi/county_es_hetTE.rds")
+
 
 my_event_study_plot(county_es, seperate = FALSE)+
   ggtitle("estimates with aggregated unit of analysis (county)")+
@@ -97,7 +107,10 @@ my_event_study_plot(county_es, seperate = FALSE)+
   #geom_segment(aes(x = -0.5, y = -0.02, xend = 2.5, yend = -0.02), color = "limegreen")
 
 
+n = 10
 multiGT_pix <- multipleGT_pix(n, nobs, base_a, base_b, base_c, trend1, trend2, trend3, ATT_a, ATT_b, dyn_ATT_a, dyn_ATT_b, std_a, std_v, std_p, cellsize=10, ppoints=50, cpoints)
+
+export(multiGT_pix$es_long, "results_multi/pixel_long_hetTE.rds")
 
 pixel_es <- multiGT_pix$es_long %>%
   group_by(term, estimator, uoa)%>%
@@ -105,10 +118,10 @@ pixel_es <- multiGT_pix$es_long %>%
   summarise(q05 = quantile(estimate, probs = 0.05),
             q95 = quantile(estimate, probs = 0.95),
             estimate = mean(estimate))%>%
-  filter(estimator!="Roth and Sant'Anna (2021)")%>%
   mutate_at(vars(term, q05,q95, estimate), as.numeric)
 
-export(pixel_es, "results/pixel_heterogTE.rds")
+export(pixel_es, "results_multi/pixel_es_heterogTE.rds")
+
 
 my_event_study_plot(pixel_es, seperate = FALSE)+
   ggtitle("estimates with pixel unit of analysis")+
