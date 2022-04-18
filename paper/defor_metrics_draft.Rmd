@@ -1618,15 +1618,15 @@ schart(test,labels, ylim = ylim, index.ci=index.ci, ylab="Bias", #highlight=high
        # col.dot=c("black","lightgrey","red","#00A1D5"),
        # bg.dot=c("black","lightgrey","white","#00A1D5"),
        #,band.ref=c(-.05, .04)
-       axes = FALSE, n=11
+       axes = FALSE, n=9
        #, col.band.ref="#c7e9f9"
 ) # make some room at the bottom
 Axis(side=2, at = c(-0.03,-.02, -.01, 0, 0.01, 0.015), labels=TRUE)
 #abline(h=topline)
 #abline(h=midline)
-abline(v=12, lty="dashed")
-abline(v=24, lty="dashed")
-abline(v=36, lty="dashed")
+abline(v=10, lty="dashed")
+abline(v=20, lty="dashed")
+abline(v=30, lty="dashed")
 #lapply(1:length(RMSE), function(i) {
   #rect(xleft=i-.3, ybottom=midline, xright=i+.3, ytop=midline+RMSE[i]*1.5, border=NA, col="#D55E00")
   #mtext(paste0(column_indic[i]), side=1, at = i, font=2, cex=.9)#, line=1, at=-1)
@@ -1639,14 +1639,14 @@ abline(v=36, lty="dashed")
 # text(x=5#mean(1:nrow(test))
 #      , y=midline-0.0075, "coverage probability", col="black", font=2)
 #mtext("Coverage\nprobability", side=2, at = midline-0.01, font=2, las=1, line=.5)
-text(x=2
+text(x=3
      , y=.017, expression(paste(sigma[p],"=0.0")), col="black", font=2, cex = 1.2)
-text(x=14
+text(x=13
      , y=.017, expression(paste(sigma[p],"=0.1")), col="black", font=2, cex = 1.2)
-text(x=26
-     , y=.017, expression(paste(sigma[p],"=0.2")), col="black", font=2, cex = 1.2)
-text(x=38
-     , y=.017, expression(paste(sigma[p],"=0.3")), col="black", font=2, cex = 1.2)
+text(x=23
+     , y=.017, expression(paste(sigma[p],"=0.25")), col="black", font=2, cex = 1.2)
+text(x=33
+     , y=.017, expression(paste(sigma[p],"=0.5")), col="black", font=2, cex = 1.2)
 #legend(x=-3, y=0.06, col = c("#00A1D5"), legend = c("specifications\nincorporating\nspatial aggregation"), inset = 0.005,  box.lty=0, cex=0.95
 #       ,  seg.len=0.25, lty = 1, horiz=TRUE, lwd = 4, bg="transparent")
 
