@@ -202,7 +202,7 @@ While survival models have not frequently been used in the context of avoided de
 
 $$ HRTT = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, D_i=1]}$$
 
-The $HRTT$ is the ratio of the hazard rates in the treatment group post-treatment, relative to the counterfactual in that group had treatment not ocurred. In settings with two groups and two time periods, some researchers opt to estimate $HRTT$ with a cox proportional hazards model of the following form:
+The $HRTT$ is the ratio of the hazard rates in the treatment group post-treatment, relative to the counterfactual in that group had treatment not ocurred. In settings with two groups and two time periods, some researchers opt to estimate $HRTT$ with a cox proportional hazards model of the following form [e.g., @carlson2018; @mastrobuoni]:
 
 \textbf{Regression 3:} (Cox DID regression)
 Let $\beta_{coxDID}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
@@ -598,7 +598,7 @@ c_ha = avg_carea * 30^2 / 10000
 # unit | grid cell resolution (m) | area (ha) | comparable use in literature
 
 resolution_df <- data.frame(
-  "unit" = c("property", "county", "large grid", "small grid"),
+  "unit" = c("Property", "County", "Large grid", "Small grid"),
   "avg_pix" = c(avg_parea, avg_carea, cellsize_large^2, cellsize_med^2)
 ) %>%
   mutate(area_ha = avg_pix * 30^2 / 10000)
