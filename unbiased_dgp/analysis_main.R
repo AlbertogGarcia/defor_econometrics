@@ -133,6 +133,9 @@ export(summary_full, "unbiased_dgp/results/summary_full.rds")
 ###############################################################################################################
 ######## alternative parameterization
 ###############################################################################################################
+std_p = 0.5
+nobs = 125^2
+ppoints = 100
 
 base_0 = .05
 base_1 = .02
@@ -180,12 +183,11 @@ export(summary_long_alt2, "unbiased_dgp/results/summary_long_alt2.rds")
 source(here::here('unbiased_dgp', 'heterogeneous_propertyarea.R'))
 
 # we start with our base parameterization without property level perturbations
-std_a = 0.1
+std_a = 0
 std_v = 0.5
 std_p = 0.0
 std_b3 = .15
-nobs = 125^2
-ppoints = 100
+
 
 # here are the landscape characteristics in this parameterization
 # note that the bias for the TWFE model will be equal to the pre-treatment difference in deforestation rtes, which is 0.03
@@ -219,7 +221,7 @@ source(here::here('unbiased_dgp', 'outcome_fcn.R'))
 # we start with our base parameterization without property level perturbations
 std_a = 0
 std_v = 0.5
-
+std_p = 0
 # here are the landscape characteristics in this parameterization
 # note that the bias for the TWFE model will be equal to the pre-treatment difference in deforestation rtes, which is 0.03
 base_0 = .02
@@ -240,3 +242,17 @@ outcome <- outcomes$coeff_bias
 
 library(rio)
 export(outcome, "unbiased_dgp/results/outcomes.rds")
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#### DID keeping vs. dropping obs
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+source(here::here('unbiased_dgp', 'DID_keep.R'))
+
+set.seed(0930)
+keeps <- DID_keep(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
+keeps <- keeps$did_keeps
+
+library(rio)
+export(keeps, "unbiased_dgp/results/keeps.rds")

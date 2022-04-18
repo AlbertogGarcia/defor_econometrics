@@ -5,7 +5,6 @@ library(clubSandwich)
 library(reshape2)
 library(matrixStats)
 library(ggplot2)
-# library(plm)
 library(Metrics)
 library(DataCombine)
 library(dplyr)
@@ -17,12 +16,13 @@ library(DeclareDesign)
 library(msm)
 library(survival)
 
-source(here::here('unbiased_dgp', 'full_landscape.R'))
+source(here::here('unbiased_dgp', 'multigrid_landscape.R'))
 
 #begin function
-all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v = 0.25, std_p = 0.0, cellsize, ppoints, cpoints){
+specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v = 0.5, std_p = 0.0, cellsize_small, cellsize_med, cellsize_large, ppoints, cpoints){
   
-  countyscape = full_landscape(nobs, cellsize, ppoints, cpoints)
+  cellsize_list <- list(cellsize_small, cellsize_med, cellsize_large)
+  countyscape = multigrid_landscape(nobs, cellsize_list, ppoints, cpoints)
   pixloc_df = countyscape$pixloc_df
   
   
@@ -30,33 +30,32 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
   
   pixloc <- pixloc_df
   
-  did_covermat <- matrix(nrow = n, ncol = 5)
-  agg_covermat <- matrix(nrow = n, ncol = 3)
-  weight_covermat <- matrix(nrow = n, ncol = 2)
-  bad_covermat <- matrix(nrow = n, ncol = 2)
-  fix_covermat <- matrix(nrow = n, ncol = 3)
   
+  grid_covermat <- matrix(nrow = n, ncol = 3)
+  grid_coeffmatrix <- matrix(nrow = n, ncol = 3)
+  gridfe_covermat <- matrix(nrow = n, ncol = 3)
+  gridfe_coeffmatrix <- matrix(nrow = n, ncol = 3)
   
-  coeffmatrix <- matrix(nrow = n, ncol = 3)
-  weight_coeffmatrix <- matrix(nrow = n, ncol = 3)
-  bad_coeffmatrix <- matrix(nrow = n, ncol = 2)
-  fix_coeffmatrix <- matrix(nrow = n, ncol = 4)
+  n_mod = 17
+  # 3 grid sizes plus prop and county, aggregated and at fixed effects gives 10
+  # weighted county and property models gives 2
+  # pixel DID, pixel fe and pixel keeping pixels gives 3
+  # two cox ph models gives 2
   
-  selection_bias <- data.frame('iteration' = rep(NA, n), 
-                               'sample_sel_bias' = rep(NA, n))
-  
-  n_mod = 16
   summ_row <- n_mod * n
   
   summary_long <- data.frame('b0'= rep(b0, summ_row), 'b1'= rep(b1, summ_row), 'b2_0'= rep(b2_0, summ_row), 'b2_1'= rep(b2_1, summ_row), 'b3'= rep(b3, summ_row), 
                              'std_a'= rep(std_a, summ_row), 'std_v'= rep(std_v, summ_row), 'std_p'= rep(std_p, summ_row), "years" = years,
-                             'iteration' = rep(NA, summ_row), 
+                             'gridsize' = rep(NA, summ_row), 'iteration' = rep(NA, summ_row), 
                              'pixel'=rep(NA, summ_row),'grid'=rep(NA, summ_row),'property'=rep(NA, summ_row),'county'=rep(NA, summ_row),
                              'pixel fe'=rep(NA, summ_row),'grid fe'=rep(NA, summ_row),'property fe'=rep(NA, summ_row),'county fe'=rep(NA, summ_row),'treatment fe'=rep(NA, summ_row),
-                             'weights'=rep(NA, summ_row), 'cox'=rep(NA, summ_row), ' HRRT estimator'=rep(NA, summ_row), 
+                             'weights'=rep(NA, summ_row), 'cox'=rep(NA, summ_row), 'HE estimator'=rep(NA, summ_row), 
                              'se_pixel'=rep(NA, summ_row), 'se_grid'=rep(NA, summ_row), 'se_property'=rep(NA, summ_row), 'se_county'=rep(NA, summ_row),
                              'bias'=rep(NA, summ_row), 'cover'=rep(NA, summ_row),'notes'=rep(NA, summ_row),
                              stringsAsFactors=FALSE)
+  
+  options(dplyr.summarise.inform = FALSE)
+  print(min(pixloc$parea))
   
   for(i in 1:n){
     tic("loop")
@@ -108,43 +107,71 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
     
     panels <- defor_df %>%
       dplyr::select(pixels, defor_year) %>%
-      inner_join(panels, by = "pixels")
-    
-    
-    cols.num <- c("pixels", "grid", "property", "county", "year")
-    panels[cols.num] <- sapply(panels[cols.num],as.numeric)
+      inner_join(panels, by = "pixels") %>%
+      mutate_at(vars(pixels, county, year, property, defor_year), as.numeric)
     
     panels <- panels %>%
-      mutate(indic = year - defor_year) %>%
-      mutate(defor = ifelse(indic > 0, 1, y))%>%
-      mutate(y_it = ifelse(indic > 0, NA, y))
+      mutate(indic = year - defor_year,
+             defor = ifelse(indic > 0, 1, y),
+             y_it = ifelse(indic > 0, NA, y))
     
+    ppanels <- panels %>%
+      group_by(property, year)%>%
+      mutate(ptreat = mean(treat))
     
-    # aggregate up to county in each year
-    gridlevel_df <- as.data.frame(panels) %>%
-      dplyr::group_by(grid, year, post) %>%
-      dplyr::summarise(defor = mean(defor),
-                       treat = mean(treat),
-                       garea = mean(garea))%>%
-      ungroup()
-    
-    
-    gridlevel_df <- gridlevel_df[order(gridlevel_df$grid, gridlevel_df$year),]
-    gridlevel_df <- slide(gridlevel_df, Var = "defor", GroupVar = "grid", NewVar = "deforlag",
-                          slideBy = -1, reminder = FALSE)
-    
-    ##### creating forested share variable #####
-    gridlevel_df$forshare <- 1 -  gridlevel_df$defor
-    gridlevel_df$forsharelag <- 1 -  gridlevel_df$deforlag
-    
-    #generate outcome var
-    gridlevel_df$deforrate <- ((gridlevel_df$forsharelag- gridlevel_df$forshare) / gridlevel_df$forsharelag)
-    #remove any infinite values
-    #gridlevel_df <- subset(gridlevel_df, select = -c(geometry))
-    gridlevel_df <- 
-      gridlevel_df %>% 
-      filter_all(all_vars(!is.infinite(.)))%>%
-      drop_na(deforrate)
+     
+    for(k in cellsize_list){
+      
+      this_panel <- panels %>%
+        rename(this_grid = paste0("grid_", k),
+               this_garea = paste0("garea_", k))%>%
+        select(this_grid, treat, post, year, defor, this_garea, y_it)%>%
+        group_by(this_grid, year) %>%
+        mutate(gtreat = mean(treat))
+      
+      
+      this_grid_df <- as.data.frame(this_panel) %>%
+        dplyr::group_by(this_grid, year, post) %>%
+        dplyr::summarise(this_garea = mean(this_garea),
+                         defor = mean(defor),
+                         treat = mean(treat))%>%
+        ungroup()
+      
+      
+      this_grid_df <- as.data.frame(this_grid_df[order(this_grid_df$this_grid, this_grid_df$year),])
+      this_grid_df <- slide(this_grid_df, Var = "defor", GroupVar = "this_grid", NewVar = "deforlag",
+                            slideBy = -1, reminder = FALSE)
+      
+      ##### creating forested share variable #####
+      this_grid_df$forshare <- 1 -  this_grid_df$defor
+      this_grid_df$forsharelag <- 1 -  this_grid_df$deforlag
+      
+      #generate outcome var
+      this_grid_df$deforrate <- ((this_grid_df$forsharelag- this_grid_df$forshare) / this_grid_df$forsharelag)
+      #remove any infinite values
+      #gridlevel_df <- subset(gridlevel_df, select = -c(geometry))
+      this_grid_df <- 
+        this_grid_df %>% 
+        filter_all(all_vars(!is.infinite(.)))%>%
+        drop_na(deforrate)
+      
+      pos <- as.numeric(which(cellsize_list == k))
+      
+      # grid unit of analysis
+      DID_grid <- feols(deforrate ~  post:treat|year+this_grid, data = this_grid_df)
+      grid_coeffmatrix[i, pos] <- DID_grid$coefficients - ATT
+      #clustering at grid level
+      clse    <- tail(summary(DID_grid, cluster = ~this_grid)$se, n=1)
+      grid_covermat[i,pos] <- dplyr::between(ATT, tail(DID_grid$coefficients, n=1) - 1.96 * clse, tail(DID_grid$coefficients, n=1) + 1.96 * clse)*1
+      
+      # aggregated fixed effects
+      pix_twfe <- suppressMessages(feols(y_it ~  post*treat| year + this_grid, data = this_panel))
+      gridfe_coeffmatrix[i,pos] <- tail(pix_twfe$coefficients, n=1) - ATT
+      #clustering at grid level
+      clse    <- tail(summary(pix_twfe, cluster = ~this_grid)$se, n=1)
+      gridfe_covermat[i,pos] <- dplyr::between(ATT, tail(pix_twfe$coefficients, n=1) - 1.96 * clse, tail(pix_twfe$coefficients, n=1) + 1.96 * clse)*1
+      
+    }
     
     # aggregate up to property in each year 
     proplevel_df <- as.data.frame(panels) %>%
@@ -154,8 +181,7 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
                        parea = mean(parea))%>%
       ungroup()
     
-    
-    proplevel_df <- proplevel_df[order(proplevel_df$property, proplevel_df$year),]
+    proplevel_df <- as.data.frame(proplevel_df[order(proplevel_df$property, proplevel_df$year),])
     proplevel_df <- slide(proplevel_df, Var = "defor", GroupVar = "property", NewVar = "deforlag",
                           slideBy = -1, reminder = FALSE)
     
@@ -173,8 +199,6 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       na.omit(deforrate)%>%
       drop_na(deforrate)
     
-    
-    
     # aggregate up to county in each year 
     countylevel_df <- as.data.frame(panels) %>%
       dplyr::group_by(county, year, post) %>%
@@ -183,7 +207,7 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
                        carea = mean(carea))%>%
       ungroup()
     
-    countylevel_df <- countylevel_df[order(countylevel_df$county, countylevel_df$year),]
+    countylevel_df <- as.data.frame(countylevel_df[order(countylevel_df$county, countylevel_df$year),])
     countylevel_df <- slide(countylevel_df, Var = "defor", GroupVar = "county", NewVar = "deforlag",
                             slideBy = -1, reminder = FALSE)
     
@@ -200,121 +224,62 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       filter_all(all_vars(!is.infinite(.)))%>%
       drop_na(deforrate)
     
-    # aggregated units of analysis
-    
-    agg_DID1 <- feols(deforrate ~  post*treat|year+grid, data = gridlevel_df)
-    
-    
-    agg_DID2 <- feols(deforrate ~  post*treat|year+property, data = proplevel_df)
-    
-    
-    agg_DID3 <- feols(deforrate ~  post*treat|year+county, data = countylevel_df)
-    
-    # weighting by county and property area
-    
-    weight_DIDp <- feols(deforrate ~  post*treat|year+property, data = proplevel_df, weights = proplevel_df$parea)
-    
-    
-    weight_DIDc <- feols(deforrate ~  post*treat|year+county, weights = countylevel_df$carea, data = countylevel_df)
-    
-    # problematic specifications
-    
-    bad_DID1 <- feols(defor ~  post*treat, data = panels)
-    
-    bad_DID2 <- feols(y_it ~  post*treat|year+pixels, data = panels)
-    
-    
-    
-    ### TWFE regressions with aggregated fixed effects
-    
-    fix_DID1 <- feols(y_it ~  post*treat|year+grid, data = panels)
-    
-    fix_DID2 <- feols(y_it ~  post*treat|year+property, data = panels)
-    
-    fix_DID3 <- feols(y_it ~  post*treat|year+county, data = panels)
+    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    ##### RUNNING MODELS
+    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     # simple DID
-    
-    DID <- feols(y_it ~  post*treat, data = panels)
-    
-    
-    #calculating bias from each method
+    DID <- suppressMessages(feols(y_it ~  post*treat, data = panels))
     
     # aggregated units of analysis
-    coeffmatrix[i,1] <- agg_DID1$coefficients - ATT
-    coeffmatrix[i,2] <- agg_DID2$coefficients - ATT
-    coeffmatrix[i,3] <- agg_DID3$coefficients - ATT
+    prop_DID <- feols(deforrate ~  post:treat|year+property, data = proplevel_df)
+    county_DID <- feols(deforrate ~  post:treat|year+county, data = countylevel_df)
     
-    # with weights
-    weight_coeffmatrix[i,1] <- weight_DIDp$coefficients - ATT
-    weight_coeffmatrix[i,2] <- weight_DIDc$coefficients - ATT
+    ### TWFE regressions with aggregated fixed effects
+    propfe_DID <- suppressMessages(feols(y_it ~  post*treat|year + property, data = panels))
+    countyfe_DID <- suppressMessages(feols(y_it ~  post:treat|year + county, data = panels))
+    
+    # weighting by county and property area
+    weight_DIDp <- suppressMessages(feols(deforrate ~  post:treat|year+property, data = proplevel_df, weights = proplevel_df$parea))
+    weight_DIDc <- suppressMessages(feols(deforrate ~  post:treat|year+county, weights = countylevel_df$carea, data = countylevel_df))
     
     # problematic specifications
-    bad_coeffmatrix[i,1] <- bad_DID1$coefficients[4] - ATT
-    bad_coeffmatrix[i,2] <- bad_DID2$coefficients - ATT
+    bad_DID1 <- feols(defor ~  post*treat, data = panels)
+    bad_DID2 <- suppressMessages(feols(y_it ~  post*treat|year + pixels, data = panels))
     
-    # aggregated fixed effects
-    fix_coeffmatrix[i,1] <- tail(fix_DID1$coefficients, n=1) - ATT
-    fix_coeffmatrix[i,2] <- tail(fix_DID2$coefficients, n=1) - ATT
-    fix_coeffmatrix[i,3] <- tail(fix_DID3$coefficients, n=1) - ATT
-    
-    # regular did
-    fix_coeffmatrix[i,4] <- DID$coefficients[4] - ATT
-    
-    #regular DID standard errors
-    # robust
-    DID_se <- summary(DID, se = "hetero")$se[4]
-    # clustered at pixel
-    DID_clse_pixel  <- tail(summary(DID, cluster = ~pixels)$se, n=1)
-    # clustered pixel level standard errors at other units of aggregation
-    DID_clse_grid  <- tail(summary(DID, cluster = ~grid)$se, n=1)
-    DID_clse_property <- tail(summary(DID, cluster = ~property)$se, n=1)
-    DID_clse_county <- tail(summary(DID, cluster = ~county)$se, n=1)
-    
-    did_covermat[i,1] <- dplyr::between(ATT, DID$coefficients[4] - 1.96 * DID_se, DID$coefficients[4] + 1.96 * DID_se)*1
-    did_covermat[i,2] <- dplyr::between(ATT, DID$coefficients[4] - 1.96 * DID_clse_pixel, DID$coefficients[4] + 1.96 * DID_clse_pixel)*1
-    did_covermat[i,3] <- dplyr::between(ATT, DID$coefficients[4] - 1.96 * DID_clse_grid, DID$coefficients[4] + 1.96 * DID_clse_grid)*1
-    did_covermat[i,4] <- dplyr::between(ATT, DID$coefficients[4] - 1.96 * DID_clse_property, DID$coefficients[4] + 1.96 * DID_clse_property)*1
-    did_covermat[i,5] <- dplyr::between(ATT, DID$coefficients[4] - 1.96 * DID_clse_county, DID$coefficients[4] + 1.96 * DID_clse_county)*1
-    
+    # regular DID clustered at pixel
+    DID_se  <- tail(summary(DID, cluster = ~pixels)$se, n=1)
     
     #clustering at group level for aggregated analyses
-    agg_clse1    <- tail(summary(agg_DID1, cluster = ~grid)$se, n=1)
-    agg_clse2    <- tail(summary(agg_DID2, cluster = ~property)$se, n=1)
-    agg_clse3    <- tail(summary(agg_DID3, cluster = ~county)$se, n=1)
+    prop_se    <- tail(summary(prop_DID, cluster = ~property)$se, n=1)
+    county_se    <- tail(summary(county_DID, cluster = ~county)$se, n=1)
     
     # same for weighted
-    weight_clsep    <- tail(summary(weight_DIDp, cluster = ~property)$se, n=1)
-    weight_clsec   <- tail(summary(weight_DIDc, cluster = ~county)$se, n=1)
+    weightp_se    <- tail(summary(weight_DIDp, cluster = ~property)$se, n=1)
+    weightc_se   <- tail(summary(weight_DIDc, cluster = ~county)$se, n=1)
     
-    # coverage with clustered standard errors at group level
-    agg_covermat[i,1] <- dplyr::between(ATT, agg_DID1$coefficients - 1.96 * agg_clse1, agg_DID1$coefficients + 1.96 * agg_clse1)*1
-    agg_covermat[i,2] <- dplyr::between(ATT, agg_DID2$coefficients - 1.96 * agg_clse2, agg_DID2$coefficients + 1.96 * agg_clse2)*1
-    agg_covermat[i,3] <- dplyr::between(ATT, agg_DID3$coefficients - 1.96 * agg_clse3, agg_DID3$coefficients + 1.96 * agg_clse3)*1
-    
-    #weighted
-    weight_covermat[i,1] <- dplyr::between(ATT, weight_DIDp$coefficients - 1.96 * weight_clsep, weight_DIDp$coefficients + 1.96 * weight_clsep)*1
-    weight_covermat[i,2] <- dplyr::between(ATT, weight_DIDc$coefficients - 1.96 * weight_clsec, weight_DIDc$coefficients + 1.96 * weight_clsec)*1
-    
-    
-    ### clustered standard errors for aggregated fixed effects
-    fix_clse1    <- tail(summary(fix_DID1, cluster = ~grid)$se, n=1)
-    fix_clse2    <- tail(summary(fix_DID2, cluster = ~property)$se, n=1)
-    fix_clse3    <- tail(summary(fix_DID3, cluster = ~county)$se, n=1)
-    
-    #whether att is within CI
-    
-    fix_covermat[i,1] <- dplyr::between(ATT, tail(fix_DID1$coefficients, n=1) - 1.96 * fix_clse1, tail(fix_DID1$coefficients, n=1) + 1.96 * fix_clse1)*1
-    fix_covermat[i,2] <- dplyr::between(ATT, tail(fix_DID2$coefficients, n=1) - 1.96 * fix_clse2, tail(fix_DID2$coefficients, n=1) + 1.96 * fix_clse2)*1
-    fix_covermat[i,3] <- dplyr::between(ATT, tail(fix_DID3$coefficients, n=1) - 1.96 * fix_clse3, tail(fix_DID3$coefficients, n=1) + 1.96 * fix_clse3)*1
+    # aggregated fixed effects
+    propfe_se    <- tail(summary(propfe_DID, cluster = ~property)$se, n=1)
+    countyfe_se    <- tail(summary(countyfe_DID, cluster = ~county)$se, n=1)
     
     # se for bad specifications clustered at pixel level
-    bad_clse1    <- tail(summary(bad_DID1, cluster = ~pixels)$se, n=1)
-    bad_clse2    <- tail(summary(bad_DID2, cluster = ~pixels)$se, n=1)
+    bad_se1    <- tail(summary(bad_DID1, cluster = ~pixels)$se, n=1)
+    bad_se2    <- tail(summary(bad_DID2, cluster = ~pixels)$se, n=1)
     
-    #coverage for bad specifications
-    bad_covermat[i,1] <- dplyr::between(ATT, tail(bad_DID1$coefficients, n=1) - 1.96 * bad_clse1, tail(bad_DID1$coefficients, n=1) + 1.96 * bad_clse1)*1
-    bad_covermat[i,2] <- dplyr::between(ATT, bad_DID2$coefficients - 1.96 * bad_clse2, bad_DID2$coefficients + 1.96 * bad_clse2)*1
+    
+    DID_cover <- dplyr::between(ATT, DID$coefficients[4] - 1.96 * DID_se, DID$coefficients[4] + 1.96 * DID_se)*1
+    
+    prop_cover <- dplyr::between(ATT, prop_DID$coefficients - 1.96 * prop_se, prop_DID$coefficients + 1.96 * prop_se)*1
+    county_cover <- dplyr::between(ATT, county_DID$coefficients - 1.96 * county_se, county_DID$coefficients + 1.96 * county_se)*1
+    
+    weightp_cover <- dplyr::between(ATT, weight_DIDp$coefficients - 1.96 * weightp_se, weight_DIDp$coefficients + 1.96 * weightp_se)*1
+    weightc_cover <- dplyr::between(ATT, weight_DIDc$coefficients - 1.96 * weightc_se, weight_DIDc$coefficients + 1.96 * weightc_se)*1
+    
+    propfe_cover <- dplyr::between(ATT, tail(propfe_DID$coefficients, n=1) - 1.96 * propfe_se, tail(propfe_DID$coefficients, n=1) + 1.96 * propfe_se)*1
+    countyfe_cover <- dplyr::between(ATT, tail(countyfe_DID$coefficients, n=1) - 1.96 * countyfe_se, tail(countyfe_DID$coefficients, n=1) + 1.96 * countyfe_se)*1
+    
+    bad_cover1 <- dplyr::between(ATT, tail(bad_DID1$coefficients, n=1) - 1.96 * bad_se1, tail(bad_DID1$coefficients, n=1) + 1.96 * bad_se1)*1
+    bad_cover2 <- dplyr::between(ATT, bad_DID2$coefficients - 1.96 * bad_se2, bad_DID2$coefficients + 1.96 * bad_se2)*1
     
     
     #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -336,7 +301,7 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
     
     ## this model is more similar to the traditional DID setup but does not actually recover the desired HRR
     cox_did <- coxph(Surv(t_start, t_end, outcome) ~ post*treat
-                             , data = surv_df )
+                     , data = surv_df )
     #summary(cox_interaction)
     coefs <- cox_did$coefficients
     hr_did <- coefs[[3]] %>% exp()
@@ -389,7 +354,6 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
     hr_11_cf_cover <- dplyr::between(haz_rat, hr_11_cf - 1.96 * se_hr_11_cf, hr_11_cf + 1.96 * se_hr_11_cf)*1
     cox_cover <- dplyr::between(haz_rat, hr_did - 1.96 * se_cox_did, hr_did + 1.96 * se_cox_did)*1
     
-    
     #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     ### filling in summary long dataframe output
     #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -397,152 +361,184 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
     firstcol = which(colnames(summary_long)=="iteration")
     lastcol = which(colnames(summary_long)=="notes")
     
+    # keeping deforested pixels
     summary_long[i,c(firstcol:lastcol)] <- c(
-      i,
+      i, 
       1,0,0,0,
       0,0,0,0,1,
       0,0,0,
       1,0,0,0,
-      bad_coeffmatrix[i,1],
-      bad_covermat[i,1],
+      bad_DID1$coefficients[4] - ATT,
+      bad_cover1,
       "keeping pixels after deforestation event"
     )
     
     firstcol = which(colnames(summary_long)=="iteration")
     lastcol = which(colnames(summary_long)=="cover")
     
+    # Pixel fixed effects
     summary_long[i+n,c(firstcol:lastcol)] <- c(
       i,
       1,0,0,0,
       1,0,0,0,0,
       0,0,0,
       1,0,0,0,
-      bad_coeffmatrix[i,2],
-      bad_covermat[i,2]
+      bad_DID2$coefficients - ATT,
+      bad_cover2
     )
     
+    # traditional DID
     summary_long[i+n*2,c(firstcol:lastcol)] <- c(
       i,
       1,0,0,0,
       0,0,0,0,1,
       0,0,0,
       1,0,0,0,
-      fix_coeffmatrix[i,4],
-      did_covermat[i,2]
+      DID$coefficients[4] - ATT,
+      DID_cover
     )
     
+    # property uoa
     summary_long[i+n*3,c(firstcol:lastcol)] <- c(
       i,
-      1,0,0,0,
-      0,0,0,0,1,
-      0,0,0,
-      0,1,0,0,
-      fix_coeffmatrix[i,4],
-      did_covermat[i,3]
-    )
-    
-    summary_long[i+n*4,c(firstcol:lastcol)] <- c(
-      i,
-      1,0,0,0,
-      0,0,0,0,1,
+      0,0,1,0,
+      0,0,1,0,0,
       0,0,0,
       0,0,1,0,
-      fix_coeffmatrix[i,4],
-      did_covermat[i,4]
+      prop_DID$coefficients - ATT,
+      prop_cover
     )
     
+    # county uoa
+    summary_long[i+n*4,c(firstcol:lastcol)] <- c(
+      i,
+      0,0,0,1,
+      0,0,0,1,0,
+      0,0,0,
+      0,0,0,1,
+      county_DID$coefficients - ATT,
+      county_cover
+    )
+    
+    # property fe
     summary_long[i+n*5,c(firstcol:lastcol)] <- c(
       i,
       1,0,0,0,
-      0,0,0,0,1,
+      0,0,1,0,0,
       0,0,0,
-      0,0,0,1,
-      fix_coeffmatrix[i,4],
-      did_covermat[i,5]
+      0,0,1,0,
+      tail(propfe_DID$coefficients, n=1) - ATT,
+      propfe_cover
     )
     
+    # county fe
     summary_long[i+n*6,c(firstcol:lastcol)] <- c(
       i,
+      1,0,0,0,
+      0,0,0,1,0,
+      0,0,0,
+      0,0,0,1,
+      tail(countyfe_DID$coefficients, n=1) - ATT,
+      countyfe_cover
+    )
+    
+    firstcol = which(colnames(summary_long)=="gridsize")
+    lastcol = which(colnames(summary_long)=="cover")
+    
+    ### GRID specifications
+    # AS UNIT OF ANALYSIS
+    summary_long[i+n*7,c(firstcol:lastcol)] <- c(
+      cellsize_small, i,
       0,1,0,0,
       0,1,0,0,0,
       0,0,0,
       0,1,0,0,
-      coeffmatrix[i,1],
-      agg_covermat[i,1]
-    )
-    
-    summary_long[i+n*7,c(firstcol:lastcol)] <- c(
-      i,
-      0,0,1,0,
-      0,0,1,0,0,
-      0,0,0,
-      0,0,1,0,
-      coeffmatrix[i,2],
-      agg_covermat[i,2]
+      grid_coeffmatrix[i, 1],
+      grid_covermat[i,1]
     )
     
     summary_long[i+n*8,c(firstcol:lastcol)] <- c(
-      i,
-      0,0,0,1,
-      0,0,0,1,0,
+      cellsize_med, i,
+      0,1,0,0,
+      0,1,0,0,0,
       0,0,0,
-      0,0,0,1,
-      coeffmatrix[i,3],
-      agg_covermat[i,3]
+      0,1,0,0,
+      grid_coeffmatrix[i, 2],
+      grid_covermat[i,2]
     )
     
     summary_long[i+n*9,c(firstcol:lastcol)] <- c(
-      i,
+      cellsize_large, i,
+      0,1,0,0,
+      0,1,0,0,0,
+      0,0,0,
+      0,1,0,0,
+      grid_coeffmatrix[i, 3],
+      grid_covermat[i,3]
+    )
+    
+    # AS FE
+    
+    summary_long[i+n*10,c(firstcol:lastcol)] <- c(
+      cellsize_small, i,
       1,0,0,0,
       0,1,0,0,0,
       0,0,0,
       0,1,0,0,
-      fix_coeffmatrix[i,1],
-      fix_covermat[i,1]
-    )
-    
-    summary_long[i+n*10,c(firstcol:lastcol)] <- c(
-      i,
-      1,0,0,0,
-      0,0,1,0,0,
-      0,0,0,
-      0,0,1,0,
-      fix_coeffmatrix[i,2],
-      fix_covermat[i,2]
+      gridfe_coeffmatrix[i, 1],
+      gridfe_covermat[i,1]
     )
     
     summary_long[i+n*11,c(firstcol:lastcol)] <- c(
-      i,
+      cellsize_med, i,
       1,0,0,0,
-      0,0,0,1,0,
+      0,1,0,0,0,
       0,0,0,
-      0,0,0,1,
-      fix_coeffmatrix[i,3],
-      fix_covermat[i,3]
+      0,1,0,0,
+      gridfe_coeffmatrix[i, 2],
+      gridfe_covermat[i,2]
     )
     
     summary_long[i+n*12,c(firstcol:lastcol)] <- c(
+      cellsize_large, i,
+      1,0,0,0,
+      0,1,0,0,0,
+      0,0,0,
+      0,1,0,0,
+      gridfe_coeffmatrix[i, 3],
+      gridfe_covermat[i,3]
+    )
+    
+    
+    firstcol = which(colnames(summary_long)=="iteration")
+    lastcol = which(colnames(summary_long)=="cover")
+    
+    ### WEIGHTED specifications
+    # weighted property
+    summary_long[i+n*13,c(firstcol:lastcol)] <- c(
       i,
       0,0,1,0,
       0,0,1,0,0,
       1,0,0,
       0,0,1,0,
-      weight_coeffmatrix[i,1],
-      weight_covermat[i,1]
+      weight_DIDp$coefficients - ATT,
+      weightp_cover
     )
     
-    summary_long[i+n*13,c(firstcol:lastcol)] <- c(
+    #weighted county
+    summary_long[i+n*14,c(firstcol:lastcol)] <- c(
       i,
       0,0,0,1,
       0,0,0,1,0,
       1,0,0,
       0,0,0,1,
-      weight_coeffmatrix[i,2],
-      weight_covermat[i,2]
+      weight_DIDc$coefficients - ATT,
+      weightc_cover
     )
     
-   
-    summary_long[i+n*14,c(firstcol:lastcol)] <- c(
+    ### SURVIVAL specifications
+    # Cox DID
+    summary_long[i+n*15,c(firstcol:lastcol)] <- c(
       i,
       1,0,0,0,
       0,0,0,0,1,
@@ -552,7 +548,8 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       cox_cover
     )
     
-    summary_long[i+n*15,c(firstcol:lastcol)] <- c(
+    # our proposed estimator
+    summary_long[i+n*16,c(firstcol:lastcol)] <- c(
       i,
       1,0,0,0,
       0,0,0,0,0,
@@ -561,6 +558,8 @@ all_specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       ATT_11_cf- ATT,
       hr_11_cf_cover
     )
+    
+    
     
     
     print(i)

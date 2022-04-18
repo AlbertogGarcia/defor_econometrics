@@ -29,6 +29,7 @@ library(ggplot2)
 library(kableExtra)
 library(tidyverse)
 library(Metrics)
+library(reshape2)
 
 source(here::here('paper', 'schart.R'))
 source(here::here('paper', 'my_event_study_plot.R'))
@@ -1156,15 +1157,28 @@ One might conclude that these new estimators solve the issues with pixel level T
 
 Here, we introduce a setting in which groups of units receive treatment at different times (full DGP can be found in Appendix \@ref(multiDGP)). We consider three groups: an early group, a late group, and a never-treated group, where the early and late groups undergo treatment in years three and four, respectively. Each group experiences differing pre-treatment deforestation rates (7\%, 4\%, and 2\% for the early, late, and never-treated groups, respectively) and no time trend. The on-impact $ATT$ is $-0.02$ for both treated groups. Common trends is satisfied by construction, and we do not introduce any dynamic effects. Figure \@ref(fig:observed-multiGT) shows the observed deforestation rates ($E[y^o_{ivt}]$) from one iteration of our simulation in this setting. 
 
-```{r observed-multiGT, fig.cap="Observed deforestation in simulated example with multiple groups and periods.", fig.pos='H', fig.show='hold'}
+```{r observed-multiGT, out.width="100%", fig.cap="Observed deforestation in simulated example with multiple groups and periods.", fig.pos='H', fig.width = 9, fig.height = 5, fig.show='hold'}
 
-knitr::include_graphics("figs/defor_multiGT.png")
+#knitr::include_graphics("figs/defor_multiGT.png")
+
+rate_landscape <- readRDS("results/landscape.rds")
+
+ggplot(data=rate_landscape, aes(x=year, y=defor, colour=Group))+
+  geom_line(size=2)+
+  ylab("deforestation rate")+
+  scale_y_continuous(labels = scales::percent)+
+  ggtitle("Annual deforestation")+
+  theme_minimal(base_size = 22)+
+  theme(#legend.key = element_rect(color = NA, fill = NA),
+        legend.key.size = unit(.5, "cm")) +
+  theme(legend.title.align = 0.5)
+  
 
 ```
 
 The left panel of Figure \@ref(fig:multiGT) shows that the estimators developed in @callaway2020, @gardner2021, and @boryusak2020 suffer from similar bias to TWFE regressions with pixel unit fixed effects if the pixel is used as the unit of analysis. All methods yield a treatment effect greater than or equal to 0 in all post-treatment periods, reflecting the fact that pre-treatment period deforestation rates are unaccounted for by the estimators. This is particularly  clear in the @callaway2020 estimator in which pre-treatment periods are all precisely zero, indicating that the estimator could only compute treatment effects using pixels that survived until the end of the observation period. The right panel of Figure \@ref(fig:multiGT) shows that this bias is eliminated when one uses an aggregated unit of analysis with binary treatment (e.g., county). We do not include pixel-level TWFE regressions with spatially aggregated fixed effects, because most recently developed estimators do not allow for a comparable implementation. Therefore if the researcher wants to obtain a landscape-scale interpretation, they must use an aggregated grid cell or weight the regression by the unit area. 
 
-```{r multiGT, results = FALSE, warning = FALSE, fig.cap="New estimators, similar to TWFE regressions with pixel unit fixed effects, cannot identify ATT with pixel as unit of analysis", fig.pos='H', fig.width = 6, fig.height = 5, fig.show='hold'}
+```{r multiGT, results = FALSE, warning = FALSE, fig.cap="New estimators, similar to TWFE regressions with pixel unit fixed effects, cannot identify ATT with pixel as unit of analysis", fig.pos='H', fig.width = 7, fig.height = 7, fig.show='hold'}
 #knitr::include_graphics(c("figs/pixel_multiGT.png", "figs/county_multiGT.png"))
 
 county_es <- readRDS("results/county_es.rds")
@@ -1184,7 +1198,7 @@ my_event_study_plot(pixel_es, seperate = FALSE)+
 
 We now examine the performance of the alternative estimators relative to TWFE regressions when treatment effects vary across time and across groups. We again work with an early, late and untreated group. The full parameterization and DGP can be found in Appendix \@ref(multiDGP-param) Figure \@ref(fig:observed-multiGT2) shows deforestation rates in each of the three groups through time.
 
-```{r observed-multiGT2, out.width="100%", fig.cap="Observed deforestation in simulated example when treatment effects vary across groups and through time", fig.pos='H', fig.show='hold'}
+```{r observed-multiGT2, out.width="100%", fig.cap="Observed deforestation in simulated example when treatment effects vary across groups and through time", fig.width = 9, fig.height = 5, fig.pos='H', fig.show='hold'}
 
 #knitr::include_graphics("figs/defor_multiGT2.png")
 het_landscape <- readRDS("results/het_landscape.rds")
@@ -1196,7 +1210,7 @@ ggplot(data=het_landscape, aes(x=year, y=defor, colour=Group))+
   ggtitle("Annual deforestation")+
   theme_minimal(base_size = 22)+
   theme(#legend.key = element_rect(color = NA, fill = NA),
-        legend.key.size = unit(1, "cm")) +
+        legend.key.size = unit(.5, "cm")) +
   theme(legend.title.align = 0.5)
   
 
@@ -1388,10 +1402,23 @@ In the case of an irreversible binary outcome, the first and third terms can be 
 
 Figure \@ref(fig:keep-pixels) demonstrates the bias incurred from keeping deforested pixels in the panel after they are first realized as deforested in the context of our guiding example. Pixels that were deforested prior to the implementation of the policy continued to contribute to the deforestation rate in the post period in both the treatment and control groups. Dropping the pixels in the periods after they are first observed as deforested eliminates this bias in the DID model, as seen in Figure \@ref(fig:keep-pixels). 
 
+```{r keep-pixels, message=FALSE, out.width="100%", fig.cap="Distribution of DID estimates leaving deforested pixels in the panel and of DID estimates dropping deforested pixels. Note that leaving deforested pixels in the panel incurs severe bias.", fig.pos='H', fig.align='center'}
 
-```{r keep-pixels, echo=FALSE,out.width="75%", fig.cap="Distribution of DID estimates leaving deforested pixels in the panel and of DID estimates dropping deforested pixels. Note that leaving deforested pixels in the panel incurs severe bias.", fig.pos = 'H', fig.show='hold', fig.align='center'}
-knitr::include_graphics("figs/did_keep.png")
+keeps <- readRDS("results/keeps.rds")
+ suppressWarnings(kbias <- melt(keeps, value.name = "bias"))
+  
+ggplot(data = kbias, aes(x = bias, fill=variable)) +
+    geom_density(alpha = .8) +
+    guides(fill=guide_legend(title=NULL))+
+    geom_vline(xintercept = 0, linetype = "dashed")+
+    theme(plot.caption = element_text(hjust = 0.5))+
+     labs(x= "Bias")+
+  xlim(-0.01, 0.122)+
+    theme_minimal(base_size = 18)+
+  scale_fill_manual(labels=c("DID dropping pixels", "DID w/o dropping pixels"), values = c( palette$green, palette$red)
+                    )
 ```
+
 
 ## Alternative interpretation when keeping pixels is not accurate if reforestation timing is not available
 
@@ -2018,7 +2045,7 @@ Lastly, we consider a formula derived from the Compound Interest Law that has al
 \text{Outcome 3)} &= ln(F_{i,t-1}/F_{it})
 \end{align}
 
-```{r deforrates, message=FALSE,out.width="75%", fig.cap="Distribution of estimates produced by different outcome variable formulae", fig.pos='H', fig.align='center'}
+```{r deforrates, message=FALSE,out.width="100%", fig.cap="Distribution of estimates produced by different outcome variable formulae", fig.pos='H', fig.align='center'}
 #knitr::include_graphics("figs/outcome.png")
 outcome <- readRDS("results/outcomes.rds")
  suppressWarnings(cbias <- melt(outcome, value.name = "bias"))
@@ -2033,8 +2060,9 @@ ggplot(data = cbias, aes(x = bias, fill=variable)) +
                                     "Outcome 3:", round(mean(outcome$outcome3), digits = 4),"RMSE:",round(rmse(0, outcome$outcome3), digits = 5)
                                     )
     )+
-    theme_minimal(base_size = 22)+
-  scale_fill_manual(labels=c("Outcome 1", "Outcome 2", "Outcome 3"), values = c(palette$red, palette$blue, palette$green)
+  scale_x_continuous(breaks = c(-0.01, 0, 0.01))+
+    theme_minimal(base_size = 20)+
+  scale_fill_manual(labels=c("Outcome 1", "Outcome 2", "Outcome 3"), values = c(palette$green, palette$red, palette$blue)
                     )
 ```
 

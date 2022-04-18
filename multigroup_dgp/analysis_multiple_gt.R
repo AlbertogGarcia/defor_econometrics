@@ -62,8 +62,10 @@ export(pixel_es, "multigroup_dgp/results_multi/pixel_es.rds")
 plot_df <- panels %>%
   group_by(G, year)%>%
   summarise(defor = mean(y, na.rm=TRUE))%>%
-  mutate(Group = ifelse(G==0, "never", "early group\n(treated in year 3)"),
-         Group = ifelse(G==4, "late group\n(treated in year 4", Group))
+  mutate(Group = ifelse(G==0, "never treated", "early group\n(treated in year 3)"),
+         Group = ifelse(G==4, "late group\n(treated in year 4)", Group))
+
+export(plot_df, "multigroup_dgp/results_multi/landscape.rds")
 
 ggplot(data=plot_df, aes(x=year, y=defor, colour=Group))+
   geom_line(size=1.5)+
@@ -127,3 +129,14 @@ my_event_study_plot(pixel_es, seperate = FALSE)+
   ggtitle("estimates with pixel unit of analysis")+
   geom_segment(aes(x = -2.5, y = 0, xend = -0.5, yend = 0), color = "limegreen")
 
+
+
+
+
+plot_df <- panels %>%
+  group_by(G, year)%>%
+  summarise(defor = mean(y, na.rm=TRUE))%>%
+  mutate(Group = ifelse(G==0, "never treated", "early group\n(treated in year 3)"),
+         Group = ifelse(G==4, "late group\n(treated in year 4)", Group))
+
+export(plot_df, "multigroup_dgp/results_multi/het_landscape.rds")

@@ -9,16 +9,16 @@ deforestation_DGP <- function(nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
     year = add_level(N = (years*2), nest = FALSE),
     obs = cross_levels(
       by = join(pixels, year),
-      post = ifelse(year > years, 1, 0),
-      v_it = rnorm(N, 0, std_v),
-      ystar = b0 + b1*treat + b2_0*post*(1-treat) + b2_1*post*treat + b3*treat*post + a_i + v_it,
-      y = (ystar > 0)*1,
-      ystar_cf = b0 + b1*treat + b2_0*post*(1-treat) + b2_1*post*treat + a_i + v_it,
-        y_cf = (ystar_cf > 0)*1
+      v_it = rnorm(N, 0, std_v)
       )
     )%>%
     mutate(pixels = as.numeric(pixels),
            year = as.numeric(year),
+           post = ifelse(year > years, 1, 0),
+           ystar = b0 + b1*treat + b2_0*post*(1-treat) + b2_1*post*treat + b3*treat*post + a_i + v_it,
+           y = (ystar > 0)*1,
+           ystar_cf = b0 + b1*treat + b2_0*post*(1-treat) + b2_1*post*treat + a_i + v_it,
+           y_cf = (ystar_cf > 0)*1,
            defor_indic = ifelse(y==1, year, 99),
            defor_indic_cf = ifelse(y_cf==1, year, 99))%>%
       group_by(pixels)%>%

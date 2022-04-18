@@ -3,6 +3,7 @@
 library(sf)
 library(rlist)
 library(tidyverse)
+library(spatstat)
 #library(ggpattern)
 
 multigrid_landscape <- function(nobs, cellsize_list, ppoints, cpoints){
@@ -22,8 +23,8 @@ multigrid_landscape <- function(nobs, cellsize_list, ppoints, cpoints){
   pixloc_df <- st_as_sf(DT, coords = c("longitude", "latitude"))
   
   #generate voronoi pts for 
-  vorpts_prop <- st_sample(landscape, ppoints)
-  vorpts_county <- st_sample(landscape, cpoints)
+  vorpts_prop <- st_sample(landscape, type = "unifpoint", n = ppoints)
+  vorpts_county <- st_sample(landscape, type = "unifpoint", n = cpoints)
   
   v_county <- vorpts_county %>%  # consider the sampled points
     st_geometry() %>% #  as geometry only 

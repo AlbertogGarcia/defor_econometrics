@@ -6,7 +6,7 @@ library(tidyverse)
 std_a = 0
 std_v = 0.5
 years = 6
-nobs = 120^2
+nobs = 125^2
 n = 500
 
 cellsize = 12
@@ -24,7 +24,7 @@ set.seed(0930)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 base_0 = .01
-base_1 = .035
+base_1 = .05
 trend = -.005
 ATT = -.01
 

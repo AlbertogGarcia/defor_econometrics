@@ -4,9 +4,9 @@ source(here::here('unbiased_dgp', 'multiple_gridsize_clean.R'))
 # we start with our base parameterization without property level perturbations
 years = 3
 nobs = 150^2
-n = 500
+n = 250
 
-ppoints = 100
+ppoints = 75
 cpoints = 30
 # here are the landscape characteristics in this parameterization
 # note that the bias for the TWFE model will be equal to the pre-treatment difference in deforestation rtes, which is 0.03
@@ -15,7 +15,7 @@ base_1 = .05
 trend = -.005
 ATT = -.01
 
-seq <- c(1,2, seq.int(from = 3, to = 22, by = 2), seq.int(from = 24, to = 100, by = 4))
+seq <- c(1,2, 3, seq.int(from = 4, to = 22, by = 2), seq.int(from = 24, to = 100, by = 4))
 seq
 cellsize_list <- as.list(seq)
 
@@ -123,7 +123,7 @@ summary_grid_25 <- gridsizes_25$summary_long %>%
 ####################################################################################################
 
 all_gridsizes <- rbind(summary_grid, summary_grid_1, summary_grid_25)#, summary_grid_3)
-export(all_gridsizes, "all_gridsizes_300a01_3.rds") #years = 3, std_a = 0.1
+export(all_gridsizes, "all_gridsizes_70a01_3.rds") #years = 3, std_a = 0.1
 #export(all_gridsizes, "all_gridsizes_300a01.rds") #years = 2, std_a = 0.1
 ####################################################################################################
 

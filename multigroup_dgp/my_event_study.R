@@ -1,18 +1,7 @@
-#' Estimate event-study coefficients using TWFE and 5 proposed improvements.
-#'
-#' @description Uses the estimation procedures recommended from Borusyak, Jaravel, Spiess (2021); Callaway and Sant'Anna (2020); Gardner (2021); Roth and Sant'Anna (2021); Sun and Abraham (2020)
-#'
-#' @param data The dataframe containing all the variables
-#' @param yname Variable name for outcome variable
-#' @param idname Variable name for unique unit id
-#' @param tname Variable name for calendar period
-#' @param gname Variable name for unit-specific date of initial treatment (never-treated should be zero or NA)
-#' @param xformla A formula for the covariates to include in the model. It should be of the form `~ X1 + X2`. Default is NULL.
-#' @param horizon Integer of length two. The first integer is the earliest pre-effect to include and the second is the latest post-effect to include. Default is all horizons.
-#' @param weights Variable name for estimation weights. This is used in estimating Y(0) and also augments treatment effect weights
-#'
-#' @return tibble of point estimates for each estimator
-#' @export
+# Estimate event-study coefficients using TWFE and proposed improvements.
+
+library(staggered)
+
 my_event_study = function(data, yname, idname, gname, tname, xformla = NULL, horizon = NULL, weights = NULL){
   
   # Setup ------------------------------------------------------------------------
@@ -138,50 +127,53 @@ my_event_study = function(data, yname, idname, gname, tname, xformla = NULL, hor
   # })
   # 
   # if(is.null(tidy_sunab)) cli::cli_warn("Sun and Abraham (2020) Failed")
-  # 
+
   # did_imputation ---------------------------------------------------------------
-  
-  # cli::cli_text("Estimating using Borusyak, Jaravel, Spiess (2021)")
-  # 
-  # tidy_impute = NULL
-  # 
-  # try({
-  #   impute_first_stage = stats::as.formula(glue::glue("~ {xformla_null} | {idname} + {tname}"))
-  # 
-  #   tidy_impute = did2s::did_imputation(data,
-  #                                       yname = yname, gname = gname, tname = tname, idname = idname,
-  #                                       first_stage = impute_first_stage, horizon = TRUE, pretrends = TRUE) %>%
-  #     dplyr::select(term, estimate, std.error) %>%
-  #     dplyr::mutate(estimator = "Borusyak, Jaravel, Spiess (2021)", term = as.numeric(term))
-  # })
-  # 
-  # if(is.null(tidy_impute)) cli::cli_warn("Borusyak, Jaravel, Spiess (2021) Failed")
+
+  cli::cli_text("Estimating using Borusyak, Jaravel, Spiess (2021)")
+
+  tidy_impute = NULL
+
+  try({
+    impute_first_stage = stats::as.formula(glue::glue("~ {xformla_null} | {idname} + {tname}"))
+
+    tidy_impute = did2s::did_imputation(data,
+                                        yname = yname, gname = gname, tname = tname, idname = idname,
+                                        first_stage = impute_first_stage, horizon = TRUE, pretrends = TRUE) %>%
+      dplyr::select(term, estimate, std.error) %>%
+      dplyr::mutate(estimator = "Borusyak, Jaravel, Spiess (2021)", term = as.numeric(term))
+  })
+
+  if(is.null(tidy_impute)) cli::cli_warn("Borusyak, Jaravel, Spiess (2021) Failed")
 
   # staggered --------------------------------------------------------------------
 
-  cli::cli_text("Estimatng using Roth and Sant'Anna (2021)")
-
-  tidy_staggered = NULL
-
-  try({
-    tidy_staggered = staggered::staggered(
-      data %>%
-        dplyr::mutate(!!rlang::sym(gname) := dplyr::if_else(!!rlang::sym(gname) == 0, Inf, !!rlang::sym(gname))),
-      i = idname, t = tname, g = gname, y = yname, estimand = "eventstudy",
-      eventTime = event_time[is.finite(event_time) & event_time != -1]
-    ) %>%
-      dplyr::select(term = eventTime, estimate, std.error = se) %>%
-      dplyr::mutate(estimator = "Roth and Sant'Anna (2021)")
-  })
-
-  if(is.null(tidy_staggered)) cli::cli_warn("Roth and Sant'Anna (2021) Failed")
+  # cli::cli_text("Estimatng using Roth and Sant'Anna (2021)")
+  # 
+  # tidy_staggered = NULL
+  # 
+  # try({
+  #   tidy_staggered = staggered::staggered(
+  #     data %>%
+  #       dplyr::mutate(!!rlang::sym(gname) := dplyr::if_else(!!rlang::sym(gname) == 0, Inf, !!rlang::sym(gname))),
+  #     i = idname, t = tname, g = gname, y = yname, estimand = "eventstudy",
+  #     eventTime = event_time[is.finite(event_time) & event_time != -1]
+  #   ) %>%
+  #     dplyr::select(term = eventTime, estimate, std.error = se) %>%
+  #     dplyr::mutate(estimator = "Roth and Sant'Anna (2021)")
+  # })
+  # 
+  # if(is.null(tidy_staggered)) cli::cli_warn("Roth and Sant'Anna (2021) Failed")
 
 
 
   
   # Bind results together --------------------------------------------------------
   
-  out = dplyr::bind_rows(tidy_twfe, tidy_did2s, tidy_did, tidy_staggered)#, tidy_sunab, tidy_impute)
+  out = dplyr::bind_rows(tidy_twfe, tidy_did2s, tidy_did, #tidy_sunab, 
+                         #tidy_staggered,
+                         tidy_impute
+                         )
   
   return(out)
   

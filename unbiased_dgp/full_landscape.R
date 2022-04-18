@@ -28,8 +28,8 @@ full_landscape <- function(nobs, cellsize, ppoints, cpoints){
   pixloc_df <- st_as_sf(DT, coords = c("longitude", "latitude"))
   
   #generate voronoi pts for 
-  vorpts_prop <- st_sample(landscape, ppoints)
-  vorpts_county <- st_sample(landscape, cpoints)
+  vorpts_prop <- st_sample(landscape, type = "unifpoint", n = ppoints)
+  vorpts_county <- st_sample(landscape, type = "unifpoint", n = cpoints)
   
   v_county <- vorpts_county %>%  # consider the sampled points
     st_geometry() %>% #  as geometry only 
@@ -45,6 +45,7 @@ full_landscape <- function(nobs, cellsize, ppoints, cpoints){
     st_collection_extract(type = "POLYGON") %>% # select the polygons
     st_intersection(landscape)  # limit to within landscape boundaries
     
+  #plot(v_property)
   
   #determine which pixels are in each grid 
   wgrid <- st_within(pixloc_df, overgrid, sparse = FALSE, prepared = TRUE)*1
