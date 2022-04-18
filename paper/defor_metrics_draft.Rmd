@@ -94,7 +94,7 @@ In each of the studies detailed in Table \@ref(tab:table-lit), the researcher's 
 
 
 ```{r counterfactual, echo=FALSE, fig.cap="A map of a simulated landscape depicting patterns of deforestation under an effective conservation intervention, as well as counterfactual deforestation illustrating what would have happened in the absence of the intervention.", out.width = "100%"}
-knitr::include_graphics("figs/lscape.png")
+knitr::include_graphics("figs/landscape_map.png")
 ```
 
 
@@ -322,7 +322,7 @@ df_summary <- specchart_long %>%
             cover = mean(cover))%>%
   select(Bias, everything())
 
-df_summary <- rbind(df_summary[10,], df_summary[6,],  df_summary[5,], df_summary[1:3,], df_summary[7:9,], df_summary[4,])
+df_summary <- rbind(df_summary[10,], df_summary[6,],  df_summary[5,], df_summary[7:9,],  df_summary[1:3,], df_summary[4,])
 
 par(oma=c(1,0,1,1))
 
@@ -580,148 +580,66 @@ mtext(bquote("Value of " ~ sigma[p]), side=1, at = 0, font=2, cex=2.5, line=3)
 
 ```
 
-In Figure \@ref(fig:agg), we see that incorporating spatially aggregated units reduces bias relative to the simple pixel-level DID when the property influence is relatively large ($\sigma_p= 0.5$). This improvement is apparent in both specifications incorporating spatially aggregated units as the level of unit fixed effects (Regression 4; left panel) or as the unit of analysis (Regression 5; right panel). Further, we see that the scale of aggregation plays a role. Analyses incorporating the property or grid cells near the size of the average property outperform models utilizing larger or smaller scales. Ultimately, all models that incorporate spatial aggregation suffer from relatively little bias and incur less bias than the simple pixel-level DID. In Appendix \@ref(property-alt), we see that specifications incorporating the property tend to outperform other models in alternative parameterizations as well. 
+Table \@ref(tab:res) helps us to get a sense of relative scale within our synthetic landscapes for this section. We assume pixels are comparable to Landsat resolution (30 m).
 
-<!-- ```{r agg-fe, results = FALSE, message = FALSE, warning = FALSE, fig.align="center", fig.cap="bias, distribution, and coverage with $\\sigma_p=0.5$ for Left: specifications with aggregated unit fixed effects; and Right: specifications with aggregatiod units of analysis", fig.width = 10, fig.height = 6, out.width = "75%", fig.pos='H', fig.show='hold'} -->
+```{r res}
+nobs = 150^2
+ppoints = 225
+cpoints = 25
+avg_parea = nobs/ppoints
+avg_carea = nobs/cpoints
+cellsize_med = 10
+cellsize_large = 30
 
-<!-- full_summary <- readRDS("results/summary_full.rds") %>% -->
-<!--   mutate_at(vars(bias, cover), as.numeric)%>% -->
-<!--   filter(std_p==0.5 & is.na(notes) & pixel.fe == 0 & weights == 0 & cox == 0)%>% -->
-<!--   group_by(pixel, grid, property, county, grid.fe, property.fe, county.fe, treatment.fe, se_pixel, se_grid, se_property, se_county)%>% -->
-<!--   summarise(Bias = mean(bias), -->
-<!--             cover = mean(cover), -->
-<!--             RMSE = rmse(bias, 0), -->
-<!--             q05 = quantile(bias, probs = .05), -->
-<!--             q95 = quantile(bias, probs = .95)) -->
+# property: 100 pixels | 100 x 30^2 = 90000 m^2 = 9 ha
+p_ha = avg_parea * 30^2 / 10000
+c_ha = avg_carea * 30^2 / 10000
 
+# unit | grid cell resolution (m) | area (ha) | comparable use in literature
 
-<!-- # Panel A - Pixel-level analyses -->
-<!-- select_results <- full_summary %>%  -->
-<!--   filter(pixel==1 & (treatment.fe == 0 | se_pixel == 1)) %>%  -->
-<!--   arrange(desc(treatment.fe), desc(county.fe), desc(grid.fe), desc(property.fe)) -->
-
-<!-- na_row <- c("Bias" = NA, -->
-<!--             "q05" = NA, -->
-<!--             "q95" = NA) -->
-<!-- select_results <- rbind(na_row, select_results, na_row) -->
-
-<!-- coverage <- select_results$cover -->
-<!-- # coverage[is.na(coverage)] <- 0 -->
-<!-- c_print <- round(coverage, digits = 3) -->
-<!-- c_print[is.na(c_print)] <- " " -->
-
-<!-- RMSE <- select_results$RMSE -->
-<!-- # RMSE[is.na(RMSE)] <- 0 -->
-<!-- RMSE <- as.numeric(RMSE) -->
-<!-- RMSE_print<- round(RMSE, digits =3) -->
-<!-- RMSE_print[is.na(RMSE_print)] <- " " -->
-
-<!-- schart_results <- select_results %>%  -->
-<!--   select(c(Bias, q05, q95, treatment.fe, county.fe, grid.fe, property.fe))%>% -->
-<!--   mutate_at(vars(treatment.fe, county.fe, grid.fe, property.fe), ~as.logical(as.numeric(.))) -->
-
-<!-- index.ci <- match(c("q05","q95"), names(schart_results)) -->
-
-<!-- labels <- list( "Treatment FE", "County FE", "Grid FE", "Property FE") -->
-
-<!-- topline = -0.017 -->
-<!-- midline = topline-0.012 -->
-<!-- ylim <- c(midline-0.011,0.008) -->
+resolution_df <- data.frame(
+  "unit" = c("property", "county", "large grid", "small grid"),
+  "avg_pix" = c(avg_parea, avg_carea, cellsize_large^2, cellsize_med^2)
+) %>%
+  mutate(area_ha = avg_pix * 30^2 / 10000)
 
 
-<!-- #par(bg = palette$white) -->
-<!-- par(oma=c(1,0,1,1)) -->
+kable(resolution_df, format = "latex", row.names = FALSE,  booktabs = T,
+       caption = "Spatial unit resolution and comparable area",
+       col.names = NULL) %>%
+  add_header_above(c("Spatial unit"=1,"Avg. number of pixels"=1, "Area (hectares)"=1), escape = TRUE, line =TRUE, bold = TRUE)%>%
+  kable_styling(font_size = 10, latex_options = c("HOLD_position", "striped"),
+                position = "center")
 
-<!-- schart(as.data.frame(schart_results), labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="",  -->
-<!--        highlight = 5,  leftmargin = 14, col.est = c(palette$dark, palette$red), heights = c(3,1.5), cex = c(1.75, 1.75)) -->
+```
 
-<!-- mtext("Bias     ", side=2, at = -0.00, font=2, las=1, line=.5, cex = 2) -->
-<!-- Axis(side=2, at = c(-0.01, 0, 0.01), labels=TRUE, cex = 3) -->
-<!-- abline(h=0, lty=2, lwd = 2) -->
-<!-- abline(h=topline) -->
-<!-- abline(h=midline) -->
-<!-- lapply(1:length(RMSE), function(i) { -->
-<!--   text(x= i, y=midline+0.006, paste0(RMSE_print[i]), col="black", font=1, cex=2) -->
-<!--   text(x= i, y=midline-0.006, paste0(c_print[i]), col="black", font=1, cex=2) -->
-<!-- }) -->
-<!-- mtext("RMSE", side=2, at = midline+0.006, font=2, las=1, line=.5, cex = 2) -->
-<!-- mtext("Coverage\nprobability", side=2, at = midline-0.006, font=2, las=1, line=.5, cex = 2) -->
-
-
-<!-- # Panel B - aggregate-level analyses -->
-<!-- select_results <- full_summary %>%  -->
-<!--   filter(pixel==0) %>%  -->
-<!--   arrange(desc(pixel), desc(treatment.fe), desc(county.fe), desc(grid.fe), desc(property.fe)) -->
-
-<!-- na_row <- c("Bias" = NA, -->
-<!--             "q05" = NA, -->
-<!--             "q95" = NA) -->
-<!-- select_results <- rbind(na_row, select_results, na_row) -->
-
-
-<!-- labels <- list("Grid", "County", "Property") -->
-<!-- coverage <- select_results$cover -->
-<!-- c_print <- f(round(coverage, digits = 2)) -->
-<!-- c_print[is.na(c_print)] <- " " -->
-
-<!-- RMSE <- select_results$RMSE -->
-<!-- RMSE <- as.numeric(RMSE) -->
-<!-- RMSE_print<- f(round(RMSE, digits =3)) -->
-<!-- RMSE_print[is.na(RMSE_print)] <- " " -->
-
-<!-- schart_results <- select_results %>%  -->
-<!--   select(c(Bias, q05, q95, grid, county, property)) -->
-<!-- index.ci <- match(c("q05","q95"), names(schart_results)) -->
-
-<!-- topline = -0.015 -->
-<!-- midline = topline-0.012 -->
-<!-- ylim <- c(midline-0.011,0.015) -->
-
-
-<!-- #par(bg = palette$white) -->
-<!-- par(oma=c(1,0,1,1)) -->
-
-<!-- schart(as.data.frame(schart_results), labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="",  -->
-<!--        highlight = 4,  leftmargin = 13, col.est = c(palette$dark, palette$red), heights = c(3, 1.5), cex = c(1.75, 1.75)) -->
-
-
-<!-- mtext("Bias    ", side=2, at = 0.0, font=2, las=1, line=.5, cex = 2) -->
-<!-- Axis(side=2, at = c(-0.01, 0, 0.01), labels=TRUE, cex = 3) -->
-<!-- abline(h=topline) -->
-<!-- abline(h=midline) -->
-<!-- lapply(1:length(RMSE), function(i) { -->
-<!--   text(x= i, y=midline+0.006, paste0(RMSE_print[i]), col="black", font=1, cex=2) -->
-<!--   text(x= i, y=midline-0.006, paste0(c_print[i]), col="black", font=1, cex=2) -->
-<!-- }) -->
-<!-- mtext("RMSE", side=2, at = midline+0.006, font=2, las=1, line=.5, cex = 2) -->
-<!-- mtext("Coverage\nprobability", side=2, at = midline-0.006, font=2, las=1, line=.5, cex = 2) -->
-
-
-<!-- ``` -->
-
-
+In Figure \@ref(fig:agg), we see that incorporating spatially aggregated units reduces bias relative to the simple pixel-level DID when the property influence is relatively large ($\sigma_p= 0.5$). This improvement is apparent in both specifications incorporating spatially aggregated units as the level of unit fixed effects (Regression 4; left panel) or as the unit of analysis (Regression 5; right panel). That said, specifications with a spatially aggregated unit of analysis consistently outperform their counterpart with spatially aggregated fixed effects. Further, we see that the scale of aggregation plays a role. Analyses incorporating the property or grid cells near the size of the average property outperform models utilizing larger or smaller scales. Ultimately, all models that incorporate spatial aggregation suffer from relatively little bias and incur less bias than the simple pixel-level DID. In Appendix \@ref(property-alt), we see that specifications incorporating the property as the unit of analysis tend to outperform other models in alternative parameterizations as well. 
 
 
 ```{r agg, results = FALSE, message = FALSE, warning = FALSE, fig.align="center", fig.cap="bias, distribution, and coverage with $\\sigma_p=0.5$ for Left: specifications with aggregated unit fixed effects; and Right: specifications with aggregated units of analysis", fig.width = 12, fig.height = 8, out.width = "100%", fig.pos='H', fig.show='hold'}
 
 full_summary <- readRDS("results/summary_full.rds") %>%
   mutate_at(vars(bias, cover), as.numeric)%>%
-  filter(std_p==0.5 & is.na(notes) & pixel.fe == 0 & weights == 0 & cox == 0 & (treatment.fe == 0 | se_pixel == 1) , is.na(gridsize) | gridsize == max(gridsize, na.rm = T)) %>%
+  filter(std_p==0.5 & is.na(notes) & pixel.fe == 0 & weights == 0 & cox == 0 & (treatment.fe == 0 | se_pixel == 1) , is.na(gridsize) | gridsize != min(gridsize, na.rm = T)) %>%
   group_by(pixel, grid, property, county, grid.fe, property.fe, county.fe, treatment.fe, se_pixel, se_grid, se_property, se_county, gridsize)%>%
   summarise(Bias = mean(bias),
             cover = mean(cover),
             RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
-            q95 = quantile(bias, probs = .95))
+            q95 = quantile(bias, probs = .95))%>%
+  mutate(grid.fe_large = ifelse(gridsize != max(as.numeric(gridsize), rm.na = T) | is.na(gridsize), 0, 1),
+         grid.fe_small = ifelse(gridsize == max(as.numeric(gridsize), rm.na = T) | is.na(gridsize) , 0, 1),
+         grid_large = ifelse(grid.fe_large == 1 & grid == 1, 1, 0),
+         grid_small = ifelse(grid.fe_small == 1 & grid == 1, 1, 0))
 
 # Panel A - Pixel-level analyses
 select_results_A <- full_summary %>% 
   filter(pixel==1 ) %>% 
-  arrange(desc(treatment.fe), desc(grid.fe), desc(county.fe), desc(property.fe))
+  arrange(desc(treatment.fe), desc(grid.fe_small), desc(grid.fe_large), desc(county.fe), desc(property.fe))
 
 select_results_B <- full_summary %>% 
   filter(pixel==0) %>% 
-  arrange(desc(pixel), desc(treatment.fe), desc(grid.fe),  desc(county.fe), desc(property.fe))
+  arrange(desc(pixel), desc(treatment.fe), desc(grid.fe_small), desc(grid.fe_large),  desc(county.fe), desc(property.fe))
 
 
 na_row <- c("Bias" = NA,
@@ -742,21 +660,14 @@ gridsize_print <- select_results$gridsize
 gridsize_print[is.na(gridsize_print)] <- " "
 
 schart_results <- select_results %>% 
- # mutate(F_col = FALSE)%>%
-  select(c(Bias, q05, q95, pixel, county, property, grid, treatment.fe, county.fe, property.fe, grid.fe#,  
-           #F_col
+  select(c(Bias, q05, q95, pixel, grid_large, grid_small, county, property, treatment.fe,  grid.fe_large, grid.fe_small, county.fe, property.fe
            ))%>%
-  mutate_at(vars(pixel, grid, county, property, treatment.fe, grid.fe, county.fe, property.fe), ~as.logical(as.numeric(.)))
+  mutate_at(vars(pixel, county, property, grid_large, grid_small, treatment.fe, county.fe, property.fe, grid.fe_large, grid.fe_small), ~as.logical(as.numeric(.)))
 
 index.ci <- match(c("q05","q95"), names(schart_results))
 
-labels <- list("Unit of analysis:" = c("pixel","county", "property", "grid"),
-               "Fixed effects:" = c("treatment FE", "county FE", "property FE", "grid FE"),
-               "Grid size" = c("")
-               )
-
-labels <- list("Unit of analysis:" = c("pixel","county", "property", "grid"),
-               "Fixed effects:" = c("treatment FE", "county FE", "property FE", "grid FE")
+labels <- list("Unit of analysis:" = c("pixel", "large grid", "small grid", "county", "property"),
+               "Fixed effects:" = c("treatment FE", "large grid FE", "small grid FE", "county FE", "property FE")
                )
 
 topline = -0.018
@@ -768,7 +679,7 @@ ylim <- c(midline-0.011,0.015)
 par(oma=c(1,0,1,1))
 
 schart(as.data.frame(schart_results), labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
-       highlight = c(5, 9),  leftmargin = 16, col.est = c(palette$dark, palette$red), heights = c(3, 3), cex = c(1.75, 1.75)
+       highlight = c(6, 11),  leftmargin = 16, col.est = c(palette$dark, palette$red), heights = c(3, 3), cex = c(1.75, 1.75)
        )
 mtext("Bias    ", side=2, at = 0.0, font=2, las=1, line=.5, cex = 2)
 Axis(side=2, at = c(-0.01, 0, 0.01), labels=TRUE, cex = 3)
@@ -781,12 +692,12 @@ lapply(1:length(RMSE), function(i) {
 })
 mtext("RMSE", side=2, at = midline+0.006, font=2, las=1, line=.5, cex = 1.75)
 mtext("Coverage\nprobability", side=2, at = midline-0.006, font=2, las=1, line=.5, cex = 1.6)
-abline(v = 6)
+abline(v = 7)
 
 
 ```
 
-While incorporating spatially aggregated units in OLS specifications may improve analysis, there is no clear analog with survival models. In fact, Figure \@ref(fig:summary) in the appendix shows that $\hat{HE}$ suffers significantly as $sigma_p$ increases. As such, when the pixel is not the preferred unit of analysis, survival analysis is not likely to be the preferred method for estimating the impact of conservation interventions.
+While incorporating spatially aggregated units in OLS specifications may improve analysis, there is no clear analog with survival models. In fact, Figure \@ref(fig:summary) in the appendix shows that $\hat{HE}$ suffers significantly as $\sigma_p$ increases. As such, when the pixel is not the preferred unit of analysis, survival analysis is not likely to be the preferred method for estimating the impact of conservation interventions.
 
 <!-- As property level unobservables play a larger role, the treatment of standard errors also becomes more important. Standard error clustering is used by nearly every study in the literature for inference. The clustering problem is caused by the presence of a common unobserved random shock at the group level that leads to correlation between all observations within a group [@hansen2007]. We have introduced the random shock at the property level in our guiding example to represent individual landowner preferences or property characteristics. As such, correlation within grids and counties will also be introduced, since they contain multiple pixels within a property. Clustering standard errors relaxes the assumption of no correlation across observations within the spatial unit used for clustering [@jones2015]. -->
 
@@ -1151,7 +1062,7 @@ Figure \@ref(fig:pweight) shows the $ATT$ at both the property and landscape sca
 # Extension to multiple groups and time periods {#multipleGT}
 
 The typical DID regression applies to settings with two-groups and two-periods, however, many times researchers use TWFE regressions to exploit variation across groups of units that receive treatment at different times. Recent work has show that in these cases, TWFE regressions identify a weighted average of all possible two-group/two-period DID estimators in the data [@goodman-bacon2021]. 
-Further, when estimating the $ATT$, some weights on each group-time treatment effect parameter may actually be negative, which could lead for instance, to a negative regression coefficient while all the treatment effect parameters are positive [@dechaisemartin2020]. Newly developed estimators [e.g., @callaway2020; @gardner2021; @boryusak2020] seek to address these weighting issues by individually calculating two-period, two-group DID parameters before aggregating them to a summary measure of the overall $ATT$. 
+Further, when estimating the $ATT$, some weights on each group-time treatment effect parameter may actually be negative, which could lead for instance, to a negative regression coefficient while all the treatment effect parameters are positive [@dechaisemartin2020]. Newly developed estimators [e.g., @callaway2020; @gardner2021; @borusyak2021] seek to address these weighting issues by individually calculating two-period, two-group DID parameters before aggregating them to a summary measure of the overall $ATT$. 
 
 One might conclude that these new estimators solve the issues with pixel level TWFE regressions that we present here, since some of these estimators involve separately calculating all two period/two-group treatment effects. We consider the estimators developed in this burgeoning literature in order to show that the issue with pixel unit fixed effects can still plague researchers' estimates even with this new suite of methods. 
 
@@ -1167,8 +1078,8 @@ ggplot(data=rate_landscape, aes(x=year, y=defor, colour=Group))+
   geom_line(size=2)+
   ylab("deforestation rate")+
   scale_y_continuous(labels = scales::percent)+
-  ggtitle("Annual deforestation")+
-  theme_minimal(base_size = 22)+
+  ggtitle("Annual deforestation across multiple groups")+
+  theme_minimal(base_size = 20)+
   theme(#legend.key = element_rect(color = NA, fill = NA),
         legend.key.size = unit(.5, "cm")) +
   theme(legend.title.align = 0.5)
@@ -1176,7 +1087,7 @@ ggplot(data=rate_landscape, aes(x=year, y=defor, colour=Group))+
 
 ```
 
-The left panel of Figure \@ref(fig:multiGT) shows that the estimators developed in @callaway2020, @gardner2021, and @boryusak2020 suffer from similar bias to TWFE regressions with pixel unit fixed effects if the pixel is used as the unit of analysis. All methods yield a treatment effect greater than or equal to 0 in all post-treatment periods, reflecting the fact that pre-treatment period deforestation rates are unaccounted for by the estimators. This is particularly  clear in the @callaway2020 estimator in which pre-treatment periods are all precisely zero, indicating that the estimator could only compute treatment effects using pixels that survived until the end of the observation period. The right panel of Figure \@ref(fig:multiGT) shows that this bias is eliminated when one uses an aggregated unit of analysis with binary treatment (e.g., county). We do not include pixel-level TWFE regressions with spatially aggregated fixed effects, because most recently developed estimators do not allow for a comparable implementation. Therefore if the researcher wants to obtain a landscape-scale interpretation, they must use an aggregated grid cell or weight the regression by the unit area. 
+The left panel of Figure \@ref(fig:multiGT) shows that the estimators developed in @callaway2020, @gardner2021, and @borusyak2021 suffer from similar bias to TWFE regressions with pixel unit fixed effects if the pixel is used as the unit of analysis. All methods yield a treatment effect greater than or equal to 0 in all post-treatment periods, reflecting the fact that pre-treatment period deforestation rates are unaccounted for by the estimators. This is particularly  clear in the @callaway2020 estimator in which pre-treatment periods are all precisely zero, indicating that the estimator could only compute treatment effects using pixels that survived until the end of the observation period. The right panel of Figure \@ref(fig:multiGT) shows that this bias is eliminated when one uses an aggregated unit of analysis with binary treatment (e.g., county). We do not include pixel-level TWFE regressions with spatially aggregated fixed effects, because most recently developed estimators do not allow for a comparable implementation. Therefore if the researcher wants to obtain a landscape-scale interpretation, they must use an aggregated grid cell or weight the regression by the unit area. 
 
 ```{r multiGT, results = FALSE, warning = FALSE, fig.cap="New estimators, similar to TWFE regressions with pixel unit fixed effects, cannot identify ATT with pixel as unit of analysis", fig.pos='H', fig.width = 7, fig.height = 7, fig.show='hold'}
 #knitr::include_graphics(c("figs/pixel_multiGT.png", "figs/county_multiGT.png"))
@@ -1207,8 +1118,8 @@ ggplot(data=het_landscape, aes(x=year, y=defor, colour=Group))+
   geom_line(size=2)+
   ylab("deforestation rate")+
   scale_y_continuous(labels = scales::percent)+
-  ggtitle("Annual deforestation")+
-  theme_minimal(base_size = 22)+
+  ggtitle("Annual deforestation across heterogeneous groups")+
+  theme_minimal(base_size = 20)+
   theme(#legend.key = element_rect(color = NA, fill = NA),
         legend.key.size = unit(.5, "cm")) +
   theme(legend.title.align = 0.5)

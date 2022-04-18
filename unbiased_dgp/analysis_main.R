@@ -15,14 +15,14 @@ library(ggfortify)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 years = 6
-nobs = 175^2
+nobs = 150^2
 n = 500
 
 cellsize_small = 5
-cellsize_med = 12
+cellsize_med = 10
 cellsize_large = 30
-ppoints = 200
-cpoints = 30
+ppoints = 225
+cpoints = 25
 
 avg_parea  = nobs/ppoints
 avg_carea = nobs/cpoints
@@ -134,8 +134,6 @@ export(summary_full, "unbiased_dgp/results/summary_full.rds")
 ######## alternative parameterization
 ###############################################################################################################
 std_p = 0.5
-nobs = 125^2
-ppoints = 100
 
 base_0 = .05
 base_1 = .02
@@ -187,7 +185,8 @@ std_a = 0
 std_v = 0.5
 std_p = 0.0
 std_b3 = .15
-
+nobs = 100^2
+ppoints = 100
 
 # here are the landscape characteristics in this parameterization
 # note that the bias for the TWFE model will be equal to the pre-treatment difference in deforestation rtes, which is 0.03

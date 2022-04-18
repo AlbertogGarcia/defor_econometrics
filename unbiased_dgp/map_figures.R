@@ -14,7 +14,7 @@ library(data.table)
 source(here::here("unbiased_dgp", "full_landscape.R"))
 library(ggpubr)
 
-set.seed(0930)
+set.seed(6226)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Set parameters --------------------------------------------------------
@@ -43,19 +43,19 @@ palette <- list("white" = "#FAFAFA",
                 "dark_green" = "#496F5D",
                 "gold" = "#DAA520")
 
-base_0 = 0.1
-base_1 = 0.2
-trend = -.005
-ATT = -0.1
+base_0 = .04
+base_1 = .08
+trend = 0.02
+ATT = -0.06
 
 std_a = 0.1
-std_v = 0.25
+std_v = 0.5
 years = 1
-nobs = 175^2
+nobs = 100^2
 
-cellsize = 35
+cellsize = 20
 ppoints = 300
-std_p = 0
+std_p = 0.2
 cpoints = 20
 
 
@@ -147,7 +147,7 @@ data_df <- panels %>%
          y_it = y_it %>% recode("-1" = "Previously deforested", 
                                 "0" = "Not deforested", 
                                 "1" = "Deforested"),
-         y_plot = y_plot %>% recode("-1" = "Previously deforested", 
+         y_plot = y_plot %>% recode("-1" = "Deforested", 
                                 "0" = "Not deforested", 
                                 "1" = "Deforested",
                                 "2" = "Counterfactual deforestation"),
@@ -171,28 +171,38 @@ data_df <- panels %>%
 # Landscape plots --------------------------------------------------------
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fills = c("Previously deforested" = palette$light_grey,
-          "Not deforested" = palette$dark, 
+fills = c(#"Previously deforested" = palette$light_grey,
+          #"Not deforested" = palette$dark, 
           "Deforested" = palette$red,
           "Stable forest - treated" = palette$dark,
-          "Stable forest - not treated" = palette$blue,
-          "Counterfactual deforestation" = palette$green)
+          "Stable forest - not treated" = palette$dark_green,
+          "Counterfactual deforestation" = palette$gold,
+          "County boundaries" = palette$blue,
+          "Property boundaries" = "grey65",
+          "Grid cell boundaries" = "white")
+
+colors = c("County boundaries" = palette$green,
+  "Property boundaries" = "grey65",
+  "Grid cell boundaries" = "white")
 
 
 
 
 plot_df <- data_df %>% 
   filter(year==2) %>% 
-  mutate(plot_var = ifelse(y_plot %in% c("Deforested", "Previously deforested", "Counterfactual deforestation"), as.character(y_plot), as.character(treat)))
+  mutate(plot_var = ifelse(y_plot %in% c("Deforested", "Counterfactual deforestation"), as.character(y_plot), as.character(treat)))
 
 
 # County-level analysis
 county_plot <- ggplot() + 
-  geom_sf(data = plot_df, aes(fill = plot_var), color = "black", shape = 22, alpha = 1, size = 2.8) +
-  geom_sf(data = c_bounds, size = 1.5, fill = "NA", color = palette$gold) +
-  geom_sf(data = p_bounds, size = 1.5, fill = "NA", color = "grey60") +
+  geom_sf(data = plot_df, aes(fill = plot_var), color = "black", shape = 22, alpha = 1, size = 1.6) +
+  geom_sf(data = p_bounds, size = .75, fill = "NA", color = "grey60") +
+  geom_sf(data = c_bounds, size = 1.25, fill = "NA", color = palette$blue) +
   geom_vline(xintercept = c(seq(from = cellsize, to = sqrt(nobs), by = cellsize)), color="white", size=1.25) + 
   geom_hline(yintercept = c(seq(from = cellsize, to = sqrt(nobs), by = cellsize)), color="white", size=1.25) +
-  scale_fill_manual(values = fills)
+  scale_fill_manual(values = fills)+
+  guides(fill = guide_legend(override.aes = list(size=5)))+
+  xlab("")+ylab("")
 county_plot %>% 
   format_fig()
+
