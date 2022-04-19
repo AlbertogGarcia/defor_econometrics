@@ -160,7 +160,7 @@ We model deforestation $(y_{ivt})$ as a binary choice by a landowner to clear a 
    \end{cases}
 \end{align}
 
-This generic clearing rule underpins a broad class of more specific static and dynamic models that have been used to explore the determinants of deforestation [e.g., @pfaff1999; @kerr; @pfaff2004].
+This generic clearing rule underpins a broad class of more specific static and dynamic models that have been used to explore the determinants of deforestation [e.g., @pfaff1999; @kerr2003; @pfaff2004].
 
 However, this basic model makes an assumption that the decision to deforest is reversible. In reality, a number of characteristics of both the process of deforestation, as well as the methods used to detect deforestation in individual plots, complicate this assumption. First, the goal of many conservation interventions is to prevent the loss of mature forests that may take decades, if not centuries, to regrow. In such cases, deforestation itself may be considered irreversible in human time scales, focusing the researchers' attention upon the first instance in which a plot is deforested. Even when deforestation of secondary forests is an object of interest, constraints imposed by remotely sensed datasets may force empirical researchers to treat deforestation as irreversible. Gradual processes of reforestation are inherently harder to identify than abrupt losses of forest cover [@hansen2013]. In addition, determining the precise year in which the extended process of forest regrowth began is currently an active area of research for the remote sensing community, and often requires many years of post-regrowth observations. As a result, commonly used deforestation datasets such as the Global Forest Change product often only identify the first year in which a pixel was cleared [@hansen2013]. Whether desired, or due to technical limitations, the resulting inability to observe repeated deforestation means that deforestation is, in effect, an irreversible process in most conservation impact evaluations In response to this irreversibility, @jones2015 and @alix-garcia2017 have suggested that deforested pixels should be dropped in the periods after they are first cleared. We follow this guidance, further modifying our binary deforestation variable:
 
@@ -291,7 +291,7 @@ y^o_{ivt} = \alpha + \beta_{TWFE} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \la
 \end{align}
 Here $\lambda_t$ and $\gamma_i$ represent the year and pixel fixed effects, respectively. 
 
-In the case of two groups and two time periods, the TWFE regression typically gives an estimate equivalent to that of the DID model [@wooldridge]. With this in mind, many researchers, including those in the conservation impact evaluation literature, have used the TWFE model as a "generalized DID" that can be estimated in settings in which units undergo treatment in more than two distinct time periods (Table \@ref(tab:table-lit)). For example, a researcher may use a TWFE regression model to examine the effectiveness of a network of protected areas where the protected areas were created at different times, or a payment for ecosystem services (PES) program that enrolled properties in annual cohorts. 
+In the case of two groups and two time periods, the TWFE regression typically gives an estimate equivalent to that of the DID model [@wooldridge2010]. With this in mind, many researchers, including those in the conservation impact evaluation literature, have used the TWFE model as a "generalized DID" that can be estimated in settings in which units undergo treatment in more than two distinct time periods (Table \@ref(tab:table-lit)). For example, a researcher may use a TWFE regression model to examine the effectiveness of a network of protected areas where the protected areas were created at different times, or a payment for ecosystem services (PES) program that enrolled properties in annual cohorts. 
 
 <!-- Robert - I think this text is redundant with previous few sentences, and start of next section
 When the treatment effect is constant across groups and over time, TWFE regressions typically estimate the average treatment effect in treated units under the standard common trends assumption [@dechaisemartin2020]. However, when TWFE models in the form of Regression 2 are applied to a binary, irreversible process such as deforestation, $\beta_{TWFE}$ fails to identify the $ATT$.  -->
@@ -381,7 +381,7 @@ knitr::include_graphics("figs/schart.png")
 
 ## Spatially aggregated units of analysis
 
-Another potential solution to the bias associated with TWFE models is for researchers to aggregate multiple pixel level observations into larger units of analysis. The researcher must now calculate the deforestation rate in each time period. While we detail the tradeoffs of various deforestation rate calculations in the appendix (Appendix \@ref(rate-formula)), the following results are based on Equation \@ref(eq:deforrate) which is arguably the most commonly used formula in the literature [e.g. @carlson2018; @busch2015a]. 
+Another potential solution to the bias associated with TWFE models is for researchers to aggregate multiple pixel level observations into larger units of analysis. The researcher must now calculate the deforestation rate in each time period. While we detail the tradeoffs of various deforestation rate calculations in the appendix (Appendix \@ref(rate-formula)), the following results are based on Equation \@ref(eq:deforrate) which is arguably the most commonly used formula in the literature [e.g. @carlson2018; @busch2015]. 
 \begin{align*} 
 z_{jt} &= \frac{F_{j,t-1} - F_{j,t}}{F_{j,t-1}} (\#eq:deforrate)
 \end{align*}
@@ -398,7 +398,7 @@ Columns 9-11 of Figure \@ref(fig:summary-fig) show that the bias of the estimate
 
 <!-- # Non-random selection and the spatial nature of the deforestation process {#property} -->
 <!-- <!-- Robert to do: Edit this section -->
-<!-- --> -->
+<!-- --> 
 <!-- The irreversible nature of the deforestation process creates the potential for non-random sample selection in this data setting. Because the process of deforestation is irreversible in the panel, deforested pixels are no longer at risk of clearing in the periods after they are first deforested. This means the "at risk" set of pixels changes through time as more pixels become deforested. As such, the distribution that describes the returns to clearing the at-risk pixels may change through time as well, leading to non-random selection of the sample through time. For example, pixels with extremely high returns to clearing are more likely to be cleared early on, regardless of treatment status. In subsequent periods, therefore, these high return pixels are less likely to be present in the sample at all. In the context of two-groups and two-periods, only the second period suffers from this non-random sample selection, and we expresss the bias introduced from non-random sample selection below. -->
 
 <!-- \textbf{Result:} Under Assumptions 1 and 2, in the two-group, two-period case, $\beta_{DID}$ suffers from non-random sample selection bias when the $y^o_{ivt}$s are not i.i.d. -->
@@ -406,11 +406,11 @@ Columns 9-11 of Figure \@ref(fig:summary-fig) show that the bias of the estimate
 <!-- \begin{align} -->
 <!-- \beta_{DID} = & ATT +  \underbrace{E[y^o_{ivt}|t\geq t_0, D_i=1]-E[y_{ivt}|t\geq t_0, D_i=1] - (E[y^o_{ivt}|t\geq t_0, D_i=0]-E[y_{ivt}|t\geq t_0, D_i=0])}_\text{{bias emerging from non-random sample selection}} -->
 <!-- \end{align} -->
-<!-- <!-- = & ATT +  \\ --> -->
-<!-- <!-- & P[y^o_{it}=1|t\geq t_0, D_i=1]-P[y_{it}=1|t\geq t_0, D_i=1] - (P[y^o_{it}=1|t\geq t_0, D_i=0]-P[y_{it}=1|t\geq t_0, D_i=0])\\ --> -->
-<!-- <!-- = & ATT +  \\ --> -->
-<!-- <!-- & P[ (y^*_{it}>0|t\geq t_0, D_i=1 ) \ | \ (y^*_{it}\leq 0 | t< t_0, D_i=1)]-P[y^*_{it}>0|t\geq t_0, D_i=1] - \\ --> -->
-<!-- <!-- &(P[ (y^*_{it}>0|t\geq t_0, D_i=0 ) \ | \ (y^*_{it}\leq 0 | t< t_0, D_i=0)]-P[y^*_{it}>0|t\geq t_0, D_i=0])\\ --> -->
+<!-- <!-- = & ATT +  \\ --> 
+<!-- <!-- & P[y^o_{it}=1|t\geq t_0, D_i=1]-P[y_{it}=1|t\geq t_0, D_i=1] - (P[y^o_{it}=1|t\geq t_0, D_i=0]-P[y_{it}=1|t\geq t_0, D_i=0])\\ --> 
+<!-- <!-- = & ATT +  \\ --> 
+<!-- <!-- & P[ (y^*_{it}>0|t\geq t_0, D_i=1 ) \ | \ (y^*_{it}\leq 0 | t< t_0, D_i=1)]-P[y^*_{it}>0|t\geq t_0, D_i=1] - \\ --> 
+<!-- <!-- &(P[ (y^*_{it}>0|t\geq t_0, D_i=0 ) \ | \ (y^*_{it}\leq 0 | t< t_0, D_i=0)]-P[y^*_{it}>0|t\geq t_0, D_i=0])\\ --> 
 
 <!-- \textbf{Proof:} Appendix \@ref(selection-proof) Q.E.D. -->
 
@@ -630,7 +630,7 @@ Despite past guidance to the contrary, models that seek to estimate a policy's i
 
 In order to avoid the bias introduced by pixel-level, TWFE models of deforestation, researchers can either (a) aggregate the level at which they estimate fixed effects; or (b) aggregate their unit of analysis. The optimal scale of spatial aggregation under either of these approaches depends upon the process by which land use decisions are made. Specifically, bias can arise when the model specification diverges from the scale at which land use change is determined. Ultimately, context plays a role in what is feasible, and researchers should make clear the limits to their impact evaluation strategy. 
 
-We do not integrate many aspects of the growing literature that explores how remotely sensed data may need special consideration when used in impact evaluation. Aspects of the collection process such as satellite sensor characteristics, atmospheric conditions, and image processing may influence the structure of remotely sensed data products [@jain2020; @alix-garcia2021]. Of particular concern is the possibility of non-classical measurement error, which can lead to biased estimates of the $ATT$ [@wooldridge]. @alix-garcia2021 propose a solution for the case of a remotely sensed binary outcome in which misclassification is non-classical. As the proliferation of research relying on satellite data continues, researchers will need consider the intricacies of particular satellite data sources in order to substantiate causal claims.
+We do not integrate many aspects of the growing literature that explores how remotely sensed data may need special consideration when used in impact evaluation. Aspects of the collection process such as satellite sensor characteristics, atmospheric conditions, and image processing may influence the structure of remotely sensed data products [@jain2020; @alix-garcia]. Of particular concern is the possibility of non-classical measurement error, which can lead to biased estimates of the $ATT$ [@wooldridge2010]. @alix-garcia propose a solution for the case of a remotely sensed binary outcome in which misclassification is non-classical. As the proliferation of research relying on satellite data continues, researchers will need consider the intricacies of particular satellite data sources in order to substantiate causal claims.
 
 <!-- Several econometric considerations relevant to model design and interpretation were not explored in this paper. TWFE regression models have received substantial attention in the econometrics literature recently, regarding concerns surrounding their viability and interpretability [e.g. @kropko2020]. For example, properties of TWFE regression models that arise when treatment effects are heterogeneous across groups or over time may lead to erroneous results [@dechaisemartin2020]. We largely abstract away from choices of scale with regards to grid size or unit of analysis, but biased estimates may result from scale choices that are too large or too small relative to the data generating process or decision unit [@avelino2016] (partially implemented). This makes choice of grid cell size a relevant but unexplored aspect of our study. Lastly, the benefits of pre-matching control and treatment units are not addressed, but they are well understood to be substantial [e.g. @jones2015; @blackman2013]. -->
 
@@ -1003,7 +1003,7 @@ One common formula to calculate annual deforestation rates is
 \begin{align}
 \text{Outcome 1)} &= \frac{F_{i,t-1} - F_{it}}{F_{i,t-1}}
 \end{align}
-, where $F_{it}$ and $F_{i,t-1}$ are the forest cover at times $t$ and $t-1$, respectively. This calculation is used consistently in the literature [e.g. @carlson2018; @busch2015a], and is arguably the most widely used formula. Some authors have also calculated the deforestation rate in relation to the initial observed level of forest cover, replacing $F_{it}$ with $F_{i0}$, the baseline forest cover, in equation (1). This gives outcome 2):
+, where $F_{it}$ and $F_{i,t-1}$ are the forest cover at times $t$ and $t-1$, respectively. This calculation is used consistently in the literature [e.g. @carlson2018; @busch2015], and is arguably the most widely used formula. Some authors have also calculated the deforestation rate in relation to the initial observed level of forest cover, replacing $F_{it}$ with $F_{i0}$, the baseline forest cover, in equation (1). This gives outcome 2):
 \begin{align}
 \text{Outcome 2)} &= \frac{F_{i0} - F_{it}}{F_{i0}}
 \end{align}
