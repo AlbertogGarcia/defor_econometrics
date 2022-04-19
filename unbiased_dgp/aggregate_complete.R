@@ -17,7 +17,7 @@ library(DeclareDesign)
 source(here::here('unbiased_dgp', 'full_landscape.R'))
 
 #begin function
-aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v = 0.25, std_p = 0.0, cellsize, ppoints, cpoints, rm.selection = FALSE){
+aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v = 0.25, std_p = 0.0, cellsize, ppoints, cpoints){
   
   countyscape = full_landscape(nobs, cellsize, ppoints, cpoints)
   pixloc_df = countyscape$pixloc_df
@@ -46,7 +46,7 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
   summ_row <- n_mod * n
   
   summary_long <- data.frame('b0'= rep(b0, summ_row), 'b1'= rep(b1, summ_row), 'b2_0'= rep(b2_0, summ_row), 'b2_1'= rep(b2_1, summ_row), 'b3'= rep(b3, summ_row), 
-                             'std_a'= rep(std_a, summ_row), 'std_v'= rep(std_v, summ_row), 'std_p'= rep(std_p, summ_row),
+                             'std_a'= rep(std_a, summ_row), 'std_v'= rep(std_v, summ_row), 'std_p'= rep(std_p, summ_row), "years" = years,
                              'iteration' = rep(NA, summ_row), 
                              'pixel'=rep(NA, summ_row),'grid'=rep(NA, summ_row),'property'=rep(NA, summ_row),'county'=rep(NA, summ_row),
                              'pixel fe'=rep(NA, summ_row),'grid fe'=rep(NA, summ_row),'property fe'=rep(NA, summ_row),'county fe'=rep(NA, summ_row),'treatment fe'=rep(NA, summ_row),
@@ -63,7 +63,7 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       year = add_level(N = (years*2), nest = FALSE),
       obs = cross_levels(
         by = join(pixels, year),
-        post = ifelse(year > years, 1, 0),
+        post = ifelse(as.numeric(year) > years, 1, 0),
         v_it = rnorm(N, 0, std_v),
         ystar = b0 + b1*treat + b2_0*post*(1-treat) + b2_1*post*treat + b3*treat*post + a_i + v_it,
         ystar_cf = b0 + b1*treat + b2_0*post*(1-treat) + b2_1*post*treat + a_i + v_it
@@ -80,7 +80,8 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       inner_join(pixloc, by = c("pixels", "treat")) %>%
       inner_join(errortable_property, by = "property") %>%
       #inner_join(errortable_county, by = "county") %>%
-      mutate(ystar = ystar + p_err,
+      mutate(year = as.numeric(year),
+             ystar = ystar + p_err,
              ystar_cf = ystar_cf + p_err,
              y = (ystar > 0)*1 ,
              y_cf = (ystar_cf > 0)*1 )
@@ -116,36 +117,14 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       mutate(y_it = ifelse(indic > 0, NA, y))
     
     
-    ###############
-    ## calculating selestion bias
-    ###############
-    treat_post <- subset(panels, treat==1)
+    # aggregate up to county in each year
+    gridlevel_df <- as.data.frame(panels) %>%
+      dplyr::group_by(grid, year, post) %>%
+      dplyr::summarise(defor = mean(defor),
+                       treat = mean(treat),
+                       garea = mean(garea))%>%
+      ungroup()
     
-    control_post <- subset(panels, treat==0 )
-    
-    y_treat = mean(treat_post$y)
-    y0_treat = mean(treat_post$y_it, na.rm = TRUE)
-    y_control = mean(control_post$y)
-    y0_control = mean(control_post$y_it, na.rm = TRUE)
-    
-    
-    sel_bias = y0_treat - y_treat - (y0_control - y_control)
-    
-    
-    selection_bias[i, 1] <- i
-    selection_bias[i, 2] <- sel_bias
-    
-    #ATT = mean( subset(panels, treat==1&post==1)$y)-mean( subset(panels, treat==1&post==1)$y_cf)
-    ATT = pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) - pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2 + std_p^2)^.5)
-    
-    if(rm.selection){
-      ATT = ATT+sel_bias  
-    }
-    
-    # aggregate up to county in each year 
-    suppressWarnings(
-      gridlevel_df <-  aggregate(panels, by = list(panels$year, panels$grid), FUN = mean, drop = TRUE)[c("grid", "treat", "post", "year","defor", "garea")]
-    )
     
     gridlevel_df <- gridlevel_df[order(gridlevel_df$grid, gridlevel_df$year),]
     gridlevel_df <- slide(gridlevel_df, Var = "defor", GroupVar = "grid", NewVar = "deforlag",
@@ -164,9 +143,12 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       filter_all(all_vars(!is.infinite(.)))
     
     # aggregate up to property in each year 
-    suppressWarnings(
-      proplevel_df <-  aggregate(panels, by = list(panels$property, panels$year), FUN = mean, drop = TRUE)[c("property", "treat", "post", "year","defor", "parea")]
-    )
+    proplevel_df <- as.data.frame(panels) %>%
+      dplyr::group_by(property, year, post) %>%
+      dplyr::summarise(defor = mean(defor),
+                       treat = mean(treat),
+                       parea = mean(parea))%>%
+      ungroup()
     
     
     proplevel_df <- proplevel_df[order(proplevel_df$property, proplevel_df$year),]
@@ -186,10 +168,12 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
       filter_all(all_vars(!is.infinite(.)))
     
     # aggregate up to county in each year 
-    suppressWarnings(
-      countylevel_df <-  aggregate(panels, by = list(panels$county, panels$treat, panels$year), FUN = mean, drop = TRUE)[c("county", "property", "treat", "post", "year","defor", "carea")]
-    )
-    
+    countylevel_df <- as.data.frame(panels) %>%
+      dplyr::group_by(county, year, post) %>%
+      dplyr::summarise(defor = mean(defor),
+                       treat = mean(treat),
+                       carea = mean(carea))%>%
+      ungroup()
     
     countylevel_df <- countylevel_df[order(countylevel_df$county, countylevel_df$year),]
     countylevel_df <- slide(countylevel_df, Var = "defor", GroupVar = "county", NewVar = "deforlag",
@@ -222,7 +206,7 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
     weight_DIDp <- feols(deforrate ~  post*treat|year+property, data = proplevel_df, weights = proplevel_df$parea)
     
     
-    weight_DIDc <- feols(deforrate ~  post*treat|year+county, , weights = countylevel_df$carea, data = countylevel_df)
+    weight_DIDc <- feols(deforrate ~  post*treat|year+county, weights = countylevel_df$carea, data = countylevel_df)
     
     # problematic specifications
     
@@ -477,200 +461,9 @@ aggregate_complete <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0
     toc()
   }
   
-  coeff_bias <- as.data.frame(coeffmatrix)
-  bad_bias <- as.data.frame(bad_coeffmatrix)
-  actual <- rep(0, times = n)
-  names(coeff_bias)[1] <- paste("grid")
-  names(coeff_bias)[2] <- paste("property")
-  names(coeff_bias)[3] <- paste("county")
-  # suppressWarnings(cbias <- melt(coeff_bias, value.name = "bias"))
-  # suppressWarnings(bad_cbias <- melt(bad_bias, value.name = "bias"))
-  
-  fix_bias <- as.data.frame(fix_coeffmatrix)
-  names(fix_bias)[1] <- paste("grid fe")
-  names(fix_bias)[2] <- paste("property fe")
-  names(fix_bias)[3] <- paste("county fe")
-  names(fix_bias)[4] <- paste("treatment fe")
-
-  did_coverages_df <- data.frame(
-    aggregation = c('pixel',
-                    'pixel',
-                    'pixel',
-                    'pixel',
-                    'pixel'),
-    std_error = c('robust',
-                  'clustered at pixel',
-                  'clustered at grid',
-                  'clustered at property'
-                  , 'clustered at county'),
-    coverage = colMeans(did_covermat)
-  )
-  
-  agg_coverages_df <- data.frame(
-    aggregation = c('grid',
-                    'property',
-                    'county'),
-    std_error = c('clustered at grid',
-                  'clustered at property',
-                  'clustered at county'),
-    coverage = colMeans(agg_covermat)
-  )
-  
-  fix_coverages_df <- data.frame(
-    fix_effects = c('grid',
-                    'property',
-                    'county',
-                    'grid',
-                    'property',
-                    'county'),
-    std_error = c('clustered at grid',
-                  'clustered at property',
-                  'clustered at county'),
-    coverage = colMeans(fix_covermat)
-  )
-  
-  summary_df <- data.frame('pixel'=rep(NA, 12),'grid'=rep(NA, 12),'property'=rep(NA, 12),'county'=rep(NA, 12),
-                           'pixel fe'=rep(NA, 12),'grid fe'=rep(NA, 12),'property fe'=rep(NA, 12),'county fe'=rep(NA, 12),'treatment fe'=rep(NA, 12),
-                           'se_pixel'=rep(NA, 12), 'se_grid'=rep(NA, 12), 'se_property'=rep(NA, 12), 'se_county'=rep(NA, 12),
-                           'mean_bias'=rep(NA, 12), 'RMSE'=rep(NA, 12),
-                           'q05'=rep(NA, 12), 'q95'=rep(NA, 12),
-                           'cover'=rep(NA, 12),
-                           stringsAsFactors=FALSE)
-  
-  # DID1 <- feols(deforrate ~  post*treat|year+grid, data = gridlevel_df)
-  summary_df[7,] <- c(
-    0,1,0,0,
-    0,1,0,0,0,
-    0,1,0,0,
-    mean(coeff_bias$grid), rmse(actual, coeff_bias$grid),
-    quantile(coeff_bias$grid, 0.05), quantile(coeff_bias$grid, 0.95),
-    #quantile(coeff_bias$grid, 0.01), quantile(coeff_bias$grid, 0.99),
-    mean(agg_covermat[,1]))
-  
-  # DID2 <- feols(deforrate ~  post*treat|year+property, data = proplevel_df)
-  summary_df[8,] <- c(
-    0,0,1,0,
-    0,0,1,0,0,
-    0,0,1,0,
-    mean(coeff_bias$property), rmse(actual, coeff_bias$property),
-    quantile(coeff_bias$property, 0.05), quantile(coeff_bias$property, 0.95),
-    #quantile(coeff_bias$property, 0.01), quantile(coeff_bias$property, 0.99),
-    mean(agg_covermat[,2]))
-  
-  # DID3 <- feols(deforrate ~  post*treat|year+county, data = countylevel_df)
-  summary_df[9,] <- c(
-    0,0,0,1,
-    0,0,0,1,0,
-    0,0,0,1,
-    mean(coeff_bias$county), rmse(actual, coeff_bias$county),
-    quantile(coeff_bias$county, 0.05), quantile(coeff_bias$county, 0.95),
-    #quantile(coeff_bias$county, 0.01), quantile(coeff_bias$county, 0.99),
-    mean(agg_covermat[,3]))
-  
-  
-  # DID4 <- feols(y_it ~  post*treat, data = panels)
-  summary_df[3,] <- c(
-    1,0,0,0,
-    0,0,0,0,1,
-    1,0,0,0,
-    mean(coeff_bias$pixel), rmse(actual, coeff_bias$pixel),
-    quantile(coeff_bias$pixel, 0.05), quantile(coeff_bias$pixel, 0.95),
-    #quantile(coeff_bias$pixel, 0.01), quantile(coeff_bias$pixel, 0.99),
-    mean(did_covermat[,2]))
-  
-  summary_df[4,] <- c(
-    1,0,0,0,
-    0,0,0,0,1,
-    0,1,0,0,
-    mean(coeff_bias$pixel), rmse(actual, coeff_bias$pixel),
-    quantile(coeff_bias$pixel, 0.05), quantile(coeff_bias$pixel, 0.95),
-    #quantile(coeff_bias$pixel, 0.01), quantile(coeff_bias$pixel, 0.99),
-    mean(did_covermat[,3]))
-  
-  summary_df[5,] <- c(
-    1,0,0,0,
-    0,0,0,0,1,
-    0,0,1,0,
-    mean(coeff_bias$pixel), rmse(actual, coeff_bias$pixel),
-    quantile(coeff_bias$pixel, 0.05), quantile(coeff_bias$pixel, 0.95),
-    #quantile(coeff_bias$pixel, 0.01), quantile(coeff_bias$pixel, 0.99),
-    mean(did_covermat[,4]))
-  
-  summary_df[6,] <- c(
-    1,0,0,0,
-    0,0,0,0,1,
-    0,0,0,1,
-    mean(coeff_bias$pixel), rmse(actual, coeff_bias$pixel),
-    quantile(coeff_bias$pixel, 0.05), quantile(coeff_bias$pixel, 0.95),
-    #quantile(coeff_bias$pixel, 0.01), quantile(coeff_bias$pixel, 0.99),
-    mean(did_covermat[,5]))
-  
-  
-  summary_df[1,] <- c(
-    1,0,0,0,
-    0,0,0,0,1,
-    1,0,0,0,
-    mean(bad_bias[,1]), rmse(actual, bad_bias[,1]),
-    quantile(bad_bias[,1], 0.05), quantile(bad_bias[,1], 0.95),
-    #quantile(bad_bias[,1], 0.01), quantile(bad_bias[,1], 0.99),
-    mean(bad_covermat[,1]))
-  
-  # DID6 <- feols(y_it ~  post*treat|year+pixels, data = panels)
-  summary_df[2,] <- c(
-    1,0,0,0,
-    1,0,0,0,0,
-    1,0,0,0,
-    mean(bad_bias[,2]), rmse(actual, bad_bias[,2]),
-    quantile(bad_bias[,2], 0.05), quantile(bad_bias[,2], 0.95),
-    #quantile(bad_bias[,2], 0.01), quantile(bad_bias[,2], 0.99),
-    mean(bad_covermat[,2]))
-  
-  ### TWFE regressions with aggregated fixed effects
-  
-  # fix_DID1 <- feols(y_it ~  post*treat|year+grid, data = panels)
-  summary_df[10,] <- c(
-    1,0,0,0,
-    0,1,0,0,0,
-    0,1,0,0,
-    mean(fix_bias[,1]), rmse(actual, fix_bias[,1]),
-    quantile(fix_bias[,1], 0.05), quantile(fix_bias[,1], 0.95),
-    #quantile(fix_bias[,1], 0.01), quantile(fix_bias[,1], 0.99),
-    mean(fix_covermat[,1]))
-  
-  # fix_DID2 <- feols(y_it ~  post*treat|year+property, data = panels)
-  summary_df[11,] <- c(
-    1,0,0,0,
-    0,0,1,0,0,
-    0,0,1,0,
-    mean(fix_bias[,2]), rmse(actual, fix_bias[,2]),
-    quantile(fix_bias[,2], 0.05), quantile(fix_bias[,2], 0.95),
-    #quantile(fix_bias[,2], 0.01), quantile(fix_bias[,2], 0.99),
-    mean(fix_covermat[,2]))
-  
-  # fix_DID3 <- feols(y_it ~  post*treat|year+county, data = panels)
-  summary_df[12,] <- c(
-    1,0,0,0,
-    0,0,0,1,0,
-    0,0,0,1,
-    mean(fix_bias[,3]), rmse(actual, fix_bias[,3]),
-    quantile(fix_bias[,3], 0.05), quantile(fix_bias[,3], 0.95),
-    #quantile(fix_bias[,3], 0.01), quantile(fix_bias[,3], 0.99),
-    mean(fix_covermat[,3]))
-  
-  summary_df <- summary_df %>%
-    mutate_at(1:13, as.logical)%>%
-    dplyr::select(mean_bias, everything())
-  
-  # summary_long <- summary_long %>%
-  #   select(iteration, everything())
-  
-  
   outputs = list(
-    #"plot" = plot, "fe_plot" = fe_plot, 
-    "biases" = coeff_bias, "fe_biases" = fix_bias, 
-    #"did_coverages_df" = did_coverages_df, "agg_coverages_df" = agg_coverages_df, "fe_coverages_df" = fix_coverages_df, "summary_df" = summary_df,
-    "summary_long" = summary_long,
-    "selection_bias" = selection_bias)
+    "summary_long" = summary_long)
+  
   return(outputs)
   
   #end function  

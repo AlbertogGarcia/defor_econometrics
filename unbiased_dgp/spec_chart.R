@@ -7,6 +7,207 @@ library(dplyr, warn.conflicts = FALSE)
 options(dplyr.summarise.inform = FALSE)
 library(Metrics)
 source(here::here('unbiased_dgp', 'schart.R'))
+
+palette <- list("white" = "#FAFAFA",
+                "light_grey" = "#d9d9d9",
+                "dark" = "#0c2230",
+                "red" = "#ed195a",
+                "blue" = "#1c86ee",
+                "green" = "#7CAE7A",
+                "dark_green" = "#496F5D",
+                "gold" = "#DAA520")
+
+#####################################################################
+#### issue of disturbances on DID
+#####################################################################
+full_summary <- readRDS("unbiased_dgp/results/summary_full.rds") %>%
+  filter(treatment.fe == 1 & se_pixel == 1 & is.na(notes) & cox == 0) %>%
+  mutate_at(vars(bias, cover), as.numeric) %>%
+  group_by(std_p) %>%
+  summarise(Bias = mean(bias),
+            cover = mean(cover),
+            RMSE = rmse(bias, 0),
+            q05 = quantile(bias, probs = .05),
+            q95 = quantile(bias, probs = .95)) %>%
+  mutate(s0 = std_p==0,
+         s1 = std_p==0.1,
+         s25 = std_p==0.25,
+         s5 = std_p==0.5) %>% 
+  arrange(desc(s0), desc(s1), desc(s25), desc(s5))
+
+na_row <- c("mean_bias" = NA,
+            "q05" = NA,
+            "q95" = NA)
+
+select_results <- rbind(na_row, full_summary, na_row)
+
+coverage <- select_results$cover
+# coverage[is.na(coverage)] <- 0
+c_print <- round(coverage, digits = 2)
+c_print[is.na(c_print)] <- " "
+
+RMSE <- select_results$RMSE
+# RMSE[is.na(RMSE)] <- 0
+RMSE <- as.numeric(RMSE)
+RMSE_print<- round(RMSE, digits =3)
+RMSE_print[is.na(RMSE_print)] <- " "
+
+schart_results <- select_results %>% 
+  # select(c(mean_bias, q05, q95, pixel, county, grid, property, treatment.fe, county.fe, grid.fe, property.fe))
+  # select(-c(se_pixel, se_grid, se_property, se_county, RMSE, cover, sigma_p, cover_dif, pixel.fe)) %>% 
+  select(c(Bias, s0, s1, s25, s5, q05, q95))
+index.ci <- match(c("q05","q95"), names(schart_results))
+
+labels <- list("Value of sigma" = c("0", "0.1", "0.25", "0.5"))
+
+
+topline = -0.03
+midline = topline-0.015
+ylim <- c(midline-0.012,0.02)
+
+par(oma=c(1,0,1,1))
+
+schart(as.data.frame(schart_results), labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
+       leftmargin = 15, col.est = c(palette$dark, palette$red), heights = c(3,1), cex = c(1.75,1.75))
+
+mtext("Bias", side=2, at = 0.018, font=2, las=1, line=.5, cex = 2)
+Axis(side=2, at = c(-0.01, 0, 0.01), labels=TRUE, cex = 3)
+abline(h=0, lty=2, lwd = 2)
+abline(h=topline)
+abline(h=midline)
+lapply(1:length(RMSE), function(i) {
+  text(x= i, y=midline+0.0075, paste0(RMSE_print[i]), col="black", font=1, cex=2)
+  text(x= i, y=midline-0.0075, paste0(c_print[i]), col="black", font=1, cex=2)
+})
+mtext("RMSE", side=2, at = midline+0.0075, font=2, las=1, line=.5, cex = 2)
+mtext("Coverage\nprobability", side=2, at = midline-0.0075, font=2, las=1, line=.5, cex = 2)
+
+#####################################################################
+#### aggregation resolves issue
+#####################################################################
+full_summary <- readRDS("unbiased_dgp/results/summary_full.rds") %>%
+  mutate_at(vars(bias, cover), as.numeric)%>%
+  filter(std_p==0.5 & is.na(notes) & pixel.fe == 0 & weights == 0 & cox == 0)%>%
+  group_by(pixel, grid, property, county, grid.fe, property.fe, county.fe, treatment.fe, se_pixel, se_grid, se_property, se_county)%>%
+  summarise(Bias = mean(bias),
+            cover = mean(cover),
+            RMSE = rmse(bias, 0),
+            q05 = quantile(bias, probs = .05),
+            q95 = quantile(bias, probs = .95))
+  
+
+# Panel A - Pixel-level analyses
+select_results <- full_summary %>% 
+  filter(pixel==1 & (treatment.fe == 0 | se_pixel == 1)) %>% 
+  arrange(desc(treatment.fe), desc(county.fe), desc(grid.fe), desc(property.fe))
+
+na_row <- c("Bias" = NA,
+            "q05" = NA,
+            "q95" = NA)
+select_results <- rbind(na_row, select_results, na_row)
+
+coverage <- select_results$cover
+# coverage[is.na(coverage)] <- 0
+c_print <- round(coverage, digits = 2)
+c_print[is.na(c_print)] <- " "
+
+RMSE <- select_results$RMSE
+# RMSE[is.na(RMSE)] <- 0
+RMSE <- as.numeric(RMSE)
+RMSE_print<- round(RMSE, digits =3)
+RMSE_print[is.na(RMSE_print)] <- " "
+
+schart_results <- select_results %>% 
+  select(c(Bias, q05, q95, treatment.fe, county.fe, grid.fe, property.fe))%>%
+  mutate_at(vars(treatment.fe, county.fe, grid.fe, property.fe), ~as.logical(as.numeric(.)))
+
+index.ci <- match(c("q05","q95"), names(schart_results))
+
+labels <- list("Treatment FE", "County FE", "Grid FE", "Property FE")
+
+topline = -0.03
+midline = topline-0.015
+ylim <- c(midline-0.012,0.02)
+
+
+par(bg = palette$white)
+par(oma=c(1,0,1,1))
+
+schart(as.data.frame(schart_results), labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
+       highlight = 5,  col.est = c(palette$dark, palette$red), cex = c(1.75,1.75))
+
+mtext("Bias", side=2, at = 0.018, font=2, las=1, line=.5, cex = 2)
+Axis(side=2, at = c(-0.01, 0, 0.01), labels=TRUE, cex = 3)
+abline(h=0, lty=2, lwd = 2)
+abline(h=topline)
+abline(h=midline)
+lapply(1:length(RMSE), function(i) {
+  text(x= i, y=midline+0.0075, paste0(RMSE_print[i]), col="black", font=1, cex=2)
+  text(x= i, y=midline-0.0075, paste0(c_print[i]), col="black", font=1, cex=2)
+})
+mtext("RMSE", side=2, at = midline+0.0075, font=2, las=1, line=.5, cex = 2)
+mtext("Coverage\nprobability", side=2, at = midline-0.0075, font=2, las=1, line=.5, cex = 2)
+
+
+# Panel B - aggregate-level analyses
+select_results <- full_summary %>% 
+  filter(pixel==0) %>% 
+  arrange(desc(pixel), desc(treatment.fe), desc(county.fe), desc(grid.fe), desc(property.fe))
+
+na_row <- c("Bias" = NA,
+            "q05" = NA,
+            "q95" = NA)
+select_results <- rbind(na_row, select_results, na_row)
+
+
+labels <- list("Grid", "County", "Property")
+coverage <- select_results$cover
+# coverage[is.na(coverage)] <- 0
+c_print <- f(round(coverage, digits = 2))
+c_print[is.na(c_print)] <- " "
+
+RMSE <- select_results$RMSE
+# RMSE[is.na(RMSE)] <- 0
+RMSE <- as.numeric(RMSE)
+RMSE_print<- f(round(RMSE, digits =3))
+RMSE_print[is.na(RMSE_print)] <- " "
+
+schart_results <- select_results %>% 
+  # select(c(mean_bias, q05, q95, pixel, county, grid, property, treatment.fe, county.fe, grid.fe, property.fe))
+  # select(-c(se_pixel, se_grid, se_property, se_county, RMSE, cover, sigma_p, cover_dif, pixel.fe)) %>% 
+  select(c(Bias, q05, q95, grid, county, property))
+index.ci <- match(c("q05","q95"), names(schart_results))
+
+topline = -0.03
+midline = topline-0.015
+ylim <- c(midline-0.012,0.02)
+
+
+par(bg = palette$white)
+par(oma=c(1,0,1,1))
+
+schart(as.data.frame(schart_results), labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
+       highlight = 5,  col.est = c(palette$dark, palette$red), cex = c(1.75,1.75))
+
+mtext("Bias", side=2, at = 0.018, font=2, las=1, line=.5, cex = 2)
+Axis(side=2, at = c(-0.01, 0, 0.01), labels=TRUE, cex = 3)
+abline(h=topline)
+abline(h=midline)
+lapply(1:length(RMSE), function(i) {
+  text(x= i, y=midline+0.0075, paste0(RMSE_print[i]), col="black", font=1, cex=2)
+  text(x= i, y=midline-0.0075, paste0(c_print[i]), col="black", font=1, cex=2)
+})
+mtext("RMSE", side=2, at = midline+0.0075, font=2, las=1, line=.5, cex = 2)
+mtext("Coverage\nprobability", side=2, at = midline-0.0075, font=2, las=1, line=.5, cex = 2)
+
+
+
+
+#####################################################################
+#### weighting spec chart
+#####################################################################
+
+
 summary_pweights <- readRDS("unbiased_dgp/summary_pweights.rds")
 specchart_long <- summary_pweights
 
@@ -231,7 +432,20 @@ legend(x=6.5, y=0.02, col = "#DF8F44", legend = "pixel-level specifications", se
 
 
 library(tidyverse)
-summary_full <- readRDS("summary_full2.rds")
+summary_full <- readRDS("unbiased_dgp/results/summary_full2.rds")
+
+did_summary <- summary_full %>%
+  filter(treatment.fe == 1 & se_property == 1)%>%
+  mutate_at(vars(bias, cover), as.numeric
+  )%>%
+  group_by(std_p)%>%
+  summarize(RMSE = rmse(bias, 0),
+            q05 = quantile(bias, probs = .05),
+            q95 = quantile(bias, probs = .95),
+            Bias = mean(bias),
+            cover = mean(cover))%>%
+  dplyr::select(Bias, everything())%>%
+  ungroup()
 
 full_summary <- summary_full %>%
   mutate_at(vars(bias, cover), as.numeric
@@ -418,15 +632,15 @@ legend(x=6.5, y=0.05, col = "#00A1D5", legend = "specifications\nincorporating\n
 # summary_full.rds IS NOT CURRENT, USE summary_full2.rds and the 3 panel spec chart
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-summary_full <- readRDS("unbiased_dgp/summary_full.rds")
+summary_full <- readRDS("unbiased_dgp/results/summary_full.rds")
 
 full_summary <- summary_full %>%
   mutate_at(vars(bias, cover), as.numeric
   )%>%
-  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
+  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county, cox, X.HRRT.estimator), ~ as.logical(as.integer(.))
   )%>%
   filter(is.na(notes) & pixel.fe == FALSE)%>%
-  group_by(std_a, std_v, std_p, pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county)%>%
+  group_by(std_a, std_v, std_p, pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights,  cox, X.HRRT.estimator, se_pixel, se_grid, se_property, se_county)%>%
   summarise(RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
             q95 = quantile(bias, probs = .95),
@@ -449,13 +663,14 @@ labels <- list(#"Model:" = " ",
   "Unit of analysis:" = c("pixel", "grid", "property", "county"),
   "Fixed effects:" = c("grid FE", "property FE", "county FE", "treatment FE"),
   "Weights:" = c("unit area"),
+  "Survival:" = c("Cox PH", "HRTT estimator"),
   "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
 
 
 f <- function(x) gsub("^(\\s*[+|-]?)0\\.", "\\1.", as.character(x))
 
 coverage <- full_summary$cover
-coverage[is.na(coverage)] <- 0
+#coverage[is.na(coverage)] <- 0
 c_print <- f(round(full_summary$cover, digits = 2))
 c_print[is.na(c_print)] <- " "
 
@@ -466,13 +681,13 @@ RMSE <- as.numeric(RMSE)
 RMSE_print<- f(round(full_summary$RMSE, digits =3))
 RMSE_print[is.na(RMSE_print)] <- " "
 
-column_indic <- c(1:12, " ", 13:22, " ", 23:32, " ", 33:42, " ")
+column_indic <- c(1:14, " ", 15:24, " ", 25:34, " ", 35:44, " ")
 
 test <- as.data.frame(subset(full_summary, select=-c(pixel.fe, cover, RMSE, std_p, std_v, std_a)))%>%
   filter(pixel=="TRUE"|pixel=="FALSE")%>%
   mutate_at(vars(Bias, q05, q95), as.numeric)
 
-highlight_rows <- which(test[ , "treatment.fe"] == FALSE )
+highlight_rows <- which(test[ , "property.fe"] == TRUE )
 
 index.ci <- match(c("q05","q95"), names(test))
 
@@ -488,15 +703,15 @@ schart(test,labels, ylim = ylim, index.ci=index.ci, ylab="Bias", highlight=highl
        col.dot=c("black","lightgrey","red","#00A1D5"),
        bg.dot=c("black","lightgrey","white","#00A1D5"),
        #,band.ref=c(-.05, .04)
-       axes = FALSE, n=12
+       axes = FALSE, n=14
        #, col.band.ref="#c7e9f9"
 ) # make some room at the bottom
 Axis(side=2, at = 0, labels=TRUE)
 abline(h=topline)
 abline(h=midline)
-abline(v=13, lty="dashed")
-abline(v=26, lty="dashed")
-abline(v=39, lty="dashed")
+abline(v=15, lty="dashed")
+abline(v=28, lty="dashed")
+abline(v=41, lty="dashed")
 lapply(1:length(RMSE), function(i) {
   rect(xleft=i-.3, ybottom=midline, xright=i+.3, ytop=midline+RMSE[i]*2.2, border=NA, col="#D55E00")
   #mtext(paste0(column_indic[i]), side=1, at = i, font=2, cex=.9)#, line=1, at=-1)
@@ -517,87 +732,16 @@ text(x=28
      , y=.0475, expression(paste(sigma[p],"=0.2")), col="black", font=2, cex = 1.1)
 text(x=41
      , y=.0475, expression(paste(sigma[p],"=0.3")), col="black", font=2, cex = 1.1)
-legend(x=-3, y=0.06, col = c("#00A1D5"), legend = c("specifications\nincorporating\nspatial aggregation"), inset = 0.005,  box.lty=0, cex=0.95
-       ,  seg.len=0.25, lty = 1, horiz=TRUE, lwd = 4, bg="transparent")
+#legend(x=-3, y=0.06, col = c("#00A1D5"), legend = c("specifications\nincorporating\nspatial aggregation"), inset = 0.005,  box.lty=0, cex=0.95
+#       ,  seg.len=0.25, lty = 1, horiz=TRUE, lwd = 4, bg="transparent")
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ## survival models
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-survival_long <- readRDS("survival_long.rds")
+survival_long <- readRDS("unbiased_dgp/results/survival_long.rds")
 survival_long01 <- rbind(survival_long, 
   readRDS("survival_long01.rds"))
-
-df_summary <- survival_long %>%
-  mutate_at(vars(bias, cover), as.numeric
-  )%>%
-  group_by(model, std_a, std_p)%>%
-  summarise(RMSE = rmse(bias, 0),
-            q05 = quantile(bias, probs = .05),
-            q95 = quantile(bias, probs = .95),
-            Bias = mean(bias),
-            cover = mean(cover))%>%
-  mutate("cox DID" = as.logical(ifelse(model == "cox did", 0, 0)),
-         "pixel DID" = as.logical(ifelse(model == "pixel DID", 0, 0)))%>%
-  filter(model %in% c("cox did", "pixel DID"))%>%
-  select(Bias, everything())%>%
-  arrange(std_p)
-
-df_summary[ 3 , ] <- NA
-df_summary <- rbind( df_summary[3,],
-  df_summary)
-
-par(oma=c(1,0,1,1))
-
-labels <- list("")
-
-#f <- function(x) gsub("^(\\s*[+|-]?)0\\.", "\\1.", as.character(x))
-coverage <- c("", round(df_summary$cover[2:3], digits=3), "")
-RMSE <- c("", round(df_summary$RMSE[2:3], digits=5), "")
-test <- as.data.frame(subset(df_summary, select=-c(cover, RMSE, model, std_a, std_p)))
-
-index.ci <- match(c("q05","q95"), names(test))
-
-topline = -0.005
-
-midline = topline-0.005
-
-ylim <- c(midline-.004,0.0075)
-#bottomline = (min(ylim)+topline)/2
-#Create the plot
-
-schart2(test,labels, ylim = ylim, index.ci=index.ci, col.est=c("grey50","#D55E00"),
-       col.dot=c("black","white","white","#00A1D5"),
-       bg.dot=c("black","white","white","#00A1D5")
-       , ylab="    Bias"#, highlight=1
-       ,band.ref=c(-.05, .04)
-       , axes = FALSE
-       #, col.band.ref="#c7e9f9"
-) # make some room at the bottom
-Axis(side=2, at = c( 0), labels=TRUE)
-abline(h=topline)
-abline(h=midline)
-#abline(v=2.5, lty="dashed")
-#abline(h=bottomline)
-lapply(1:length(RMSE), function(i) {
-  # text(x= i, y=min(ylim)+.002, paste0(i), col="black", font=2, cex = 1)
-  #mtext(paste0(i), side=1, at = i, font=2, cex=.95)#, line=1, at=-1)
-  text(x= i, y=topline - 0.0035, paste0(RMSE[i]), col="black", font=1, cex=1.2)
-  text(x= i, y=midline - 0.0035, paste0(coverage[i]), col="black", font=1, cex=1.2 )
-})
-# mtext('coverage\nprobability', side=2, las=1, at = loc_1, adj = 1, font=2, line=1)
-# mtext('RMSE', side=2, las=1, at = loc_2, font=2, line=1)
-#text(x=3.5
-#     , y=.004, expression(paste(sigma[p],"=0.1")), col="black", font=2, cex = 1.1)
-text(x=2.5
-     , y=midline-.001, "coverage probability (95% desired)", col="black", font=2)
-text(x=2.5
-     , y=topline-.001, "RMSE", col="black", font=2)
-text(x=2
-     , y=0.0055, "Cox PH DID", col="grey50", font=2)
-text(x=3
-     , y=0.0055, "Pixel OLS DID", col="grey50", font=2)
-#legend(x=2.75, y=0.0065, col = "grey50", legend = "0.05 to 0.95 quantile \n of estimate distribution", seg.len=0.3, inset = 0.00,  box.lty=0, cex=0.8, lty = 1, lwd = 4, bg="transparent")
 
 

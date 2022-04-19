@@ -75,6 +75,7 @@ multipleGT_agg <- function(n, nobs, base_a, base_b, base_c, trend1, trend2, tren
       year = add_level(N = 5, nest = FALSE),
       obs = cross_levels(
         by = join(pixels, year),
+        year = as.numeric(year),
         post = (year >= G)*1,
         GU = (G==0)*1,
         G3 = (G==3)*1,
@@ -113,30 +114,6 @@ multipleGT_agg <- function(n, nobs, base_a, base_b, base_c, trend1, trend2, tren
              y_it = ifelse(year>defor_year, NA, defor)
       )
     
-    
-    
-    #########################################################################
-    ######### pixel estimates  
-    #########################################################################
-    
-    # y_it_es <- my_event_study(yname = "y_it",
-    #                           tname = "year",
-    #                           idname = "pixels",
-    #                           gname = "G",
-    #                           data = panels) %>%
-    #   mutate(iteration = i,
-    #          uoa = "pixel")
-    # 
-    # pixel_es_long <- rbind(pixel_es_long, y_it_es)%>%
-    #   mutate(std.error = as.numeric(ifelse(is.na(std.error), 0.0, std.error)),
-    #          estimate = as.numeric(estimate),
-    #          term = as.numeric(term))
-    
-    #plot_event_study(pixel_es_long, seperate = TRUE, horizon = NULL)
-    
-    #########################################################################
-    ######### county level dataframe  
-    #########################################################################
     
     
     countylevel_df <- panels %>%

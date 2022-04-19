@@ -5,14 +5,15 @@ source(here::here('unbiased_dgp', 'heterogeneous_propertyarea.R'))
 std_a = 0.1
 std_v = 0.5
 std_p = 0.0
-std_b3 = .05
-years = 2
-nobs = 120^2
-n = 250
+std_b3 = .1
 
-ppoints = 70
-cellsize = 10
-cpoints = 40
+years = 6
+nobs = 175^2
+n = 500
+
+ppoints = 200
+cellsize = 12
+cpoints = 30
 
 # here are the landscape characteristics in this parameterization
 # note that the bias for the TWFE model will be equal to the pre-treatment difference in deforestation rtes, which is 0.03
@@ -30,8 +31,8 @@ b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
 b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 
 set.seed(0930)
-testing_weights <- heterogeneous_propertyarea(n, nobs, years, b0, b1, b2_0, b2_1, std_a, std_v, std_p, std_b3, given_ATT = ATT, cellsize, ppoints, cpoints, rm.selection = TRUE)
-summary_pweights <- testing_weights$summary_long
+weights <- heterogeneous_propertyarea(n, nobs, years, b0, b1, b2_0, b2_1, std_a, std_v, std_p, std_b3, given_ATT = ATT, cellsize, ppoints, cpoints)
+summary_pweights <- weights$summary_long
 
 library(rio)
-export(summary_pweights, "summary_pweights.rds")
+export(summary_pweights, "unbiased_dgp/results/summary_pweights.rds")

@@ -2,14 +2,14 @@ library(ggplot2)
 library(clubSandwich)
 library(matrixStats)
 library(ggplot2)
-library(plm)
 library(Metrics)
 library(DataCombine)
 library(tictoc)
-source('grid_landscape.R')
+library(fixest)
+source(here::here('unbiased_dgp', 'grid_landscape.R'))
 
 #begin function
-outcome_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v = 0.25, cellsize){
+outcome_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v = 0.5, cellsize){
   
   gridscape = grid_landscape(nobs, cellsize)
   pixloc_df = gridscape$pixloc_df
@@ -30,16 +30,13 @@ outcome_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std
       year = add_level(N = (years*2), nest = FALSE),
       obs = cross_levels(
         by = join(pixels, year),
+        year = as.numeric(year),
         post = ifelse(year > years, 1, 0),
         v_it = rnorm(N, 0, std_v),
         ystar = b0 + b1*treat + b2_0*post*(1-treat) + b2_1*post*treat + b3*treat*post + a_i + v_it,
         y = (ystar > 0)*1
       )
     )
-    
-    panels$year <- as.numeric(panels$year)
-    panels <- panels %>%
-      mutate(post = ifelse(year > years, 1, 0))
     
     #need to determine which year deforestation occurred
     year_df <- subset(panels, select = c(pixels, year, y))
@@ -71,21 +68,25 @@ outcome_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std
     
     
     panels <- panels %>%
+      mutate(pixels = as.integer(pixels))%>%
       inner_join(pixloc, by = c("pixels", "treat"))
     
     
-    # aggregate up to county in each year 
-    suppressWarnings(
-      gridlevel_df <-  aggregate(panels, by = list(panels$grid, panels$treat, panels$year), FUN = mean, drop = TRUE)[c("grid", "treat", "post", "year","defor")]
-    )
+    # aggregate up to county in each year
+    gridlevel_df <- as.data.frame(panels) %>%
+      dplyr::group_by(grid, year, post) %>%
+      dplyr::summarise(defor = mean(defor),
+                       treat = mean(treat))%>%
+      ungroup()
+    
     
     gridlevel_df <- gridlevel_df[order(gridlevel_df$grid, gridlevel_df$year),]
+    gridlevel_df <- slide(gridlevel_df, Var = "defor", GroupVar = "grid", NewVar = "deforlag",
+                          slideBy = -1, reminder = FALSE)
     
-    
-    gridlevel_df <- gridlevel_df %>%
-      slide(Var = "defor", GroupVar = "grid", NewVar = "deforlag", slideBy = -1, reminder = FALSE) %>%
-      mutate(forshare = (1-defor)) %>%
-      mutate(forsharelag = (1-deforlag))
+    ##### creating forested share variable #####
+    gridlevel_df$forshare <- 1 -  gridlevel_df$defor
+    gridlevel_df$forsharelag <- 1 -  gridlevel_df$deforlag
     
     #### create baseline defor and forshare vars 
     #county level
@@ -104,40 +105,17 @@ outcome_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std
       mutate(deforrate2 = (forsharelag - forshare) / forshare0) %>%
       mutate(deforrate3 = log(forsharelag / forshare))
     
-    
     #remove any infinite values
     #gridlevel_df <- subset(gridlevel_df, select = -c(geometry))
     gridlevel_df <- gridlevel_df %>% 
       filter_all(all_vars(!is.infinite(.)))
     
-    # run two-way fixed effects with outcome 1 
-    coeffmatrix[i,1] <- plm(deforrate1 ~  post*treat, 
-                            data   = gridlevel_df, 
-                            method = "within", #fixed effects model
-                            effect = "twoway", #grid and year fixed effects
-                            index  = c("grid", "year")
-    )$coefficients - ATT
+    # run two-way fixed effects with outcomes 
+    coeffmatrix[i,1] <- feols(deforrate1 ~  post*treat|year+grid, data = gridlevel_df)$coefficients - ATT
     
-    coeffmatrix[i,2] <- plm(deforrate2 ~  post*treat, 
-                            data   = gridlevel_df, 
-                            method = "within", #fixed effects model
-                            effect = "twoway", #grid and year fixed effects
-                            index  = c("grid", "year")
-    )$coefficients - ATT
+    coeffmatrix[i,2] <- feols(deforrate2 ~  post*treat|year+grid, data = gridlevel_df)$coefficients - ATT
     
-    coeffmatrix[i,3] <- plm(deforrate3 ~  post*treat, 
-                            data   = gridlevel_df, 
-                            method = "within", #fixed effects model
-                            effect = "twoway", #grid and year fixed effects
-                            index  = c("grid", "year")
-    )$coefficients - ATT
-    
-    # coeffmatrix[i,4] <- plm(forshare ~  post*treat + forsharelag, 
-    #                         data   = gridlevel_df, 
-    #                         method = "within", #fixed effects model
-    #                         effect = "twoway", #grid and year fixed effects
-    #                         index  = c("grid", "year")
-    # )$coefficients[2] - DID_estimand
+    coeffmatrix[i,3] <- feols(deforrate3 ~  post*treat|year+grid, data = gridlevel_df)$coefficients - ATT
     
     print(i)
     toc()
@@ -145,37 +123,11 @@ outcome_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std
   
   
   coeff_bias <- as.data.frame(coeffmatrix)
-  actual <- rep(0, times = n)
   names(coeff_bias)[1] <- paste("outcome1")
   names(coeff_bias)[2] <- paste("outcome2")
   names(coeff_bias)[3] <- paste("outcome3")
-  #names(coeff_bias)[4] <- paste("outcome4")
   
-  cbias <- coeff_bias #%>%
-  #select(outcome1, outcome2, outcome3)
-  
-  suppressWarnings(cbias <- melt(cbias, value.name = "bias"))
-  
-  plot <- ggplot(data = cbias, aes(x = bias, fill=variable)) +
-    geom_density(alpha = .2) +
-    guides(fill=guide_legend(title=NULL))+
-    scale_fill_discrete(breaks=c("outcome1", "outcome2", "outcome3"), labels=c("outcome 1", "outcome 2", "outcome 3"))+
-    geom_vline(xintercept = 0, linetype = "dashed")+
-    theme(plot.caption = element_text(hjust = 0.5))+
-    labs(x= "Bias", caption = paste("Outcome 1 Mean:", round(mean(coeff_bias$outcome1), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$outcome1), digits = 4), "\n", 
-                                    "Outcome 2 Mean:", round(mean(coeff_bias$outcome2), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$outcome2), digits = 4), "\n",
-                                    "Outcome 3 Mean:", round(mean(coeff_bias$outcome3), digits = 4),
-                                    ", RMSE:", round(rmse(actual, coeff_bias$outcome3), digits = 4)#, "\n",
-                                    #"Outcome 4 Mean:", round(mean(coeff_bias$outcome4), digits = 4),
-                                    #", RMSE:", round(rmse(actual, coeff_bias$outcome4), digits = 4)
-    ) 
-    )
-  
-  
-  
-  outputs = list("plot" = plot, "biases" = coeff_bias)
+  outputs = list("coeff_bias" = coeff_bias)
   return(outputs)
   
   #end function  
