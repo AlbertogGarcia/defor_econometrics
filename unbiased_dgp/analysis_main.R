@@ -2,8 +2,6 @@ library(tidyverse)
 library(tictoc)
 library(here)
 library(DeclareDesign)
-source(here::here('unbiased_dgp', 'specifications.R'))
-
 library(survival)
 library(ggplot2)
 library(dplyr)
@@ -15,7 +13,7 @@ library(ggfortify)
 
 years = 6
 nobs = 150^2
-n = 250
+n = 100
 
 cellsize_small = 5
 cellsize_med = 10
@@ -40,6 +38,8 @@ ATT = -.01
 ###############################################################################################################
 ######## Baseline showing aggregation resolves pixel fixed effects issue
 ###############################################################################################################
+
+source(here::here('unbiased_dgp', 'specifications.R'))
 
 std_avp = (std_a^2+std_v^2+std_p^2)^.5
 b0 = qnorm(base_0, mean = 0, sd = std_avp)
@@ -94,7 +94,7 @@ b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std
 aggregation_1 <- specifications(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, std_c = 0.0, cellsize_small, cellsize_med, cellsize_large, ppoints, cpoints, nestedprops = FALSE, proptreatassign = FALSE)
 summary_long_1 <- aggregation_1$summary_long
 
-##### 0.25
+##### 0.2
 std_p = 0.2
 
 # we'll need to compute the parameters 
@@ -111,7 +111,7 @@ aggregation_2 <- specifications(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, s
 summary_long_2 <- aggregation_2$summary_long
 
 
-#### 0.5
+#### 0.3
 std_p = 0.3
 
 std_avp = (std_a^2+std_v^2+std_p^2)^.5
@@ -132,7 +132,8 @@ export(summary_full, "unbiased_dgp/results/summary_full.rds")
 ###############################################################################################################
 ######## alternative parameterization
 ###############################################################################################################
-std_p = 0.5
+std_p = 0.3
+std_a = 0.1
 
 base_0 = .05
 base_1 = .02
