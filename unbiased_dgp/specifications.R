@@ -17,13 +17,37 @@ library(msm)
 library(survival)
 
 source(here::here('unbiased_dgp', 'multigrid_landscape.R'))
+source(here::here('unbiased_dgp', 'nested_landscape.R'))
+source(here::here('unbiased_dgp', 'proptreat_landscape.R'))
 
 #begin function
-specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v = 0.5, std_p = 0.0, cellsize_small, cellsize_med, cellsize_large, ppoints, cpoints){
+specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v = 0.5, std_p = 0.0, std_c = 0.0, cellsize_small, cellsize_med, cellsize_large, ppoints, cpoints, nestedprops = FALSE, proptreatassign = FALSE){
   
   cellsize_list <- list(cellsize_small, cellsize_med, cellsize_large)
-  countyscape = multigrid_landscape(nobs, cellsize_list, ppoints, cpoints)
-  pixloc_df = countyscape$pixloc_df
+  
+  minpropsize = 0
+  while(minpropsize < 10){
+    
+    if (proptreatassign) {
+      countyscape = proptreat_landscape(nobs, cellsize_list, ppoints, cpoints)
+      pixloc_df = countyscape$pixloc_df
+    } else {
+      
+      if (nestedprops) {
+        countyscape = nested_landscape(nobs, cellsize_list, ppoints, cpoints)
+        pixloc_df = countyscape$pixloc_df
+      
+      } else {
+        countyscape = multigrid_landscape(nobs, cellsize_list, ppoints, cpoints)
+        pixloc_df = countyscape$pixloc_df
+        
+      }
+      
+    }
+    
+    minpropsize <- min(pixloc_df$parea)
+    
+    }
   
   
   ATT <- pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2 +std_p^2)^.5) - pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2 + std_p^2)^.5)
@@ -36,8 +60,9 @@ specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
   gridfe_covermat <- matrix(nrow = n, ncol = 3)
   gridfe_coeffmatrix <- matrix(nrow = n, ncol = 3)
   
-  n_mod = 17
-  # 3 grid sizes plus prop and county, aggregated and at fixed effects gives 10
+  n_mod = 19
+  # 3 grid sizes plus prop and county, aggregated 
+  # and at fixed effects gives 10
   # weighted county and property models gives 2
   # pixel DID, pixel fe and pixel keeping pixels gives 3
   # two cox ph models gives 2
@@ -51,7 +76,7 @@ specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
                              'pixel fe'=rep(NA, summ_row),'grid fe'=rep(NA, summ_row),'property fe'=rep(NA, summ_row),'county fe'=rep(NA, summ_row),'treatment fe'=rep(NA, summ_row),
                              'weights'=rep(NA, summ_row), 'cox'=rep(NA, summ_row), 'HE estimator'=rep(NA, summ_row), 
                              'se_pixel'=rep(NA, summ_row), 'se_grid'=rep(NA, summ_row), 'se_property'=rep(NA, summ_row), 'se_county'=rep(NA, summ_row),
-                             'bias'=rep(NA, summ_row), 'cover'=rep(NA, summ_row),'notes'=rep(NA, summ_row),
+                             'bias'=rep(NA, summ_row), 'cover'=rep(NA, summ_row), 'prop_concern' = rep(0, summ_row), 'notes'=rep(NA, summ_row),
                              stringsAsFactors=FALSE)
   
   options(dplyr.summarise.inform = FALSE)
@@ -74,14 +99,14 @@ specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
     
     #generate random 
     errortable_property <- data.frame(property = as.character(unique(pixloc$property)), p_err = rnorm(length(unique(pixloc$property)), 0, std_p))
-    #errortable_county <- data.frame(county = as.character(unique(pixloc$county)), c_err = rnorm(length(unique(pixloc$county)), 0, std_c))
+    errortable_county <- data.frame(county = as.character(unique(pixloc$county)), c_err = rnorm(length(unique(pixloc$county)), 0, std_c))
     
     panels$pixels <- gsub("(?<![0-9])0+", "", panels$pixels, perl = TRUE)
     
     panels <- panels %>%
       inner_join(pixloc, by = c("pixels", "treat")) %>%
       inner_join(errortable_property, by = "property") %>%
-      #inner_join(errortable_county, by = "county") %>%
+      inner_join(errortable_county, by = "county") %>%
       mutate(year = as.numeric(year),
              ystar = ystar + p_err,
              ystar_cf = ystar_cf + p_err,
@@ -125,7 +150,7 @@ specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
       this_panel <- panels %>%
         rename(this_grid = paste0("grid_", k),
                this_garea = paste0("garea_", k))%>%
-        select(this_grid, treat, post, year, defor, this_garea, y_it)%>%
+        select(this_grid, treat, post, year, defor, this_garea, y_it, property, county)%>%
         group_by(this_grid, year) %>%
         mutate(gtreat = mean(treat))
       
@@ -165,7 +190,7 @@ specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
       grid_covermat[i,pos] <- dplyr::between(ATT, tail(DID_grid$coefficients, n=1) - 1.96 * clse, tail(DID_grid$coefficients, n=1) + 1.96 * clse)*1
       
       # aggregated fixed effects
-      pix_twfe <- suppressMessages(feols(y_it ~  post*treat| year + this_grid, data = this_panel))
+      pix_twfe <- suppressMessages(feols(y_it ~  post:treat| year + this_grid + county, data = this_panel))
       gridfe_coeffmatrix[i,pos] <- tail(pix_twfe$coefficients, n=1) - ATT
       #clustering at grid level
       clse    <- tail(summary(pix_twfe, cluster = ~this_grid)$se, n=1)
@@ -236,8 +261,10 @@ specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
     county_DID <- feols(deforrate ~  post:treat|year+county, data = countylevel_df)
     
     ### TWFE regressions with aggregated fixed effects
-    propfe_DID <- suppressMessages(feols(y_it ~  post*treat|year + property, data = panels))
     countyfe_DID <- suppressMessages(feols(y_it ~  post:treat|year + county, data = panels))
+    propcountyfe_DID <- suppressMessages(feols(y_it ~  post:treat|year + property + county, data = panels))
+    proptreatfe_DID <- suppressMessages(feols(y_it ~  post:treat|year + treat + property, data = panels))
+    
     
     # weighting by county and property area
     weight_DIDp <- suppressMessages(feols(deforrate ~  post:treat|year+property, data = proplevel_df, weights = proplevel_df$parea))
@@ -259,7 +286,9 @@ specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
     weightc_se   <- tail(summary(weight_DIDc, cluster = ~county)$se, n=1)
     
     # aggregated fixed effects
-    propfe_se    <- tail(summary(propfe_DID, cluster = ~property)$se, n=1)
+    propcountyfe_pse    <- tail(summary(propcountyfe_DID, cluster = ~property)$se, n=1)
+    propcountyfe_cse    <- tail(summary(propcountyfe_DID, cluster = ~county)$se, n=1)
+    proptreatfe_se    <- tail(summary(proptreatfe_DID, cluster = ~property)$se, n=1)
     countyfe_se    <- tail(summary(countyfe_DID, cluster = ~county)$se, n=1)
     
     # se for bad specifications clustered at pixel level
@@ -275,8 +304,12 @@ specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
     weightp_cover <- dplyr::between(ATT, weight_DIDp$coefficients - 1.96 * weightp_se, weight_DIDp$coefficients + 1.96 * weightp_se)*1
     weightc_cover <- dplyr::between(ATT, weight_DIDc$coefficients - 1.96 * weightc_se, weight_DIDc$coefficients + 1.96 * weightc_se)*1
     
-    propfe_cover <- dplyr::between(ATT, tail(propfe_DID$coefficients, n=1) - 1.96 * propfe_se, tail(propfe_DID$coefficients, n=1) + 1.96 * propfe_se)*1
+    propcountyfe_pcover <- dplyr::between(ATT, tail(propcountyfe_DID$coefficients, n=1) - 1.96 * propcountyfe_pse, tail(propcountyfe_DID$coefficients, n=1) + 1.96 * propcountyfe_pse)*1
+    propcountyfe_ccover <- dplyr::between(ATT, tail(propcountyfe_DID$coefficients, n=1) - 1.96 * propcountyfe_cse, tail(propcountyfe_DID$coefficients, n=1) + 1.96 * propcountyfe_cse)*1
+    
     countyfe_cover <- dplyr::between(ATT, tail(countyfe_DID$coefficients, n=1) - 1.96 * countyfe_se, tail(countyfe_DID$coefficients, n=1) + 1.96 * countyfe_se)*1
+    proptreatfe_cover <- dplyr::between(ATT, tail(proptreatfe_DID$coefficients, n=1) - 1.96 * proptreatfe_se, tail(proptreatfe_DID$coefficients, n=1) + 1.96 * proptreatfe_se)*1
+    
     
     bad_cover1 <- dplyr::between(ATT, tail(bad_DID1$coefficients, n=1) - 1.96 * bad_se1, tail(bad_DID1$coefficients, n=1) + 1.96 * bad_se1)*1
     bad_cover2 <- dplyr::between(ATT, bad_DID2$coefficients - 1.96 * bad_se2, bad_DID2$coefficients + 1.96 * bad_se2)*1
@@ -369,12 +402,12 @@ specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
       0,0,0,
       1,0,0,0,
       bad_DID1$coefficients[4] - ATT,
-      bad_cover1,
+      bad_cover1, 0, 
       "keeping pixels after deforestation event"
     )
     
     firstcol = which(colnames(summary_long)=="iteration")
-    lastcol = which(colnames(summary_long)=="cover")
+    lastcol = which(colnames(summary_long)=="prop_concern")
     
     # Pixel fixed effects
     summary_long[i+n,c(firstcol:lastcol)] <- c(
@@ -384,7 +417,8 @@ specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
       0,0,0,
       1,0,0,0,
       bad_DID2$coefficients - ATT,
-      bad_cover2
+      bad_cover2,
+      0
     )
     
     # traditional DID
@@ -395,7 +429,8 @@ specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
       0,0,0,
       1,0,0,0,
       DID$coefficients[4] - ATT,
-      DID_cover
+      DID_cover,
+      0
     )
     
     # property uoa
@@ -406,7 +441,8 @@ specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
       0,0,0,
       0,0,1,0,
       prop_DID$coefficients - ATT,
-      prop_cover
+      prop_cover,
+      0
     )
     
     # county uoa
@@ -417,29 +453,69 @@ specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
       0,0,0,
       0,0,0,1,
       county_DID$coefficients - ATT,
-      county_cover
+      county_cover,
+      0
     )
     
-    # property fe
+    proptest <- panels %>%
+      filter(year == max(year))%>%
+      group_by(property)%>%
+      dplyr::summarise(test = mean(y_it, na.rm = T))%>%
+      filter(is.na(test))
+    
+    if(length(proptest$test) > 0){
+      
+      print(paste0(length(proptest$test), " properties fully deforested before end of study period"))
+      
+    }
+    
+    
+    # property county fe
     summary_long[i+n*5,c(firstcol:lastcol)] <- c(
       i,
       1,0,0,0,
-      0,0,1,0,0,
+      0,0,1,1,0,
       0,0,0,
       0,0,1,0,
-      tail(propfe_DID$coefficients, n=1) - ATT,
-      propfe_cover
+      tail(propcountyfe_DID$coefficients, n=1) - ATT,
+      propcountyfe_pcover,
+      ifelse(length(proptest$test) > 0, 1, 0)
+    )
+    
+    # property county fe
+    summary_long[i+n*6,c(firstcol:lastcol)] <- c(
+      i,
+      1,0,0,0,
+      0,0,1,1,0,
+      0,0,0,
+      0,0,0,1,
+      tail(propcountyfe_DID$coefficients, n=1) - ATT,
+      propcountyfe_ccover,
+      ifelse(length(proptest$test) > 0, 1, 0)
+    )
+    
+    # property treat fe
+    summary_long[i+n*7,c(firstcol:lastcol)] <- c(
+      i,
+      1,0,0,0,
+      0,0,1,0,1,
+      0,0,0,
+      0,0,1,0,
+      tail(proptreatfe_DID$coefficients, n=1) - ATT,
+      proptreatfe_cover,
+      ifelse(length(proptest$test) > 0, 1, 0)
     )
     
     # county fe
-    summary_long[i+n*6,c(firstcol:lastcol)] <- c(
+    summary_long[i+n*8,c(firstcol:lastcol)] <- c(
       i,
       1,0,0,0,
       0,0,0,1,0,
       0,0,0,
       0,0,0,1,
       tail(countyfe_DID$coefficients, n=1) - ATT,
-      countyfe_cover
+      countyfe_cover,
+      0
     )
     
     firstcol = which(colnames(summary_long)=="gridsize")
@@ -447,7 +523,7 @@ specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
     
     ### GRID specifications
     # AS UNIT OF ANALYSIS
-    summary_long[i+n*7,c(firstcol:lastcol)] <- c(
+    summary_long[i+n*9,c(firstcol:lastcol)] <- c(
       cellsize_small, i,
       0,1,0,0,
       0,1,0,0,0,
@@ -457,7 +533,7 @@ specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
       grid_covermat[i,1]
     )
     
-    summary_long[i+n*8,c(firstcol:lastcol)] <- c(
+    summary_long[i+n*10,c(firstcol:lastcol)] <- c(
       cellsize_med, i,
       0,1,0,0,
       0,1,0,0,0,
@@ -467,7 +543,7 @@ specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
       grid_covermat[i,2]
     )
     
-    summary_long[i+n*9,c(firstcol:lastcol)] <- c(
+    summary_long[i+n*11,c(firstcol:lastcol)] <- c(
       cellsize_large, i,
       0,1,0,0,
       0,1,0,0,0,
@@ -479,30 +555,30 @@ specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
     
     # AS FE
     
-    summary_long[i+n*10,c(firstcol:lastcol)] <- c(
+    summary_long[i+n*12,c(firstcol:lastcol)] <- c(
       cellsize_small, i,
       1,0,0,0,
-      0,1,0,0,0,
+      0,1,0,1,0,
       0,0,0,
       0,1,0,0,
       gridfe_coeffmatrix[i, 1],
       gridfe_covermat[i,1]
     )
     
-    summary_long[i+n*11,c(firstcol:lastcol)] <- c(
+    summary_long[i+n*13,c(firstcol:lastcol)] <- c(
       cellsize_med, i,
       1,0,0,0,
-      0,1,0,0,0,
+      0,1,0,1,0,
       0,0,0,
       0,1,0,0,
       gridfe_coeffmatrix[i, 2],
       gridfe_covermat[i,2]
     )
     
-    summary_long[i+n*12,c(firstcol:lastcol)] <- c(
+    summary_long[i+n*14,c(firstcol:lastcol)] <- c(
       cellsize_large, i,
       1,0,0,0,
-      0,1,0,0,0,
+      0,1,0,1,0,
       0,0,0,
       0,1,0,0,
       gridfe_coeffmatrix[i, 3],
@@ -515,7 +591,7 @@ specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
     
     ### WEIGHTED specifications
     # weighted property
-    summary_long[i+n*13,c(firstcol:lastcol)] <- c(
+    summary_long[i+n*15,c(firstcol:lastcol)] <- c(
       i,
       0,0,1,0,
       0,0,1,0,0,
@@ -526,7 +602,7 @@ specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
     )
     
     #weighted county
-    summary_long[i+n*14,c(firstcol:lastcol)] <- c(
+    summary_long[i+n*16,c(firstcol:lastcol)] <- c(
       i,
       0,0,0,1,
       0,0,0,1,0,
@@ -538,7 +614,7 @@ specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
     
     ### SURVIVAL specifications
     # Cox DID
-    summary_long[i+n*15,c(firstcol:lastcol)] <- c(
+    summary_long[i+n*17,c(firstcol:lastcol)] <- c(
       i,
       1,0,0,0,
       0,0,0,0,1,
@@ -549,7 +625,7 @@ specifications <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, 
     )
     
     # our proposed estimator
-    summary_long[i+n*16,c(firstcol:lastcol)] <- c(
+    summary_long[i+n*18,c(firstcol:lastcol)] <- c(
       i,
       1,0,0,0,
       0,0,0,0,0,

@@ -6,17 +6,11 @@ library(tidyverse)
 library(spatstat)
 #library(ggpattern)
 
-full_landscape <- function(nobs, cellsize, ppoints, cpoints){
+nested_landscape <- function(nobs, cellsize_list, ppoints, cpoints){
   
   
   rootn <- ceiling(sqrt(nobs))
   landscape = st_sfc(st_polygon(list(cbind(c(0,rootn,rootn,0,0),c(0,0,rootn,rootn,0)))))
-  
-  overgrid <- st_make_grid(landscape, cellsize, square = TRUE)
-  
-  #trim grid to landscape
-  overgrid <- st_intersection(overgrid, landscape)
-  
   
   #generate pixels within landscape
   DT <- data.frame(
@@ -44,13 +38,38 @@ full_landscape <- function(nobs, cellsize, ppoints, cpoints){
     st_union() %>% # unite them 
     st_voronoi() %>% # perform the voronoi tessellation
     st_collection_extract(type = "POLYGON") %>% # select the polygons
-    st_intersection(landscape)  # limit to within landscape boundaries
-    
-  #plot(v_property)
+    st_intersection(landscape) %>% # limit to within landscape boundaries
+    st_intersection(v_county) # limit to within county boundaries
   
-  #determine which pixels are in each grid 
-  wgrid <- st_within(pixloc_df, overgrid, sparse = FALSE, prepared = TRUE)*1
-  pixloc_df$grid <- max.col(wgrid)
+  pixloc_grid <- pixloc_df %>%
+    st_set_geometry(NULL)
+  
+  for(i in cellsize_list){
+    
+    
+    overgrid <- st_make_grid(landscape, i, square = TRUE)
+    
+    #trim grid to landscape
+    overgrid <- st_intersection(overgrid, landscape)
+    
+    wgrid <- st_within(pixloc_df, overgrid, sparse = FALSE, prepared = TRUE)*1
+    
+    pixloc_df[ , ncol(pixloc_df) + 1] <- as.character(max.col(wgrid))                  # Append new column
+    colnames(pixloc_df)[ncol(pixloc_df)] <- paste0("grid_", i)  # Rename column name
+    
+    gareas <- tibble::rownames_to_column(
+      data.frame(matrix(unlist(st_area(overgrid))))
+    )
+    
+    names(gareas)[1] <- paste0("grid_", i)
+    names(gareas)[2] <- paste0("garea_", i)
+    
+    
+    pixloc_df <- pixloc_df %>%
+      inner_join(gareas, by = paste0("grid_", i)
+      )
+    
+  }
   
   wprop <- st_within(pixloc_df, v_property, sparse = FALSE, prepared = TRUE)*1
   pixloc_df$property <- max.col(wprop)
@@ -81,20 +100,16 @@ full_landscape <- function(nobs, cellsize, ppoints, cpoints){
   careas <- tibble::rownames_to_column(careas)
   names(careas)[1] <- paste("county")
   names(careas)[2] <- paste("carea")
-  gareas <- data.frame(matrix(unlist(st_area(overgrid))))
-  gareas <- tibble::rownames_to_column(gareas)
-  names(gareas)[1] <- paste("grid")
-  names(gareas)[2] <- paste("garea")
+  
   
   
   #sapply(pixloc_df, class)
-  cols.num <- c("pixels", "grid", "property", "county")
-  pixloc_df[cols.num] <- sapply(pixloc_df[cols.num],as.character)
+  pixloc_df <- pixloc_df %>%
+    mutate_at(vars(pixels, county, property), as.character)
   
   #merging back areas
   
   pixloc_df <- pixloc_df %>%
-    inner_join(gareas, by = "grid") %>%
     inner_join(careas, by = "county") %>%
     inner_join(pareas, by = "property")
   

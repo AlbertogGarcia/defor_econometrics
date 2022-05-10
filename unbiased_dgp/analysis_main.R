@@ -3,7 +3,6 @@ library(tictoc)
 library(here)
 library(DeclareDesign)
 source(here::here('unbiased_dgp', 'specifications.R'))
-source(here::here('unbiased_dgp', 'all_specifications.R'))
 
 library(survival)
 library(ggplot2)
@@ -16,7 +15,7 @@ library(ggfortify)
 
 years = 6
 nobs = 150^2
-n = 500
+n = 250
 
 cellsize_small = 5
 cellsize_med = 10
@@ -51,7 +50,7 @@ b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std
 
 set.seed(0930)
 # summary function that estimates all of the different specifications
-aggregation <- specifications(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize_small, cellsize_med, cellsize_large, ppoints, cpoints)
+aggregation <- specifications(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, std_c = 0.0, cellsize_small, cellsize_med, cellsize_large, ppoints, cpoints, nestedprops = FALSE, proptreatassign = FALSE)
 
 summary_long <- aggregation$summary_long
 
@@ -73,7 +72,7 @@ b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
 # summary function that estimates all of the different specifications
-aggregation_0 <- specifications(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize_small, cellsize_med, cellsize_large, ppoints, cpoints)
+aggregation_0 <- specifications(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, std_c = 0.0, cellsize_small, cellsize_med, cellsize_large, ppoints, cpoints, nestedprops = FALSE, proptreatassign = FALSE)
 summary_long_0 <- aggregation_0$summary_long 
 
 export(summary_long_0, "unbiased_dgp/results/summary_selection.rds")
@@ -92,11 +91,11 @@ b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
 b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
-aggregation_1 <- specifications(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize_small, cellsize_med, cellsize_large, ppoints, cpoints)
+aggregation_1 <- specifications(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, std_c = 0.0, cellsize_small, cellsize_med, cellsize_large, ppoints, cpoints, nestedprops = FALSE, proptreatassign = FALSE)
 summary_long_1 <- aggregation_1$summary_long
 
 ##### 0.25
-std_p = 0.25
+std_p = 0.2
 
 # we'll need to compute the parameters 
 std_avp = (std_a^2+std_v^2+std_p^2)^.5
@@ -108,12 +107,12 @@ b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std
 
 #ATT = pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2 )^.5) - pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2 )^.5)
 
-aggregation_2 <- specifications(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize_small, cellsize_med, cellsize_large, ppoints, cpoints)
+aggregation_2 <- specifications(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, std_c = 0.0, cellsize_small, cellsize_med, cellsize_large, ppoints, cpoints, nestedprops = FALSE, proptreatassign = FALSE)
 summary_long_2 <- aggregation_2$summary_long
 
 
 #### 0.5
-std_p = 0.5
+std_p = 0.3
 
 std_avp = (std_a^2+std_v^2+std_p^2)^.5
 b0 = qnorm(base_0, mean = 0, sd = std_avp)
@@ -122,7 +121,7 @@ b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
 b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
-aggregation_3 <- specifications(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize_small, cellsize_med, cellsize_large, ppoints, cpoints)
+aggregation_3 <- specifications(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, std_c = 0.0, cellsize_small, cellsize_med, cellsize_large, ppoints, cpoints, nestedprops = FALSE, proptreatassign = FALSE)
 summary_long_3 <- aggregation_3$summary_long
 
 summary_full <- rbind(summary_long_0, summary_long_1, summary_long_2, summary_long_3)
@@ -151,7 +150,7 @@ b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std
 set.seed(0930)
 cellsize = cellsize_med
 
-aggregation_alt <- all_specifications(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+aggregation_alt <- specifications(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, std_c = 0.0, cellsize_small, cellsize_med, cellsize_large, ppoints, cpoints, nestedprops = FALSE, proptreatassign = FALSE)
 
 summary_long_alt <- aggregation_alt$summary_long
 export(summary_long_alt, "unbiased_dgp/results/summary_long_alt.rds")
@@ -169,7 +168,7 @@ b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
 b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
 b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
 
-aggregation_alt2 <- all_specifications(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+aggregation_alt2 <- specifications(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v, std_p, std_c = 0.0, cellsize_small, cellsize_med, cellsize_large, ppoints, cpoints, nestedprops = FALSE, proptreatassign = FALSE)
 
 summary_long_alt2 <- aggregation_alt2$summary_long
 export(summary_long_alt2, "unbiased_dgp/results/summary_long_alt2.rds")
@@ -185,8 +184,8 @@ std_a = 0
 std_v = 0.5
 std_p = 0.0
 std_b3 = .15
-nobs = 100^2
-ppoints = 100
+nobs = 150^2
+ppoints = 225
 
 # here are the landscape characteristics in this parameterization
 # note that the bias for the TWFE model will be equal to the pre-treatment difference in deforestation rtes, which is 0.03

@@ -15,12 +15,23 @@ library(fixest)
 library(here)
 library(DeclareDesign)
 source(here::here('unbiased_dgp', 'full_landscape.R'))
+source(here::here('unbiased_dgp', 'prop_landscape.R'))
 
 #begin function
 heterogeneous_propertyarea <- function(n, nobs, years, b0, b1, b2_0, b2_1, std_a = 0, std_v = 0.25, std_p = 0.0, std_b3 = .1, given_ATT, cellsize, ppoints, cpoints){
   
-  countyscape = full_landscape(nobs, cellsize, ppoints, cpoints)
+  # if (proptreatassign) {
+  #   countyscape = prop_landscape(nobs, cellsize, ppoints, cpoints)
+  #   pixloc_df = countyscape$pixloc_df
+  # } else {
+  #   countyscape = full_landscape(nobs, cellsize, ppoints, cpoints)
+  #   pixloc_df = countyscape$pixloc_df
+  # }
+  # 
+  
+  countyscape = prop_landscape(nobs, cellsize, ppoints, cpoints)
   pixloc_df = countyscape$pixloc_df
+  
   
   pixloc <- pixloc_df
   
@@ -234,9 +245,9 @@ heterogeneous_propertyarea <- function(n, nobs, years, b0, b1, b2_0, b2_1, std_a
     
     fix_DID1 <- feols(y_it ~  post*treat|grid, data = panels)
     
-    fix_DID2 <- feols(y_it ~  post*treat|property, data = panels)
+    fix_DID2 <- feols(y_it ~  post:treat|property, data = panels)
     
-    fix_DID3 <- feols(y_it ~  post:treat|year+county, data = panels)
+    fix_DID3 <- feols(y_it ~  post*treat|year+county, data = panels)
     
     # simple DID
     
@@ -354,7 +365,7 @@ heterogeneous_propertyarea <- function(n, nobs, years, b0, b1, b2_0, b2_1, std_a
     summary_long[i+n*4,c(firstcol:lastcol)] <- c(
       i,
       1,0,0,0,
-      0,1,0,0,0,
+      0,1,0,0,1,
       0,
       0,1,0,0,
       fix_coeffmatrix[i,1],
@@ -378,7 +389,7 @@ heterogeneous_propertyarea <- function(n, nobs, years, b0, b1, b2_0, b2_1, std_a
     summary_long[i+n*6,c(firstcol:lastcol)] <- c(
       i,
       1,0,0,0,
-      0,0,0,1,0,
+      0,0,0,1,1,
       0,
       0,0,0,1,
       fix_coeffmatrix[i,3],

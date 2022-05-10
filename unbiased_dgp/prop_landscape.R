@@ -6,7 +6,7 @@ library(tidyverse)
 library(spatstat)
 #library(ggpattern)
 
-full_landscape <- function(nobs, cellsize, ppoints, cpoints){
+prop_landscape <- function(nobs, cellsize, ppoints, cpoints){
   
   
   rootn <- ceiling(sqrt(nobs))
@@ -45,7 +45,7 @@ full_landscape <- function(nobs, cellsize, ppoints, cpoints){
     st_voronoi() %>% # perform the voronoi tessellation
     st_collection_extract(type = "POLYGON") %>% # select the polygons
     st_intersection(landscape)  # limit to within landscape boundaries
-    
+  
   #plot(v_property)
   
   #determine which pixels are in each grid 
@@ -59,18 +59,18 @@ full_landscape <- function(nobs, cellsize, ppoints, cpoints){
   pixloc_df$county <- max.col(wcounty)
   
   #determine treated vs. untreated counties
-  treat_counties <- sample(1:length(v_county), (length(v_county)/2) )
-  county= seq(from = 1, to = length(v_county))
+  treat_props <- sample(1:length(v_property), (length(v_property)/2) )
+  property= seq(from = 1, to = length(v_property))
   
-  treatcounty <- data.frame(
-    county= seq(from = 1, to = length(v_county)),
-    treat = ifelse(county %in% treat_counties, 1, 0)
+  treatproperty <- data.frame(
+    property= seq(from = 1, to = length(v_property)),
+    treat = ifelse(property %in% treat_props, 1, 0)
   ) 
   
   
   # determine which pixels are treated vs. untreated
   pixloc_df <- pixloc_df %>%
-    inner_join(treatcounty, by = "county")
+    inner_join(treatproperty, by = "property")
   
   #getting areas for properies and counties
   pareas <- data.frame(matrix(unlist(st_area(v_property))))
@@ -98,19 +98,9 @@ full_landscape <- function(nobs, cellsize, ppoints, cpoints){
     inner_join(careas, by = "county") %>%
     inner_join(pareas, by = "property")
   
-  intervention_plot <- st_as_sf(v_county) %>%
-    tibble::rownames_to_column("county") 
-  intervention_plot$county <- as.integer(intervention_plot$county)
-  intervention_plot <- intervention_plot %>%
-    inner_join(treatcounty, by = "county") 
-  intervention_plot$treat <- as.factor(intervention_plot$treat)
   
-  intervention_area <- intervention_plot %>%
-    filter( treat == 1)
-  control_area <- intervention_plot %>%
-    filter( treat == 0)
   
-  outputs = list('pixloc_df' = pixloc_df, 'control_area' = control_area, 'intervention_area' = intervention_area, "p_bounds" = v_property, "c_bounds" = v_county)
+  outputs = list('pixloc_df' = pixloc_df)
   return(outputs)
   
 }

@@ -6,17 +6,11 @@ library(tidyverse)
 library(spatstat)
 #library(ggpattern)
 
-full_landscape <- function(nobs, cellsize, ppoints, cpoints){
+proptreat_landscape <- function(nobs, cellsize_list, ppoints, cpoints){
   
   
   rootn <- ceiling(sqrt(nobs))
   landscape = st_sfc(st_polygon(list(cbind(c(0,rootn,rootn,0,0),c(0,0,rootn,rootn,0)))))
-  
-  overgrid <- st_make_grid(landscape, cellsize, square = TRUE)
-  
-  #trim grid to landscape
-  overgrid <- st_intersection(overgrid, landscape)
-  
   
   #generate pixels within landscape
   DT <- data.frame(
@@ -45,12 +39,36 @@ full_landscape <- function(nobs, cellsize, ppoints, cpoints){
     st_voronoi() %>% # perform the voronoi tessellation
     st_collection_extract(type = "POLYGON") %>% # select the polygons
     st_intersection(landscape)  # limit to within landscape boundaries
-    
-  #plot(v_property)
   
-  #determine which pixels are in each grid 
-  wgrid <- st_within(pixloc_df, overgrid, sparse = FALSE, prepared = TRUE)*1
-  pixloc_df$grid <- max.col(wgrid)
+  pixloc_grid <- pixloc_df %>%
+    st_set_geometry(NULL)
+  
+  for(i in cellsize_list){
+    
+    
+    overgrid <- st_make_grid(landscape, i, square = TRUE)
+    
+    #trim grid to landscape
+    overgrid <- st_intersection(overgrid, landscape)
+    
+    wgrid <- st_within(pixloc_df, overgrid, sparse = FALSE, prepared = TRUE)*1
+    
+    pixloc_df[ , ncol(pixloc_df) + 1] <- as.character(max.col(wgrid))                  # Append new column
+    colnames(pixloc_df)[ncol(pixloc_df)] <- paste0("grid_", i)  # Rename column name
+    
+    gareas <- tibble::rownames_to_column(
+      data.frame(matrix(unlist(st_area(overgrid))))
+    )
+    
+    names(gareas)[1] <- paste0("grid_", i)
+    names(gareas)[2] <- paste0("garea_", i)
+    
+    
+    pixloc_df <- pixloc_df %>%
+      inner_join(gareas, by = paste0("grid_", i)
+      )
+    
+  }
   
   wprop <- st_within(pixloc_df, v_property, sparse = FALSE, prepared = TRUE)*1
   pixloc_df$property <- max.col(wprop)
@@ -58,19 +76,19 @@ full_landscape <- function(nobs, cellsize, ppoints, cpoints){
   wcounty <- st_within(pixloc_df, v_county, sparse = FALSE, prepared = TRUE)*1
   pixloc_df$county <- max.col(wcounty)
   
-  #determine treated vs. untreated counties
-  treat_counties <- sample(1:length(v_county), (length(v_county)/2) )
-  county= seq(from = 1, to = length(v_county))
+  #determine treated vs. untreated properties
+  treat_properties <- sample(1:length(v_property), (length(v_property)/2) )
+  property= seq(from = 1, to = length(v_property))
   
-  treatcounty <- data.frame(
-    county= seq(from = 1, to = length(v_county)),
-    treat = ifelse(county %in% treat_counties, 1, 0)
+  treatprop <- data.frame(
+    property= seq(from = 1, to = length(v_property)),
+    treat = ifelse(property %in% treat_properties, 1, 0)
   ) 
   
   
   # determine which pixels are treated vs. untreated
   pixloc_df <- pixloc_df %>%
-    inner_join(treatcounty, by = "county")
+    inner_join(treatprop, by = "property")
   
   #getting areas for properies and counties
   pareas <- data.frame(matrix(unlist(st_area(v_property))))
@@ -81,36 +99,21 @@ full_landscape <- function(nobs, cellsize, ppoints, cpoints){
   careas <- tibble::rownames_to_column(careas)
   names(careas)[1] <- paste("county")
   names(careas)[2] <- paste("carea")
-  gareas <- data.frame(matrix(unlist(st_area(overgrid))))
-  gareas <- tibble::rownames_to_column(gareas)
-  names(gareas)[1] <- paste("grid")
-  names(gareas)[2] <- paste("garea")
+  
   
   
   #sapply(pixloc_df, class)
-  cols.num <- c("pixels", "grid", "property", "county")
-  pixloc_df[cols.num] <- sapply(pixloc_df[cols.num],as.character)
+  pixloc_df <- pixloc_df %>%
+    mutate_at(vars(pixels, county, property), as.character)
   
   #merging back areas
   
   pixloc_df <- pixloc_df %>%
-    inner_join(gareas, by = "grid") %>%
     inner_join(careas, by = "county") %>%
     inner_join(pareas, by = "property")
   
-  intervention_plot <- st_as_sf(v_county) %>%
-    tibble::rownames_to_column("county") 
-  intervention_plot$county <- as.integer(intervention_plot$county)
-  intervention_plot <- intervention_plot %>%
-    inner_join(treatcounty, by = "county") 
-  intervention_plot$treat <- as.factor(intervention_plot$treat)
   
-  intervention_area <- intervention_plot %>%
-    filter( treat == 1)
-  control_area <- intervention_plot %>%
-    filter( treat == 0)
-  
-  outputs = list('pixloc_df' = pixloc_df, 'control_area' = control_area, 'intervention_area' = intervention_area, "p_bounds" = v_property, "c_bounds" = v_county)
+  outputs = list('pixloc_df' = pixloc_df, "p_bounds" = v_property, "c_bounds" = v_county)
   return(outputs)
   
 }
