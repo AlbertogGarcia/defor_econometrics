@@ -13,7 +13,7 @@ library(ggfortify)
 
 years = 6
 nobs = 150^2
-n = 100
+n = 250
 
 cellsize_small = 5
 cellsize_med = 10
