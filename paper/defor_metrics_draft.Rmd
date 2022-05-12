@@ -127,20 +127,20 @@ However, this basic model makes an assumption that the decision to deforest is r
 \end{align}
 
 
-## Estimating the $ATT$: difference-in-differences and two-way fixed effects estimators {#ATT}
+## Estimating the $ATT$ using difference-in-differences and two-way fixed effects estimators {#ATT}
 
 Two methods commonly used to estimate the $ATT$ in conservation intervention settings with panel data are Difference-in-Differences (DID) and Two-way Fixed Effects (TWFE) regression (@blackman2013; @jones2015). Our parameter of interest, the $ATT$, is the average effect of the conservation intervention on treated pixels. Let $y_{ivt}(1)$ and $y_{ivt}(0)$ denote the potential outcomes of pixel $i$ in property $v$ in time $t$ with and without the treatment, respectively. In addition, let $t_0$ denote the year that the intervention was implemented and let $D_i$ represent a dummy indicating whether pixel $i$ is ever treated. The $ATT$ can now be expressed as: 
 
 $$ ATT = E[y_{ivt}(1) - y_{ivt}(0) |  t\geq t_0, D_i=1]$$
 
-DID and TWFE methods have become so popular in part, because the researcher does not need random assignment of treatment to generate convincing estimates of a program's impact on avoided deforestation. Instead, the researcher must make a common trends assumption, under which we evaluate each method. 
+DID and TWFE methods have become popular in part, because the researcher does not need random assignment of treatment to generate convincing estimates of a program's impact on avoided deforestation. Instead, the researcher must make a common trends assumption, under which we evaluate each method. 
 
 \textbf{Assumption 1:} (Common trends)
 \begin{align*}
 E[y_{ivt}(0) |  t\geq t_0, D_i=1]-E[y_{ivt}(0) |  t< t_0, D_i=1]=E[y_{ivt}(0) |  t\geq t_0, D_i=0]-E[y_{ivt}(0) |  t< t_0, D_i=0]
 \end{align*}
 
-Assumption 1 requires that deforestation rates in the intervention area and untreated units would have experienced the same average change in the outcome (trend) in the absence of the intervention. Put another way, this means that pixels in treated and untreated areas would have experienced the same change in their probability of deforestation across the two periods had no intervention ocurred. While fundamentally untestable, ensuring that deforestation rates in the intervention area and the control area followed parallel trajectories prior to the date of the intervention can give credence to this assumption [@butsic2017]. 
+Assumption 1 requires that pixels in treated and untreated areas would have experienced the same change in their probability of deforestation across the two periods had no intervention ocurred. While fundamentally untestable, ensuring that deforestation rates in the intervention area and the control area followed parallel trajectories prior to the date of the intervention can lend credibility to this assumption [@butsic2017]. 
 
 We also make the following stable unit treatment value assumption (SUTVA)
 
@@ -183,27 +183,23 @@ Despite widespread use of pixel level analyses of deforestation, the application
 
 \[ \beta_{TWFE} = ATT + \underbrace{E[y_{it}(0) | t<t_0, D_i=1] - E[y_{it}(0) | t<t_0, D_i=0]}_{\text{pre-treatment difference in deforestation rates}} \]
 
-Regression 2 thus forgoes the benefits that panel methods provide and, if the treated area has a different baseline deforestation rate than the control, will represent a biased estimate of the intervention's impact. Many conservation interventions are specifically targeted towards locations with either low opportunity costs for conservation, or high threats of conversion. As a result, it is likely that many conservation impact evaluations will have treatment and control units that experienced different pre-treatment deforestation rates. It is important to note that this bias could even lead to changes in the estimated treatment effect's sign, in addition to errors in the effect's magnitude and significance. 
+Regression 2 thus forgoes the benefits that panel methods provide and, if the treated area has a different baseline deforestation rate than the control, will generate a biased estimate of the intervention's impact. Many conservation interventions are specifically targeted towards locations with either low opportunity costs for conservation, or high threats of conversion. As a result, it is likely that many conservation impact evaluations will have treatment and control units that experienced different pre-treatment deforestation rates. It is important to note that this bias could even lead to changes in the estimated treatment effect's sign, in addition to errors in the effect's magnitude and significance. 
 
-This result stems from researchers' use of pixel fixed effects in the regression specification. By including unit fixed effects in TWFE regressions, researchers hope to control for unit-specific confounders, including pre-treatment differences in the outcome. However, when following common guidance to drop pixels in the periods after they are first deforested, these fixed effects do not behave as the researcher expects. Because the pixels that are deforested in the first period are not observed for the entire panel, these observations go unaccounted for in $\beta_{TWFE}$. Implicitly, the pre-treatment deforestation rates get assigned as 0 for both the treatment and control groups. In Appendix \@ref(ex-post), we show that $\hat{\beta}_{TWFE}$ is equivalent to the coefficient from a regression on a dataset where all pixels deforested in the pre-treatment period are simply dropped from the dataset completely.
+This result stems from researchers' use of pixel fixed effects in the regression specification. By including pixel fixed effects in TWFE regressions, researchers hope to control for local confounders, including pre-treatment differences in the outcome. However, when following common guidance to drop pixels in the periods after they are first deforested, these fixed effects do not behave as the researcher expects. Because the pixels that are deforested in the first period are not observed for the entire panel, these observations go unaccounted for in $\beta_{TWFE}$. Implicitly, the pre-treatment deforestation rates get assigned as 0 for both the treatment and control groups. In Appendix \@ref(ex-post), we show that $\hat{\beta}_{TWFE}$ is equivalent to the coefficient from a regression on a dataset where all pixels deforested in the pre-treatment period are simply dropped from the dataset completely.
 
-Researchers often find themselves in situations where the more flexible TWFE model is preferable to the simple DID, such as in the case of multiple groups and time periods. While many economists may be transitioning to newly developed estimators to address settings in which multiple groups undergo treatment in different time periods [e.g., @callaway2020; @gardner2021], we show in section \@ref(multipleGT) that many of these estimators suffer from the same issue.
-<!-- Robert to do: Clean up prior paragraph to improve flow -->
+<!-- Researchers often find themselves in situations where the more flexible TWFE model is preferable to the simple DID, such as in the case of multiple groups and time periods. While many economists may be transitioning to newly developed estimators to address settings in which multiple groups undergo treatment in different time periods [e.g., @callaway2020; @gardner2021], we show in section \@ref(multipleGT) that many of these estimators suffer from the same issue. -->
 
-### Alternative construction of $y^o_{ivt}$ cannot recover $ATT$
+### Alternative construction of $y^o_{ivt}$ cannot recover the $ATT$
 
 Although dropping previously deforested pixels from the panel introduces bias into the TWFE estimate of the $ATT$, keeping observations in the panel after initial deforestation introduces its own problems. The $ATT$ as defined in Section \@ref(ATT) is an estimate of the impact of an intervention on the frequency of deforestation events (i.e. the decision to clear). Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested would incorrectly imply that it has actively been deforested in each subsequent time period, when in fact, no new deforestation event or clearing decision has occurred. This is intuitively problematic, because the deforestation rate in each period would be monotonically increasing by construction, which is not necessarily the case. We show that pixel-level regression models that do not drop deforested pixels in subsequent periods do indeed incur severe bias if used to estimate the $ATT$ as it is defined here (Appendix \@ref(keep-pixels)).
 
 Alternatively, some researchers opt to keep deforested pixels in the panel, and choose to estimate an intervention's impact on deforested area, rather than on deforestation rates. However, when reforestation timing is unaccounted for, as is the case with most data products using a binary measure of deforestation, this is not possible. Rather than measuring deforested area at any given time, this outcome variable measures the stock of ever-deforested area through the current time period. It is unclear that this is a relevant parameter of interest in many cases and should not be interpreted as either a deforestation rate or the deforested area in a given time period.
 
-## Estimating the $ATT$: survival analysis
-<!-- Robert to do: work through the order of this section -->
+## Estimating the $ATT$ using survival analysis
+### Hazard rate ratios from a single survival model do not estimate the $ATT$
+Survival analysis has emerged as a common approach to modeling irreversible changes such as mortality, technology adoption or recidivism [@friedman, @mastrobuoni]. Survival models, such as the Cox Proportional Hazards model, quantify how covariates relate to changes in the length of time that a unit remains in a sample. In the case of deforestation, survival analyses can be used to explore how policy adoption changes the duration that treated, forested pixels survive until they are first cleared. 
 
-While survival models have not frequently been used in the context of avoided deforestation, several other literatures utilize them in settings with irreversible outcomes of interest such as mortality [e.g., @friedman] or recidivism [e.g., @mastrobuoni]. Here, the researcher is interested in the time each unit remains in the sample, which in our context, corresponds to the time each pixel survives until deforestation. While this class of models cannot estimate the $ATT$ directly, we present a hazard ratio analog that should be of similar interest:
-
-$$ HRTT = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, D_i=1]}$$
-
-The $HRTT$ is the ratio of the hazard rates in the treatment group post-treatment, relative to the counterfactual in that group had treatment not ocurred. In settings with two groups and two time periods, some researchers opt to estimate $HRTT$ with a cox proportional hazards model of the following form [e.g., @carlson2018; @mastrobuoni]:
+Despite the theoretical appeal of using survival models to study deforestation, they are still relatively uncommon in conservation impact evaluation. One emerging approach introduces the intuition of a difference in differences research design into a Cox Proportional Hazards model [e.g. @heilmayr2020; @sales2022; @smith2020]. Specifically, researchers estimate a Cox proportional hazards model of the following general form:
 
 \textbf{Regression 3:} (Cox DID regression)
 Let $\beta_{coxDID}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
@@ -211,32 +207,35 @@ Let $\beta_{coxDID}$ denote the coefficient of the interaction between $D_{i}$ a
 h(t) = \delta_0(t)exp( \alpha_0 + \alpha_1 D_i + \alpha_2 \mathbb{1} \{ t\geq t_0\}+ \beta_{coxDID} \text{ x } D_i \mathbb{1} \{ t\geq t_0\}  + \epsilon_{it})
 \end{align}
 
-, where $h(t)$ is the hazard rate of deforestation, $t$ years into the study period; and $\delta_0(t)$ is the baseline hazard function. Then, the expectation is that $exp(\beta_{coxDID}) = HRTT$.
+, where $h(t)$ is the hazard rate of deforestation, $t$ years into the study period; and $\delta_0(t)$ is the baseline hazard function. 
 
-### Proposing an alternative survival estimator
+Multiple studies across a wide variety of settings have interpreted the resulting exponentietated coefficient $exp(\beta_{coxDID})$ as a hazard ratio that is indicative of the impact that treatment has had on the relative likelihood of survival. Specifically, based on the way this hazard ratio is interpreted in multiple papers, it appears that many researchers expect this hazard ratio to represent the ratio of the hazard rates in the treatment group post-treatment, relative to the counterfactual in that group had treatment not ocurred. This desired hazard ratio $(HRTT)$ can be considered a reframing of the traditional $ATT$ as a ratio rather than a difference: 
 
-While models in the form of Regression 3 are an intuitive way to generalize the DID to survival analysis, $exp(\beta_{coxDID})$ generally does not recover the $HRTT$. Instead, it recovers a less intuitive product of pre- and post-treatment ratios across the two groups:
+$$ HRTT = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, D_i=1]}$$
+
+However, Appendix XX shows that $exp(\beta_{coxDID})$ is actually an estimate of a less intuitive hazard ratio that is the product of pre- and post-treatment ratios across the treated and untreated groups:
 
 $$exp(\beta_{coxDID}) = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]E[y_{ivt}(0)  |  t < t_0, D_i=0] }{E[y_{ivt}(0)  |  t\geq t_0, D_i=0]E[y_{ivt}(0)  |  t < t_0, D_i=1] }$$
 
-We propose an alternate estimator to recover the more relevant $HRTT$ parameter using three separate hazard rate ratios: 
+### Proposing a new survival analysis-based estimator of the $ATT$
+To the best of our knowledge, no prior studies have successfully combined the Cox Proportional Hazards model and the difference in differences research design to recover an unbiased estimate of the $ATT$. Here we outline a new estimation approach that first recovers an unbiased estimate of the $HRTT$, and then translates this into an estimate of the $ATT$. First, we note that the desired $HRTT$ can be re-written as a combination of three different hazard ratios: 
 
 \begin{align*}
-HRR_1 &= \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, D_i=0]}\\
-HRR_2 &= \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t < t_0, D_i=1]}\\
-HRR_3 &= \frac{E[y_{ivt}(0)  |  t\geq t_0, D_i=0]} {E[y_{ivt}(0)  |  t < t_0, D_i=0]}
+HR_1 &= \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, D_i=0]}\\
+HR_2 &= \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t < t_0, D_i=1]}\\
+HR_3 &= \frac{E[y_{ivt}(0)  |  t\geq t_0, D_i=0]} {E[y_{ivt}(0)  |  t < t_0, D_i=0]}
 \end{align*}
 
-Our estimator is then constructed by:
-$$\widehat{HE} = \frac{1}{1/exp(\hat{ \alpha }) + 1/exp(\hat{ \beta }) - 1/(exp(\hat{ \beta })*exp(\hat{ \delta }))}$$
+$$HRTT = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, D_i=1]} = \frac{1}{1/{HR_1} + 1/HR_2 - 1/(HR_2*HR_3)}$$
 
-Each of $HRR_1$, $HRR_2$, and $HRR_3$ can easily be estimated individually by Cox regressions. Specifically,
+Each of the three hazard ratios, $HRR_1$, $HRR_2$, and $HRR_3$, can be estimated through separate Cox Proportional Hazards models estimated on subsets of the larger dataset. Specifically:
 
-$$h(t) =\lambda_0(t) exp(\alpha 1\{ t \geq t_0\} ),$$ subsetting to only the treated group;
-$$h(t) =\gamma_0(t) exp( \beta 1\{ D_i = 1\} ),$$ subsetting to only the post period; and
-$$h(t) =\psi_0(t) exp(\delta 1\{ t \geq t_0\} ),$$ subsetting to only the untreated group;
+* $HRR_1$: 
 
-where $h(t)$ is the hazard rate of deforestation at time t.
+$$h(t) =\gamma_0(t) exp( \alpha 1\{ D_i = 1\} ),$$ subsetting to only the post period;
+$$h(t) =\lambda_0(t) exp(\beta 1\{ t \geq t_0\} ),$$ subsetting to only the treated group; and
+$$h(t) =\psi_0(t) exp(\delta 1\{ t \geq t_0\} ),$$ subsetting to only the untreated group.
+
 
 Then,
 \begin{align*}
@@ -248,6 +247,11 @@ exp(\delta ) &= HRR_3
 Because the numerator of $HRTT$, $E[y_{ivt}(1)  |  t\geq t_0, D_i=1]$, is observable, we can recover the $ATT$ using the observable term and $HRTT$:
 
 $$ATT = E[y_{ivt}(1)  |  t\geq t_0, D_i=1] - \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1] }{HRTT}$$
+
+
+Our estimator is then constructed by:
+$$\widehat{HRTT} = \frac{1}{1/exp(\hat{ \alpha }) + 1/exp(\hat{ \beta }) - 1/(exp(\hat{ \beta })*exp(\hat{ \delta }))}$$
+
 
 Here, we have shown that the simple extension of the traditional DID to the survival setting does not clearly recover a parameter of interest to researchers interested in the impact evaluation. In contrast, our proposed estimator, which relies on separate estimation of relevant hazard rate ratios, does recover the relevant analog of the $ATT$. We explore the performance of $\hat{HE}$ relative to the proposed OLS regressions under various circumstances likely to arise in the deforestation setting in the next sections. 
 
