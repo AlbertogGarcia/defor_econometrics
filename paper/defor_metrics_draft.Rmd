@@ -209,7 +209,7 @@ h(t) = \delta_0(t)exp( \alpha_0 + \alpha_1 D_i + \alpha_2 \mathbb{1} \{ t\geq t_
 
 , where $h(t)$ is the hazard rate of deforestation, $t$ years into the study period; and $\delta_0(t)$ is the baseline hazard function. 
 
-Multiple studies across a wide variety of settings have interpreted the resulting exponentietated coefficient $exp(\beta_{coxDID})$ as a hazard ratio that is indicative of the impact that treatment has had on the relative likelihood of survival. Specifically, based on the way this hazard ratio is interpreted in multiple papers, it appears that many researchers expect this hazard ratio to represent the ratio of the hazard rates in the treatment group post-treatment, relative to the counterfactual in that group had treatment not ocurred. This desired hazard ratio $(HRTT)$ can be considered a reframing of the traditional $ATT$ as a ratio rather than a difference: 
+Multiple studies across a wide variety of settings have interpreted the resulting exponentietated coefficient $exp(\beta_{coxDID})$ as a hazard ratio that is indicative of the impact that treatment has had on the relative likelihood of survival. Specifically, based on the way this hazard ratio is interpreted in multiple papers, it appears that many researchers expect this hazard ratio to represent the ratio of the hazard rates in the treatment group post-treatment, relative to the counterfactual in that group had treatment not ocurred. This desired hazard ratio measuring the relative impact of treatment on the treated $(HRTT)$ can be considered a reframing of the traditional $ATT$ as a ratio rather than a difference: 
 
 $$ HRTT = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, D_i=1]}$$
 
@@ -228,32 +228,18 @@ HR_3 &= \frac{E[y_{ivt}(0)  |  t\geq t_0, D_i=0]} {E[y_{ivt}(0)  |  t < t_0, D_i
 
 $$HRTT = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, D_i=1]} = \frac{1}{1/{HR_1} + 1/HR_2 - 1/(HR_2*HR_3)}$$
 
-Each of the three hazard ratios, $HRR_1$, $HRR_2$, and $HRR_3$, can be estimated through separate Cox Proportional Hazards models estimated on subsets of the larger dataset. Specifically:
+Each of the three hazard ratios, $HR_1$, $HR_2$, and $HR_3$, can be estimated through separate Cox Proportional Hazards models estimated on subsets of the larger dataset. Specifically:
 
-* $HRR_1$: 
+* $HR_1 = exp( \alpha )$, where $\alpha$ is estimated by subsetting to observations from the post-treatment period $(t \geq t_0)$, and estimating the hazard rate of deforestation at time $t$ as $h(t) =\gamma_0(t) exp( \alpha 1\{ D_i = 1\} )$;
 
-$$h(t) =\gamma_0(t) exp( \alpha 1\{ D_i = 1\} ),$$ subsetting to only the post period;
-$$h(t) =\lambda_0(t) exp(\beta 1\{ t \geq t_0\} ),$$ subsetting to only the treated group; and
-$$h(t) =\psi_0(t) exp(\delta 1\{ t \geq t_0\} ),$$ subsetting to only the untreated group.
+* $HR_2 = exp( \beta )$, where $\beta$ is estimated by subsetting to observations from the treated group $(D_i = 1)$, and estimating the hazard rate of deforestation at time $t$ as $h(t) =\lambda_0(t) exp(\beta 1\{ t \geq t_0\} )$; and
 
+* $HR_3 = exp( \delta )$, where $\delta$ is estimated by subsetting to observations from the untreated group $(D_i = 0)$, and estimating the hazard rate of deforestation at time $t$ as $h(t) =\psi_0(t) exp(\delta 1\{ t \geq t_0\} )$.
 
-Then,
-\begin{align*}
-exp( \alpha ) &= HRR_1\\
-exp( \beta ) &= HRR_2\\
-exp(\delta ) &= HRR_3
-\end{align*}
+Because the numerator of $HRTT$, $E[y_{ivt}(1)  |  t\geq t_0, D_i=1]$, can be estimated as the mean of post-treatment deforestation rates in the treated group, we can estimate the $ATT$ using this observable term and our estimate of $HRTT$:
 
-Because the numerator of $HRTT$, $E[y_{ivt}(1)  |  t\geq t_0, D_i=1]$, is observable, we can recover the $ATT$ using the observable term and $HRTT$:
-
-$$ATT = E[y_{ivt}(1)  |  t\geq t_0, D_i=1] - \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1] }{HRTT}$$
-
-
-Our estimator is then constructed by:
-$$\widehat{HRTT} = \frac{1}{1/exp(\hat{ \alpha }) + 1/exp(\hat{ \beta }) - 1/(exp(\hat{ \beta })*exp(\hat{ \delta }))}$$
-
-
-Here, we have shown that the simple extension of the traditional DID to the survival setting does not clearly recover a parameter of interest to researchers interested in the impact evaluation. In contrast, our proposed estimator, which relies on separate estimation of relevant hazard rate ratios, does recover the relevant analog of the $ATT$. We explore the performance of $\hat{HE}$ relative to the proposed OLS regressions under various circumstances likely to arise in the deforestation setting in the next sections. 
+$$\widehat{ATT}_{Cox} = E[y_{ivt}(1)  |  t\geq t_0, D_i=1] - \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1] }{\widehat{HRTT}}$$
+Here, we have shown that the simple extension of the traditional DID to the survival setting does not clearly recover an easily interpretable measure of a policy's impact. In contrast, our proposed estimator, which relies on separate estimation of relevant hazard ratios, does recover the relevant analog of the $ATT$. We explore the performance of $\widehat{ATT}_{Cox}$ relative to the proposed OLS regressions under various circumstances likely to arise in the deforestation setting in the next sections. 
 
 # Monte Carlo simulations to compare alternative model performance
 
@@ -419,7 +405,7 @@ Columns 6-8 of Figure \@ref(fig:summary-fig) show that the bias of the estimates
 ## Survival analysis: newly proposed estimator
 <!-- Robert to do: need to integrate these paragraphs -->
 Survival analysis is one potential alernative to traditional econometric estimators in the context of deforestation. The simple cox DID, however, is not a viable solution. Column 2 of Figure \@ref(fig:summary-fig) shows the bias associated with Regression 3. 
-In light of the fact that the simple Cox DID is not a viable analog to the traditional DID, we explore whether our proposed estimator, recovers relevant treatment effect parameters in the deforestation setting. We see in column 10 that $\widehat{HE}$ indeed recovers our parameter of interest.
+In light of the fact that the simple Cox DID is not a viable analog to the traditional DID, we explore whether our proposed estimator, recovers relevant treatment effect parameters in the deforestation setting. We see in column 10 that $\widehat{ATT}_{Cox}$ indeed recovers our parameter of interest.
 
 One of the primary reasons for the use of survival analysis is censoring. This occurs when the researcher has partial information about the subjects’ survival times but does not have access to precise event times. While the researcher may not observe all pixels until they are deforested, many other forms of censoring are not a concern in the context of deforestation. Further, the proposed strategy to drop pixels in the periods after they are first deforested successfully addresses the irreversibility in deforestation events. As we show in the coming sections, survival analysis is likely to suffer from bias when unobservables enter the landscape at a scale different than the unit of analysis. While researchers can account for this in OLS specifications, there is no clear solution in survival analysis. 
 
@@ -751,7 +737,7 @@ abline(v = 7)
 
 ```
 
-While incorporating spatially aggregated units in OLS specifications may improve analysis, there is no clear analog with survival models. In fact, Figure \@ref(fig:summary) in the appendix shows that $\hat{HE}$ suffers significantly as $\sigma_p$ increases. As such, when the pixel is not the preferred unit of analysis, survival analysis is not likely to be the preferred method for estimating the impact of conservation interventions.
+While incorporating spatially aggregated units in OLS specifications may improve analysis, there is no clear analog with survival models. In fact, Figure \@ref(fig:summary) in the appendix shows that $\widehat{ATT}_{Cox}$ suffers significantly as $\sigma_p$ increases. As such, when the pixel is not the preferred unit of analysis, survival analysis is not likely to be the preferred method for estimating the impact of conservation interventions.
 
 <!-- As property level unobservables play a larger role, the treatment of standard errors also becomes more important. Standard error clustering is used by nearly every study in the literature for inference. The clustering problem is caused by the presence of a common unobserved random shock at the group level that leads to correlation between all observations within a group [@hansen2007]. We have introduced the random shock at the property level in our guiding example to represent individual landowner preferences or property characteristics. As such, correlation within grids and counties will also be introduced, since they contain multiple pixels within a property. Clustering standard errors relaxes the assumption of no correlation across observations within the spatial unit used for clustering [@jones2015]. -->
 
