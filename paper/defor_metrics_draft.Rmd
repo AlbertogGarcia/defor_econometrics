@@ -221,8 +221,8 @@ $$exp(\beta_{coxDID}) = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]E[y_{ivt}(0)  | 
 To the best of our knowledge, no prior studies have successfully combined the Cox Proportional Hazards model and the difference in differences research design to recover an unbiased estimate of the $ATT$. Here we outline a new estimation approach that first recovers an unbiased estimate of the $HRTT$, and then translates this into an estimate of the $ATT$. First, we note that the desired $HRTT$ can be re-written as a combination of three different hazard ratios: 
 
 \begin{align*}
-HR_1 &= \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, D_i=0]}\\
-HR_2 &= \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t < t_0, D_i=1]}\\
+HR_1 &= \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t < t_0, D_i=1]}\\
+HR_2 &= \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, D_i=0]}\\
 HR_3 &= \frac{E[y_{ivt}(0)  |  t\geq t_0, D_i=0]} {E[y_{ivt}(0)  |  t < t_0, D_i=0]}
 \end{align*}
 
@@ -230,9 +230,9 @@ $$HRTT = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, 
 
 Each of the three hazard ratios, $HR_1$, $HR_2$, and $HR_3$, can be estimated through separate Cox Proportional Hazards models estimated on subsets of the larger dataset. Specifically:
 
-* $HR_1 = exp( \alpha )$, where $\alpha$ is estimated by subsetting to observations from the post-treatment period $(t \geq t_0)$, and estimating the hazard rate of deforestation at time $t$ as $h(t) =\gamma_0(t) exp( \alpha 1\{ D_i = 1\} )$;
+* $HR_1 = exp( \alpha )$, where $\alpha$ is estimated by subsetting to observations from the treated group $(D_i = 1)$, and estimating the hazard rate of deforestation at time $t$ as $h(t) =\lambda_0(t) exp(\alpha 1\{ t \geq t_0\} )$; and
 
-* $HR_2 = exp( \beta )$, where $\beta$ is estimated by subsetting to observations from the treated group $(D_i = 1)$, and estimating the hazard rate of deforestation at time $t$ as $h(t) =\lambda_0(t) exp(\beta 1\{ t \geq t_0\} )$; and
+* $HR_2 = exp( \beta )$, where $\beta$ is estimated by subsetting to observations from the post-treatment period $(t \geq t_0)$, and estimating the hazard rate of deforestation at time $t$ as $h(t) =\gamma_0(t) exp( \beta 1\{ D_i = 1\} )$;
 
 * $HR_3 = exp( \delta )$, where $\delta$ is estimated by subsetting to observations from the untreated group $(D_i = 0)$, and estimating the hazard rate of deforestation at time $t$ as $h(t) =\psi_0(t) exp(\delta 1\{ t \geq t_0\} )$.
 
