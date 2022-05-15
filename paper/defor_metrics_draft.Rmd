@@ -1,7 +1,7 @@
 ---
 title: Conservation impact evaluation using remotely sensed data
 author: "Alberto Garcia and Robert Heilmayr"
-date: "May 1, 2022"
+date: "May 15, 2022"
 output:
   bookdown::pdf_document2:
     latex_engine: xelatex
@@ -17,6 +17,25 @@ header-includes:
   \usepackage{amssymb}
   \usepackage{sectsty}
   \usepackage{mathtools}
+  
+  
+## TODO list: 
+# - Clean up cross-references and citations in section 2.3
+# - Add appendix referenced in section 2.3
+# - Update notation in 2.3.2 to emphasize that the final ATT calculation relies on an estimated mean
+# - Double check all cross-references
+# - Prepare replication package - host on rstudio server?
+# - Table 1: Add new example of survival analysis? 
+# - Figure 2: Remove label for column 11
+# - Figures 2, 3, etc: Rename "HE estimator" to match new framing of section 2.3
+# - Figure 4: Labels should be same font size as other figures
+# - Better integrate table 2 into description of Monte Carlo setup (section 3). This used to be in Section 6, but I think it fits better here?
+# - Figure 6: Add y-axis labels, update prior sentence with actual average property effect size
+# - Figures 7 and 9: Make these figures smaller, font sizes / labels / line sizes should be comparable to other figures
+# - Figure 8: Update plots to share y-axis and legend; update to consistent color palette with rest of paper
+# - Sub-section headers: Add first subsection header for sections where there's a long opening sub-section, and then a single other sub-section (e.g. sections 6 and 7)
+# - Robert needs to revised sections 5 (selection bias) and 8 (conclusion)
+
 ---
 
 \sectionfont{\fontsize{11}{11}\selectfont}
@@ -195,7 +214,7 @@ Although dropping previously deforested pixels from the panel introduces bias in
 
 Alternatively, some researchers opt to keep deforested pixels in the panel, and choose to estimate an intervention's impact on deforested area, rather than on deforestation rates. However, when reforestation timing is unaccounted for, as is the case with most data products using a binary measure of deforestation, this is not possible. Rather than measuring deforested area at any given time, this outcome variable measures the stock of ever-deforested area through the current time period. It is unclear that this is a relevant parameter of interest in many cases and should not be interpreted as either a deforestation rate or the deforested area in a given time period.
 
-## Estimating the $ATT$ using survival analysis
+## Estimating the $ATT$ using survival analysis  {#survival}
 ### Hazard rate ratios from a single survival model do not estimate the $ATT$
 Survival analysis has emerged as a common approach to modeling irreversible changes such as mortality, technology adoption or recidivism [@friedman, @mastrobuoni]. Survival models, such as the Cox Proportional Hazards model, quantify how covariates relate to changes in the length of time that a unit remains in a sample. In the case of deforestation, survival analyses can be used to explore how policy adoption changes the duration that treated, forested pixels survive until they are first cleared. 
 
@@ -239,15 +258,51 @@ Each of the three hazard ratios, $HR_1$, $HR_2$, and $HR_3$, can be estimated th
 Because the numerator of $HRTT$, $E[y_{ivt}(1)  |  t\geq t_0, D_i=1]$, can be estimated as the mean of post-treatment deforestation rates in the treated group, we can estimate the $ATT$ using this observable term and our estimate of $HRTT$:
 
 $$\widehat{ATT}_{Cox} = E[y_{ivt}(1)  |  t\geq t_0, D_i=1] - \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1] }{\widehat{HRTT}}$$
-Here, we have shown that the simple extension of the traditional DID to the survival setting does not clearly recover an easily interpretable measure of a policy's impact. In contrast, our proposed estimator, which relies on separate estimation of relevant hazard ratios, does recover the relevant analog of the $ATT$. We explore the performance of $\widehat{ATT}_{Cox}$ relative to the proposed OLS regressions under various circumstances likely to arise in the deforestation setting in the next sections. 
+We have shown that the simple extension of the traditional DID to the survival setting does not clearly recover an easily interpretable measure of a policy's impact. In contrast, our proposed estimator, which relies on separate estimation of relevant hazard ratios, does recover the relevant analog of the $ATT$. We explore the performance of $\widehat{ATT}_{Cox}$ relative to the proposed OLS regressions under various circumstances likely to arise in the deforestation setting in the next sections. 
 
 # Monte Carlo simulations to compare alternative model performance
 
 The rapid growth of the conservation impact evaluation literature has resulted in a diversity of alternate model structures that could yield more accurate estimates of the effectiveness of different interventions (Table \@ref(tab:table-lit)). To explore the relative performance of these different models, we employ a series of Monte Carlo simulations. Specifically, we randomly generate synthetic landscapes with known policy effectiveness and analyze the performance of different econometric models in estimating the policy's known impact.
 
+## Landscape configuration
+<!-- Todo: Add short description of pixels, counties, properties, and grids. integrate the following table that used to be buried in the results -->
+Table \@ref(tab:res) helps us to get a sense of relative scale within our synthetic landscapes for this section. We assume pixels are comparable to Landsat resolution (30 m).
+
+```{r res}
+nobs = 150^2
+ppoints = 225
+cpoints = 25
+avg_parea = nobs/ppoints
+avg_carea = nobs/cpoints
+cellsize_med = 10
+cellsize_large = 30
+
+# property: 100 pixels | 100 x 30^2 = 90000 m^2 = 9 ha
+p_ha = avg_parea * 30^2 / 10000
+c_ha = avg_carea * 30^2 / 10000
+
+# unit | grid cell resolution (m) | area (ha) | comparable use in literature
+
+resolution_df <- data.frame(
+  "unit" = c("Property", "County", "Large grid", "Small grid"),
+  "avg_pix" = c(avg_parea, avg_carea, cellsize_large^2, cellsize_med^2)
+) %>%
+  mutate(area_ha = avg_pix * 30^2 / 10000)
+
+
+kable(resolution_df, format = "latex", row.names = FALSE,  booktabs = T,
+       caption = "Spatial unit resolution and comparable area",
+       col.names = NULL) %>%
+  add_header_above(c("Spatial unit"=1,"Avg. number of pixels"=1, "Area (hectares)"=1), escape = TRUE, line =TRUE, bold = TRUE)%>%
+  kable_styling(font_size = 10, latex_options = c("HOLD_position", "striped"),
+                position = "center")
+
+```
+
+
 ## Data generating process
 
-Each of our simulated landscapes consists of administrative units that are either untreated $(D=0)$ or are assigned to a conservation treatment $(D=1)$. We observe deforestation in two, even-length periods, a pre-treatment $(t < t_{0})$ and a post-treatment $(t \ge t_{0})$ period. 
+Each of our simulated landscapes consists of administrative units that are either untreated $(D_i=0)$ or are assigned to a conservation treatment $(D_i=1)$. We observe deforestation in two, even-length periods, a pre-treatment $(t < t_{0})$ and a post-treatment $(t \ge t_{0})$ period. 
 
 We follow Equation \@ref(eq:clearing) and model these binary deforestation events as a function of each pixel's unobservable value along the continous, latent variable ($y^*_{ivt}$) indicating the return to clearing pixel $i$, in property $v$, in year $t$:
 \begin{align*}
@@ -263,8 +318,7 @@ That is, the returns to deforestation evolve over the two time periods $(\mathbb
 
 For the remainder of the paper, we explore a guiding example that has been parameterized to represent an impactful intervention in a high deforestation setting. Conservation interventions often have annual treatment effects smaller than a 1 percentage point reduction in the annual deforestation rate [e.g. @robalino2013; @jones2017]. These modest reductions in the annual deforestation rate, however, can amount to large landscape-scale effects. For example, @alix-garcia2018 find that environmental land registration in Brazil’s Amazonian states of Mato Grosso and Para reduced the annual deforestation rate by an average of 0.5 percentage points, which has resulted in an overall reduction in deforestation of 10\%. 
 
-The initial simulated landscape has the following characteristics: a pre-treatment deforestation rate of 2\% in the control area; a pre-treatment deforestation rate of 5\% in the intervention area; a decrease in the deforestation rate of 0.5 percentage points between the first and second period in the absence of treatment; and an average reduction of 1 percentage point in the deforestation rate in treated units due to the intervention ($ATT = -0.01$). We assume that $\sigma_u = 0.5$. Finally, we begin by assuming away time invariant pixel ($\sigma_a = 0$) and property-level disturbances ($\sigma_p = 0$) but relax this assumption in Section \@ref(property). Note that Assumptions 1 and 2 are satisfied by construction. The derivations detailing the mapping from the landscape characteristics to the corresponding parameters in $y^*_{ivt}$ can be found in Appendix \@ref(parameter-mapping). 
-<!-- Robert to do: Why is this section link broken? -->
+Our initial simulated landscape has the following characteristics: a pre-treatment deforestation rate of 2\% in the control area; a pre-treatment deforestation rate of 5\% in the intervention area; a decrease in the deforestation rate of 0.5 percentage points between the first and second period in the absence of treatment; and an average reduction of 1 percentage point in the deforestation rate in treated units due to the intervention ($ATT = -0.01$). We assume that $\sigma_u = 0.5$. Finally, we begin by assuming away time invariant pixel ($\sigma_a = 0$) and property-level disturbances ($\sigma_p = 0$) but relax this assumption in Section \@ref(property). Note that Assumptions 1 and 2 are satisfied by construction. The derivations detailing the mapping from the landscape characteristics to the corresponding parameters in $y^*_{ivt}$ can be found in Appendix \@ref(parameter-mapping). 
 
 ## Evaluation criteria
 
@@ -276,11 +330,11 @@ TWFE models have risen to prominence due to their flexibility in applying DID me
 
 ## Traditional difference-in-differences model
 
-In the two-group, two-period case the traditional DID (Regression 1) is an unbiased estimator of the $ATT$, as shown in column 2 of Figure \@ref(fig:summary-fig) (The typical DID is equivalent to including treatment fixed effects). However, researchers often want to use TWFE models because of their flexibility in situations that do not fall under the typical DID setup. Therefore, researchers should be aware of the trade-offs using aggregated units of analysis and fixed effects when using TWFE models for deforestation impact evaluation.
+In the two-group, two-period case the traditional DID (Regression 1) is an unbiased estimator of the $ATT$, as shown in column 2 of Figure \@ref(fig:summary-fig) (The typical DID is equivalent to including treatment fixed effects). However, researchers often want to use TWFE models because of their flexibility in situations that do not fall under the simplest DID setting. Therefore, researchers should be aware of the trade-offs using aggregated units of analysis and fixed effects when using TWFE models for deforestation impact evaluation.
 
 ## Spatially aggregated fixed effects
 
-One can also use fixed effects at the level of a spatially aggregated unit rather than the pixel level to resolve bias associated with TWFE regressions with pixel fixed effects. For simplicity, we assume the researcher can choose between three levels at which to aggregate the data: grid cell, county, and property. Grid cells are uniform grids layered over the study area. Counties are heterogeneous administrative units at which we assign the treatment. Lastly, properties are smaller spatial units that lie within one or more counties. Pixel level TWFE models with spatially aggregated unit fixed effects are all in the form of Regression 4.
+One can also use fixed effects at the level of a spatially aggregated unit rather than the pixel to resolve bias associated with TWFE regressions with pixel fixed effects. For simplicity, we assume the researcher can choose between three levels at which to aggregate the data: grid cell, county, and property. Grid cells are uniform grids layered over the study area. Counties are heterogeneous administrative units at which we assign the treatment. Lastly, properties are smaller spatial units that lie within one or more counties. Pixel level TWFE models with spatially aggregated unit fixed effects are all in the form of Regression 4.
 
 \textbf{Regression 4:} (pixel level TWFE regression with spatially aggregated unit fixed effects)
 Let $\beta_{FE,j}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
@@ -404,10 +458,9 @@ Columns 6-8 of Figure \@ref(fig:summary-fig) show that the bias of the estimates
 
 ## Survival analysis: newly proposed estimator
 <!-- Robert to do: need to integrate these paragraphs -->
-Survival analysis is one potential alernative to traditional econometric estimators in the context of deforestation. The simple cox DID, however, is not a viable solution. Column 2 of Figure \@ref(fig:summary-fig) shows the bias associated with Regression 3. 
-In light of the fact that the simple Cox DID is not a viable analog to the traditional DID, we explore whether our proposed estimator, recovers relevant treatment effect parameters in the deforestation setting. We see in column 10 that $\widehat{ATT}_{Cox}$ indeed recovers our parameter of interest.
+Survival analysis provides an appealing alternative to traditional linear estimators when studying irreversible changes such as deforestation. The simple, single-regrssion DID framing of the Cox Proportional hazards model, however, is not a viable solution (Section \@ref(survival)). Column 2 of Figure \@ref(fig:summary-fig) shows the bias associated with this model (Regression 3). In light of the fact that the simple Cox DID is not a viable analog to the traditional DID, we explore whether our proposed estimator, $\widehat{ATT_{Cox}}$, recovers relevant treatment effect parameters in the deforestation setting. We see in column 10 that $\widehat{ATT_{Cox}}$ indeed recovers our parameter of interest.
 
-One of the primary reasons for the use of survival analysis is censoring. This occurs when the researcher has partial information about the subjects’ survival times but does not have access to precise event times. While the researcher may not observe all pixels until they are deforested, many other forms of censoring are not a concern in the context of deforestation. Further, the proposed strategy to drop pixels in the periods after they are first deforested successfully addresses the irreversibility in deforestation events. As we show in the coming sections, survival analysis is likely to suffer from bias when unobservables enter the landscape at a scale different than the unit of analysis. While researchers can account for this in OLS specifications, there is no clear solution in survival analysis. 
+Although our proposed, survival analysis-based approach to estimation yields a good estimate of the true $ATT$ in this simple setting, multiple considerations raise questions about utility of this non-linear model in more complex settings. One of the primary reasons for the use of survival analysis is censoring. This occurs when the researcher has partial information about the subjects’ survival times but does not have access to precise event times. While the researcher may not observe all pixels until they are deforested, many other common forms of censoring are not a concern in the context of deforestation since remote sensing typically enables the creation of balanced panels. Further, the proposed strategy to drop pixels in the periods after they are first deforested successfully addresses the irreversibility in deforestation events. As we show in the coming sections, survival analysis is likely to suffer from bias when unobservables enter the landscape at a scale different than the unit of analysis. While researchers can account for this in OLS specifications, there is no clear solution in survival analysis. 
 
 # Non-random selection and the spatial nature of the deforestation process {#property}
 
@@ -530,11 +583,11 @@ text(x=mean(1:nrow(select_results))
 
 Connecting the econometric model to the process by which land use change occurs on the ground has clear benefits for estimation and inference in deforestation impact evaluation. Table \@ref(tab:table-lit) shows that researchers often use a binary point, pixel, or grid cell as the unit of analysis. While this may sometimes be the preferred unit, it can lead to biased results if the land use change process operates at a different scale.
 
-Property level unobservables impact both treatment effect estimates and coverage probabilities. This is likely to be a factor when land use decisions are made at the property level, or the intervention seeks to alter underlying landowner incentives. Characteristics of land are also likely to be similar within the same spatial boundaries. In our Monte Carlo simulations, we introduce the standard deviation of the time-invariant property level disturbances in the initial DGP, $\sigma_p$, in order to account for these unobservables. 
+In reality, property level unobservables such as the preferences and resources of a landowner may drive significant variation in land use across a landscape. These differences will impact both treatment effect estimates and coverage probabilities. To illustrate this effect, we introduce property-level perturbations to the returns from forest clearing by varying $\sigma_p$, the standard deviation of time-invariant property level disturbances in the DGP.
 
-The introduction of $\sigma_p$ changes the relative performance of each specification. The traditional DID does not account for the spatial nature of the deforestation process, and in Figure @\ref(fig:did-property), we see that the pixel-level DID begins to suffer in terms of bias, RMSE, and coverage as these property-level unobservables play a larger role in the data generating process. 
+The introduction of $\sigma_p$ changes the relative performance of each specification. The traditional DID does not account for the spatial nature of the deforestation process and, in Figure \@ref(fig:did-property), we see that the pixel-level DID begins to suffer in terms of bias, RMSE, and coverage as these property-level unobservables play a larger role in the data generating process. 
 
-```{r did-property, results = FALSE, message = FALSE, warning = FALSE, fig.align="center", fig.cap="bias, distribution, and coverage of pixel-level DID as property level disturbances play larger role in the data generating process", fig.width = 10, fig.height = 8, out.width = "75%", fig.pos='H', fig.show='hold'}
+```{r did-property, results = FALSE, message = FALSE, warning = FALSE, fig.align="center", fig.cap="Bias, RMSE, and coverage of the pixel-level DID model as the relative scale of property level disturbances increase", fig.width = 10, fig.height = 8, out.width = "75%", fig.pos='H', fig.show='hold'}
 
 full_summary <- readRDS("results/summary_full.rds") %>%
   filter(treatment.fe == 1 & se_pixel == 1 & is.na(notes) & cox == 0) %>%
@@ -608,43 +661,11 @@ mtext(bquote("Value of " ~ sigma[p]), side=1, at = 0, font=2, cex=2.5, line=3)
 
 ```
 
-Table \@ref(tab:res) helps us to get a sense of relative scale within our synthetic landscapes for this section. We assume pixels are comparable to Landsat resolution (30 m).
 
-```{r res}
-nobs = 150^2
-ppoints = 225
-cpoints = 25
-avg_parea = nobs/ppoints
-avg_carea = nobs/cpoints
-cellsize_med = 10
-cellsize_large = 30
-
-# property: 100 pixels | 100 x 30^2 = 90000 m^2 = 9 ha
-p_ha = avg_parea * 30^2 / 10000
-c_ha = avg_carea * 30^2 / 10000
-
-# unit | grid cell resolution (m) | area (ha) | comparable use in literature
-
-resolution_df <- data.frame(
-  "unit" = c("Property", "County", "Large grid", "Small grid"),
-  "avg_pix" = c(avg_parea, avg_carea, cellsize_large^2, cellsize_med^2)
-) %>%
-  mutate(area_ha = avg_pix * 30^2 / 10000)
+In Figure \@ref(fig:agg), we see that, by incorporating spatially aggregated units into the model structure, the researcher can reduce bias relative to the simple pixel-level DID in settings where property-level perturbations are relatively large ($\sigma_p= 0.3$). This improvement is apparent across specifications that either control for spatially aggregated fixed effects (Regression 4; left panel) or use a spatially aggregated unit of analysis (Regression 5; right panel). That said, specifications with a spatially aggregated unit of analysis consistently outperform their counterpart with spatially aggregated fixed effects. Further, we see that the scale of aggregation plays a role. Analyses incorporating the property or grid cells near the size of the average property outperform models using larger or smaller scales. Ultimately, all models that incorporate spatial aggregation suffer from relatively little bias and incur less bias than the simple pixel-level DID. In Appendix \@ref(property-alt), we see that specifications incorporating the property as the unit of analysis continue to outperform other models in alternate parameterizations. 
 
 
-kable(resolution_df, format = "latex", row.names = FALSE,  booktabs = T,
-       caption = "Spatial unit resolution and comparable area",
-       col.names = NULL) %>%
-  add_header_above(c("Spatial unit"=1,"Avg. number of pixels"=1, "Area (hectares)"=1), escape = TRUE, line =TRUE, bold = TRUE)%>%
-  kable_styling(font_size = 10, latex_options = c("HOLD_position", "striped"),
-                position = "center")
-
-```
-
-In Figure \@ref(fig:agg), we see that incorporating spatially aggregated units reduces bias relative to the simple pixel-level DID when the property influence is relatively large ($\sigma_p= 0.3$). This improvement is apparent in both specifications incorporating spatially aggregated units as the level of unit fixed effects (Regression 4; left panel) or as the unit of analysis (Regression 5; right panel). That said, specifications with a spatially aggregated unit of analysis consistently outperform their counterpart with spatially aggregated fixed effects. Further, we see that the scale of aggregation plays a role. Analyses incorporating the property or grid cells near the size of the average property outperform models utilizing larger or smaller scales. Ultimately, all models that incorporate spatial aggregation suffer from relatively little bias and incur less bias than the simple pixel-level DID. In Appendix \@ref(property-alt), we see that specifications incorporating the property as the unit of analysis tend to outperform other models in alternative parameterizations as well. 
-
-
-```{r agg, results = FALSE, message = FALSE, warning = FALSE, fig.align="center", fig.cap="bias, distribution, and coverage with $\\sigma_p=0.3$ for Left: specifications with aggregated unit fixed effects; and Right: specifications with aggregated units of analysis", fig.width = 12, fig.height = 8, out.width = "100%", fig.pos='H', fig.show='hold'}
+```{r agg, results = FALSE, message = FALSE, warning = FALSE, fig.align="center", fig.cap="Bias, distribution, and coverage with $\\sigma_p=0.3$ for specifications with aggregated unit fixed effects (left panel), and specifications with aggregated units of analysis (right panel)", fig.width = 12, fig.height = 8, out.width = "100%", fig.pos='H', fig.show='hold'}
 
 full_summary <- readRDS("results/summary_full.rds") %>%
   mutate_at(vars(bias, cover), as.numeric)%>%
@@ -737,7 +758,7 @@ abline(v = 7)
 
 ```
 
-While incorporating spatially aggregated units in OLS specifications may improve analysis, there is no clear analog with survival models. In fact, Figure \@ref(fig:summary) in the appendix shows that $\widehat{ATT}_{Cox}$ suffers significantly as $\sigma_p$ increases. As such, when the pixel is not the preferred unit of analysis, survival analysis is not likely to be the preferred method for estimating the impact of conservation interventions.
+Although spatial aggregation can improve the performance of OLS-based model specifications, there is no clear analog for survival models. Figure \@ref(fig:summary) in the appendix shows that the performance of $\widehat{ATT_{Cox}}$ suffers as $\sigma_p$ increases. When unobserved, spatial processes contribute to the underlying DGP, linear models that effectively control for these processes are likely to outperform survival analysis-based estimates of the impact of conservation interventions.
 
 <!-- As property level unobservables play a larger role, the treatment of standard errors also becomes more important. Standard error clustering is used by nearly every study in the literature for inference. The clustering problem is caused by the presence of a common unobserved random shock at the group level that leads to correlation between all observations within a group [@hansen2007]. We have introduced the random shock at the property level in our guiding example to represent individual landowner preferences or property characteristics. As such, correlation within grids and counties will also be introduced, since they contain multiple pixels within a property. Clustering standard errors relaxes the assumption of no correlation across observations within the spatial unit used for clustering [@jones2015]. -->
 
@@ -1020,12 +1041,13 @@ While incorporating spatially aggregated units in OLS specifications may improve
 <!-- ``` -->
 
 ## Weighting by area recovers landscape scale estimates
+As researchers transition towards spatially aggregated units of analysis, interpretation of the estimated $ATT$ can become more complicated. Authors frequently choose to use a pixel or grid cell as their preferred unit of analysis in order to simplify the interpretation of their estimated $ATT$ [@alix-garcia2017]. For example, when researchers estimate a model with pixel-level units of analysis, the coefficient of interest can be interpreted as a population average for all treated, forested pixels. In contrast, if a property is used as the unit of analysis, the coefficient should be interpreted as the effect of the intervention on the characteristic property in the sample. In order to obtain a landscape-scale interpretation, one must weight the regression by the area of each unit of analysis (i.e. property). 
 
-Authors frequently choose to use a pixel or grid cell as their preferred unit of analysis for purposes of interpretation. The coefficient of interest from a specification using the pixel as the unit of analysis can be interpreted as the effect of the intervention across the landscape. In contrast, if a property is used, the coefficient should be interpreted as the effect of the intervention on the characteristic property in the sample. In order to reobtain a landscape-scale interpretation, one must weight the regression by the area of the unit of analysis (i.e. property). 
+Weighting does not seem to have a large impact on bias, RMSE, or coverage probability when the treatment effect is constant across properties (even with property-level unobservables). The use of area weights is likely to be most useful when the treatment effect in the characteristic property differs from the landscape's $ATT$. To illustrate this effect, we consider a landscape in which treatment effects are correlated with property size. The full DGP for this case can be found in Appendix \@ref(pweightDGP). The treatment effect now varies across properties, and properties with greater areas experience treatment effects of a lower magnitude than smaller properties. The $ATT$ across the landscape is still $-0.01$. However, because the treatment is more impactful in properties of a smaller size, the treatment effect for the average property is less than $-0.01$.
 
-Weighting does not seem to have a major impact on bias, RMSE, or coverage probability when the treatment effect is constant across properties (even with property-level unobservables). The use of area weights is likely to be most useful when the $ATT$ for the characteristic property differs from the $ATT$ across the landscape. We now consider the case when treatment effects are correlated with property size. The full DGP for this case can be found in Appendix \@ref(pweightDGP). The treatment effect now varies across properties, and properties with greater areas experience treatment effects of a lower magnitude than smaller properties. The $ATT$ across the landscape is still $-0.01$. However, because the treatment is more impactful in properties of smaller size, the treatment effect for the average property is less than $-0.01$.
+<!-- TODO: Add tick labels to y axis. in Figure 6. update previous sentence with actual value of the treatment effect in the average property? -->
 
-```{r pweight, fig.align="center", results = FALSE, warning = FALSE, message = FALSE, fig.cap="weighting recovers landscape scale interpretation", fig.pos='H', fig.width = 7, fig.height = 5, out.width= "100%", fig.show='hold'}
+```{r pweight, fig.align="center", results = FALSE, warning = FALSE, message = FALSE, fig.cap="Weighting recovers landscape scale interpretation", fig.pos='H', fig.width = 7, fig.height = 5, out.width= "100%", fig.show='hold'}
 # knitr::include_graphics(c("figs/pweight_schart.png"))
 
 summary_pweights <- readRDS("results/summary_pweights.rds")
@@ -1096,19 +1118,17 @@ mtext("landscape\nATT", side=2, at = 0, font=2, las=1, line=.5, cex = .75)
 
 ```
 
-Figure \@ref(fig:pweight) shows the $ATT$ at both the property and landscape scale. The property-level TWFE regression identifies the $ATT$ relative to the characteristic property when area weights are not used and the landscape scale $ATT$ when they are used. Researchers should use these area weights when they are interested in the impact of the intervention across the landscape. In cases where the researcher is interested in how an intervention affects incentives at the property level, utilizing these weights may not be neccessary. 
+Figure \@ref(fig:pweight) shows the true $ATT$ at both the property and landscape scales. The property-level TWFE regression identifies the $ATT$ relative to the characteristic property when area weights are not used and the landscape scale $ATT$ when they are used. Researchers should use these area weights when they are interested in the impact of the intervention across the landscape. In cases where the researcher is interested in how an intervention affects incentives at the property level, using these weights may not be neccessary. 
 
 <!-- Robert to do: Add sentence about settings where we want to recover heterogeneity in properties? 
 -->
 
 # Extension to multiple groups and time periods {#multipleGT}
 
-The typical DID regression applies to settings with two-groups and two-periods, however, many times researchers use TWFE regressions to exploit variation across groups of units that receive treatment at different times. Recent work has show that in these cases, TWFE regressions identify a weighted average of all possible two-group/two-period DID estimators in the data [@goodman-bacon2021]. 
-Further, when estimating the $ATT$, some weights on each group-time treatment effect parameter may actually be negative, which could lead for instance, to a negative regression coefficient while all the treatment effect parameters are positive [@dechaisemartin2020]. Newly developed estimators [e.g., @callaway2020; @gardner2021; @borusyak2021] seek to address these weighting issues by individually calculating two-period, two-group DID parameters before aggregating them to a summary measure of the overall $ATT$. 
+The traditional DID regression applies to settings with two groups and two time periods. However, researchers often use TWFE regressions to exploit variation across groups of units that receive treatment at different times. Recent work has show that, in these cases, TWFE regressions identify a weighted average of all possible two-group/two-period DID estimators in the data [@goodman-bacon2021]. 
+Further, when estimating the $ATT$, some weights on each group-time treatment effect parameter may actually be negative [@dechaisemartin2020]. Newly developed estimators [e.g., @callaway2020; @gardner2021; @borusyak2021] seek to address these weighting issues by calculating individual two-period, two-group DID parameters before aggregating them to a summary measure of the overall $ATT$. Some researchers might hope that these new estimators would solve the bias detailed in Section \@ref(ATT) since many of the new methods involve separately calculating all two-period/two-group treatment effects. 
 
-One might conclude that these new estimators solve the issues with pixel level TWFE regressions that we present here, since some of these estimators involve separately calculating all two period/two-group treatment effects. We consider the estimators developed in this burgeoning literature in order to show that the issue with pixel unit fixed effects can still plague researchers' estimates even with this new suite of methods. 
-
-Here, we introduce a setting in which groups of units receive treatment at different times (full DGP can be found in Appendix \@ref(multiDGP)). We consider three groups: an early group, a late group, and a never-treated group, where the early and late groups undergo treatment in years three and four, respectively. Each group experiences differing pre-treatment deforestation rates (7\%, 4\%, and 2\% for the early, late, and never-treated groups, respectively) and no time trend. The on-impact $ATT$ is $-0.02$ for both treated groups. Common trends is satisfied by construction, and we do not introduce any dynamic effects. Figure \@ref(fig:observed-multiGT) shows the observed deforestation rates ($E[y^o_{ivt}]$) from one iteration of our simulation in this setting. 
+Here we show that, although these new estimators effectively address concerns about staggered treatment timing and heterogeneous treatment effects, they continue to yield biased treatment effect estimates when applied to binary, irreversible, outcomes. To illustrate this, we introduce a setting in which groups of units receive treatment at different times (full DGP can be found in Appendix \@ref(multiDGP)). We consider three groups: an early group, a late group, and a never-treated group, where the early and late groups undergo treatment in years three and four, respectively. Each group experiences differing pre-treatment deforestation rates (7\%, 4\%, and 2\% for the early, late, and never-treated groups, respectively) and no time trend. The $ATT$ for both treated groups is $-0.02$. Common trends is satisfied by construction, and we do not introduce any dynamic effects. Figure \@ref(fig:observed-multiGT) shows the observed deforestation rates ($E[y^o_{ivt}]$) from one iteration of our simulation in this setting. 
 
 ```{r observed-multiGT, out.width="100%", fig.cap="Observed deforestation in simulated example with multiple groups and periods.", fig.pos='H', fig.width = 9, fig.height = 5, fig.show='hold'}
 
@@ -1118,8 +1138,10 @@ rate_landscape <- readRDS("results/landscape.rds")
 
 ggplot(data=rate_landscape, aes(x=year, y=defor, colour=Group))+
   geom_line(size=2)+
-  ylab("deforestation rate")+
+  ylab("Deforestation rate")+
+  xlab("Year")+
   scale_y_continuous(labels = scales::percent)+
+  scale_color_manual(values=c(palette$dark, palette$blue, palette$red))+
   ggtitle("Annual deforestation across multiple groups")+
   theme_minimal(base_size = 20)+
   theme(#legend.key = element_rect(color = NA, fill = NA),
@@ -1138,19 +1160,19 @@ county_es <- readRDS("results/county_es.rds")
 pixel_es <- readRDS("results/pixel_es.rds")%>%
   filter(estimator != "Borusyak, Jaravel, Spiess (2021)")
 
-my_event_study_plot(county_es, seperate = FALSE)+
-  ggtitle("Estimates with aggregated unit of analysis")+
-  ylim(-0.045, 0.045)
-
 my_event_study_plot(pixel_es, seperate = FALSE)+
   ggtitle("Estimates with pixel unit of analysis")+
+  ylim(-0.045, 0.045)
+
+my_event_study_plot(county_es, seperate = FALSE)+
+  ggtitle("Estimates with aggregated unit of analysis")+
   ylim(-0.045, 0.045)
 
 ```
 
 ## Evidence of weighting concerns in the TWFE estimator
 
-We now examine the performance of the alternative estimators relative to TWFE regressions when treatment effects vary across time and across groups. We again work with an early, late and untreated group. The full parameterization and DGP can be found in Appendix \@ref(multiDGP-param) Figure \@ref(fig:observed-multiGT2) shows deforestation rates in each of the three groups through time.
+Finally, we examine the performance of the new DID estimators relative to a traditional TWFE regression when treatment effects vary across time and across groups. We again work with an early, late and untreated group. The full parameterization and DGP can be found in Appendix \@ref(multiDGP-param) Figure \@ref(fig:observed-multiGT2) shows deforestation rates in each of the three groups through time.
 
 ```{r observed-multiGT2, out.width="100%", fig.cap="Observed deforestation in simulated example when treatment effects vary across groups and through time", fig.width = 9, fig.height = 5, fig.pos='H', fig.show='hold'}
 
@@ -1161,6 +1183,7 @@ ggplot(data=het_landscape, aes(x=year, y=defor, colour=Group))+
   geom_line(size=2)+
   ylab("deforestation rate")+
   scale_y_continuous(labels = scales::percent)+
+  scale_color_manual(values=c(palette$dark, palette$blue, palette$red))+
   ggtitle("Annual deforestation across heterogeneous groups")+
   theme_minimal(base_size = 20)+
   theme(#legend.key = element_rect(color = NA, fill = NA),
@@ -1170,7 +1193,8 @@ ggplot(data=het_landscape, aes(x=year, y=defor, colour=Group))+
 
 ```
 
-Figure \@ref(fig:multiGT2) shows the event study estimates produced by each of the three estimators as well as the "truth" for both pixel and county-level analyses. Again, none of the estimators yield the $ATT$ with pixel-level analyses. In the county-level estimates, we see that the newer estimators slightly outperform the TWFE estimator. This is evidence of the weighting that has become a concern with TWFE estimators in these type of settings. While each estimator produces a weighted average of group-time treatment effects, the weights do not neccessarily correspond to each groups representation in the sample for a given event-time treatment effect as do the weights in the alternative estimators.
+Figure \@ref(fig:multiGT2) shows the event study estimates produced by each of the three estimators as well as the "truth" for both pixel and county-level analyses. Again, none of the estimators yield the $ATT$ with pixel-level analyses. In the county-level estimates, we see that the newer estimators slightly outperform the TWFE estimator. This is evidence of the weighting that has become a concern with TWFE estimators in these type of settings. While each estimator produces a weighted average of group-time treatment effects, the weights do not necessarily correspond to each group's representation in the sample for a given event-time treatment effect as do the weights in the alternative estimators.
+<!-- TODO Albert (from Robert): I don't fully understand the final sentence of the paragraph above. Rewrite. -->
 
 ```{r multiGT2, fig.cap="TWFE regressions suffer from weighting concerns when treatment effects vary across groups and through time", fig.pos='H', fig.show='hold'}
 
@@ -1181,7 +1205,6 @@ knitr::include_graphics(c("figs/pixel_multiGT2.png","figs/county_multiGT2.png"))
 
 
 # Conclusions
-
 Despite past guidance to the contrary, models that incorporate fixed effects for individual points are unable to yield unbiased estimates of a policy's $ATT$ when applied to irreversible, binary observations of deforestation. This is due to the fact that when pixels are dropped after they first become deforested, TWFE models cannot identify off of points deforested in the pre-treatment periods. This novel finding casts doubt on the reliability of a number of estimates in the avoided deforestation literature. 
 
 In order to avoid issues associated with TWFE models that incorporate point fixed effects, researchers can take advantage of aggregated spatial units. TWFE models with aggregated units of analysis and point level TWFE models with aggregated fixed effects are both viable solutions. Which spatial unit of aggregation is preferable depends upon the process by which land use change actually occurs. Bias can arise from non-random sample selection when the outcome represents an irreversible state, as is the case in the deforestation setting. It can also arise when the specification is unrelated to the scale of the process determining land use change. As such, we explore the benefits of conducting estimation and inference at the scale that drives landscape heterogeneity and provide guidance for when the researcher does not have access to geospatial boundaries detailing the relevant units. Ultimately, context plays a role in what is feasible, and researchers should make clear the limits to their impact evaluation strategy. 
@@ -1378,7 +1401,7 @@ ggplot(data = kbias, aes(x = bias, fill=variable)) +
 
 Some authors opt to leave deforested pixels in the panel but adjust the interpretation of the coefficent of interest. Rather than the deforestation rate, researchers recover the impact of the intervention on area ever deforested. One important thing to note, however, is that researchers cannot interpret this as the deforested area in time $t$ if reforestation timing is not available. To illustrate this point, consider a setting in which reforestation timing is instantaneous, as in our definition of $y_{ivt}$. In this case, the deforestation rate is equivalent to the deforested area in time $t$. As we have shown, leaving deforested pixels in the panel cannot lead to identification of the $ATT$ for the deforestation rate and therefore, cannot identify the $ATT$ for the deforested area. This is, of course, an extreme case. Since reforestation timing is instantaneous, the bias is larger than we would expect in reality. However, this exercise helps to illustrate that reforestation timing must be accounted for to recover the deforested area at  a given time. 
 
-## Initial Monte Carlo parameter to $\beta$ coefficient mapping {\#parameter-mapping}
+## Initial Monte Carlo parameter to $\beta$ coefficient mapping {#parameter-mapping}
 
 The following five parameters and their definitions inform the simulation parameterizations. 
 
