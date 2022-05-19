@@ -20,22 +20,29 @@ header-includes:
   
   
 ## TODO list: 
+
+## FOR ALBERT:
 # - Clean up cross-references and citations in section 2.3
 # - Add appendix referenced in section 2.3
-# - Update notation in 2.3.2 to emphasize that the final ATT calculation relies on an estimated mean
 # - Double check all cross-references
-# - Prepare replication package - host on rstudio server?
 # - Table 1: Add new example of survival analysis? 
-# - Figure 2: Remove label for column 11
-# - Figures 2, 3, etc: Rename "HE estimator" to match new framing of section 2.3
-# - Figure 4: Labels should be same font size as other figures
 # - Better integrate table 2 into description of Monte Carlo setup (section 3). This used to be in Section 6, but I think it fits better here?
 # - Figure 6: Add y-axis labels, update prior sentence with actual average property effect size
-# - Figures 7 and 9: Make these figures smaller, font sizes / labels / line sizes should be comparable to other figures
-# - Figure 8: Update plots to share y-axis and legend; update to consistent color palette with rest of paper
+
+
+
+## FOR ROBERT
+# - Figures 2, 3, etc: Rename "HE estimator" to match new framing of section 2.3
 # - Sub-section headers: Add first subsection header for sections where there's a long opening sub-section, and then a single other sub-section (e.g. sections 6 and 7)
 # - Robert needs to revised sections 5 (selection bias) and 8 (conclusion)
+# - Prepare replication package - host on rstudio server?
 
+## COMPLETED:
+# - Update notation in 2.3.2 to emphasize that the final ATT calculation relies on an estimated mean  
+# - Figure 2: Remove label for column 11
+# - Figure 4: Labels should be same font size as other figures
+# - Figures 7 and 9: Make these figures smaller, font sizes / labels / line sizes should be comparable to other figures
+# - Figure 8: Update plots to share y-axis and legend; update to consistent color palette with rest of paper
 ---
 
 \sectionfont{\fontsize{11}{11}\selectfont}
@@ -49,9 +56,9 @@ library(kableExtra)
 library(tidyverse)
 library(Metrics)
 library(reshape2)
+library(patchwork)
 
 source(here::here('paper', 'schart.R'))
-source(here::here('paper', 'my_event_study_plot.R'))
 
 
 knitr::opts_chunk$set(echo = FALSE, warnings = FALSE, messages = FALSE, out.width="49%", fig.align = "center")
@@ -216,7 +223,7 @@ Alternatively, some researchers opt to keep deforested pixels in the panel, and 
 
 ## Estimating the $ATT$ using survival analysis  {#survival}
 ### Hazard rate ratios from a single survival model do not estimate the $ATT$
-Survival analysis has emerged as a common approach to modeling irreversible changes such as mortality, technology adoption or recidivism [@friedman, @mastrobuoni]. Survival models, such as the Cox Proportional Hazards model, quantify how covariates relate to changes in the length of time that a unit remains in a sample. In the case of deforestation, survival analyses can be used to explore how policy adoption changes the duration that treated, forested pixels survive until they are first cleared. 
+Survival analysis has emerged as a common approach to modeling irreversible changes such as mortality, technology adoption, or recidivism [@friedman; @mastrobuoni]. Survival models, such as the Cox Proportional Hazards model, quantify how covariates relate to changes in the length of time that a unit remains in a sample. In the case of deforestation, survival analyses can be used to explore how policy adoption changes the duration that treated, forested pixels survive until they are first cleared. 
 
 Despite the theoretical appeal of using survival models to study deforestation, they are still relatively uncommon in conservation impact evaluation. One emerging approach introduces the intuition of a difference in differences research design into a Cox Proportional Hazards model [e.g. @heilmayr2020; @sales2022; @smith2020]. Specifically, researchers estimate a Cox proportional hazards model of the following general form:
 
@@ -255,9 +262,10 @@ Each of the three hazard ratios, $HR_1$, $HR_2$, and $HR_3$, can be estimated th
 
 * $HR_3 = exp( \delta )$, where $\delta$ is estimated by subsetting to observations from the untreated group $(D_i = 0)$, and estimating the hazard rate of deforestation at time $t$ as $h(t) =\psi_0(t) exp(\delta 1\{ t \geq t_0\} )$.
 
-Because the numerator of $HRTT$, $E[y_{ivt}(1)  |  t\geq t_0, D_i=1]$, can be estimated as the mean of post-treatment deforestation rates in the treated group, we can estimate the $ATT$ using this observable term and our estimate of $HRTT$:
+Because the numerator of $HRTT$, $E[y_{ivt}(1)  |  t\geq t_0, D_i=1]$, can be estimated as the mean of post-treatment deforestation rates in the treated group (denoted $\widehat{defor}_{D_i:1, t\geq t_0}$), we can estimate the $ATT$ using this estimated deforestation rate and our estimate of $HRTT$:
 
-$$\widehat{ATT}_{Cox} = E[y_{ivt}(1)  |  t\geq t_0, D_i=1] - \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1] }{\widehat{HRTT}}$$
+$$\widehat{ATT}_{Cox} = \widehat{defor}_{D_i:1, t\geq t_0} - \frac{\widehat{defor}_{D_i:1, t\geq t_0} }{\widehat{HRTT}}$$
+
 We have shown that the simple extension of the traditional DID to the survival setting does not clearly recover an easily interpretable measure of a policy's impact. In contrast, our proposed estimator, which relies on separate estimation of relevant hazard ratios, does recover the relevant analog of the $ATT$. We explore the performance of $\widehat{ATT}_{Cox}$ relative to the proposed OLS regressions under various circumstances likely to arise in the deforestation setting in the next sections. 
 
 # Monte Carlo simulations to compare alternative model performance
@@ -345,7 +353,7 @@ y^o_{ivt} = \alpha + \beta_{FE,j} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \la
 
 Columns 3-5 of Figure \@ref(fig:summary-fig) show that pixel level TWFE regressions are unbiased estimators of the $ATT$ when grid, county, or property fixed effects are used rather than pixel fixed effects. We also see that, in the absence of property level perturbations (i.e. $\sigma_p=0$ in the DGP), all three models provide similar estimates and estimate distributions. 
 
-```{r summary-fig, echo = FALSE, warnings = FALSE, results = FALSE, message=FALSE, fig.cap="bias, distribution, and coverage of all models with clustered standard errors.",  fig.width = 9, fig.height = 6, out.width="100%"}
+```{r summary-fig, echo = FALSE, warnings = FALSE, results = FALSE, message=FALSE, fig.cap="bias, distribution, and coverage of all models with clustered standard errors.",  fig.width = 10, fig.height = 7, out.width="100%"}
 
 #knitr::include_graphics("figs/schart.png")
 
@@ -377,7 +385,7 @@ par(oma=c(1,0,1,1))
 
 labels <- list("Unit of analysis:" = c("pixel", "grid", "property", "county"),
                "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE", "treatment FE"),
-               "Survival" = c("Cox PH", "HE estimator"),
+               "Survival" = c("Cox PH", "ATT cox estimator"),
                "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
 
 na_row <- c("Bias" = NA,
@@ -409,11 +417,14 @@ midline = topline-0.02-.0025
 ylim <- c(midline-.02,0.04)
 #bottomline = (min(ylim)+topline)/2
 #Create the plot
+rmse_cex = .9
+cov_cex = 1
+leg_cex = 1.2
 
 schart(select_results,labels, ylim = ylim, index.ci=index.ci, col.est = c(palette$dark, palette$red),
        bg.dot=c(palette$dark, "grey95", "white", palette$red),
        col.dot=c(palette$dark, "grey95", "white", palette$red),
-       , ylab="Bias", highlight=c(2,3)
+       ylab="Bias", highlight=c(2,3)
        ,band.ref=c(-.05, .04)
        , axes = FALSE
        #, col.band.ref="#c7e9f9"
@@ -424,15 +435,15 @@ abline(h=midline)
 #abline(h=bottomline)
 lapply(1:(length(RMSE_print)), function(i) {
   # text(x= i, y=min(ylim)+.002, paste0(i), col="black", font=2, cex = 1)
-  mtext(paste0(i), side=1, at = i + 1, font=2, cex=.95)#, line=1, at=-1)
-  text(x= i, y=midline+0.005, paste0(RMSE_print[i]), col="black", font=1, cex=.9)
-  text(x= i, y=min(ylim)+0.0025, paste0(c_print[i]), col="black", font=1, cex=.9 )
+  mtext(if(i<11){paste0(i)}, side=1, at = i + 1, font=2, cex=.95)#, line=1, at=-1)
+  text(x= i, y=midline+0.005, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex)
+  text(x= i, y=min(ylim)+0.0025, paste0(c_print[i]), col="black", font=1, cex=cov_cex )
 })
 text(x=mean(1:nrow(select_results))
      , y=midline-.005, "coverage probability", col="black", font=2)
 text(x=mean(1:nrow(select_results))
      , y=topline-.005, "RMSE", col="black", font=2)
-legend(x=6.5, y=0.045, col = "grey50", legend = "0.05 to 0.95 quantile \n of estimate distribution", seg.len=0.65, inset = 0.005,  box.lty=0, cex=1.2, lty = 1, lwd = 4, bg="transparent")
+legend(x=6.5, y=0.045, col = "grey50", legend = "0.05 to 0.95 quantile \n of estimate distribution", seg.len=0.65, inset = 0.005,  box.lty=0, cex=leg_cex, lty = 1, lwd = 4, bg="transparent")
 
 
 
@@ -517,7 +528,7 @@ par(oma=c(1,0,1,1))
 
 labels <- list("Unit of analysis:" = c("pixel", "grid", "property", "county"),
                "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE", "treatment FE"),
-               "Survival" = c("HE estimator"),
+               "Survival" = c("ATT cox estimator"),
                "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
 
 na_row <- c("Bias" = NA,
@@ -552,9 +563,9 @@ ylim <- c(midline-.007,0.005)
 schart(select_results,labels, ylim = ylim, index.ci=index.ci, col.est = c(palette$dark, palette$red),
        bg.dot=c(palette$dark, "grey95", "white", palette$red),
        col.dot=c(palette$dark, "grey95", "white", palette$red),
-       , ylab="Bias",
+       ylab="Bias",
        band.ref=c(-.05, .04),
-heights = c(5,5),
+heights = c(8,10),
 cex = c(1.25, 1.25),
 leftmargin = 13, 
         axes = FALSE
@@ -567,15 +578,15 @@ abline(h=midline)
 lapply(1:length(RMSE_print), function(i) {
   # text(x= i, y=min(ylim)+.002, paste0(i), col="black", font=2, cex = 1)
   #mtext(paste0(i), side=1, at = i, font=2, cex=.95)#, line=1, at=-1)
-  text(x= i, y=topline-0.0065, paste0(RMSE_print[i]), col="black", font=1, cex=.9)
-  text(x= i, y=midline - 0.007, paste0(c_print[i]), col="black", font=1, cex=1 )
+  text(x= i, y=topline-0.0065, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex)
+  text(x= i, y=midline - 0.007, paste0(c_print[i]), col="black", font=1, cex=cov_cex )
 })
 # mtext('coverage\nprobability', side=2, las=1, at = loc_1, adj = 1, font=2, line=1)
 # mtext('RMSE', side=2, las=1, at = loc_2, font=2, line=1)
 text(x=mean(1:nrow(select_results))
-     , y=midline-.0025, "coverage probability", col="black", font=2, cex = 1.25)
+     , y=midline-.0025, "coverage probability", col="black", font=2)
 text(x=mean(1:nrow(select_results))
-     , y=topline-.0025, "RMSE", col="black", font=2, cex = 1.25)
+     , y=topline-.0025, "RMSE", col="black", font=2)
 
 ```
 
@@ -587,7 +598,7 @@ In reality, property level unobservables such as the preferences and resources o
 
 The introduction of $\sigma_p$ changes the relative performance of each specification. The traditional DID does not account for the spatial nature of the deforestation process and, in Figure \@ref(fig:did-property), we see that the pixel-level DID begins to suffer in terms of bias, RMSE, and coverage as these property-level unobservables play a larger role in the data generating process. 
 
-```{r did-property, results = FALSE, message = FALSE, warning = FALSE, fig.align="center", fig.cap="Bias, RMSE, and coverage of the pixel-level DID model as the relative scale of property level disturbances increase", fig.width = 10, fig.height = 8, out.width = "75%", fig.pos='H', fig.show='hold'}
+```{r did-property, results = FALSE, message = FALSE, warning = FALSE, fig.align="center", fig.cap="Bias, RMSE, and coverage of the pixel-level DID model as the relative scale of property level disturbances increase", fig.width = 10, fig.height = 7, out.width = "100%", fig.pos='H', fig.show='hold'}
 
 full_summary <- readRDS("results/summary_full.rds") %>%
   filter(treatment.fe == 1 & se_pixel == 1 & is.na(notes) & cox == 0) %>%
@@ -616,7 +627,7 @@ c_print[is.na(c_print)] <- " "
 
 RMSE <- select_results$RMSE
 RMSE <- as.numeric(RMSE)
-RMSE_print<- round(RMSE, digits = 3)
+RMSE_print<- round(RMSE, digits = 4)
 RMSE_print[is.na(RMSE_print)] <- " "
 
 schart_results <- select_results %>%
@@ -630,34 +641,38 @@ labels <- list("",
 
 
 topline = -0.014
-midline = topline-0.012
-ylim <- c(midline-0.011,0.005)
+midline = topline-0.004
+ylim <- c(midline-0.003,0.005)
 
 par(oma=c(1,0,1,1))
 
 schart(as.data.frame(schart_results), labels = labels, 
-       ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
+       ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="              Bias",
        #leftmargin = 16, 
        col.est = c(palette$dark, palette$red), 
        bg.dot=c("white", "white", "white", "white"),
        col.dot=c("white", "white", "white", "white"),
-       heights = c(6,1), cex = c(1.75,1.75))
+       heights = c(6,1), cex = c(1.25,1.25))
 
-mtext("Bias     ", side=2, at = -0.00, font=2, las=1, line=.5, cex = 2)
-Axis(side=2, at = c(-0.01, -0.005, 0, 0.005, 0.01), labels=TRUE, cex = 4)
+#mtext("Bias             ", side=2, at = -0.00, font=2, las=1, line=.5)
+Axis(side=2, at = c(-0.01, -0.005, 0, 0.005, 0.01), labels=TRUE)
 abline(h=topline)
 abline(h=midline)
 lapply(1:length(RMSE), function(i) {
-  text(x= i, y=midline+0.006, paste0(RMSE_print[i]), col="black", font=1, cex=2)
-  text(x= i, y=midline-0.006, paste0(c_print[i]), col="black", font=1, cex=2)
+  text(x= i, y=topline-0.0025, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex)
+  text(x= i, y=midline-0.0025, paste0(c_print[i]), col="black", font=1, cex=cov_cex)
 })
-mtext("RMSE", side=2, at = midline+0.006, font=2, las=1, line=.5, cex = 2)
-mtext("Coverage\nprobability", side=2, at = midline-0.006, font=2, las=1, line=.5, cex = 2)
-mtext(paste0(0), side=1, at = 2, font=2, cex=2, line=3)
-mtext(paste0(0.1), side=1, at = 3, font=2, cex=2, line=3)
-mtext(paste0(0.2), side=1, at = 4, font=2, cex=2, line=3)
-mtext(paste0(0.3), side=1, at = 5, font=2, cex=2, line=3)
-mtext(bquote("Value of " ~ sigma[p]), side=1, at = 0, font=2, cex=2.5, line=3)
+text(x=mean(1:nrow(schart_results))
+     , y=midline-.001, "coverage probability", col="black", font=2)
+text(x=mean(1:nrow(schart_results))
+     , y=topline-.001, "RMSE", col="black", font=2)
+# mtext("RMSE", side=2, at = midline+0.003, font=2, las=1, line=.5)
+# mtext("Coverage\nprobability", side=2, at = midline-0.003, font=2, las=1, line=.5)
+mtext(paste0(0), side=1, at = 2, font=2, cex=1.2, line=3)
+mtext(paste0(0.1), side=1, at = 3, font=2, cex=1.2, line=3)
+mtext(paste0(0.2), side=1, at = 4, font=2, cex=1.2, line=3)
+mtext(paste0(0.3), side=1, at = 5, font=2, cex=1.2, line=3)
+mtext(bquote("Value of " ~ sigma[p]), side=1, at = 0, font=2, cex=1.25, line=3)
 
 ```
 
@@ -665,7 +680,7 @@ mtext(bquote("Value of " ~ sigma[p]), side=1, at = 0, font=2, cex=2.5, line=3)
 In Figure \@ref(fig:agg), we see that, by incorporating spatially aggregated units into the model structure, the researcher can reduce bias relative to the simple pixel-level DID in settings where property-level perturbations are relatively large ($\sigma_p= 0.3$). This improvement is apparent across specifications that either control for spatially aggregated fixed effects (Regression 4; left panel) or use a spatially aggregated unit of analysis (Regression 5; right panel). That said, specifications with a spatially aggregated unit of analysis consistently outperform their counterpart with spatially aggregated fixed effects. Further, we see that the scale of aggregation plays a role. Analyses incorporating the property or grid cells near the size of the average property outperform models using larger or smaller scales. Ultimately, all models that incorporate spatial aggregation suffer from relatively little bias and incur less bias than the simple pixel-level DID. In Appendix \@ref(property-alt), we see that specifications incorporating the property as the unit of analysis continue to outperform other models in alternate parameterizations. 
 
 
-```{r agg, results = FALSE, message = FALSE, warning = FALSE, fig.align="center", fig.cap="Bias, distribution, and coverage with $\\sigma_p=0.3$ for specifications with aggregated unit fixed effects (left panel), and specifications with aggregated units of analysis (right panel)", fig.width = 12, fig.height = 8, out.width = "100%", fig.pos='H', fig.show='hold'}
+```{r agg, results = FALSE, message = FALSE, warning = FALSE, fig.align="center", fig.cap="Bias, distribution, and coverage with $\\sigma_p=0.3$ for specifications with aggregated unit fixed effects (left panel), and specifications with aggregated units of analysis (right panel)", fig.width = 10, fig.height = 7, out.width = "100%", fig.pos='H', fig.show='hold'}
 
 full_summary <- readRDS("results/summary_full.rds") %>%
   mutate_at(vars(bias, cover), as.numeric)%>%
@@ -707,7 +722,7 @@ na_row <- c("Bias" = NA,
 select_results <- rbind(na_row, select_results_A, na_row, select_results_B, na_row)
 
 coverage <- select_results$cover
-c_print <- round(coverage, digits = 2)
+c_print <- round(coverage, digits = 3)
 c_print[is.na(c_print)] <- " "
 
 RMSE <- select_results$RMSE
@@ -730,30 +745,31 @@ labels <- list("Unit of analysis:" = c("pixel", "large grid", "small grid", "cou
                )
 
 topline = -0.015
-midline = topline-0.012
-ylim <- c(midline-0.011,0.005)
+midline = topline-0.005
+ylim <- c(midline-0.004,0.006)
 
-
-#par(bg = palette$white)
 par(oma=c(1,0,1,1))
 
-schart(as.data.frame(schart_results), labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
-       highlight = c(6, 11),  leftmargin = 16, col.est = c(palette$dark, palette$red), heights = c(3, 3), cex = c(1.75, 1.75),
+schart(as.data.frame(schart_results), labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="        Bias", 
+       highlight = c(6, 11),  leftmargin = 16, col.est = c(palette$dark, palette$red), heights = c(6,4), cex = c(1.25, 1.25),
        bg.dot=c(palette$dark, "grey95", "white", palette$red),
        col.dot=c(palette$dark, "grey95", "white", palette$red)
        )
-mtext("Bias    ", side=2, at = 0.0, font=2, las=1, line=.5, cex = 2)
-Axis(side=2, at = c(-0.01, 0, 0.005), labels=TRUE, cex = 3)
+text(x=7
+     , y=midline-.0015, "coverage probability", col="black", font=2)
+text(x=7
+     , y=topline-.0015, "RMSE", col="black", font=2)
+Axis(side=2, at = c(-0.01, 0, 0.005), labels=TRUE)
 abline(h=topline)
 abline(h=midline)
 lapply(1:length(RMSE), function(i) {
-  text(x= i, y=midline+0.006, paste0(RMSE_print[i], " "), col="black", font=1, cex=1.5)
-  text(x= i, y=midline-0.006, paste0(c_print[i]), col="black", font=1, cex=1.5)
+  text(x= i, y=midline+0.0015, paste0(RMSE_print[i], " "), col="black", font=1, cex=rmse_cex)
+  text(x= i, y=midline-0.004, paste0(c_print[i]), col="black", font=1, cex=cov_cex)
 #  mtext(gridsize_print[i], side=1, at = i, font=2, cex=1.5, line=16)
 })
-mtext("RMSE", side=2, at = midline+0.006, font=2, las=1, line=.5, cex = 1.75)
-mtext("Coverage\nprobability", side=2, at = midline-0.006, font=2, las=1, line=.5, cex = 1.6)
-abline(v = 7)
+# mtext("RMSE", side=2, at = midline+0.0015, font=2, las=1, line=.5)
+# mtext("Coverage\nprobability", side=2, at = midline-0.004, font=2, las=1, line=.5)
+#abline(v = 7)
 
 
 ```
@@ -1041,9 +1057,18 @@ Although spatial aggregation can improve the performance of OLS-based model spec
 <!-- ``` -->
 
 ## Weighting by area recovers landscape scale estimates
+
 As researchers transition towards spatially aggregated units of analysis, interpretation of the estimated $ATT$ can become more complicated. Authors frequently choose to use a pixel or grid cell as their preferred unit of analysis in order to simplify the interpretation of their estimated $ATT$ [@alix-garcia2017]. For example, when researchers estimate a model with pixel-level units of analysis, the coefficient of interest can be interpreted as a population average for all treated, forested pixels. In contrast, if a property is used as the unit of analysis, the coefficient should be interpreted as the effect of the intervention on the characteristic property in the sample. In order to obtain a landscape-scale interpretation, one must weight the regression by the area of each unit of analysis (i.e. property). 
 
-Weighting does not seem to have a large impact on bias, RMSE, or coverage probability when the treatment effect is constant across properties (even with property-level unobservables). The use of area weights is likely to be most useful when the treatment effect in the characteristic property differs from the landscape's $ATT$. To illustrate this effect, we consider a landscape in which treatment effects are correlated with property size. The full DGP for this case can be found in Appendix \@ref(pweightDGP). The treatment effect now varies across properties, and properties with greater areas experience treatment effects of a lower magnitude than smaller properties. The $ATT$ across the landscape is still $-0.01$. However, because the treatment is more impactful in properties of a smaller size, the treatment effect for the average property is less than $-0.01$.
+Weighting does not seem to have a large impact on bias, RMSE, or coverage probability when the treatment effect is constant across properties (even with property-level unobservables). The use of area weights is likely to be most useful when the treatment effect in the characteristic property differs from the landscape's $ATT$. To illustrate this effect, we consider a landscape in which treatment effects are correlated with property size. The full DGP for this case can be found in Appendix \@ref(pweightDGP). 
+
+The treatment effect now varies across properties, and properties with greater areas experience treatment effects of a lower magnitude than smaller properties. For clarity of definitions, we assign treatment at the property level in this subsection. We consider two sample $ATT$s: the landscape $ATT$ and the property-level $ATT$. They can be defined as follows:
+
+* $ATT_{ls} = \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1}(y_{ivt}(1) - y_{ivt}(0))$, where $n_{i:D_i=1}$ is the number of treated pixels in the simulated landscape; and
+
+* $ATT_{property} = \frac{1}{n_{v:D_v=1}} \sum_{v:D_v=1}(\frac{1}{n_{iv}} \sum_{i=1}^{n_{iv}}(y_{ivt}(1) - y_{ivt}(0)))$, where $n_{v:D_v=1}$ is the number of treated properties in the simulated landscape; and $n_{iv}$ is the number of pixels in property $v$.
+
+Because the treatment is more impactful in properties of a smaller size, the treatment effect for the average property is less (greater magnitude) than that across the landscape. Figure \@ref(fig:pweight) shows the sample $ATT$s for both the property and landscape. The property-level TWFE regression identifies the $ATT$ relative to the characteristic property when area weights are not used and the landscape scale $ATT$ when they are used. Researchers should use these area weights when they are interested in the impact of the intervention across the landscape. In cases where the researcher is interested in how an intervention affects incentives at the property level, using these weights may not be necessary. 
 
 <!-- TODO: Add tick labels to y axis. in Figure 6. update previous sentence with actual value of the treatment effect in the average property? -->
 
@@ -1118,7 +1143,6 @@ mtext("landscape\nATT", side=2, at = 0, font=2, las=1, line=.5, cex = .75)
 
 ```
 
-Figure \@ref(fig:pweight) shows the true $ATT$ at both the property and landscape scales. The property-level TWFE regression identifies the $ATT$ relative to the characteristic property when area weights are not used and the landscape scale $ATT$ when they are used. Researchers should use these area weights when they are interested in the impact of the intervention across the landscape. In cases where the researcher is interested in how an intervention affects incentives at the property level, using these weights may not be neccessary. 
 
 <!-- Robert to do: Add sentence about settings where we want to recover heterogeneity in properties? 
 -->
@@ -1137,36 +1161,106 @@ Here we show that, although these new estimators effectively address concerns ab
 rate_landscape <- readRDS("results/landscape.rds")
 
 ggplot(data=rate_landscape, aes(x=year, y=defor, colour=Group))+
-  geom_line(size=2)+
+  geom_line(size=1.5)+
   ylab("Deforestation rate")+
   xlab("Year")+
   scale_y_continuous(labels = scales::percent)+
   scale_color_manual(values=c(palette$dark, palette$blue, palette$red))+
   ggtitle("Annual deforestation across multiple groups")+
-  theme_minimal(base_size = 20)+
+  theme_minimal(base_size = 14)+
   theme(#legend.key = element_rect(color = NA, fill = NA),
-        legend.key.size = unit(.5, "cm")) +
-  theme(legend.title.align = 0.5)
+        legend.key.size = unit(.5, "cm"),
+        legend.title.align = 0.5,
+        text = element_text(size = 14))
   
 
 ```
 
 The left panel of Figure \@ref(fig:multiGT) shows that the estimators developed in @callaway2020, @gardner2021, and @borusyak2021 suffer from similar bias to TWFE regressions with pixel unit fixed effects if the pixel is used as the unit of analysis. All methods yield a treatment effect greater than or equal to 0 in all post-treatment periods, reflecting the fact that pre-treatment period deforestation rates are unaccounted for by the estimators. This is particularly  clear in the @callaway2020 estimator in which pre-treatment periods are all precisely zero, indicating that the estimator could only compute treatment effects using pixels that survived until the end of the observation period. The right panel of Figure \@ref(fig:multiGT) shows that this bias is eliminated when one uses an aggregated unit of analysis with binary treatment (e.g., county). We do not include pixel-level TWFE regressions with spatially aggregated fixed effects, because most recently developed estimators do not allow for a comparable implementation. Therefore if the researcher wants to obtain a landscape-scale interpretation, they must use an aggregated grid cell or weight the regression by the unit area. 
 
-```{r multiGT, results = FALSE, warning = FALSE, fig.cap="New estimators, similar to TWFE regressions with pixel unit fixed effects, cannot identify ATT with pixel as unit of analysis", fig.pos='H', fig.width = 7, fig.height = 7, fig.show='hold'}
+```{r multiGT, results = FALSE, warning = FALSE, out.width="100%", fig.cap="New estimators, similar to TWFE regressions with pixel unit fixed effects, cannot identify ATT with pixel as unit of analysis", fig.pos='H', fig.width = 10, fig.height = 6, fig.show='hold'}
 #knitr::include_graphics(c("figs/pixel_multiGT.png", "figs/county_multiGT.png"))
 
 county_es <- readRDS("results/county_es.rds")
 pixel_es <- readRDS("results/pixel_es.rds")%>%
   filter(estimator != "Borusyak, Jaravel, Spiess (2021)")
 
-my_event_study_plot(pixel_es, seperate = FALSE)+
-  ggtitle("Estimates with pixel unit of analysis")+
-  ylim(-0.045, 0.045)
+color_scale = c("TWFE" = palette$red, "Gardner (2021)" = palette$dark, "Callaway and Sant'Anna (2020)" = palette$blue, "Borusyak, Jaravel, Spiess (2021)" = palette$dark_green,  "Truth" = palette$green)
 
-my_event_study_plot(county_es, seperate = FALSE)+
-  ggtitle("Estimates with aggregated unit of analysis")+
-  ylim(-0.045, 0.045)
+# Get list of estimators
+estimators = unique(county_es$estimator)
+  
+# Subset factor levels
+levels = c("TWFE", "Borusyak, Jaravel, Spiess (2021)", "Callaway and Sant'Anna (2020)", "Gardner (2021)", "Truth")
+levels = levels[levels %in% estimators]
+  
+# Subset color scales
+color_scale = color_scale[names(color_scale) %in% estimators]
+
+# create confidence intervals
+out_pix = pixel_es %>%
+  dplyr::mutate(
+    ci_lower = q05,
+    ci_upper = q95,
+    estimator = factor(estimator, levels = levels)
+    )
+
+# create confidence intervals
+out_county = county_es %>%
+  dplyr::mutate(
+    ci_lower = q05,
+    ci_upper = q95,
+    estimator = factor(estimator, levels = levels)
+    )
+  
+# position 
+position = position_dodge(width = 0.5)
+
+ylimmin = min(min(out_pix$ci_lower), min(out_county$ci_lower))
+ylimmax = max(max(out_pix$ci_upper), max(out_county$ci_upper))
+ylim = c(ylimmin, ylimmax)
+
+p1 <- ggplot(out_pix, ggplot2::aes(x = term, y = estimate, color = estimator, ymin = ci_lower, ymax = ci_upper)) +
+  geom_point(position = position, size = 2.6) +
+  geom_errorbar(position = position) +
+  geom_vline(xintercept = -0.5, linetype = "dashed") +
+  labs(y = "Mean point estimate", x = "Event Time", color = "Estimator") +
+  theme_minimal(base_size = 14) +
+  scale_color_manual(values = color_scale) +
+  guides(
+      color = ggplot2::guide_legend(title.position = "top", nrow = 2)
+    ) +
+  ylim(ylimmin, ylimmax)+
+  ggtitle("Pixel as unit of analysis")+
+  theme(plot.title = element_text(hjust = 0))
+
+p2 <- ggplot(out_county, ggplot2::aes(x = term, y = estimate, color = estimator, ymin = ci_lower, ymax = ci_upper)) +
+  geom_point(position = position, size = 2.6) +
+  geom_errorbar(position = position) +
+  geom_vline(xintercept = -0.5, linetype = "dashed") +
+  labs(y = "Mean point estimate", x = "Event Time", color = "Estimator") +
+  theme_minimal(base_size = 14) +
+  scale_color_manual(values = color_scale) +
+  guides(
+      color = ggplot2::guide_legend(title.position = "top", nrow = 2)
+    ) +
+  ylim(ylimmin, ylimmax)+
+  ggtitle("Aggregated unit of analysis")+
+  theme(axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        plot.title = element_text(hjust = 0))
+
+p4 <- ggplot(data.frame(l = p1$labels$y, x = 1, y = 1)) +
+      geom_text(aes(x, y, label = l), angle = 90) + 
+      theme_void() +
+      coord_cartesian(clip = "off")
+
+p1$labels$y <- p2$labels$y <- " "
+
+combined <- p4 + (p1 | p2) & theme(legend.position = "bottom")
+
+combined + plot_layout(widths = c(1, 25), guides = "collect")
 
 ```
 
@@ -1180,15 +1274,16 @@ Finally, we examine the performance of the new DID estimators relative to a trad
 het_landscape <- readRDS("results/het_landscape.rds")
 
 ggplot(data=het_landscape, aes(x=year, y=defor, colour=Group))+
-  geom_line(size=2)+
+  geom_line(size=1.5)+
   ylab("deforestation rate")+
   scale_y_continuous(labels = scales::percent)+
   scale_color_manual(values=c(palette$dark, palette$blue, palette$red))+
   ggtitle("Annual deforestation across heterogeneous groups")+
-  theme_minimal(base_size = 20)+
+  theme_minimal(base_size = 14)+
   theme(#legend.key = element_rect(color = NA, fill = NA),
-        legend.key.size = unit(.5, "cm")) +
-  theme(legend.title.align = 0.5)
+        legend.key.size = unit(.5, "cm"),
+        legend.title.align = 0.5,
+        text = element_text(size = 14))
   
 
 ```
