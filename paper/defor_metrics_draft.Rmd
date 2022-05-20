@@ -1,7 +1,7 @@
 ---
 title: Conservation impact evaluation using remotely sensed data
 author: "Alberto Garcia and Robert Heilmayr"
-date: "May 15, 2022"
+date: "May 20, 2022"
 output:
   bookdown::pdf_document2:
     latex_engine: xelatex
@@ -21,12 +21,13 @@ header-includes:
   
 ## TODO list: 
 
+# Tentative assigning of list items:
+
 ## FOR ALBERT:
 # - Clean up cross-references and citations in section 2.3
 # - Add appendix referenced in section 2.3
 # - Double check all cross-references
 # - Table 1: Add new example of survival analysis? 
-# - Better integrate table 2 into description of Monte Carlo setup (section 3). This used to be in Section 6, but I think it fits better here?
 # - Figure 6: Add y-axis labels, update prior sentence with actual average property effect size
 
 
@@ -34,6 +35,7 @@ header-includes:
 # - Figures 2, 3, etc: Rename "HE estimator" to match new framing of section 2.3
 # - Sub-section headers: Add first subsection header for sections where there's a long opening sub-section, and then a single other sub-section (e.g. sections 6 and 7)
 # - Robert needs to revised sections 5 (selection bias) and 8 (conclusion)
+# - Better integrate table 2 into description of Monte Carlo setup (section 3). This used to be in Section 6, but I think it fits better here?
 
 ## CHECK IN
 # - Prepare replication package - host on rstudio server?
@@ -81,6 +83,7 @@ Conservation scientists are increasingly measuring the impacts of conservation i
 
 # Introduction
 Policymakers often need to understand the causal impacts of conservation interventions. Do marine protected areas stop unsustainable harvesting of fish? Can payments for ecosystem services encourage lasting reforestation? While randomized experiments are the gold standard for the identification of causal relationships [@edwards2020; @jayachandran2017], conservation often poses questions that are prohibitively expensive, unethical or impossible to pursue through experimentation. In such settings, a growing portfolio of statistical techniques enable researchers to draw causal conclusions using observational data [@larsen2019]. Increasingly, these econometric approaches to impact evaluation are being used to disentangle the causal relationships that underpin conservation decisionmaking [@butsic2017; @baylis2016; @williams2020]. These econometric methods can generate estimates of an intervention's impact by comparing observed outcomes to a statistical counterfactual of what would have happened in the absence of an intervention [@ferraro2009; @meyfroidt2016; @ferraro2019; @ribas2020].
+
 
 <!-- When successful, these methods can provide answers that improve the way society confronts environmental challenges. However, inappropriate methods can yield misleading conclusions and, as a result, risk diverting scarce financial and political resources from the most effective conservation strategies. -->
 
