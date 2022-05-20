@@ -30,11 +30,12 @@ header-includes:
 # - Figure 6: Add y-axis labels, update prior sentence with actual average property effect size
 
 
-
 ## FOR ROBERT
 # - Figures 2, 3, etc: Rename "HE estimator" to match new framing of section 2.3
 # - Sub-section headers: Add first subsection header for sections where there's a long opening sub-section, and then a single other sub-section (e.g. sections 6 and 7)
 # - Robert needs to revised sections 5 (selection bias) and 8 (conclusion)
+
+## CHECK IN
 # - Prepare replication package - host on rstudio server?
 
 ## COMPLETED:
