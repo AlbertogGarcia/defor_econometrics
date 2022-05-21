@@ -32,10 +32,10 @@ header-includes:
 # - Rewrite last paragraph before conclusion (discussion of figure 10). Currently a bit hard to follow
 # - Double check description of new DID literature - see comment addressed to you on ~line 1159
 # - Re-write last paragraph of selection bias section. See comment on ~line 497
+# - Fill in missing values (marked by XX) in section 3.1. See note on ~line 285
 
 ## FOR ROBERT
 # - Robert needs to revise section 8 (conclusion)
-# - Better integrate table 2 into description of Monte Carlo setup (section 3). This used to be in Section 6, but I think it fits better here?
 
 ## CHECK IN
 # - Prepare replication package - host on rstudio server?
@@ -47,6 +47,8 @@ header-includes:
 # - Figure 4: Labels should be same font size as other figures
 # - Figures 7 and 9: Make these figures smaller, font sizes / labels / line sizes should be comparable to other figures
 # - Figure 8: Update plots to share y-axis and legend; update to consistent color palette with rest of paper
+# - Better integrate table 2 into description of Monte Carlo setup (section 3). This used to be in Section 6, but I think it fits better here?
+
 ---
 
 \sectionfont{\fontsize{11}{11}\selectfont}
@@ -275,11 +277,14 @@ We have shown that the simple extension of the traditional DID to the survival s
 
 # Monte Carlo simulations to compare alternative model performance
 
-The rapid growth of the conservation impact evaluation literature has resulted in a diversity of alternate model structures that could yield more accurate estimates of the effectiveness of different interventions (Table \@ref(tab:table-lit)). To explore the relative performance of these different models, we employ a series of Monte Carlo simulations. Specifically, we randomly generate synthetic landscapes with known policy effectiveness and analyze the performance of different econometric models in estimating the policy's known impact.
+The rapid growth of the conservation impact evaluation literature has resulted in a diversity of model structures that all attempt to estimate the effectiveness of conservation interventions (Table \@ref(tab:table-lit)). To explore the relative performance of these different models, we employ a series of Monte Carlo simulations. Specifically, we randomly generate synthetic landscapes with known policy effectiveness and analyze the performance of different econometric models in estimating the policy's known impact.
 
 ## Landscape configuration
-<!-- Todo: Add short description of pixels, counties, properties, and grids. integrate the following table that used to be buried in the results -->
-Table \@ref(tab:res) helps us to get a sense of relative scale within our synthetic landscapes for this section. We assume pixels are comparable to Landsat resolution (30 m).
+We begin each Monte Carlo simulation by creating a synthetic landscape consisting of XX rows and XX columns of square pixels, equivalent to a raster that is XX times larger than what is illustrated in Figure \@ref(fig:counterfactual). We assume that each pixel has a resolution of 30 meters, comparable to the resolution of many Landsat-based, remote sensing analyses. The landscape thus represents an area of approximately XX km2. We then divide this landscape into a variety of spatial units, composed of either uniform aggregations of pixels (i.e. large or small "grid cells"), or randomly spaced Thiessen polygons (i.e. "counties" or "properties"). Grid cells are intended to represent arbitrary units of spatial aggregation imposed by the researcher. In contrast, counties and properties are intended to represent simulated administrative units over which policy or land use decisions are made. Table \@ref(tab:res) summarizes the relative scale of each of these spatial units under our baseline specifications.
+<!-- Albert TODO: I tried to go back to the analysis code to fill in the XX values above, but each of the analysis scripts has a slightly different nobs. Could you fill in the four XX values above with the size of our baseline specification? Also, would be good to make sure our final specification is fairly consistent across runs (I'm not entirely sure which of the analysis scripts we're actually relying on right now)-->
+
+<!-- TODO (during review): Note that our counties are still really small. The average municipality in Brazil is 1,500 km2, and the smallest county in the US is ~15km2. While this is in review, should we simulate with larger counties?-->
+
 
 ```{r res}
 nobs = 150^2
@@ -298,15 +303,17 @@ c_ha = avg_carea * 30^2 / 10000
 
 resolution_df <- data.frame(
   "unit" = c("Property", "County", "Large grid", "Small grid"),
-  "avg_pix" = c(avg_parea, avg_carea, cellsize_large^2, cellsize_med^2)
+  "avg_pix" = c(avg_parea, avg_carea, cellsize_large^2, cellsize_med^2),
+  "structure" = c("Thiessen polygons", "Thiessen polygons", "Uniform square", "Uniform square")
 ) %>%
-  mutate(area_ha = avg_pix * 30^2 / 10000)
+  mutate(area_ha = avg_pix * 30^2 / 10000) %>% 
+  select(unit, structure, avg_pix, area_ha)
 
 
 kable(resolution_df, format = "latex", row.names = FALSE,  booktabs = T,
-       caption = "Spatial unit resolution and comparable area",
+       caption = "Spatial unit structure and size",
        col.names = NULL) %>%
-  add_header_above(c("Spatial unit"=1,"Avg. number of pixels"=1, "Area (hectares)"=1), escape = TRUE, line =TRUE, bold = TRUE)%>%
+  add_header_above(c("Spatial unit"=1, "Spatial structure"=1, "Avg. number of pixels"=1, "Area (hectares)"=1), escape = TRUE, line =TRUE, bold = TRUE)%>%
   kable_styling(font_size = 10, latex_options = c("HOLD_position", "striped"),
                 position = "center")
 
@@ -1311,7 +1318,9 @@ knitr::include_graphics(c("figs/pixel_multiGT2.png","figs/county_multiGT2.png"))
 
 
 # Conclusions
-Despite past guidance to the contrary, models that incorporate fixed effects for individual points are unable to yield unbiased estimates of a policy's $ATT$ when applied to irreversible, binary observations of deforestation. This is due to the fact that when pixels are dropped after they first become deforested, TWFE models cannot identify off of points deforested in the pre-treatment periods. This novel finding casts doubt on the reliability of a number of estimates in the avoided deforestation literature. 
+Restate core opportunity / problem - rapid proliferation in this literature, but a lack of clear guidance
+
+Despite past guidance to the contrary, models that incorporate fixed effects for individual pixels are unable to yield unbiased estimates of a policy's impact when applied to irreversible, binary observations of deforestation. This is due to the fact that when pixels are dropped after they first become deforested, TWFE models cannot identify off of points deforested in the pre-treatment periods. This novel finding casts doubt on the reliability of a number of estimates in the avoided deforestation literature. 
 
 In order to avoid issues associated with TWFE models that incorporate point fixed effects, researchers can take advantage of aggregated spatial units. TWFE models with aggregated units of analysis and point level TWFE models with aggregated fixed effects are both viable solutions. Which spatial unit of aggregation is preferable depends upon the process by which land use change actually occurs. Bias can arise from non-random sample selection when the outcome represents an irreversible state, as is the case in the deforestation setting. It can also arise when the specification is unrelated to the scale of the process determining land use change. As such, we explore the benefits of conducting estimation and inference at the scale that drives landscape heterogeneity and provide guidance for when the researcher does not have access to geospatial boundaries detailing the relevant units. Ultimately, context plays a role in what is feasible, and researchers should make clear the limits to their impact evaluation strategy. 
 
