@@ -25,7 +25,8 @@ Koch et al. 2018,matched DID,municipality,NA,binary deforestation
 Nolte et al. 2017, DID, NA, deforestation,
 Panlasigui et al. 2018,TWFE,binary point/pixel,pixel,binary deforestation
 Pfaff 1999,regression,county,NA,binary deforestation
-Sanchez-Azofeifa et al 2007,regression,grid cells,NA,binary deforestation
+Sales et al. 2022, Cox PH DID, pixel, NA, binary deforestation
+Sanchez-Azofeifa et al. 2007,regression,grid cells,NA,binary deforestation
 Shah and Baylis 2015,DID,grid cell,NA,binary deforestation
 Sims and Alix-Garcia 2017,TWFE,locality,locality,binary deforestation
 Tabor et al. 2017,TWFE,fokontany,fokontany,binary deforestation

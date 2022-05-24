@@ -18,7 +18,6 @@ header-includes:
   \usepackage{sectsty}
   \usepackage{mathtools}
   
-  
 ## TODO list: 
 
 # Tentative assigning of list items:
@@ -26,12 +25,9 @@ header-includes:
 ## FOR ALBERT:
 # - Clean up cross-references and citations in section 2.3
 # - Add appendix referenced in section 2.3
+# - Add missing references
 # - Double check all cross-references
-# - Table 1: Add new example of survival analysis? 
-# - Figure 6: Add y-axis labels, update prior sentence with actual average property effect size; add bias and coverage
 # - Re-write last paragraph of selection bias section. See comment on ~line 497
-# - Fill in missing values (marked by XX) in section 3.1. See note on ~line 285
-# - update landscape map
 
 ## FOR ROBERT
 # - Robert needs to revise section 8 (conclusion)
@@ -50,6 +46,9 @@ header-includes:
 # - Rewrite last paragraph before conclusion (discussion of figure 10). Currently a bit hard to follow
 # - Double check description of new DID literature - see comment addressed to you on ~line 1159
 # - Rewrite last paragraph before conclusion (discussion of figure 10). Currently a bit hard to follow
+# - Fill in missing values (marked by XX) in section 3.1. See note on ~line 285
+# - Figure 6: Add y-axis labels, update prior sentence with actual average property effect size
+# - Table 1: Add new example of survival analysis? 
 
 ---
 
@@ -129,6 +128,9 @@ In each of the studies detailed in Table \@ref(tab:table-lit), the researcher's 
 
 
 ```{r counterfactual, echo=FALSE, fig.cap="A map of a simulated landscape depicting patterns of deforestation under an effective conservation intervention, as well as counterfactual deforestation illustrating what would have happened in the absence of the intervention.", out.width = "100%"}
+
+fig_nobs = 100^2
+
 knitr::include_graphics("figs/landscape_map.png")
 ```
 
@@ -313,9 +315,14 @@ resolution_df <- data.frame(
 ) %>%
   mutate(area_ha = avg_pix * 30^2 / 10000) %>% 
   select(unit, structure, avg_pix, area_ha)
+
+analysis_to_fig_ratio = nobs/fig_nobs
+
+analysis_km2 <- nobs * 0.0009
+
 ```
 
-We begin each Monte Carlo simulation by creating a synthetic landscape consisting of `r sqrt(nobs)` rows and `r sqrt(nobs)` columns of square pixels, equivalent to a raster that is XX times larger than what is illustrated in Figure \@ref(fig:counterfactual). We assume that each pixel has a resolution of 30 meters, comparable to the resolution of many Landsat-based, remote sensing analyses. The landscape thus represents an area of approximately XX km2. We then divide this landscape into a variety of spatial units, composed of either uniform aggregations of pixels (i.e. large or small "grid cells"), or randomly spaced Thiessen polygons (i.e. "counties" or "properties"). Grid cells are intended to represent arbitrary units of spatial aggregation imposed by the researcher. In contrast, counties and properties are intended to represent simulated administrative units over which policy or land use decisions are made. Table \@ref(tab:res) summarizes the relative scale of each of these spatial units under our baseline specifications.
+We begin each Monte Carlo simulation by creating a synthetic landscape consisting of `r sqrt(nobs)` rows and `r sqrt(nobs)` columns of square pixels, equivalent to a raster that is `r analysis_to_fig_ratio` times larger than what is illustrated in Figure \@ref(fig:counterfactual). We assume that each pixel has a resolution of 30 meters, comparable to the resolution of many Landsat-based, remote sensing analyses. The landscape thus represents an area of approximately `r analysis_km2` km2. We then divide this landscape into a variety of spatial units, composed of either uniform aggregations of pixels (i.e. large or small "grid cells"), or randomly spaced Thiessen polygons (i.e. "counties" or "properties"). Grid cells are intended to represent arbitrary units of spatial aggregation imposed by the researcher. In contrast, counties and properties are intended to represent simulated administrative units over which policy or land use decisions are made. Table \@ref(tab:res) summarizes the relative scale of each of these spatial units under our baseline specifications.
 <!-- Albert TODO: I tried to go back to the analysis code to fill in the XX values above, but each of the analysis scripts has a slightly different nobs. Could you fill in the four XX values above with the size of our baseline specification? Also, would be good to make sure our final specification is fairly consistent across runs (I'm not entirely sure which of the analysis scripts we're actually relying on right now)-->
 
 <!-- TODO (during review): Note that our counties are still really small. The average municipality in Brazil is 1,500 km2, and the smallest county in the US is ~15km2. While this is in review, should we simulate with larger counties?-->
@@ -344,7 +351,7 @@ y^*_{ivt} = & V^{cleared}_{ivt} - V^{uncleared}_{ivt}\\
  \alpha_i + u_{it} + \rho_{v}
 \end{align*}
 
-That is, the returns to deforestation evolve over the two time periods $(\mathbbm{1}\{  t \geq t_0  \})$, and differ across the control $(  D_i = 0 )$ and treated pixels $(  D_i = 1 )$. In addition, we assume that the value of deforestation is influenced by time-invariant random disturbances at the scale of individual pixels ($\alpha_i \sim N(0, \sigma_a^2)$) or properties ($\rho_v \sim N(0, \sigma_p^2)$), as well as time-varying, pixel-scale disturbances ($u_{it} \sim N(0, \sigma_u^2)$). These disturbances can represent a variety of spatial and temporal processes including, for example, the biophysical characteristics of a location, or the preferences of a property owner. 
+That is, the returns to deforestation evolve over the two time periods $(\mathbbm{1}\{  t \geq t_0  \})$, and differ across the control $(  D_i = 0 )$ and treated pixels $(  D_i = 1 )$. In addition, we assume that the value of deforestation is influenced by time-invariant random disturbances at the scale of individual pixels ($\alpha_i \sim N(0, \sigma_a^2)$) or properties ($\rho_v \sim N(0, \sigma_p^2)$), as well as time-varying, pixel-scale disturbances ($u_{it} \sim N(0, \sigma_u^2)$). These disturbances can represent a variety of spatial and temporal processes including, for example, the biophysical characteristics of a location, or the preferences of a property owner.
 
 ## Assumed parameter values
 
@@ -1089,41 +1096,43 @@ Weighting does not have a large impact on bias, RMSE, or coverage probability wh
 
 The treatment effect now varies across properties, and properties with greater areas experience treatment effects of a lower magnitude than smaller properties. For clarity of definitions, we assign treatment at the property level in this subsection. We consider two sample $ATT$s: the landscape $ATT$ and the property-level $ATT$. They can be defined as follows:
 
-* $ATT_{ls} = \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1}(y_{ivt}(1) - y_{ivt}(0))$, where $n_{i:D_i=1}$ is the number of treated pixels in the simulated landscape; and
+* $ATT_{ls} = \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1}(y_{iv2}(1) - y_{iv2}(0))$, where $n_{i:D_i=1}$ is the number of treated pixels in the simulated landscape; and
 
-* $ATT_{property} = \frac{1}{n_{v:D_v=1}} \sum_{v:D_v=1}(\frac{1}{n_{iv}} \sum_{i=1}^{n_{iv}}(y_{ivt}(1) - y_{ivt}(0)))$, where $n_{v:D_v=1}$ is the number of treated properties in the simulated landscape; and $n_{iv}$ is the number of pixels in property $v$.
+* $ATT_{property} = \frac{1}{n_{v:D_v=1}} \sum_{v:D_v=1}(\frac{1}{n_{iv}} \sum_{i=1}^{n_{iv}}(y_{iv2}(1) - y_{iv2}(0)))$, where $n_{v:D_v=1}$ is the number of treated properties in the simulated landscape; and $n_{iv}$ is the number of pixels in property $v$.
 
-Because the treatment is more effective in properties of a smaller size, the treatment effect for the average property is greater than the average treatment effect experienced across the landscape. Figure \@ref(fig:pweight) shows the sample $ATT$s for both the property and landscape. The property-level TWFE regression identifies the $ATT$ relative to the characteristic property when area weights are not used and the landscape scale $ATT$ when they are used. Researchers should use these area weights when they are interested in the impact of the intervention across the landscape. In cases where the researcher is interested in how an intervention affects incentives at the property level, using these weights may not be necessary. 
+Note that neither $ATT_{ls}$ nor $ATT_{property}$ can be estimated directly, because $y(0)_{ivt}$ is not observed for treated units after treatment. 
 
-<!-- TODO: Add tick labels to y axis. in Figure 6. update previous sentence with actual value of the treatment effect in the average property? -->
-
-```{r pweight, fig.align="center", results = FALSE, warning = FALSE, message = FALSE, fig.cap="Weighting recovers landscape scale interpretation", fig.pos='H', fig.width = 7, fig.height = 5, out.width= "100%", fig.show='hold'}
-# knitr::include_graphics(c("figs/pweight_schart.png"))
+```{r pweight, include= FALSE}
 
 summary_pweights <- readRDS("results/summary_pweights.rds")
 
 summary <- summary_pweights %>%
-  mutate_at(vars(estimate, cover, given_ATT, p_ATT), as.numeric
+  mutate_at(vars(estimate, cover, p_ATT), as.numeric
   )%>%
   mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
   )%>%
   filter(is.na(notes) & pixel.fe == FALSE & (treatment.fe == T | property == T) & (se_property == T | se_pixel == T))%>%
-  mutate(bias = estimate - ls_ATT,
-         ATT_diff = p_ATT - ls_ATT)%>%
   group_by(pixel, property, property.fe, treatment.fe, weights, se_property, se_pixel)%>%
   summarise(RMSE = rmse(estimate, given_ATT),
-            q05 = quantile(bias, probs = .05),
-            q95 = quantile(bias, probs = .95),
-            Bias = mean(bias),
+            q05 = quantile(estimate, probs = .05),
+            q95 = quantile(estimate, probs = .95),
+            Estimate = mean(estimate),
             cover = mean(cover),
-            ATT = mean(given_ATT),
             ls_ATT = mean(ls_ATT),
-            ATT_diff = mean(ATT_diff),
             p_ATT = mean(p_ATT))%>%
-  select(Bias, everything())
+  select(Estimate, everything())
 
-df_summary <- summary %>%
-  select(-c( ATT, p_ATT, ATT_diff))
+ls_ATT <- round(mean(summary$ls_ATT), digits = 4)
+p_ATT <- round(mean(summary$p_ATT), digits = 4)
+
+```
+
+Because the treatment is more effective in properties of a smaller size, the treatment effect for the average property is greater than the average treatment effect experienced across the landscape. Figure \@ref(fig:pweight-fig) shows the sample $ATT$s for both the property and landscape. The property-level TWFE regression recovers the $ATT$ relative to the characteristic property when area weights are not used and the landscape scale $ATT$ when they are used. Researchers should use these area weights when they are interested in the impact of the intervention across the landscape. In cases where the researcher is interested in how an intervention affects incentives at the property level, using these weights may not be necessary. In our simulation, $ATT_{property}$ = `r p_ATT`, and $ATT_{property}$ = `r ls_ATT`.
+
+
+```{r pweight-fig, fig.align="center", results = FALSE, warning = FALSE, message = FALSE, fig.cap="Weighting recovers landscape scale interpretation", fig.pos='H', fig.width = 7, fig.height = 5, out.width= "100%", fig.show='hold'}
+
+df_summary <- summary 
 
 par(oma=c(1,0,1,1))
 
@@ -1132,38 +1141,35 @@ labels <- list("Unit of analysis:" = c("pixel", "property"),
                "Weights:" = c("area weights"))
 coverage <- round(df_summary$cover, digits=3)
 RMSE <- round(df_summary$RMSE, digits=5)
-test <- as.data.frame(subset(df_summary, select=-c(cover, RMSE)))
+select_results <- as.data.frame(subset(df_summary, select=-c(cover, RMSE)))
 
-test <- subset(test, select=-c(ls_ATT, se_property, se_pixel))%>%
+select_results <- subset(select_results, select=-c(ls_ATT, p_ATT, se_property, se_pixel))%>%
   distinct()
 
 na_row <- c("Bias" = NA,
             "q05" = NA,
             "q95" = NA)
-select_results <- rbind(na_row, test, na_row)
+select_results <- rbind(na_row, select_results, na_row)
 
 
 #identifying quantile columns
-index.ci <- match(c("q05","q95"), names(test))
+index.ci <- match(c("q05","q95"), names(select_results))
 
 # limits
-ylim <- c(-0.02, 0.006)
+ylim <- c(-0.018, -0.006)
 #Create the plot
 
 schart(select_results,labels, ylim = ylim, index.ci=index.ci, col.est = c(palette$dark, palette$red),
        bg.dot=c(palette$dark, "grey95", "white", palette$red),
        col.dot=c(palette$dark, "grey95", "white", palette$red)
        , ylab="                              "
-      # , highlight=c(3,4)
-       # , col.dot=c("black","lightgrey","red","#00A1D5"),
-       # bg.dot=c("black","lightgrey","white","#00A1D5")
-       # ,band.ref=c(-.05, .04)
-       , axes = FALSE
-       #, col.band.ref="#c7e9f9"
+      , axes = F
 ) # make some room at the bottom
-abline(h=mean(summary$ATT_diff), col = palette$red, lty = "dashed")
-mtext("property level\nATT", side=2, at = mean(summary$ATT_diff), font=2, las=1, line=.5, cex = .75)
-mtext("landscape\nATT", side=2, at = 0, font=2, las=1, line=.5, cex = .75)
+Axis(side=2, at = c(-0.006, -0.01, -0.014), labels=TRUE)
+abline(h=mean(summary$p_ATT), col = palette$blue, lty = "dashed")
+abline(h=mean(summary$ls_ATT), col = palette$dark, lty = "dashed")
+mtext("property level\nATT       ", side=2, at = mean(summary$p_ATT), font=2, las=1, line=2.5, cex = .85, col = palette$dark)
+mtext("landscape\nATT      ", side=2, at = mean(summary$ls_ATT), font=2, las=1, line=2.5, cex = .85, col = palette$dark)
 
 
 ```

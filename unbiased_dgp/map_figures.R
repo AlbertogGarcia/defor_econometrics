@@ -46,17 +46,24 @@ palette <- list("white" = "#FAFAFA",
 base_0 = .04
 base_1 = .08
 trend = 0.02
-ATT = -0.06
+ATT = -0.07
 
 std_a = 0.1
 std_v = 0.5
 years = 1
-nobs = 100^2
-
-cellsize = 20
-ppoints = 300
 std_p = 0.2
-cpoints = 20
+
+main_nobs = 150^2
+main_ppoints = 225
+main_cpoints = 25
+csize = main_nobs/main_cpoints
+psize = main_nobs/main_ppoints
+
+nobs = 100^2
+ppoints = floor(nobs/psize)
+cpoints = floor(nobs/csize)
+
+cellsize = 30
 
 
 std_avp = (std_a^2+std_v^2+std_p^2)^.5
@@ -176,8 +183,8 @@ fills = c(#"Previously deforested" = palette$light_grey,
           "Deforested" = palette$red,
           "Stable forest - treated" = palette$dark,
           "Stable forest - not treated" = palette$dark_green,
-          "Counterfactual deforestation" = palette$gold,
-          "County boundaries" = palette$blue,
+          "Counterfactual deforestation" = palette$blue,
+          "County boundaries" = palette$gold,
           "Property boundaries" = "grey65",
           "Grid cell boundaries" = "white")
 
@@ -197,12 +204,19 @@ plot_df <- data_df %>%
 county_plot <- ggplot() + 
   geom_sf(data = plot_df, aes(fill = plot_var), color = "black", shape = 22, alpha = 1, size = 1.6) +
   geom_sf(data = p_bounds, size = .75, fill = "NA", color = "grey60") +
-  geom_sf(data = c_bounds, size = 1.25, fill = "NA", color = palette$blue) +
-  geom_vline(xintercept = c(seq(from = cellsize, to = sqrt(nobs), by = cellsize)), color="white", size=1.25) + 
-  geom_hline(yintercept = c(seq(from = cellsize, to = sqrt(nobs), by = cellsize)), color="white", size=1.25) +
+  geom_sf(data = c_bounds, size = 1.1, fill = "NA", color = palette$gold) +
+  geom_vline(xintercept = c(seq(from = cellsize, to = sqrt(nobs), by = cellsize)), color="white", size=1.1) + 
+  geom_hline(yintercept = c(seq(from = cellsize, to = sqrt(nobs), by = cellsize)), color="white", size=1.1) +
   scale_fill_manual(values = fills)+
   guides(fill = guide_legend(override.aes = list(size=5)))+
   xlab("")+ylab("")
 county_plot %>% 
   format_fig()
+
+ggsave(county_plot %>% 
+         format_fig(),
+       path = "unbiased_dgp/figs",
+       filename = "landscape_map.png", 
+       width = 8,
+       height = 8)
 

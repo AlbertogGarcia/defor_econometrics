@@ -6,12 +6,12 @@ library(tidyverse)
 std_a = 0
 std_v = 0.5
 years = 6
-nobs = 125^2
-n = 500
+nobs = 150^2
+n = 250
 
 cellsize = 12
-ppoints = 100
-cpoints = 35
+ppoints = 225
+cpoints = 25
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ######## set seed

@@ -184,8 +184,7 @@ source(here::here('unbiased_dgp', 'heterogeneous_propertyarea.R'))
 std_a = 0
 std_v = 0.5
 std_p = 0.0
-std_b3 = .15
-nobs = 150^2
+std_b3 = .05
 ppoints = 225
 
 # here are the landscape characteristics in this parameterization
