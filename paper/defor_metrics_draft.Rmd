@@ -27,6 +27,7 @@ header-includes:
 # - Add appendix referenced in section 2.3
 # - Add missing references
 # - Double check all cross-references
+# - Section 2.3 modifications for "proportional hazards"
 # - Re-write last paragraph of selection bias section. See comment on ~line 497
 
 ## FOR ROBERT
