@@ -29,10 +29,9 @@ header-includes:
 # - Double check all cross-references
 # - Table 1: Add new example of survival analysis? 
 # - Figure 6: Add y-axis labels, update prior sentence with actual average property effect size; add bias and coverage
-# - Rewrite last paragraph before conclusion (discussion of figure 10). Currently a bit hard to follow
-# - Double check description of new DID literature - see comment addressed to you on ~line 1159
 # - Re-write last paragraph of selection bias section. See comment on ~line 497
 # - Fill in missing values (marked by XX) in section 3.1. See note on ~line 285
+# - update landscape map
 
 ## FOR ROBERT
 # - Robert needs to revise section 8 (conclusion)
@@ -48,6 +47,9 @@ header-includes:
 # - Figures 7 and 9: Make these figures smaller, font sizes / labels / line sizes should be comparable to other figures
 # - Figure 8: Update plots to share y-axis and legend; update to consistent color palette with rest of paper
 # - Better integrate table 2 into description of Monte Carlo setup (section 3). This used to be in Section 6, but I think it fits better here?
+# - Rewrite last paragraph before conclusion (discussion of figure 10). Currently a bit hard to follow
+# - Double check description of new DID literature - see comment addressed to you on ~line 1159
+# - Rewrite last paragraph before conclusion (discussion of figure 10). Currently a bit hard to follow
 
 ---
 
@@ -246,12 +248,20 @@ Multiple studies across a wide variety of settings have interpreted the resultin
 
 $$ HRTT = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, D_i=1]}$$
 
-However, Appendix XX shows that $exp(\beta_{coxDID})$ is actually an estimate of a less intuitive hazard ratio that is the product of pre- and post-treatment ratios across the treated and untreated groups:
+However, Appendix XX shows that $exp(\beta_{coxDID})$ only identifies the $HRTT$ under an alternative assumption:
 
-$$exp(\beta_{coxDID}) = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]E[y_{ivt}(0)  |  t < t_0, D_i=0] }{E[y_{ivt}(0)  |  t\geq t_0, D_i=0]E[y_{ivt}(0)  |  t < t_0, D_i=1] }$$
+\textbf{Assumption 3:} (Common proportional trends)
+\begin{align*}
+\frac{E[y_{ivt}(0) |  t\geq t_0, D_i=1]}{E[y_{ivt}(0) |  t< t_0, D_i=1]}=\frac{E[y_{ivt}(0) |  t\geq t_0, D_i=0]}{E[y_{ivt}(0) |  t< t_0, D_i=0]}
+\end{align*}
+
+Assumption 3 requires that pixels in treated and untreated areas would have experienced the same ratio of change in their probability of deforestation across the two periods had no intervention occurred. Note that in general, Assumption 1 and Assumption 3 cannot simultaneously hold.
+
+
+<!-- $$exp(\beta_{coxDID}) = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]E[y_{ivt}(0)  |  t < t_0, D_i=0] }{E[y_{ivt}(0)  |  t\geq t_0, D_i=0]E[y_{ivt}(0)  |  t < t_0, D_i=1] }$$ -->
 
 ### Proposing a new survival analysis-based estimator of the $ATT$
-To the best of our knowledge, no prior studies have successfully combined the Cox Proportional Hazards model and the difference in differences research design to recover an unbiased estimate of the $ATT$. Here we outline a new estimation approach that first recovers an unbiased estimate of the $HRTT$, and then translates this into an estimate of the $ATT$. First, we note that the desired $HRTT$ can be re-written as a combination of three different hazard ratios: 
+To the best of our knowledge, no prior studies have successfully combined the Cox Proportional Hazards model and the difference in differences research design to recover an unbiased estimate of the $ATT$ under the traditional common trends assumption (Assumption 1). Here we outline a new estimation approach that first recovers an unbiased estimate of the $HRTT$, and then translates this into an estimate of the $ATT$. First, we note that the desired $HRTT$ can be re-written as a combination of three different hazard ratios: 
 
 \begin{align*}
 HR_1 &= \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t < t_0, D_i=1]}\\
@@ -280,13 +290,8 @@ We have shown that the simple extension of the traditional DID to the survival s
 The rapid growth of the conservation impact evaluation literature has resulted in a diversity of model structures that all attempt to estimate the effectiveness of conservation interventions (Table \@ref(tab:table-lit)). To explore the relative performance of these different models, we employ a series of Monte Carlo simulations. Specifically, we randomly generate synthetic landscapes with known policy effectiveness and analyze the performance of different econometric models in estimating the policy's known impact.
 
 ## Landscape configuration
-We begin each Monte Carlo simulation by creating a synthetic landscape consisting of XX rows and XX columns of square pixels, equivalent to a raster that is XX times larger than what is illustrated in Figure \@ref(fig:counterfactual). We assume that each pixel has a resolution of 30 meters, comparable to the resolution of many Landsat-based, remote sensing analyses. The landscape thus represents an area of approximately XX km2. We then divide this landscape into a variety of spatial units, composed of either uniform aggregations of pixels (i.e. large or small "grid cells"), or randomly spaced Thiessen polygons (i.e. "counties" or "properties"). Grid cells are intended to represent arbitrary units of spatial aggregation imposed by the researcher. In contrast, counties and properties are intended to represent simulated administrative units over which policy or land use decisions are made. Table \@ref(tab:res) summarizes the relative scale of each of these spatial units under our baseline specifications.
-<!-- Albert TODO: I tried to go back to the analysis code to fill in the XX values above, but each of the analysis scripts has a slightly different nobs. Could you fill in the four XX values above with the size of our baseline specification? Also, would be good to make sure our final specification is fairly consistent across runs (I'm not entirely sure which of the analysis scripts we're actually relying on right now)-->
 
-<!-- TODO (during review): Note that our counties are still really small. The average municipality in Brazil is 1,500 km2, and the smallest county in the US is ~15km2. While this is in review, should we simulate with larger counties?-->
-
-
-```{r res}
+```{r res-input}
 nobs = 150^2
 ppoints = 225
 cpoints = 25
@@ -308,8 +313,15 @@ resolution_df <- data.frame(
 ) %>%
   mutate(area_ha = avg_pix * 30^2 / 10000) %>% 
   select(unit, structure, avg_pix, area_ha)
+```
+
+We begin each Monte Carlo simulation by creating a synthetic landscape consisting of `r sqrt(nobs)` rows and `r sqrt(nobs)` columns of square pixels, equivalent to a raster that is XX times larger than what is illustrated in Figure \@ref(fig:counterfactual). We assume that each pixel has a resolution of 30 meters, comparable to the resolution of many Landsat-based, remote sensing analyses. The landscape thus represents an area of approximately XX km2. We then divide this landscape into a variety of spatial units, composed of either uniform aggregations of pixels (i.e. large or small "grid cells"), or randomly spaced Thiessen polygons (i.e. "counties" or "properties"). Grid cells are intended to represent arbitrary units of spatial aggregation imposed by the researcher. In contrast, counties and properties are intended to represent simulated administrative units over which policy or land use decisions are made. Table \@ref(tab:res) summarizes the relative scale of each of these spatial units under our baseline specifications.
+<!-- Albert TODO: I tried to go back to the analysis code to fill in the XX values above, but each of the analysis scripts has a slightly different nobs. Could you fill in the four XX values above with the size of our baseline specification? Also, would be good to make sure our final specification is fairly consistent across runs (I'm not entirely sure which of the analysis scripts we're actually relying on right now)-->
+
+<!-- TODO (during review): Note that our counties are still really small. The average municipality in Brazil is 1,500 km2, and the smallest county in the US is ~15km2. While this is in review, should we simulate with larger counties?-->
 
 
+```{r res}
 kable(resolution_df, format = "latex", row.names = FALSE,  booktabs = T,
        caption = "Spatial unit structure and size",
        col.names = NULL) %>%
@@ -480,7 +492,7 @@ z_{jt} = \alpha + \beta_{j} \text{ x } D_j \mathbb{1} \{ t\geq t_0\} + \lambda_t
 Columns 6-8 of Figure \@ref(fig:summary-fig) show that the bias of the estimates does not vary dramatically across different levels of aggregation, however, the distributions are varied. In particular, the property-level model had the highest RMSE of unbiased specifications due to the heterogeneity in property sizes across the landscape. 
 
 ## Survival analysis
-Survival analysis provides an appealing alternative to traditional linear estimators when studying irreversible changes such as deforestation. The simple, single-regression DID framing of the Cox Proportional hazards model  (Regression 3), however, is not a viable solution (Section \@ref(survival)). Column 2 of Figure \@ref(fig:summary-fig) shows the bias associated with this model. In light of the fact that the simple Cox DID is not a viable analog to the traditional DID, we explore whether our proposed estimator, $\widehat{ATT_{Cox}}$, recovers relevant treatment effect parameters in the deforestation setting. We see in column 10 that $\widehat{ATT_{Cox}}$ indeed recovers our parameter of interest.
+Survival analysis provides an appealing alternative to traditional linear estimators when studying irreversible changes such as deforestation. The simple, single-regression DID framing of the Cox Proportional hazards model  (Regression 3), however, is not a viable solution (Section \@ref(survival)) under the typical common trends assumption (Assumption 1). Column 2 of Figure \@ref(fig:summary-fig) shows the bias associated with this model in our parameterization where Assumption 1 holds but Assumption 3 does not. In light of the fact that the simple Cox DID is not a viable analog to the traditional DID, we explore whether our proposed estimator, $\widehat{ATT_{Cox}}$, recovers relevant treatment effect parameters in the deforestation setting. We see in column 10 that $\widehat{ATT_{Cox}}$ indeed recovers our parameter of interest.
 
 Although our proposed, survival analysis-based approach to estimation yields a good estimate of the true $ATT$ in this simple setting, multiple considerations raise questions about the utility of this non-linear model in more complex settings. One of the primary reasons for the use of survival analysis is censoring. This occurs when the researcher has partial information about the subjects’ survival times but does not have access to precise event times. While the researcher may not observe all pixels until they are deforested, many other common forms of censoring are rarely a concern in the context of deforestation since remote sensing typically enables the creation of balanced panels. Further, the proposed strategy to drop pixels in the periods after they are first deforested successfully addresses irreversibility in deforestation events. Finally, as we show in the following sections, survival analysis is likely to suffer from bias when unobservables enter the landscape at a scale different than the unit of analysis. While researchers can account for this in OLS specifications, there is no clear solution in survival analysis. 
 
@@ -1162,11 +1174,10 @@ mtext("landscape\nATT", side=2, at = 0, font=2, las=1, line=.5, cex = .75)
 
 # Estimating the $ATT$ under staggered treatment {#multipleGT}
 
+The traditional DID regression applies to settings with two groups and two time periods. However, researchers often use TWFE regressions to exploit variation across groups of units that receive treatment at different times. Recent work has shown that, in these staggered treatment settings, TWFE regressions identify a weighted average of all possible two-group/two-period DID estimators in the data [@goodman-bacon2021]. 
+Further, when estimating the $ATT$, some weights on each group-time treatment effect parameter may actually be negative [@dechaisemartin2020]. Newly developed DID estimators seek produce unbiased estimates of the $ATT$ in settings with multiple groups and time periods. These estimators do so through a variety of strategies including imputation [e.g., @borusyak2021], two-stage least squares [e.g., @gardner2021], and the re-weighting of group-time $ATT$s [e.g., @callaway2020]. Some researchers might hope that these new estimators would solve the bias detailed in Section \@ref(ATT). 
 
-The traditional DID regression applies to settings with two groups and two time periods. However, researchers often use TWFE regressions to exploit variation across groups of units that receive treatment at different times. Recent work has show that, in these staggered treatment settings, TWFE regressions identify a weighted average of all possible two-group/two-period DID estimators in the data [@goodman-bacon2021]. 
-Further, when estimating the $ATT$, some weights on each group-time treatment effect parameter may actually be negative [@dechaisemartin2020]. Newly developed DID estimators [e.g., @callaway2020; @gardner2021; @borusyak2021] seek to address these weighting issues by calculating individual two-period, two-group DID parameters before aggregating them to a summary measure of the overall $ATT$. Some researchers might hope that these new estimators would solve the bias detailed in Section \@ref(ATT) since many of the new methods involve separately calculating all two-period/two-group treatment effects. 
-
-<!-- Albert question: Is current introduction of callaway, gardner and technically correct? I know this describes callaway, but this summary seems to imply that borusyak, and by extension gardner, don't quite fit this description: https://causalinf.substack.com/p/two-stage-did-and-taming-the-did?s=r -->
+<!-- various strategies to solutions https://causalinf.substack.com/p/two-stage-did-and-taming-the-did?s=r -->
 
 ## New DID estimators are biased when applied to binary, irreversible outcomes
 
@@ -1306,8 +1317,7 @@ ggplot(data=het_landscape, aes(x=year, y=defor, colour=Group))+
 
 ```
 
-Figure \@ref(fig:multiGT2) shows the event study estimates produced by each of the three estimators as well as the "truth" for both pixel and county-level analyses. Again, none of the estimators yield the $ATT$ with pixel-level analyses. In the county-level estimates, we see that the newer estimators slightly outperform the TWFE estimator. This is evidence of the weighting that has become a concern with TWFE estimators in these type of settings. While each estimator produces a weighted average of group-time treatment effects, the weights do not necessarily correspond to each group's representation in the sample for a given event-time treatment effect as do the weights in the alternative estimators.
-<!-- TODO Albert (from Robert): I don't fully understand the final sentence of the paragraph above. Rewrite. -->
+Figure \@ref(fig:multiGT2) shows the event study estimates produced by each of the three estimators as well as the "truth" for both pixel and county-level analyses. Again, none of the estimators yield the $ATT$ with pixel-level analyses. In the county-level estimates, we see that the newer estimators slightly outperform the TWFE estimator. This is evidence of the weighting that has become a concern with TWFE estimators in these type of settings. While TWFE estimates represent a weighted average of all possible 2x2 DID estimates, the weights may not always be intuitive [@goodman-bacon2021]. In contrast, newer estimators do not suffer from this concern. 
 
 ```{r multiGT2, fig.cap="TWFE regressions suffer from weighting concerns when treatment effects vary across groups and through time", fig.pos='H', fig.show='hold'}
 
