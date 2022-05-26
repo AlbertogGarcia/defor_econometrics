@@ -27,11 +27,11 @@ header-includes:
 # - Add appendix referenced in section 2.3
 # - Add missing references
 # - Double check all cross-references
-# - Section 2.3 modifications for "proportional hazards"
 # - Re-write last paragraph of selection bias section. See comment on ~line 497
 
 ## FOR ROBERT
 # - Robert needs to revise section 8 (conclusion)
+# - Read/edit updated section 2.3 and 6.2
 
 ## CHECK IN
 # - Prepare replication package - host on rstudio server?
@@ -50,6 +50,7 @@ header-includes:
 # - Fill in missing values (marked by XX) in section 3.1. See note on ~line 285
 # - Figure 6: Add y-axis labels, update prior sentence with actual average property effect size
 # - Table 1: Add new example of survival analysis? 
+# - Section 2.3 modifications for "proportional hazards"
 
 ---
 
