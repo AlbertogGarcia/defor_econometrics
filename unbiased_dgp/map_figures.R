@@ -41,6 +41,7 @@ palette <- list("white" = "#FAFAFA",
                 "blue" = "#1c86ee",
                 "green" = "#7CAE7A",
                 "dark_green" = "#496F5D",
+                "light_blue" = "#56B4E9",
                 "gold" = "#DAA520")
 
 base_0 = .04
@@ -183,7 +184,7 @@ fills = c(#"Previously deforested" = palette$light_grey,
           "Deforested" = palette$red,
           "Stable forest - treated" = palette$dark,
           "Stable forest - not treated" = palette$dark_green,
-          "Counterfactual deforestation" = palette$blue,
+          "Counterfactual deforestation" = palette$light_blue,
           "County boundaries" = palette$gold,
           "Property boundaries" = "grey65",
           "Grid cell boundaries" = "white")
