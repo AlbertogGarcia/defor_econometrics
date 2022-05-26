@@ -23,10 +23,9 @@ header-includes:
 # Tentative assigning of list items:
 
 ## FOR ALBERT:
-# - Clean up cross-references and citations in section 2.3
 # - Add appendix referenced in section 2.3
 # - Double check all cross-references
-# - Re-write last paragraph of selection bias section. See comment on ~line 497
+
 
 ## FOR ROBERT
 # - Robert needs to revise section 8 (conclusion)
@@ -50,6 +49,7 @@ header-includes:
 # - Figure 6: Add y-axis labels, update prior sentence with actual average property effect size
 # - Table 1: Add new example of survival analysis? 
 # - Section 2.3 modifications for "proportional hazards"
+# - Re-write last paragraph of selection bias section. See comment on ~line 497. This paragraph seemed worth just omitting
 
 ---
 
@@ -237,7 +237,7 @@ Alternatively, some researchers opt to keep deforested pixels in the panel, and 
 ### Hazard rate ratios from a single survival model do not estimate the $ATT$
 Survival analysis has emerged as a common approach to modeling irreversible changes such as mortality, technology adoption, or recidivism [@friedman; @mastrobuoni]. Survival models, such as the Cox Proportional Hazards model, quantify how covariates relate to changes in the length of time that a unit remains in a sample. In the case of deforestation, survival analyses can be used to explore how policy adoption changes the duration that treated, forested pixels survive until they are first cleared. 
 
-Despite the theoretical appeal of using survival models to study deforestation, they are still relatively uncommon in conservation impact evaluation. One emerging approach introduces the intuition of a difference in differences research design into a Cox Proportional Hazards model [e.g. @heilmayr2020; @sales2022; @smith2020]. Specifically, researchers estimate a Cox proportional hazards model of the following general form:
+Despite the theoretical appeal of using survival models to study deforestation, they are still relatively uncommon in conservation impact evaluation. One emerging approach introduces the intuition of a difference in differences research design into a Cox Proportional Hazards model [e.g. @heilmayr2020; @carlson2018; @sales2022]. Specifically, researchers estimate a Cox proportional hazards model of the following general form:
 
 \textbf{Regression 3:} (Cox DID regression)
 Let $\beta_{coxDID}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
@@ -251,20 +251,19 @@ Multiple studies across a wide variety of settings have interpreted the resultin
 
 $$ HRTT = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, D_i=1]}$$
 
-However, Appendix \@ref(survival-appendix) shows that $exp(\beta_{coxDID})$ only identifies the $HRTT$ under an alternative assumption:
+Both in conservation and alternative settings, researchers using Regression 3 make Assumption 1, and evaluate whether it is plausible in their setting. However, Appendix \@ref(survival-appendix) shows that $exp(\beta_{coxDID})$ only identifies the $HRTT$ under an alternative assumption:
 
 \textbf{Assumption 3:} (Proportional trends)
-\begin{align*}
+\begin{align}
 \frac{E[y_{ivt}(0) |  t\geq t_0, D_i=1]}{E[y_{ivt}(0) |  t< t_0, D_i=1]}=\frac{E[y_{ivt}(0) |  t\geq t_0, D_i=0]}{E[y_{ivt}(0) |  t< t_0, D_i=0]}
-\end{align*}
+\end{align}
 
 Assumption 3 requires that pixels in treated and untreated areas would have experienced the same ratio of change in their probability of deforestation across the two periods had no intervention occurred. Note that in general, Assumption 1 and Assumption 3 cannot simultaneously hold. This means that researchers estimating Regression 3 under the traditional common trends assumption (Assumption 1) will not recover the $ATT$. 
 
 
-<!-- $$exp(\beta_{coxDID}) = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]E[y_{ivt}(0)  |  t < t_0, D_i=0] }{E[y_{ivt}(0)  |  t\geq t_0, D_i=0]E[y_{ivt}(0)  |  t < t_0, D_i=1] }$$ -->
 
 ### Proposing a new survival analysis-based estimator of the $ATT$
-To the best of our knowledge, no prior studies have successfully combined the Cox Proportional Hazards model and the difference in differences research design to recover an unbiased estimate of the $ATT$ under the traditional common trends assumption (Assumption 1). Here we outline a new estimation approach that first recovers an unbiased estimate of the $HRTT$, and then translates this into an estimate of the $ATT$. First, we note that the desired $HRTT$ can be re-written as a combination of three different hazard ratios: 
+To the best of our knowledge, no prior studies have successfully combined the Cox Proportional Hazards model and the difference in differences research design to recover an unbiased estimate of the $ATT$ under the traditional common trends assumption (Assumption 1). Here we outline a new estimation approach that first recovers an unbiased estimate of the $HRTT$ and then translates this into an estimate of the $ATT$ that holds under Assumption 1. First, we note that the desired $HRTT$ can be re-written as a combination of three different hazard ratios: 
 
 \begin{align*}
 HR_1 &= \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t < t_0, D_i=1]}\\
@@ -286,7 +285,7 @@ Because the numerator of $HRTT$, $E[y_{ivt}(1)  |  t\geq t_0, D_i=1]$, can be es
 
 $$\widehat{ATT}_{Cox} = \widehat{defor}_{D_i:1, t\geq t_0} - \frac{\widehat{defor}_{D_i:1, t\geq t_0} }{\widehat{HRTT}}$$
 
-We have shown that the simple extension of the traditional DID to the survival setting only recovers an easily interpretable measure of a policy's impact under an assumption that cannot simultaneously hold with the traditional common trends assumption, the ``Proportional Trends" assumption. In contrast, our proposed estimator, which relies on separate estimation of relevant hazard ratios, does recover the relevant analog of the $ATT$ under common trends. We explore the performance of $\widehat{ATT}_{Cox}$ relative to the proposed OLS regressions under various circumstances likely to arise in the deforestation setting in the next sections. Appendix \@ref(prop-trends) shows that in settings where Assumption 3 holds, $exp(\beta_{coxDID})$ does identify the $HRTT$. If a researcher opts to use survival analysis to recover an intervention's impact, their choice of estimator should depend on which assumption regarding the deforestation trends is plausible. 
+We have shown that the simple extension of the traditional DID to the survival setting only recovers an easily interpretable measure of a policy's impact under an assumption that cannot simultaneously hold with the traditional common trends assumption, the ``Proportional Trends" assumption. In contrast, our proposed estimator, which relies on separate estimation of relevant hazard ratios, does recover the relevant analog of the $ATT$ under common trends. We explore the performance of $\widehat{ATT}_{Cox}$ relative to the proposed OLS regressions under various circumstances likely to arise in the deforestation setting in the next sections. If a researcher opts to use survival analysis to recover an intervention's impact, their choice of estimator should depend on which trends assumption is plausible in their specific setting. 
 
 # Monte Carlo simulations to compare alternative model performance
 
@@ -506,7 +505,7 @@ Although our proposed, survival analysis-based approach to estimation yields a g
 
 # Non-random sample selection can generate bias {#property}
 
-Irreversibility in observed deforestation also creates the potential for non-random sample selection. Specifically, deforested pixels are no longer at risk of clearing in the periods after they are first deforested. This means the "at risk" set of pixels changes through time as more pixels become deforested. As such, the distribution that describes the returns to clearing the at-risk pixels may change through time as well, leading to non-random selection of the sample through time. For example, pixels with extremely high returns to clearing are more likely to be cleared early on, regardless of treatment status. In subsequent periods, therefore, these high return pixels are less likely to be present in the sample at all. In the context of two-groups and two-periods, only the second period suffers from this non-random sample selection. We expresss the bias introduced from non-random sample selection below.
+Irreversibility in observed deforestation also creates the potential for non-random sample selection. Specifically, deforested pixels are no longer at risk of clearing in the periods after they are first deforested. This means the "at risk" set of pixels changes through time as more pixels become deforested. As such, the distribution that describes the returns to clearing the at-risk pixels may change through time as well, leading to non-random selection of the sample through time. For example, pixels with extremely high returns to clearing are more likely to be cleared early on, regardless of treatment status. In subsequent periods, therefore, these high return pixels are less likely to be present in the sample at all. In the context of two-groups and two-periods, only the second period suffers from this non-random sample selection. We express the bias introduced from non-random sample selection below.
 
 \textbf{Result:} Under Assumptions 1 and 2, in the two-group, two-period case, $\beta_{DID}$ suffers from non-random sample selection bias when the $y^o_{ivt}$s are not i.i.d.
 
@@ -1458,7 +1457,7 @@ E[\hat{\beta}_{TWFE}]&=ATT+Diff\\
 
 ## TWFE with pixel fixed effects is equivalent to running TWFE on dataset after dropping all pixels that were deforested in the first period {#ex-post}
 
-Table \@ref(tab:twfe-comp) shows that the coefficient of interest from the TWFE regression with pixel fixed effects is equivalent to the same regression on a dataset where all pixels deforested in the first period are dropped. We generate a panel of two years pre-and post treatment in order to show that the estimated coefficient is not equivalent to the ex-post difference in means, although both should be estimating the same parameter. This exercies provides further evidence that this commonly used TWFE regression is not adequate for recovering the $ATT$.  
+Table \@ref(tab:twfe-comp) shows that the coefficient of interest from the TWFE regression with pixel fixed effects is equivalent to the same regression on a dataset where all pixels deforested in the first period are dropped. We generate a panel of two years pre-and post treatment in order to show that the estimated coefficient is not equivalent to the ex-post difference in means, although both should be estimating the same parameter. This exercise provides further evidence that this commonly used TWFE regression is not adequate for recovering the $ATT$.  
 
 ```{r twfe-comp}
 models_of_interest <- c("DID", "TWFE", "TWFE on dataset dropping deforested pixels prior to treatment", "ex-post difference in means")
@@ -1536,6 +1535,28 @@ ggplot(data = kbias, aes(x = bias, fill=variable)) +
 ## Survival analysis {#survival-appendix}
 
 ## Cox PH DID identifies $HRTT$ when proportional trends assumption holds {#prop-tends}
+
+The exponentiated coefficient on the interaction between two binary variables, $D_i$ and $\mathbb{1}\{ t \geq t_0 \}$, $exp(\beta_{coxDID})$,  is expressed as the ratio of the two pre-post hazard rate ratios across the two groups:
+
+\begin{align*}
+exp(\beta_{coxDID}) &= \frac{E[y_{ivt}  |  t\geq t_0, D_i=1]/E[y_{ivt}  |  t < t_0, D_i=1] }{E[y_{ivt}  |  t\geq t_0, D_i=0]/E[y_{ivt}  |  t < t_0, D_i=0] }
+\end{align*}
+
+Introducing potential outcomes and simplifying:
+
+\begin{align*}
+exp(\beta_{coxDID}) &= \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]E[y_{ivt}(0)  |  t < t_0, D_i=0] }{E[y_{ivt}(0)  |  t\geq t_0, D_i=0]E[y_{ivt}(0)  |  t < t_0, D_i=1] }
+\end{align*}
+
+
+
+Now, operating under Assumption 1 (Proportional Trends) and substituting for the right-hand side of (7):
+
+\begin{align*}
+exp(\beta_{coxDID}) &= \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]E[y_{ivt}(0)  |  t < t_0, D_i=1] }{E[y_{ivt}(0)  |  t\geq t_0, D_i=1]E[y_{ivt}(0)  |  t < t_0, D_i=1] }\\
+&= HRRT
+\end{align*}
+
 
 ## Initial Monte Carlo parameter to $\beta$ coefficient mapping {#parameter-mapping}
 
