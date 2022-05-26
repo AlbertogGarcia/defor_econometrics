@@ -25,7 +25,6 @@ header-includes:
 ## FOR ALBERT:
 # - Clean up cross-references and citations in section 2.3
 # - Add appendix referenced in section 2.3
-# - Add missing references
 # - Double check all cross-references
 # - Re-write last paragraph of selection bias section. See comment on ~line 497
 
@@ -248,18 +247,18 @@ h(t) = \delta_0(t)exp( \alpha_0 + \alpha_1 D_i + \alpha_2 \mathbb{1} \{ t\geq t_
 
 , where $h(t)$ is the hazard rate of deforestation, $t$ years into the study period; and $\delta_0(t)$ is the baseline hazard function. 
 
-Multiple studies across a wide variety of settings have interpreted the resulting exponentietated coefficient $exp(\beta_{coxDID})$ as a hazard ratio that is indicative of the impact that treatment has had on the relative likelihood of survival. Specifically, based on the way this hazard ratio is interpreted in multiple papers, it appears that many researchers expect this hazard ratio to represent the ratio of the hazard rates in the treatment group post-treatment, relative to the counterfactual in that group had treatment not ocurred. This desired hazard ratio measuring the relative impact of treatment on the treated $(HRTT)$ can be considered a reframing of the traditional $ATT$ as a ratio rather than a difference: 
+Multiple studies across a wide variety of settings have interpreted the resulting exponentiatated coefficient $exp(\beta_{coxDID})$ as a hazard ratio that is indicative of the impact that treatment has had on the relative likelihood of survival. Specifically, based on the way this hazard ratio is interpreted in multiple papers, it appears that many researchers expect this hazard ratio to represent the ratio of the hazard rates in the treatment group post-treatment, relative to the counterfactual in that group had treatment not ocurred. This desired hazard ratio measuring the relative impact of treatment on the treated $(HRTT)$ can be considered a reframing of the traditional $ATT$ as a ratio rather than a difference: 
 
 $$ HRTT = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]} {E[y_{ivt}(0)  |  t\geq t_0, D_i=1]}$$
 
-However, Appendix XX shows that $exp(\beta_{coxDID})$ only identifies the $HRTT$ under an alternative assumption:
+However, Appendix \@ref(survival-appendix) shows that $exp(\beta_{coxDID})$ only identifies the $HRTT$ under an alternative assumption:
 
-\textbf{Assumption 3:} (Common proportional trends)
+\textbf{Assumption 3:} (Proportional trends)
 \begin{align*}
 \frac{E[y_{ivt}(0) |  t\geq t_0, D_i=1]}{E[y_{ivt}(0) |  t< t_0, D_i=1]}=\frac{E[y_{ivt}(0) |  t\geq t_0, D_i=0]}{E[y_{ivt}(0) |  t< t_0, D_i=0]}
 \end{align*}
 
-Assumption 3 requires that pixels in treated and untreated areas would have experienced the same ratio of change in their probability of deforestation across the two periods had no intervention occurred. Note that in general, Assumption 1 and Assumption 3 cannot simultaneously hold.
+Assumption 3 requires that pixels in treated and untreated areas would have experienced the same ratio of change in their probability of deforestation across the two periods had no intervention occurred. Note that in general, Assumption 1 and Assumption 3 cannot simultaneously hold. This means that researchers estimating Regression 3 under the traditional common trends assumption (Assumption 1) will not recover the $ATT$. 
 
 
 <!-- $$exp(\beta_{coxDID}) = \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]E[y_{ivt}(0)  |  t < t_0, D_i=0] }{E[y_{ivt}(0)  |  t\geq t_0, D_i=0]E[y_{ivt}(0)  |  t < t_0, D_i=1] }$$ -->
@@ -287,7 +286,7 @@ Because the numerator of $HRTT$, $E[y_{ivt}(1)  |  t\geq t_0, D_i=1]$, can be es
 
 $$\widehat{ATT}_{Cox} = \widehat{defor}_{D_i:1, t\geq t_0} - \frac{\widehat{defor}_{D_i:1, t\geq t_0} }{\widehat{HRTT}}$$
 
-We have shown that the simple extension of the traditional DID to the survival setting does not clearly recover an easily interpretable measure of a policy's impact. In contrast, our proposed estimator, which relies on separate estimation of relevant hazard ratios, does recover the relevant analog of the $ATT$. We explore the performance of $\widehat{ATT}_{Cox}$ relative to the proposed OLS regressions under various circumstances likely to arise in the deforestation setting in the next sections. 
+We have shown that the simple extension of the traditional DID to the survival setting only recovers an easily interpretable measure of a policy's impact under an assumption that cannot simultaneously hold with the traditional common trends assumption, the ``Proportional Trends" assumption. In contrast, our proposed estimator, which relies on separate estimation of relevant hazard ratios, does recover the relevant analog of the $ATT$ under common trends. We explore the performance of $\widehat{ATT}_{Cox}$ relative to the proposed OLS regressions under various circumstances likely to arise in the deforestation setting in the next sections. Appendix \@ref(prop-trends) shows that in settings where Assumption 3 holds, $exp(\beta_{coxDID})$ does identify the $HRTT$. If a researcher opts to use survival analysis to recover an intervention's impact, their choice of estimator should depend on which assumption regarding the deforestation trends is plausible. 
 
 # Monte Carlo simulations to compare alternative model performance
 
@@ -523,7 +522,7 @@ Non-random sample selection did not bias our initial simulations as presented in
 
 In order to see how this non-random selection influences estimates in our simulated setting, we set $\sigma_a$, the standard error of the time-invariant pixel-level disturbances equal to $0.1$. Figure \@ref(fig:selection-fig) shows that non-random selection introduces a slight downward bias across every specification.
 
-Another way to think about this bias is through the lens of reforestation timing. In equation 10, we see that the bias arises when the expectation of the observed $y^o_{ivt}$ and the true $y_{ivt}$ differ. This occurs when the researcher cannot observe reforestation timing in the data, and thus deforestation is irreversible in the panel dataset. We note that in practice, researchers cannot recover the second and fourth terms of the bias term in equation 10, meaning that the magnitude of this bias is unknown to the researcher. However, this bias is likely to be of a smaller magnitude in reality than in our simulated setting, since our simulated time frame for forest regrowth is too short to reflect true reforestation timing. 
+<!-- Another way to think about this bias is through the lens of reforestation timing. In equation 10, we see that the bias arises when the expectation of the observed $y^o_{ivt}$ and the true $y_{ivt}$ differ. This occurs when the researcher cannot observe reforestation timing in the data, and thus deforestation is irreversible in the panel dataset. We note that in practice, researchers cannot recover the second and fourth terms of the bias term in equation 10, meaning that the magnitude of this bias is unknown to the researcher. However, this bias is likely to be of a smaller magnitude in reality than in our simulated setting, since our simulated time frame for forest regrowth is too short to reflect true reforestation timing.  -->
 <!-- Albert to do: I worry that this framing may confuse the reader - above we talk about how our measure of deforestation is irreversible, but now we talk about reforestation. Either needs to be clarified, re-written with a different approach to clarifying this process, or removed  -->
 
 
@@ -1530,9 +1529,13 @@ ggplot(data = kbias, aes(x = bias, fill=variable)) +
 ```
 
 
-## Alternative interpretation when keeping pixels is not accurate if reforestation timing is not available
+<!-- ### Discussion of alternative interpretation when keeping pixels  -->
 
-Some authors opt to leave deforested pixels in the panel but adjust the interpretation of the coefficent of interest. Rather than the deforestation rate, researchers recover the impact of the intervention on area ever deforested. One important thing to note, however, is that researchers cannot interpret this as the deforested area in time $t$ if reforestation timing is not available. To illustrate this point, consider a setting in which reforestation timing is instantaneous, as in our definition of $y_{ivt}$. In this case, the deforestation rate is equivalent to the deforested area in time $t$. As we have shown, leaving deforested pixels in the panel cannot lead to identification of the $ATT$ for the deforestation rate and therefore, cannot identify the $ATT$ for the deforested area. This is, of course, an extreme case. Since reforestation timing is instantaneous, the bias is larger than we would expect in reality. However, this exercise helps to illustrate that reforestation timing must be accounted for to recover the deforested area at  a given time. 
+<!-- Some authors opt to leave deforested pixels in the panel but adjust the interpretation of the coefficient of interest. Rather than the deforestation rate, researchers recover the impact of the intervention on area ever deforested. One important thing to note, however, is that researchers cannot interpret this as the deforested area in time $t$ if reforestation timing is not available. To illustrate this point, consider a setting in which reforestation timing is instantaneous, as in our definition of $y_{ivt}$. In this case, the deforestation rate is equivalent to the deforested area in time $t$. As we have shown, leaving deforested pixels in the panel cannot lead to identification of the $ATT$ for the deforestation rate and therefore, cannot identify the $ATT$ for the deforested area. This is, of course, an extreme case. Since reforestation timing is instantaneous, the bias is larger than we would expect in reality. However, this exercise helps to illustrate that reforestation timing must be accounted for to recover the deforested area at  a given time.  -->
+
+## Survival analysis {#survival-appendix}
+
+## Cox PH DID identifies $HRTT$ when proportional trends assumption holds {#prop-tends}
 
 ## Initial Monte Carlo parameter to $\beta$ coefficient mapping {#parameter-mapping}
 
