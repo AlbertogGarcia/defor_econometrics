@@ -218,6 +218,6 @@ ggsave(county_plot %>%
          format_fig(),
        path = "unbiased_dgp/figs",
        filename = "landscape_map.png", 
-       width = 8,
-       height = 8)
+       width = 8.5,
+       height = 8.5)
 
