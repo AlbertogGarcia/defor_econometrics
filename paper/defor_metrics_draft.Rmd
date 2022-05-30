@@ -23,8 +23,10 @@ header-includes:
 # Tentative assigning of list items:
 
 ## FOR ALBERT:
-# - Add appendix referenced in section 2.3
+# - Edit appendix referenced in section 2.3
 # - Double check all cross-references
+# - Fork repo to start replication
+# - Clean forked repo to include relevant scripts
 
 
 ## FOR ROBERT
