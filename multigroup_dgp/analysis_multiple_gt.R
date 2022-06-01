@@ -81,12 +81,12 @@ export(pixel_es, "multigroup_dgp/results_multi/pixel_es.rds")
 dyn_ATT_a = 0.01
 dyn_ATT_b =  -0.02
 ATT_a = -0.03
-ATT_b =  -0.02
+ATT_b =  0.02
 
 set.seed(0930)
 
 multiGT_agg <- multipleGT_agg(n, nobs, base_a, base_b, base_c, trend1, trend2, trend3, ATT_a, ATT_b, dyn_ATT_a, dyn_ATT_b, std_a, std_v, std_p, cellsize=10, ppoints=50, cpoints)
-
+library(rio)
 export(multiGT_pix$es_long, "multigroup_dgp/results_multi/county_long_hetTE.rds")
 
 county_es <- multiGT_agg$es_long %>%
