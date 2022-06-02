@@ -33,9 +33,6 @@ header-includes:
 # - Robert needs to revise section 8 (conclusion)
 # - Read/edit updated section 2.3 and 6.2
 
-## CHECK IN
-# - Prepare replication package - host on rstudio server?
-
 ## COMPLETED:
 # - Figures 2, 3, etc: Rename "HE estimator" to match new framing of section 2.3
 # - Update notation in 2.3.2 to emphasize that the final ATT calculation relies on an estimated mean  
