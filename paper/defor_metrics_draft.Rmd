@@ -1,7 +1,7 @@
 ---
 title: Conservation impact evaluation using remotely sensed data
 author: "Alberto Garcia and Robert Heilmayr"
-date: "May 20, 2022"
+date: "June 1, 2022"
 output:
   bookdown::pdf_document2:
     latex_engine: xelatex
@@ -25,8 +25,10 @@ header-includes:
 ## FOR ALBERT:
 # - Edit appendix referenced in section 2.3
 # - Double check all cross-references
+# - Adjust figure 9
 # - Fork repo to start replication
 # - Clean forked repo to include relevant scripts
+
 
 
 ## FOR ROBERT
