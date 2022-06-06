@@ -21,20 +21,26 @@ set.seed(6226)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 format_fig <- function(figure){
   figure <- figure +
-    theme(panel.background = element_rect(fill = "#FAFAFA",colour = "#FAFAFA"),
-          plot.background = element_rect(fill = "#FAFAFA",colour = "#FAFAFA"),
+    theme(panel.background = element_rect(fill = "white",colour = "white"),
+          plot.background = element_rect(fill = "white",colour = "white"),
           panel.grid.major = element_blank(), 
           panel.grid.minor = element_blank(), 
           legend.title = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          legend.background=element_rect(fill = "#FAFAFA"),
-          legend.key=element_rect(fill = "#FAFAFA"),
-          legend.text=element_text(size=12))
+          legend.background=element_rect(fill = "white"),
+          legend.key=element_rect(fill = "white"),
+          legend.text=element_text(size=12),
+          plot.margin = margin(t = 0,  # Top margin
+                               r = 0,  # Right margin
+                               b = 0,  # Bottom margin
+                               l = 0,  # Left margin
+                               unit = "in")
+          )
   return(figure)
 }
 
-palette <- list("white" = "#FAFAFA",
+palette <- list("white" = "white",
                 "light_grey" = "#d9d9d9",
                 "dark" = "#0c2230",
                 "red" = "#ed195a",
@@ -60,12 +66,13 @@ main_cpoints = 25
 csize = main_nobs/main_cpoints
 psize = main_nobs/main_ppoints
 
-nobs = 100^2
-ppoints = floor(nobs/psize)
-cpoints = floor(nobs/csize)
+nobs = 75^2
+ppoints = floor(nobs/psize)+1
+cpoints = floor(nobs/csize)+1
 
-cellsize = 30
+cellsize = 12
 
+nobs_ratio = main_nobs/ nobs
 
 std_avp = (std_a^2+std_v^2+std_p^2)^.5
 b0 = qnorm(base_0, mean = 0, sd = std_avp)
@@ -218,6 +225,6 @@ ggsave(county_plot %>%
          format_fig(),
        path = "unbiased_dgp/figs",
        filename = "landscape_map.png", 
-       width = 8.5,
-       height = 8.5)
+       width = 7,
+       height = 4)
 

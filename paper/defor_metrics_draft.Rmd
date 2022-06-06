@@ -28,7 +28,6 @@ header-includes:
 # - Adjust figure 9
 # - Fork repo to start replication
 # - Clean forked repo to include relevant scripts
-# - Tweak background color (currently weird off white used for presentation), grid size (small), and margins (too big on top and bottom) for figure 1
 
 
 ## FOR ROBERT
@@ -51,6 +50,8 @@ header-includes:
 # - Re-write last paragraph of selection bias section. See comment on ~line 497. This paragraph seemed worth just omitting
 # - Read/edit updated section 2.3 and 6.2
 # - Robert needs to revise section 8 (conclusion)
+# - Tweak background color (currently weird off white used for presentation), grid size (small), and margins (too big on top and bottom) for figure 1
+
 
 
 ---
