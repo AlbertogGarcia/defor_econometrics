@@ -23,8 +23,6 @@ header-includes:
 # Tentative assigning of list items:
 
 ## FOR ALBERT:
-# - Edit appendix referenced in section 2.3
-# - Double check all cross-references
 # - Fork repo to start replication
 # - Clean forked repo to include relevant scripts
 
@@ -51,8 +49,7 @@ header-includes:
 # - Robert needs to revise section 8 (conclusion)
 # - Tweak background color (currently weird off white used for presentation), grid size (small), and margins (too big on top and bottom) for figure 1
 # - Adjust figure 9
-
-
+# - Double check all cross-references
 
 
 ---
@@ -265,9 +262,8 @@ Both in conservation and alternative settings, researchers using Regression 3 ma
 
 Assumption 3 requires that pixels in treated and untreated areas would have experienced the same ratio of change in their probability of deforestation across the two periods had no intervention occurred. Note that in general, Assumption 1 and Assumption 3 cannot simultaneously hold. This means that researchers estimating Regression 3 under the traditional common trends assumption (Assumption 1) will not recover the $HRTT$, the relevant treatment effect parameter. 
 
-
-
 ### Proposing a new survival analysis-based estimator of the $ATT$
+
 To the best of our knowledge, no prior studies have successfully combined the Cox Proportional Hazards model and the difference in differences research design to recover an unbiased estimate of the $ATT$ under the traditional common trends assumption (Assumption 1). Here we outline a new estimation approach that first recovers an unbiased estimate of the $HRTT$ and then translates this into an estimate of the $ATT$ that holds under Assumption 1. First, we note that the desired $HRTT$ can be re-written as a combination of three different hazard ratios: 
 
 \begin{align*}

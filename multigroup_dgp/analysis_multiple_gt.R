@@ -1,7 +1,7 @@
 source(here::here('multigroup_dgp', 'multipleGT.R'))
 source(here::here('multigroup_dgp', 'multipleGT_agg.R'))
 source(here::here('multigroup_dgp', 'multipleGT_pix.R'))
-source(here::here('multigroup_dgp', 'my_event_study_plot.R'))
+source(here::here('multigroup_dgp', 'trends_fcn.R'))
 library(rio)
 base_a = .07
 base_b = .05
@@ -58,23 +58,11 @@ pixel_es <- multiGT_pix$es_long %>%
 export(pixel_es, "multigroup_dgp/results_multi/pixel_es.rds")
 
 
-# plot_df <- panels %>%
-#   group_by(G, year)%>%
-#   summarise(defor = mean(y, na.rm=TRUE))%>%
-#   mutate(Group = ifelse(G==0, "never treated", "early group\n(treated in year 3)"),
-#          Group = ifelse(G==4, "late group\n(treated in year 4)", Group))
 
-# export(plot_df, "multigroup_dgp/results_multi/landscape.rds")
+set.seed(0930)
+landscape <- trends_fcn(500000, base_a, base_b, base_c, trend1, trend2, trend3, ATT_a, ATT_b, dyn_ATT_a, dyn_ATT_b, std_a, std_v, std_p, cellsize, ppoints, cpoints)
 
-# ggplot(data=plot_df, aes(x=year, y=defor, colour=Group))+
-#   geom_line(size=1.5)+
-#   ylab("deforestation rate")+
-#   scale_y_continuous(labels = scales::percent)+
-#   ggtitle("Annual deforestation with multiple groups and periods")+
-#   theme_minimal()+
-#   theme(#legend.key = element_rect(color = NA, fill = NA),
-#         legend.key.size = unit(1.5, "cm")) +
-#   theme(legend.title.align = 0.5)
+export(landscape$trends_df, "multigroup_dgp/results_multi/landscape.rds")
   
 ##########################################################################
 ##########################################################################
@@ -121,18 +109,7 @@ pixel_es <- multiGT_pix$es_long %>%
 export(pixel_es, "multigroup_dgp/results_multi/pixel_es_heterogTE.rds")
 
 
-my_event_study_plot(pixel_es, seperate = FALSE)+
-  ggtitle("estimates with pixel unit of analysis")+
-  geom_segment(aes(x = -2.5, y = 0, xend = -0.5, yend = 0), color = "limegreen")
+set.seed(0930)
+landscape_het <- trends_fcn(500000, base_a, base_b, base_c, trend1, trend2, trend3, ATT_a, ATT_b, dyn_ATT_a, dyn_ATT_b, std_a, std_v, std_p, cellsize, ppoints, cpoints)
 
-
-
-
-
-plot_df <- panels %>%
-  group_by(G, year)%>%
-  summarise(defor = mean(y, na.rm=TRUE))%>%
-  mutate(Group = ifelse(G==0, "never treated", "early group\n(treated in year 3)"),
-         Group = ifelse(G==4, "late group\n(treated in year 4)", Group))
-
-export(plot_df, "multigroup_dgp/results_multi/het_landscape.rds")
+export(landscape_het$trends_df, "multigroup_dgp/results_multi/het_landscape.rds")
