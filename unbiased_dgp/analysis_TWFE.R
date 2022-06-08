@@ -2,9 +2,10 @@ source(here::here('unbiased_dgp', 'TWFE_fcn.R'))
 source(here::here('unbiased_dgp', 'TWFE_expost.R'))
 
 library(tidyverse)
-
+library(rio)
 std_a = 0
 std_v = 0.5
+std_p = 0
 years = 6
 nobs = 150^2
 n = 500
@@ -20,10 +21,18 @@ set.seed(0930)
 ######## show TWFE is equivalent to dropping all pixels deforested in first period
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-base_0 = .01
+base_0 = .02
 base_1 = .05
 trend = -.005
 ATT = -.01
+
+std_avp = (std_a^2+std_v^2+std_p^2)^.5
+b0 = qnorm(base_0, mean = 0, sd = std_avp)
+b1 = qnorm(base_1, mean = 0, sd = std_avp) - b0
+b2_0 = qnorm(trend + base_0, mean = 0, sd = std_avp) - b0
+b2_1 = qnorm(trend + base_1, mean = 0, sd = std_avp) - b0 - b1
+b3 = qnorm( pnorm(b0+b1+b2_1, mean = 0, sd = std_avp) + ATT , mean = 0, sd = std_avp) - (b0 + b1 + b2_1)
+
 
 estimator_comp <- TWFE_expost(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
 
