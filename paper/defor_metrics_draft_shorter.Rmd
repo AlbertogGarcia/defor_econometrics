@@ -841,7 +841,7 @@ Figure \@ref(fig:keep-pixels) demonstrates the bias incurred from keeping defore
 
 
 ```{r keep-pixels, echo=FALSE,out.width="75%", fig.cap="Distribution of DID estimates leaving deforested pixels in the panel and of DID estimates dropping deforested pixels. Note that leaving deforested pixels in the panel incurs severe bias.", fig.pos = 'H', fig.show='hold', fig.align='center'}
-knitr::include_graphics("figs/did_keep.png")
+knitr::include_graphics("figs/DID_keep.png")
 ```
 
 <!-- ## Alternative interpretation when keeping pixels is not accurate if reforestation timing is not available -->
