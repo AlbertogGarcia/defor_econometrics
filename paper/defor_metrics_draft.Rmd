@@ -23,6 +23,9 @@ header-includes:
 # Tentative assigning of list items:
 
 ## FOR ALBERT:
+# Figure 12: Should adjust spacing so labels don't get cut off 
+# ~ Line 513: Confirm text doesn't match figure. Update
+# ~ Line 537: Need to add a sentence or two with a so-what for the selection bias section.
 # - Fork repo to start replication
 # - Clean forked repo to include relevant scripts
 
@@ -355,12 +358,12 @@ kable(resolution_df, format = "latex", row.names = FALSE,  booktabs = T,
 Each of our simulated landscapes consists of administrative units that are either untreated $(D_i=0)$ or are assigned to a conservation treatment $(D_i=1)$. We observe deforestation in two, even-length periods, a pre-treatment $(t < t_{0})$ and a post-treatment $(t \ge t_{0})$ period. 
 
 We follow Equation \@ref(eq:clearing) and model these binary deforestation events as a function of each pixel's unobservable value along the continous, latent variable ($y^*_{ivt}$) indicating the return to clearing pixel $i$, in property $v$, in year $t$:
-\begin{align*}
+\begin{align}
 y^*_{ivt} = & V^{cleared}_{ivt} - V^{uncleared}_{ivt}\\
 =&\beta_0 + \beta_1 D_i +
  \beta_{2,0} (1 -  D_i ) \mathbbm{1}\{  t \geq t_0  \} +(\beta_{2,1} + \beta_3 )D_i \mathbbm{1}\{  t \geq t_0  \} +
  \alpha_i + u_{it} + \rho_{v}
-\end{align*}
+\end{align}
 
 That is, the returns to deforestation evolve over the two time periods $(\mathbbm{1}\{  t \geq t_0  \})$, and differ across the control $(  D_i = 0 )$ and treated pixels $(  D_i = 1 )$. In addition, we assume that the value of deforestation is influenced by time-invariant random disturbances at the scale of individual pixels ($\alpha_i \sim N(0, \sigma_a^2)$) or properties ($\rho_v \sim N(0, \sigma_p^2)$), as well as time-varying, pixel-scale disturbances ($u_{it} \sim N(0, \sigma_u^2)$). These disturbances can represent a variety of spatial and temporal processes including, for example, the biophysical characteristics of a location, or the preferences of a property owner.
 
@@ -508,11 +511,12 @@ z_{jt} = \alpha + \beta_{j} \text{ x } D_j \mathbb{1} \{ t\geq t_0\} + \lambda_t
 , where $\lambda_t$ denotes year fixed effects and $\gamma_j$ denotes one of grid, county, or property fixed effects. The treatment variable $D_j = \frac{1}{N_j}\sum_{i=1}^{N_j}D_i$, is the average treatment value amongst all pixels in unit $j$. Note that in these regressions, the level of unit fixed effects matches the unit of analysis. 
 
 Columns 7-9 of Figure \@ref(fig:summary-fig) show that the bias of the estimates does not vary dramatically across different levels of aggregation, however, the distributions are varied. In particular, the property-level model had the highest RMSE of unbiased specifications due to the heterogeneity in property sizes across the landscape. 
+<!-- IS PREVIOUS SENTENCE STILL TRUE? DOESN'T LOOK LIKE IT IN FIGURE -->
 
 ## Survival analysis
 Survival analysis provides an appealing alternative to traditional linear estimators when studying irreversible changes such as deforestation. The simple, single-regression DID framing of the Cox Proportional hazards model  (Regression 3), however, is not a viable solution (Section \@ref(survival)) under the typical common trends assumption (Assumption 1). Column 2 of Figure \@ref(fig:summary-fig) shows the bias associated with this model in our parameterization where Assumption 1 holds but Assumption 3 does not. In light of the fact that the simple Cox DID is not a viable analog to the traditional DID, we explore whether our proposed estimator, $\widehat{ATT_{Cox}}$, recovers relevant treatment effect parameters in the deforestation setting. We see in column 10 that $\widehat{ATT_{Cox}}$ indeed recovers our parameter of interest, the $ATT$.
 
-Although our proposed, survival analysis-based approach to estimation yields a good estimate of the true $ATT$ in this simple setting, multiple considerations raise questions about the utility of this non-linear model in more complex settings. One of the primary reasons for the use of survival analysis is censoring. This occurs when the researcher has partial information about the subjects’ survival times but does not have access to precise event times. While the researcher may not observe all pixels until they are deforested, many other common forms of censoring are rarely a concern in the context of deforestation since remote sensing typically enables the creation of balanced panels. Further, the proposed strategy to drop pixels in the periods after they are first deforested successfully addresses irreversibility in deforestation events. Finally, as we show in the following sections, survival analysis is likely to suffer from bias when unobservables enter the landscape at a scale different than the unit of analysis. While researchers can account for this in OLS specifications, there is no clear solution in survival analysis. 
+Although our proposed, survival analysis-based approach to estimation yields a good estimate of the true $ATT$ in this simple setting, multiple considerations raise questions about the utility of this non-linear model in more complex settings. One of the primary reasons for the use of survival analysis is censoring. This occurs when the researcher has partial information about the subjects’ survival times but does not have access to precise event times. While the researcher may not observe all pixels until they are deforested, many other common forms of censoring are rarely a concern in the context of deforestation since remote sensing typically enables the creation of balanced panels. Further, the proposed strategy to drop pixels in the periods after they are first deforested successfully addresses irreversibility in deforestation events. Finally, as we show in the following sections, survival analysis is likely to suffer from bias when the data generating process underpinning deforestation is influenced by unobservable characteristics of more aggregated spatial units such as the preferences of a property-owner. While researchers can account for this in OLS specifications, there is no clear solution in survival analysis. 
 
 # Non-random sample selection can generate bias {#property}
 
@@ -531,6 +535,8 @@ In essence, the first and third expectations in the bias term are conditional on
 Non-random sample selection did not bias our initial simulations as presented in Figure \@ref(fig:summary-fig) because we assumed away time-invariant pixel and property-level disturbances. The sample of at risk pixels in each time period did not depend on the deforestation that occurred the previous period, since the $y^o_{ivt}$s were i.i.d.. However, once time-invariant disturbances enter the DGP, the distribution of the $y^o_{iv2}s$ is potentially different from that of the $y^o_{iv1}$s. This is likely to be the case in reality, since each plot of land will have time-invariant characterisitcs such as slope, elevation, market access, agricultural suitability, etc. that impact its expected returns to clearing. 
 
 In order to see how this non-random selection influences estimates in our simulated setting, we set $\sigma_a$, the standard error of the time-invariant pixel-level disturbances equal to $0.1$. Figure \@ref(fig:selection-fig) shows that non-random selection introduces a slight downward bias across every specification.
+<!-- NEED TO ADD A SHORT SENTENCE OR TWO DESCRIBING A TAKE-AWAY FOR THIS SECTION. MAYBE JUST THESE TWO SENTENCES FROM THE COMMENTED OUT TEXT BELOW: -->
+<!-- We note that in practice, researchers cannot recover the second and fourth terms of the bias term in equation 10, meaning that the magnitude of this bias is unknown to the researcher. However, this bias is likely to be of a smaller magnitude in reality than in our simulated setting, since our simulated time frame for forest regrowth is too short to reflect true reforestation timing.  -->
 
 <!-- Another way to think about this bias is through the lens of reforestation timing. In equation 10, we see that the bias arises when the expectation of the observed $y^o_{ivt}$ and the true $y_{ivt}$ differ. This occurs when the researcher cannot observe reforestation timing in the data, and thus deforestation is irreversible in the panel dataset. We note that in practice, researchers cannot recover the second and fourth terms of the bias term in equation 10, meaning that the magnitude of this bias is unknown to the researcher. However, this bias is likely to be of a smaller magnitude in reality than in our simulated setting, since our simulated time frame for forest regrowth is too short to reflect true reforestation timing.  -->
 <!-- Albert to do: I worry that this framing may confuse the reader - above we talk about how our measure of deforestation is irreversible, but now we talk about reforestation. Either needs to be clarified, re-written with a different approach to clarifying this process, or removed  -->
@@ -1111,7 +1117,7 @@ The treatment effect now varies across properties, and properties with greater a
 
 * $ATT_{property} = \frac{1}{n_{v:D_v=1}} \sum_{v:D_v=1}(\frac{1}{n_{iv}} \sum_{i=1}^{n_{iv}}(y_{iv2}(1) - y_{iv2}(0)))$, where $n_{v:D_v=1}$ is the number of treated properties in the simulated landscape; and $n_{iv}$ is the number of pixels in property $v$.
 
-Note that neither $ATT_{ls}$ nor $ATT_{property}$ can be estimated directly, because $y(0)_{iv2}$ is not observed for treated units. 
+Note that neither $ATT_{ls}$ nor $ATT_{property}$ can be calculated directly, because $y(0)_{iv2}$ is not observable for treated units. 
 
 ```{r pweight, include= FALSE}
 
@@ -1189,7 +1195,7 @@ mtext("landscape\nATT      ", side=2, at = mean(summary$ls_ATT), font=2, las=1, 
 
 The traditional DID regression applies to settings with two groups and two time periods. However, researchers often use TWFE regressions to exploit variation across groups of units that receive treatment at different times. Recent work has shown that, in these staggered treatment settings, TWFE regressions identify a weighted average of all possible two-group/two-period DID estimators in the data [@goodman-bacon2021]. 
 
-Further, when estimating the $ATT$, some weights on each group-time treatment effect parameter may actually be negative [@dechaisemartin2020]. Newly developed DID estimators seek produce unbiased estimates of the $ATT$ in settings with multiple groups and time periods. These estimators do so through a variety of strategies including imputation [e.g., @borusyak2021], two-stage least squares [e.g., @gardner2021], and the re-weighting of group-time $ATT$s [e.g., @callaway2020]. Some researchers might hope that these new estimators would solve the bias detailed in Section \@ref(ATT). 
+Further, when estimating the $ATT$, some weights on each group-time treatment effect parameter may actually be negative [@dechaisemartin2020]. Newly developed DID estimators seek to produce unbiased estimates of the $ATT$ in settings with multiple groups and time periods. These estimators do so through a variety of strategies including imputation [e.g., @borusyak2021], two-stage least squares [e.g., @gardner2021], and the re-weighting of group-time $ATT$s [e.g., @callaway2020]. Some researchers might hope that these new estimators would solve the bias detailed in Section \@ref(ATT). 
 
 <!-- various strategies to solutions https://causalinf.substack.com/p/two-stage-did-and-taming-the-did?s=r -->
 
@@ -1218,7 +1224,7 @@ ggplot(data=rate_landscape, aes(x=year, y=defor, colour=Group))+
 
 ```
 
-The left panel of Figure \@ref(fig:multiGT) shows that the estimators developed in @callaway2020, @gardner2021, and @borusyak2021 suffer from similar bias to TWFE regressions with pixel unit fixed effects if the pixel is used as the unit of analysis. All methods yield a treatment effect greater than or equal to 0 in all post-treatment periods, reflecting the fact that pre-treatment period deforestation rates are unaccounted for by the estimators. This is particularly  clear in the @callaway2020 estimator in which pre-treatment periods are all precisely zero, indicating that the estimator could only compute treatment effects using pixels that survived until the end of the observation period. The right panel of Figure \@ref(fig:multiGT) shows that this bias is eliminated when one uses an aggregated unit of analysis with binary treatment (e.g., county). We do not include pixel-level TWFE regressions with spatially aggregated fixed effects, because most recently developed estimators do not allow for a comparable implementation. Therefore if the researcher wants to obtain a landscape-scale interpretation, they must use an aggregated grid cell or weight the regression by the unit area. 
+The left panel of Figure \@ref(fig:multiGT) shows that the estimators developed in @callaway2020, @gardner2021, and @borusyak2021 suffer from similar bias to TWFE regressions with pixel unit fixed effects if the pixel is used as the unit of analysis. All methods yield a treatment effect greater than or equal to 0 in all post-treatment periods, reflecting the fact that pre-treatment period deforestation rates are unaccounted for by the estimators. This is particularly  clear in the @callaway2020 estimator in which pre-treatment periods are all precisely zero, indicating that the estimator could only compute treatment effects using pixels that survived until the end of the observation period. The right panel of Figure \@ref(fig:multiGT) shows that this bias is eliminated when one uses an aggregated unit of analysis with binary treatment (e.g., county). We do not include pixel-level TWFE regressions with spatially aggregated fixed effects, because most recently developed estimators do not allow for a comparable implementation. Therefore if the researcher wants to obtain a landscape-scale interpretation, they must aggregate to a uniform spatial area (e.g. grid cell) or weight the regression by the unit area. 
 
 ```{r multiGT-gen, include = FALSE} 
 
@@ -2061,7 +2067,7 @@ text(x=mean(1:nrow(test))
      , y=midline-.005, "coverage probability", col="black", font=2)
 text(x=mean(1:nrow(test))
      , y=topline-.005, "RMSE", col="black", font=2)
-legend(x=3.5, y=0.055, col = palette$red, legend = "specifications incorporating property", seg.len=0.65, inset = 0.005,  box.lty=0, cex=1, lty = 1, lwd = 4, bg="transparent")
+legend(x=3.5, y=0.055, col = palette$red, legend = "property-level specifications", seg.len=0.65, inset = 0.005,  box.lty=0, cex=1, lty = 1, lwd = 4, bg="transparent")
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ######### creating chart for other alternate parameterization
@@ -2141,7 +2147,7 @@ text(x=mean(1:nrow(test))
      , y=midline-.005, "coverage probability", col="black", font=2)
 text(x=mean(1:nrow(test))
      , y=topline-.005, "RMSE", col="black", font=2)
-legend(x=3.5, y=0.025, col = palette$red, legend = "specifications incorporating property", seg.len=0.65, inset = 0.005,  box.lty=0, cex=1, lty = 1, lwd = 4, bg="transparent")
+legend(x=3.5, y=0.025, col = palette$red, legend = "property-level specifications", seg.len=0.65, inset = 0.005,  box.lty=0, cex=1, lty = 1, lwd = 4, bg="transparent")
 
 
 ```
@@ -2277,50 +2283,46 @@ $$y_{it} = \beta_{0,c} 1\{ t = 0\} + \beta_{1,c}1\{ t = 1\} + \beta_{2,c}1\{ t =
 
 
 ## Calculating deforestation rates {#rate-formula}
-<!-- Robert to do: Add logged f_it? -->
-
 Upon choosing an aggregated unit of analysis, the researcher must compute the deforestaion rate. This varies thoughout the literature, and many authors do not explicitly define the formula used. Different names are used to describe the calculation of the annual deforestation rate, which generates further confusion [@puyravaud2003]. We test the performance of three common deforestation rate formulas in the literature. 
 
 One common formula to calculate annual deforestation rates is
 \begin{align}
-\text{Outcome 1)} &= \frac{F_{i,t-1} - F_{it}}{F_{i,t-1}}
+\text{Outcome 1:} &= \frac{F_{i,t-1} - F_{it}}{F_{i,t-1}}
 \end{align}
-, where $F_{it}$ and $F_{i,t-1}$ are the forest cover at times $t$ and $t-1$, respectively. This calculation is used consistently in the literature [e.g. @carlson2018; @busch2015], and is arguably the most widely used formula. Some authors have also calculated the deforestation rate in relation to the initial observed level of forest cover, replacing $F_{it}$ with $F_{i0}$, the baseline forest cover, in equation (1). This gives outcome 2):
+, where $F_{it}$ and $F_{i,t-1}$ are the forest cover at times $t$ and $t-1$, respectively. This calculation is used consistently in the literature [e.g. @carlson2018; @busch2015], and is arguably the most widely used formula. Some authors have also calculated the deforestation rate in relation to the initial observed level of forest cover, replacing $F_{it}$ with $F_{i0}$, the baseline forest cover, in equation (1). This gives Outcome 2:
 \begin{align}
-\text{Outcome 2)} &= \frac{F_{i0} - F_{it}}{F_{i0}}
+\text{Outcome 2:} &= \frac{F_{i0} - F_{it}}{F_{i0}}
 \end{align}
 <!-- Are there any examples in which people used this formula in the literature? -->
 
-Lastly, we consider a formula derived from the Compound Interest Law that has also been used in recent studies [e.g. @ruggiero2019; @puyravaud2003]. Outcome 3) is given by:
+Lastly, we consider a formula derived from the Compound Interest Law that has also been used in recent studies [e.g. @ruggiero2019; @puyravaud2003]. Outcome 3 is given by:
 
 \begin{align}
-\text{Outcome 3)} &= ln(F_{i,t-1}/F_{it})
+\text{Outcome 3:} &= ln(F_{i,t-1}/F_{it})
 \end{align}
 
 ```{r deforrates, message=FALSE,out.width="100%", fig.cap="Distribution of estimates produced by different outcome variable formulae", fig.pos='H', fig.align='center'}
 #knitr::include_graphics("figs/outcome.png")
 outcome <- readRDS("results/outcomes.rds")
  suppressWarnings(cbias <- melt(outcome, value.name = "bias"))
+
+caption <- paste0("Outcome 1. Mean bias: ", round(mean(outcome$outcome1), digits = 4),"; RMSE: ",round(rmse(0, outcome$outcome1), digits = 5), "\n", "Outcome 2. Mean bias: ", round(mean(outcome$outcome2), digits = 4),"; RMSE: ",round(rmse(0, outcome$outcome2), digits = 5), "\n", "Outcome 3. Mean bias: ", round(mean(outcome$outcome3), digits = 4),"; RMSE: ",round(rmse(0, outcome$outcome3), digits = 5))
   
 ggplot(data = cbias, aes(x = bias, fill=variable)) +
     geom_density(alpha = .8) +
     guides(fill=guide_legend(title=NULL))+
     geom_vline(xintercept = 0, linetype = "dashed")+
-    theme(plot.caption = element_text(hjust = 0.5))+
-    labs(x= "Bias", caption = paste("Outcome 1:", round(mean(outcome$outcome1), digits = 4),"RMSE:",round(rmse(0, outcome$outcome1), digits = 5), "\n", 
-                                    "Outcome 2:", round(mean(outcome$outcome2), digits = 4),"RMSE:",round(rmse(0, outcome$outcome2), digits = 5), "\n", 
-                                    "Outcome 3:", round(mean(outcome$outcome3), digits = 4),"RMSE:",round(rmse(0, outcome$outcome3), digits = 5)
-                                    )
-    )+
+    labs(x= "Bias", caption = caption) +
   scale_x_continuous(breaks = c(-0.01, 0, 0.01))+
-    theme_minimal(base_size = 20)+
+  theme_minimal(base_size = 13)+
+  theme(plot.caption = element_text(hjust = 0.5))+
   scale_fill_manual(labels=c("Outcome 1", "Outcome 2", "Outcome 3"), values = c(palette$green, palette$red, palette$blue)
                     )
 ```
 
-Figure \@ref(fig:deforrates) demonstrates that outcome 1 results in the least bias in our guiding example. The other outcomes result in relatively greater bias, although this difference seems minimal in our setting. RMSE is also comparable across the three outcomes. We express concern surrounding the use of the initial observed baseline forest cover in the calculation of deforestation rates, as in formula (2). As the rate is calculated in periods further away from the baseline, the deforestation rate will be increasingly high, even if the rate has not changed over time. This concern is echoed by the fact that this outcome results in the most biased estimates of the $ATT$. 
+Figure \@ref(fig:deforrates) demonstrates that outcome 1 results in the least bias in our guiding example. The other outcomes result in somewhat larger bias, although the differences between outcomes 1 and 3 is minimal in our setting. We do raise a concern about the use of outcome 2, especially for studies spanning relatively long time periods. In later time periods, the outcome variable will steadily increase, even if the true rate of deforestation has not changed through time. This concern is echoed by the fact that this outcome results in the most biased estimates of the $ATT$. 
 
-Regardless of authors' choice of formula, we advise that this formula be explicitly stated in the paper. This will help to avoid confusion as to which formula was used and help researchers understand which methods are the standard within the literature. Moving forward in our paper, all specifications using aggregated data use outcome 1. In our guiding example, it resulted in the least bias and lowest RMSE, and it is currently the most common deforestation rate calculation used in the literature. 
+Regardless of authors' choice of formula, we advise that the formula used should be explicitly stated in a paper. This will help to avoid confusion as to which formula was used and help researchers understand which methods are the standard within the literature. Throughout our paper, all specifications using aggregated data use outcome 1. In our guiding example, it resulted in the least bias and lowest RMSE, and it is currently the most common deforestation rate calculation used in the literature. 
 
 
 <!-- Here, we show that outcome formula 2) is problematic in our context. We examine the performance of the three outcomes in an example where $ATT=0$ and $trend=0$. This simple exercise allows us to gauge how the outcomes behave through time. As we see below, outcome 2) is the least robust to changes in the study period length, while outcomes 1) and 2) behave nearly identically.  -->
