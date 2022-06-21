@@ -1,7 +1,7 @@
 ---
 title: Conservation impact evaluation using remotely sensed data
 author: "Alberto Garcia and Robert Heilmayr"
-date: "June 1, 2022"
+date: "June 21, 2022"
 output:
   bookdown::pdf_document2:
     latex_engine: xelatex
@@ -17,18 +17,44 @@ header-includes:
   \usepackage{amssymb}
   \usepackage{sectsty}
   \usepackage{mathtools}
+nocite: 
+- '@baehr2021'
+- '@alix-garcia2017'
+- '@alix-garcia2018'
+- '@anderson2018'
+- '@araujo2009'
+- '@arriagada2012'
+- '@baehr2021'
+- '@baylis2012'
+- '@benyishay2017'
+- '@blackman2017'
+- '@blackman2015'
+- '@blackman2018'
+- '@busch2015' 
+- '@butsic2017a'
+- '@carlson2018'
+- '@heilmayr2016'
+- '@heilmayr2020'
+- '@herrera2019'
+- '@holland2017'
+- '@jones2017'
+- '@koch'
+- '@panlasigui2018'
+- '@nolte2017'
+- '@pfaff1999'
+- '@sales2022'
+- '@sanchez-azofeifa2007'
+- '@shah2015'
+- '@sims2017'
+- '@tabor2017'
+- '@wendland2015'
+
   
 ## TODO list: 
 
 # Tentative assigning of list items:
 
 ## FOR ALBERT:
-# Figure 12: Should adjust spacing so labels don't get cut off 
-# ~ Line 513: Confirm text doesn't match figure. Update
-# ~ Line 537: Need to add a sentence or two with a so-what for the selection bias section.
-# - Fork repo to start replication
-# - Clean forked repo to include relevant scripts
-
 
 ## FOR ROBERT
 
@@ -52,8 +78,10 @@ header-includes:
 # - Robert needs to revise section 8 (conclusion)
 # - Tweak background color (currently weird off white used for presentation), grid size (small), and margins (too big on top and bottom) for figure 1
 # - Adjust figure 9
+# ~ Line 537: Need to add a sentence or two with a so-what for the selection bias section.
 # - Double check all cross-references
-
+# Figure 12: Should adjust spacing so labels don't get cut off 
+# ~ Line 513: Confirm text doesn't match figure. Update
 
 ---
 
@@ -88,9 +116,10 @@ palette <- list("white" = "#FAFAFA",
 ```
 
 
-
 # Abstract {-}
-The application of quasiexperimental impact evaluation to remotely sensed observations of land use change has yielded important advances in society's understanding of the effectiveness of conservation interventions. However, these applications come with new challenges. Using Monte Carlo simulations and analytical proofs, we demonstrate that many of the panel econometric models employed for conservation impact evaluation are biased - the significance, magnitude and even direction of estimated effects from many studies are likely incorrect. These errors threaten to undermine the evidence base that underpins conservation policy adoption and design. We review the methods in this burgeoning literature and develop guidance for the design of econometric models quantifying conservation policy effectiveness. 
+Conservation scientists are increasingly measuring the impacts of conservation interventions by applying quasiexperimental impact evaluation to remotely sensed panel data on land use change. However, these applications come with new challenges. Using Monte Carlo simulations and analytical proofs, we demonstrate that many of the panel econometric models employed for conservation impact evaluation are biased - the significance, magnitude and even direction of estimated effects from many studies are likely incorrect. These errors threaten to undermine the evidence base that underpins conservation policy adoption and design. We review the methods in this burgeoning literature and develop guidance for the design of econometric models quantifying conservation policy effectiveness. 
+
+<!-- @baehr2021, @alix-garcia2017, @alix-garcia2018, @anderson2018, @araujo2009, @arriagada2012, @baehr2021, @baylis2012, @benyishay2017, @blackman2017, @blackman2015, @blackman2018, @busch2015, @butsic2017a, @carlson2018, @heilmayr2016, @heilmayr2020, @herrera2019, @holland2017, @jones2017, @koch, @panlasigui2018, @nolte2017,  @pfaff1999, @sales2022, @sanchez-azofeifa2007, @shah2015, @sims2017, @tabor2017, @wendland2015 -->
 
 # Introduction
 Policymakers often need to understand the causal impacts of conservation interventions. Do marine protected areas stop unsustainable harvesting of fish? Can payments for ecosystem services encourage lasting reforestation? While randomized experiments are the gold standard for the identification of causal relationships [@edwards2020; @jayachandran2017], conservation often poses questions that are prohibitively expensive, unethical or impossible to pursue through experimentation. In such settings, a growing portfolio of statistical techniques enable researchers to draw causal conclusions using observational data [@larsen2019]. Increasingly, these econometric approaches to impact evaluation are being used to disentangle the causal relationships that underpin conservation decisionmaking [@butsic2017; @baylis2016; @williams2020]. These econometric methods can generate estimates of an intervention's impact by comparing observed outcomes to a statistical counterfactual of what would have happened in the absence of an intervention [@ferraro2009; @meyfroidt2016; @ferraro2019; @ribas2020].
@@ -337,7 +366,7 @@ analysis_km2 <- nobs * 0.0009
 ```
 
 We begin each Monte Carlo simulation by creating a synthetic landscape consisting of `r sqrt(nobs)` rows and `r sqrt(nobs)` columns of square pixels, equivalent to a raster that is `r analysis_to_fig_ratio` times larger than what is illustrated in Figure \@ref(fig:counterfactual). We assume that each pixel has a resolution of 30 meters, comparable to the resolution of many Landsat-based, remote sensing analyses. The landscape thus represents an area of approximately `r analysis_km2` km2. We then divide this landscape into a variety of spatial units, composed of either uniform aggregations of pixels (i.e. large or small "grid cells"), or randomly spaced Thiessen polygons (i.e. "counties" or "properties"). Grid cells are intended to represent arbitrary units of spatial aggregation imposed by the researcher. In contrast, counties and properties are intended to represent simulated administrative units over which policy or land use decisions are made. Table \@ref(tab:res) summarizes the relative scale of each of these spatial units under our baseline specifications.
-<!-- Albert TODO: I tried to go back to the analysis code to fill in the XX values above, but each of the analysis scripts has a slightly different nobs. Could you fill in the four XX values above with the size of our baseline specification? Also, would be good to make sure our final specification is fairly consistent across runs (I'm not entirely sure which of the analysis scripts we're actually relying on right now)-->
+
 
 <!-- TODO (during review): Note that our counties are still really small. The average municipality in Brazil is 1,500 km2, and the smallest county in the US is ~15km2. While this is in review, should we simulate with larger counties?-->
 
@@ -510,8 +539,7 @@ z_{jt} = \alpha + \beta_{j} \text{ x } D_j \mathbb{1} \{ t\geq t_0\} + \lambda_t
 \end{align}
 , where $\lambda_t$ denotes year fixed effects and $\gamma_j$ denotes one of grid, county, or property fixed effects. The treatment variable $D_j = \frac{1}{N_j}\sum_{i=1}^{N_j}D_i$, is the average treatment value amongst all pixels in unit $j$. Note that in these regressions, the level of unit fixed effects matches the unit of analysis. 
 
-Columns 7-9 of Figure \@ref(fig:summary-fig) show that the bias of the estimates does not vary dramatically across different levels of aggregation, however, the distributions are varied. In particular, the property-level model had the highest RMSE of unbiased specifications due to the heterogeneity in property sizes across the landscape. 
-<!-- IS PREVIOUS SENTENCE STILL TRUE? DOESN'T LOOK LIKE IT IN FIGURE -->
+Columns 7-9 of Figure \@ref(fig:summary-fig) show that neither the bias nor RMSE of the estimates vary dramatically across different levels of aggregation. 
 
 ## Survival analysis
 Survival analysis provides an appealing alternative to traditional linear estimators when studying irreversible changes such as deforestation. The simple, single-regression DID framing of the Cox Proportional hazards model  (Regression 3), however, is not a viable solution (Section \@ref(survival)) under the typical common trends assumption (Assumption 1). Column 2 of Figure \@ref(fig:summary-fig) shows the bias associated with this model in our parameterization where Assumption 1 holds but Assumption 3 does not. In light of the fact that the simple Cox DID is not a viable analog to the traditional DID, we explore whether our proposed estimator, $\widehat{ATT_{Cox}}$, recovers relevant treatment effect parameters in the deforestation setting. We see in column 10 that $\widehat{ATT_{Cox}}$ indeed recovers our parameter of interest, the $ATT$.
@@ -535,8 +563,8 @@ In essence, the first and third expectations in the bias term are conditional on
 Non-random sample selection did not bias our initial simulations as presented in Figure \@ref(fig:summary-fig) because we assumed away time-invariant pixel and property-level disturbances. The sample of at risk pixels in each time period did not depend on the deforestation that occurred the previous period, since the $y^o_{ivt}$s were i.i.d.. However, once time-invariant disturbances enter the DGP, the distribution of the $y^o_{iv2}s$ is potentially different from that of the $y^o_{iv1}$s. This is likely to be the case in reality, since each plot of land will have time-invariant characterisitcs such as slope, elevation, market access, agricultural suitability, etc. that impact its expected returns to clearing. 
 
 In order to see how this non-random selection influences estimates in our simulated setting, we set $\sigma_a$, the standard error of the time-invariant pixel-level disturbances equal to $0.1$. Figure \@ref(fig:selection-fig) shows that non-random selection introduces a slight downward bias across every specification.
-<!-- NEED TO ADD A SHORT SENTENCE OR TWO DESCRIBING A TAKE-AWAY FOR THIS SECTION. MAYBE JUST THESE TWO SENTENCES FROM THE COMMENTED OUT TEXT BELOW: -->
-<!-- We note that in practice, researchers cannot recover the second and fourth terms of the bias term in equation 10, meaning that the magnitude of this bias is unknown to the researcher. However, this bias is likely to be of a smaller magnitude in reality than in our simulated setting, since our simulated time frame for forest regrowth is too short to reflect true reforestation timing.  -->
+
+In practice, researchers cannot recover the second and fourth terms of the bias term in equation 20, meaning that the magnitude of this bias is unknown to the researcher. However, this bias is likely to be of a smaller magnitude than in our simulated setting if deforestation rates are lower or more similar across treated and control groups.
 
 <!-- Another way to think about this bias is through the lens of reforestation timing. In equation 10, we see that the bias arises when the expectation of the observed $y^o_{ivt}$ and the true $y_{ivt}$ differ. This occurs when the researcher cannot observe reforestation timing in the data, and thus deforestation is irreversible in the panel dataset. We note that in practice, researchers cannot recover the second and fourth terms of the bias term in equation 10, meaning that the magnitude of this bias is unknown to the researcher. However, this bias is likely to be of a smaller magnitude in reality than in our simulated setting, since our simulated time frame for forest regrowth is too short to reflect true reforestation timing.  -->
 <!-- Albert to do: I worry that this framing may confuse the reader - above we talk about how our measure of deforestation is irreversible, but now we talk about reforestation. Either needs to be clarified, re-written with a different approach to clarifying this process, or removed  -->
@@ -1176,7 +1204,7 @@ index.ci <- match(c("q05","q95"), names(select_results))
 ylim <- c(-0.018, -0.006)
 #Create the plot
 
-schart(select_results,labels, ylim = ylim,leftmargin = 12, heights = c(4, 2), index.ci=index.ci, col.est = c(palette$dark, palette$red),
+schart(select_results,labels, ylim = ylim,leftmargin = 12, heights = c(4, 3), index.ci=index.ci, col.est = c(palette$dark, palette$red),
        bg.dot=c(palette$dark, "grey95", "white", palette$red),
        col.dot=c(palette$dark, "grey95", "white", palette$red)
        , ylab="                              "
@@ -1452,16 +1480,16 @@ Several econometric considerations relevant to model design and interpretation w
 
 Although this paper focuses upon efforts to identify the impacts of conservation policies on deforestation, the lessons we highlight are relevant to a wider audience. Specifically, many of our key findings apply to diverse settings in which the outcome of interest represents an irreversible, binary event. For example, studies exploring the drivers of unidirectional technology adoption may fall prey to the same issues we have identified in the context of deforestation. Moving forward, researchers should carefully consider the underlying structure of their data, and ensure that their chosen models minimize bias and allow inference at expected levels of confidence. Misleading causal inference may lead policymakers to avoid effective policies, or to adopt interventions that worsen environmental damages. 
 
+# Code availability
+
+This entire paper, including the underlying data, results, figures, and tables can be reproduced using code available at [this link](https://github.com/AlbertogGarcia/defor_econometrics_replication "Replication Repo").
+
 # Acknowledgements {-}
 We thank Kelsey Jack, Andrew Plantinga, and Jennifer Alix-Garcia for useful comments on early versions of this paper. We are grateful for feedback received at the BIOECON XXII conference. We thank the University of California, Santa Barbara's Academic Senate for a Faculty Research Grant that supported this work. This paper is based upon work supported by the National Aeronautics and Space Administration under Grant No. 80NSSC20K1489 issued through the Land Cover and Land Use Change Program. This paper contributes to the Global Land Programme.
 
+
 # References
 <div id="refs"></div>
-
----
-nocite: | 
-  @koch, @panlasigui2018, @nolte_decentralized_2017, @butsic_effect_2017, @baehr_linking_2021, @benyishay_indigenous_2017, @arriagada_payments_2012, @busch2015, @heilmayr_impacts_2016, @blackman_titling_2017, @herrera_impacts_2019, @anderson2018, @araujo_property_2009, @alix-garcia_forest_2017, @wendland_protected_2015, @alix-garcia_avoided_2018, @blackman2018, @carlson_effect_2018, @jones_forest_2017, @tabor_evaluating_2017, @holland_titling_2017, @baylis_conserving_2012, @blackman_strict_2015, @sanchez-azofeifa_costa_2007, @shah_evaluating_2015, @sims_parks_2017
----
 
 # Appendix {#appendix}
 
@@ -1945,6 +1973,7 @@ ylim <- c(topline,0.015)
 #Create the plot
 
 schart(test,labels, ylim = ylim, index.ci=index.ci, ylab="Bias", #highlight=highlight_rows,
+leftmargin = 15, 
        heights = c(5, 5), cex = c(1.75, 1.75),
        col.est = c(palette$dark, palette$red),
        # col.dot=c("black","lightgrey","red","#00A1D5"),

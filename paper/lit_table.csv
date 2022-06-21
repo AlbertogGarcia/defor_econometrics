@@ -8,14 +8,14 @@ Baehr et al. 2021,TWFE,binary pixel/grid cell,pixel,binary deforestation
 Baylis et al. 2012,DID,grid cell,NA,binary deforestation
 BenYishay et al. 2017,TWFE,grid cell,grid cell,binary deforestation
 Blackman 2015,matched unit FE model,binary point/pixel,county,binary deforestation
-Blackman and Villalobos 2020,matched TWFE,management unit,management unit,binary deforestation
 Blackman et al. 2017,TWFE,community,community,binary deforestation
 Blackman et al. 2018,matched TWFE,management unit,management unit,binary deforestation
 Busch et al. 2015,matched TWFE,grid cell,grid cell,binary deforestation
-Bustic et al. 2017,TWFE,binary point/pixel,pixel,binary deforestation
+Butsic et al. 2017,TWFE,binary point/pixel,pixel,binary deforestation
 Carlson et al. 2018,matched TWFE,plantation,plantation,binary deforestation
 Carlson et al. 2018 (robustness check),Cox PH DID,pixel,NA,binary deforestation
 Heilmayr and Lambin 2016,matched DID,property,NA,binary deforestation
+Heilmayr et al. 2020,Triple DID/fixed effects,binary point/pixel,municipality,binary deforestation
 Herrera et al. 2019,matched regression,binary point/pixel,NA,binary deforestation
 Holland et al. 2017,matched TWFE,landowner parcel,landowner parcel,binary deforestation
 Jones and Lewis 2015 (1),matched TWFE,binary point/pixel,pixel,binary deforestation
