@@ -23,7 +23,7 @@ header-includes:
 ---
   
   
-  ```{r Setup, include = F}
+```{r Setup, include = F}
 options(htmltools.dir.version = FALSE)
 library(pacman)
 p_load(ggplot2, ggthemes, viridis, dplyr, magrittr, knitr, kableExtra)
