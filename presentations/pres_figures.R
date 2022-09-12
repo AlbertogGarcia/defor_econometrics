@@ -65,7 +65,7 @@ palette <- list("white" = "#FAFAFA",
                 "dark_green" = "#496F5D",
                 "gold" = "#DAA520")
 
-results_dir <- paste0(getwd()[1], '/unbiased_dgp/')
+results_dir <- paste0(getwd()[1], '/paper/')
 out_dir <- paste0(getwd()[1], '/presentations/figs/')
 
 
@@ -176,8 +176,8 @@ data_df <- panels %>%
                                                         "0" = "Not deforested", 
                                                         "1" = "Deforested"),
          y = y %>% recode("-1" = "Previously deforested", 
-                                                        "0" = "Not deforested", 
-                                                        "1" = "Deforested"),
+                          "0" = "Not deforested", 
+                          "1" = "Deforested"),
          treat = as.factor(treat),
          treat = treat %>% recode("0" = "Stable forest - not treated",
                                   "1" = "Stable forest - treated")) %>% 
@@ -390,8 +390,9 @@ prop_plot %>%
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # TWFE vs DID plots --------------------------------------------------------
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-twfe_df <- read.csv(paste0(results_dir, "TWFE_long.csv")) %>% 
-  select(-X)
+twfe_df <- read.csv(paste0(results_dir, "results/TWFE_long.csv")) %>% 
+  select(-X)%>%
+  rename(parameterization = 12)
 
 
 ggplot() +
@@ -416,7 +417,7 @@ ggplot() +
   ylim(c(0, 251)) +
   scale_fill_manual(values = c("DID"=palette$dark, "TWFE"=palette$blue)) +
   theme_bw(base_size = 10) +
-  annotate("text", x = -0.0025, y = 25, color = palette$white, label = "DID", size = 3) +
+  annotate("text", x = -0.002, y = 25, color = palette$white, label = "DID", size = 3) +
   annotate("text", x = 0.04, y = 210, label = "Treated baseline = 0.03\nUntreated baseline = 0.02\nATT = -0.01\nTrend = -0.005", size = 3) +
   geom_vline(xintercept = 0, color = palette$red, linetype = "longdash", size = 0.5) +
   theme(legend.position = "none",
@@ -456,7 +457,7 @@ ggplot() +
   scale_fill_manual(values = c("DID"=palette$dark, "TWFE"=palette$blue)) +
   theme_bw(base_size = 10) +
   annotate("text", x = -0.0025, y = 25, color = palette$white, label = "DID", size = 3) +
-  annotate("text", x = 0.0215, y = 25, color = palette$dark, label = "TWFE", size = 3) +
+  annotate("text", x = 0.022, y = 25, color = palette$dark, label = "TWFE", size = 3) +
   annotate("text", x = 0.04, y = 210, label = "Treated baseline = 0.04\nUntreated baseline = 0.02\nATT = -0.01\nTrend = -0.005", size = 3) +
   geom_vline(xintercept = 0, color = palette$red, linetype = "longdash", size = 0.5) +
   theme(legend.position = "none",
@@ -490,10 +491,8 @@ ggsave(paste0(out_dir, "twfe_4.png"), width = 5, height = 2.6, units = "in")
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Spec charts: Emphasize aggregation as solution -------------------------
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# full_summary <- read.csv(paste0(results_dir, "full_summary.csv")) %>% 
-#   select(-X)
 
-full_summary <- readRDS(paste0(results_dir, "summary_full2.RDS"))
+full_summary <- readRDS(paste0(results_dir, "results/summary_long.RDS"))
 
 full_summary <- full_summary %>% 
   mutate(bias = as.numeric(bias),
@@ -503,7 +502,7 @@ full_summary <- full_summary %>%
 
 
 full_summary <- full_summary %>%
-  summarize(median_bias = median(bias),
+  summarize(mean_bias = mean(bias),
             cover = mean(cover),
             q025 = quantile(bias, 0.025),
             q975 = quantile(bias, 0.975),
@@ -513,8 +512,12 @@ full_summary <- full_summary %>%
 ## Option 1 - aggregate FEs
 select_results <- full_summary %>% 
   filter(std_p==0,
-         !((se_grid==1 | se_property==1 | se_county==1) & (treatment.fe==1)),
-         pixel==1,
+         pixel == 1,
+         #(treatment.fe == 1 | grid.fe == 1  | property.fe == 1 | county.fe == 1),
+         gridsize == 10 | is.na(gridsize),
+         cox == 0,
+         !(treatment.fe == 1 & property.fe == 1),
+         !(property.fe == 1 & se_county == 1),
          is.na(notes)) %>% 
   mutate(cover = as.numeric(cover),
          cover_dif = (cover - 0.95)*100) %>% 
@@ -529,6 +532,330 @@ ggplot(select_results, aes(x = glabel, y=mean_bias)) +
   geom_point() +
   theme_bw()
 
+
+na_row <- c("median_bias" = NA,
+            "q025" = NA,
+            "q975" = NA)
+
+select_results <- rbind(na_row, select_results, na_row)%>%
+  as.data.frame()
+
+
+coverage <- select_results$cover
+# coverage[is.na(coverage)] <- 0
+c_print <- f(round(coverage, digits = 2))
+c_print[is.na(c_print)] <- " "
+
+RMSE <- select_results$RMSE
+# RMSE[is.na(RMSE)] <- 0
+RMSE <- as.numeric(RMSE)
+RMSE_print<- f(round(RMSE, digits =3))
+RMSE_print[is.na(RMSE_print)] <- " "
+
+schart_results <- select_results %>% 
+  # select(c(mean_bias, q05, q95, pixel, county, grid, property, treatment.fe, county.fe, grid.fe, property.fe))
+  # select(-c(se_pixel, se_grid, se_property, se_county, RMSE, cover, sigma_p, cover_dif, pixel.fe)) %>% 
+  select(c(mean_bias, q025, q975, pixel.fe, treatment.fe, county.fe, grid.fe, property.fe))%>%
+  mutate_at(vars(pixel.fe:property.fe), ~as.logical(as.integer(.)))
+index.ci <- match(c("q025","q975"), names(schart_results))
+
+labels <- list("Pixel FE", "Treatment FE", "County FE", "Grid FE", "Property FE")
+
+
+topline = -0.01
+midline = topline-0.015
+ylim <- c(midline-0.012,0.037)
+
+
+png(paste0(out_dir,"spec_did_fe.png"), width = 10, height = 9, units = "in", res = 150)
+par(bg = palette$white)
+par(oma=c(1,0,1,1))
+
+schart(schart_results, 
+       labels = labels, 
+       ylim = ylim, 
+       axes = FALSE, 
+       index.ci=index.ci, 
+       ylab="", 
+       highlight = 2, 
+       leftmargin = 15, 
+       col.est = c(palette$dark, palette$red), 
+       heights = c(4,2.75), 
+       cex = c(1.5,1.5))
+
+mtext("Bias", side=2, at = 0.038, font=2, las=1, line=.5, cex = 2)
+
+Axis(side=2, at = c(-0.005, 0, 0.01), labels=TRUE, cex = 3)
+abline(h=0, lty=2, lwd = 2)
+abline(h=topline)
+abline(h=midline)
+lapply(1:length(RMSE), function(i) {
+  text(x= i, y=midline+0.0075, paste0(RMSE_print[i]), col="black", font=1, cex=2)
+  text(x= i, y=midline-0.0075, paste0(c_print[i]), col="black", font=1, cex=2)
+})
+
+mtext("RMSE", side=2, at = midline+0.0075, font=2, las=1, line=.5, cex = 2)
+
+mtext("Coverage\nprobability", side=2, at = midline-0.0075, font=2, las=1, line=.5, cex = 2)
+dev.off()
+
+
+
+
+
+## Option 2 - aggregate unit of observation
+select_results <- full_summary %>% 
+  filter(std_p==0,
+         #!((se_grid==1 | se_property==1 | se_county==1) & (treatment.fe==1)),
+         (pixel==0 | pixel.fe==1),
+         weights == 0,
+         gridsize == 10 | is.na(gridsize)
+  ) %>% 
+  mutate(cover_dif = (cover - 0.95)*100) %>% 
+  arrange(desc(pixel.fe), desc(treatment.fe), desc(county.fe), desc(grid.fe), desc(property.fe))
+
+
+select_results <- rbind(na_row, select_results, na_row)%>%
+  as.data.frame()
+
+
+coverage <- select_results$cover
+# coverage[is.na(coverage)] <- 0
+c_print <- f(round(coverage, digits = 2))
+c_print[is.na(c_print)] <- " "
+
+RMSE <- select_results$RMSE
+# RMSE[is.na(RMSE)] <- 0
+RMSE <- as.numeric(RMSE)
+RMSE_print<- f(round(RMSE, digits =3))
+RMSE_print[is.na(RMSE_print)] <- " "
+
+schart_results <- select_results %>% 
+  # select(c(mean_bias, q05, q95, pixel, county, grid, property, treatment.fe, county.fe, grid.fe, property.fe))
+  # select(-c(se_pixel, se_grid, se_property, se_county, RMSE, cover, sigma_p, cover_dif, pixel.fe)) %>% 
+  select(c(mean_bias, q025, q975, pixel.fe, county.fe, grid.fe, property.fe))%>%
+  mutate_at(vars(pixel.fe:property.fe), ~as.logical(as.integer(.)))
+index.ci <- match(c("q025","q975"), names(schart_results))
+
+labels <- list("Pixel", "Grid", "County", "Property")
+
+
+topline = -0.025
+midline = topline-0.015
+ylim <- c(midline-0.012,0.04)
+
+
+png(paste0(out_dir,"spec_did_agg.png"), width = 10, height = 9, units = "in", res = 150)
+par(bg = palette$white)
+par(oma=c(1,0,1,1))
+
+schart(schart_results, 
+       labels = labels, 
+       ylim = ylim, 
+       axes = FALSE, 
+       index.ci=index.ci, 
+       ylab="", 
+       highlight = 2, 
+       leftmargin = 15, 
+       col.est = c(palette$dark, palette$red), 
+       heights = c(4, 2.75), 
+       cex = c(1.5,1.5))
+
+mtext("Bias", side=2, at = 0.038, font=2, las=1, line=.5, cex = 2)
+
+Axis(side=2, at = c(-0.02, 0, 0.02), labels=TRUE, cex = 3)
+abline(h=0, lty=2, lwd = 2)
+abline(h=topline)
+abline(h=midline)
+lapply(1:length(RMSE), function(i) {
+  text(x= i, y=midline+0.0075, paste0(RMSE_print[i]), col="black", font=1, cex=2)
+  text(x= i, y=midline-0.0075, paste0(c_print[i]), col="black", font=1, cex=2)
+})
+
+mtext("RMSE", side=2, at = midline+0.0075, font=2, las=1, line=.5, cex = 2)
+
+mtext("Coverage\nprobability", side=2, at = midline-0.0075, font=2, las=1, line=.5, cex = 2)
+dev.off()
+
+
+
+## Cox proportional hazards and proposed survival estimator
+select_results <- full_summary %>% 
+  filter(std_p==0,
+         cox == 1
+  ) %>% 
+  mutate(cover_dif = (cover - 0.95)*100) 
+
+select_results <- rbind(na_row, select_results, na_row)%>%
+  as.data.frame()
+
+
+coverage <- select_results$cover
+# coverage[is.na(coverage)] <- 0
+c_print <- f(round(coverage, digits = 2))
+c_print[is.na(c_print)] <- " "
+
+RMSE <- select_results$RMSE
+# RMSE[is.na(RMSE)] <- 0
+RMSE <- as.numeric(RMSE)
+RMSE_print<- f(round(RMSE, digits =3))
+RMSE_print[is.na(RMSE_print)] <- " "
+
+schart_results <- select_results %>% 
+  mutate(CoxDID = ifelse(HE.estimator == 0, TRUE, FALSE),
+         Alternative = ifelse(HE.estimator == 1, TRUE, FALSE))%>%
+  select(c(mean_bias, q025, q975, CoxDID, Alternative))
+index.ci <- match(c("q025","q975"), names(schart_results))
+
+labels <- list("Cox PH DID", "Proposed alternative")
+
+
+topline = -0.025
+midline = topline-0.015
+ylim <- c(midline-0.012,0.012)
+
+
+png(paste0(out_dir,"cox_did.png"), width = 10, height = 9, units = "in", res = 150)
+par(bg = palette$white)
+par(oma=c(1,0,1,1))
+
+schart(schart_results, 
+       labels = labels, 
+       ylim = ylim, 
+       axes = FALSE, 
+       index.ci=index.ci, 
+       ylab="", 
+       highlight = 2, 
+       leftmargin = 20, 
+       col.est = c(palette$dark, palette$red), 
+       heights = c(4, 3), 
+       cex = c(1.5,1.5))
+
+mtext("Bias", side=2, at = 0.038, font=2, las=1, line=.5, cex = 2)
+
+Axis(side=2, at = c(-0.01, 0, 0.01), labels=TRUE, cex = 3)
+abline(h=0, lty=2, lwd = 2)
+abline(h=topline)
+abline(h=midline)
+lapply(1:length(RMSE), function(i) {
+  text(x= i, y=midline+0.0075, paste0(RMSE_print[i]), col="black", font=1, cex=2)
+  text(x= i, y=midline-0.0075, paste0(c_print[i]), col="black", font=1, cex=2)
+})
+
+mtext("RMSE", side=2, at = midline+0.0075, font=2, las=1, line=.5, cex = 2)
+
+mtext("Coverage\nprobability", side=2, at = midline-0.0075, font=2, las=1, line=.5, cex = 2)
+dev.off()
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Spec charts: Problem of property-level disturbances ------------------
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+full_summary <- readRDS(paste0(results_dir, "results/summary_full.RDS"))
+
+full_summary <- full_summary %>% 
+  mutate(bias = as.numeric(bias),
+         cover = as.numeric(cover)) %>% 
+  filter(prop_concern == 0)%>%
+  group_by(across(c(-iteration, -bias, -cover))) %>% 
+  mutate(glabel = cur_group_id())
+
+
+full_summary <- full_summary %>%
+  summarize(mean_bias = mean(bias),
+            cover = mean(cover),
+            q025 = quantile(bias, 0.025),
+            q975 = quantile(bias, 0.975),
+            RMSE = sqrt(mean(bias**2)),
+            glabel = cur_group_id())
+
+
+
+select_results <- full_summary %>% 
+  filter(treatment.fe==1,
+         !((se_grid==1 | se_property==1 | se_county==1)),
+         cox == 0,
+         is.na(notes)) %>% 
+  mutate(s0 = std_p==0,
+         s1 = std_p==0.1,
+         s2 = std_p==0.2,
+         s3 = std_p==0.3) %>% 
+  arrange(desc(std_p))
+# arrange(desc(s0), desc(s1), desc(s2), desc(s3))
+
+na_row <- c("mean_bias" = NA,
+            "q025" = NA,
+            "q975" = NA)
+
+select_results <- rbind(na_row, select_results, na_row)%>%
+  as.data.frame()
+
+coverage <- select_results$cover
+# coverage[is.na(coverage)] <- 0
+c_print <- f(round(coverage, digits = 2))
+c_print[is.na(c_print)] <- " "
+
+RMSE <- select_results$RMSE
+# RMSE[is.na(RMSE)] <- 0
+RMSE <- as.numeric(RMSE)
+RMSE_print<- f(round(RMSE, digits =3))
+RMSE_print[is.na(RMSE_print)] <- " "
+
+schart_results <- select_results %>% 
+  # select(c(mean_bias, q05, q95, pixel, county, grid, property, treatment.fe, county.fe, grid.fe, property.fe))
+  # select(-c(se_pixel, se_grid, se_property, se_county, RMSE, cover, sigma_p, cover_dif, pixel.fe)) %>% 
+  select(c(mean_bias, q025, q975, s0, s1, s2, s3))%>%
+  mutate_at(vars(s0:s3), ~as.logical(as.integer(.)))
+index.ci <- match(c("q025","q975"), names(schart_results))
+
+labels <- list("Value of sigma" = c("0", "0.1", "0.2", "0.3"))
+
+
+topline = -0.015
+midline = topline-0.015
+ylim <- c(midline-0.012,0.006)
+
+
+png(paste0(out_dir,"spec_prop_did.png"), width = 10, height = 9, units = "in", res = 150)
+par(bg = palette$white)
+par(oma=c(1,0,1,1))
+
+schart(schart_results, labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
+       leftmargin = 15, col.est = c(palette$dark, palette$red), heights = c(4,2.75), cex = c(1.5,1.5))
+
+mtext("Bias", side=2, at = 0.018, font=2, las=1, line=.5, cex = 2)
+
+Axis(side=2, at = c(-0.01, 0, 0.005), labels=TRUE, cex = 3)
+abline(h=0, lty=2, lwd = 2)
+abline(h=topline)
+abline(h=midline)
+lapply(1:length(RMSE), function(i) {
+  text(x= i, y=midline+0.0075, paste0(RMSE_print[i]), col="black", font=1, cex=2)
+  text(x= i, y=midline-0.0075, paste0(c_print[i]), col="black", font=1, cex=2)
+})
+
+mtext("RMSE", side=2, at = midline+0.0075, font=2, las=1, line=.5, cex = 2)
+
+mtext("Coverage\nprobability", side=2, at = midline-0.0075, font=2, las=1, line=.5, cex = 2)
+dev.off()
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Spec charts: structuring model around unit of analysis ------------------
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+# Panel A - Pixel-level analyses
+select_results <- full_summary %>% 
+  filter(std_p==0.3,
+         pixel == 1,
+         (treatment.fe == 1 | grid.fe == 1  | property.fe == 1 | county.fe == 1),
+         gridsize == 10 | is.na(gridsize),
+         cox == 0,
+         !(treatment.fe == 1 & property.fe == 1),
+         !(property.fe == 1 & se_county == 1),
+         is.na(notes)) %>% 
+  mutate(cover = as.numeric(cover),
+         cover_dif = (cover - 0.95)*100) %>% 
+  arrange(desc(treatment.fe), property.fe, grid.fe)
 
 na_row <- c("mean_bias" = NA,
             "q025" = NA,
@@ -551,243 +878,10 @@ RMSE_print[is.na(RMSE_print)] <- " "
 schart_results <- select_results %>% 
   # select(c(mean_bias, q05, q95, pixel, county, grid, property, treatment.fe, county.fe, grid.fe, property.fe))
   # select(-c(se_pixel, se_grid, se_property, se_county, RMSE, cover, sigma_p, cover_dif, pixel.fe)) %>% 
-  select(c(mean_bias, q025, q975, pixel.fe, treatment.fe, county.fe, grid.fe, property.fe))
-index.ci <- match(c("q05","q95"), names(schart_results))
-
-labels <- list("Pixel FE", "Treatment FE", "County FE", "Grid FE", "Property FE")
-
-
-topline = -0.025
-midline = topline-0.015
-ylim <- c(midline-0.012,0.04)
-
-
-png(paste0(out_dir,"spec_did_fe.png"), width = 10, height = 9, units = "in", res = 150)
-par(bg = palette$white)
-par(oma=c(1,0,1,1))
-
-schart(schart_results, 
-       labels = labels, 
-       ylim = ylim, 
-       axes = FALSE, 
-       index.ci=index.ci, 
-       ylab="", 
-       highlight = 2, 
-       leftmargin = 20, 
-       col.est = c(palette$dark, palette$red), 
-       heights = c(3,1), 
-       cex = c(1.75,1.75))
-
-mtext("Bias", side=2, at = 0.038, font=2, las=1, line=.5, cex = 2)
-
-Axis(side=2, at = c(-0.02, 0, 0.02), labels=TRUE, cex = 3)
-abline(h=0, lty=2, lwd = 2)
-abline(h=topline)
-abline(h=midline)
-lapply(1:length(RMSE), function(i) {
-  text(x= i, y=midline+0.0075, paste0(RMSE_print[i]), col="black", font=1, cex=2)
-  text(x= i, y=midline-0.0075, paste0(c_print[i]), col="black", font=1, cex=2)
-})
-
-mtext("RMSE", side=2, at = midline+0.0075, font=2, las=1, line=.5, cex = 2)
-
-mtext("Coverage\nprobability", side=2, at = midline-0.0075, font=2, las=1, line=.5, cex = 2)
-dev.off()
-
-
-
-
-
-## Option 2 - aggregate unit of observation
-select_results <- full_summary %>% 
-  filter(sigma_p==0,
-         !((se_grid==1 | se_property==1 | se_county==1) & (treatment.fe==1)),
-         (pixel==F | pixel.fe==T)) %>% 
-  mutate(cover_dif = (cover - 0.95)*100) %>% 
-  arrange(desc(pixel.fe), desc(treatment.fe), desc(county.fe), desc(grid.fe), desc(property.fe))
-
-na_row <- c("mean_bias" = NA,
-            "q05" = NA,
-            "q95" = NA)
-
-select_results <- rbind(na_row, select_results, na_row)
-
-
-coverage <- select_results$cover
-# coverage[is.na(coverage)] <- 0
-c_print <- f(round(coverage, digits = 2))
-c_print[is.na(c_print)] <- " "
-
-RMSE <- select_results$RMSE
-# RMSE[is.na(RMSE)] <- 0
-RMSE <- as.numeric(RMSE)
-RMSE_print<- f(round(RMSE, digits =3))
-RMSE_print[is.na(RMSE_print)] <- " "
-
-schart_results <- select_results %>% 
-  # select(c(mean_bias, q05, q95, pixel, county, grid, property, treatment.fe, county.fe, grid.fe, property.fe))
-  # select(-c(se_pixel, se_grid, se_property, se_county, RMSE, cover, sigma_p, cover_dif, pixel.fe)) %>% 
-  select(c(mean_bias, q05, q95, pixel.fe, county.fe, grid.fe, property.fe))
-index.ci <- match(c("q05","q95"), names(schart_results))
-
-labels <- list("Pixel", "Grid", "County", "Property")
-
-
-topline = -0.025
-midline = topline-0.015
-ylim <- c(midline-0.012,0.04)
-
-
-png(paste0(out_dir,"spec_did_agg.png"), width = 10, height = 9, units = "in", res = 150)
-par(bg = palette$white)
-par(oma=c(1,0,1,1))
-
-schart(schart_results, labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
-       highlight = 2, leftmargin = 20, col.est = c(palette$dark, palette$red), heights = c(3,1), cex = c(1.75,1.75))
-
-mtext("Bias", side=2, at = 0.038, font=2, las=1, line=.5, cex = 2)
-
-Axis(side=2, at = c(-0.02, 0, 0.02), labels=TRUE, cex = 3)
-abline(h=0, lty=2, lwd = 2)
-abline(h=topline)
-abline(h=midline)
-lapply(1:length(RMSE), function(i) {
-  text(x= i, y=midline+0.0075, paste0(RMSE_print[i]), col="black", font=1, cex=2)
-  text(x= i, y=midline-0.0075, paste0(c_print[i]), col="black", font=1, cex=2)
-})
-
-mtext("RMSE", side=2, at = midline+0.0075, font=2, las=1, line=.5, cex = 2)
-
-mtext("Coverage\nprobability", side=2, at = midline-0.0075, font=2, las=1, line=.5, cex = 2)
-dev.off()
-
-
-
-
-
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# Spec charts: Problem of property-level disturbances ------------------
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-select_results <- full_summary %>% 
-  filter(treatment.fe==1,
-         !((se_grid==1 | se_property==1 | se_county==1)),
-         is.na(notes)) %>% 
-  mutate(s0 = std_p==0,
-         s1 = std_p==0.1,
-         s2 = std_p==0.2,
-         s3 = std_p==0.3) %>% 
-  arrange(desc(std_p))
-# arrange(desc(s0), desc(s1), desc(s2), desc(s3))
-
-na_row <- c("mean_bias" = NA,
-            "q05" = NA,
-            "q95" = NA)
-
-select_results <- rbind(na_row, select_results, na_row)
-
-ggplot(select_results, aes(x = std_p, y=mean_bias)) + 
-  geom_errorbar(aes(ymin=q025, ymax=q975), width=.1) +
-  geom_point() +
-  theme_bw()
-
-
-coverage <- select_results$cover
-# coverage[is.na(coverage)] <- 0
-c_print <- f(round(coverage, digits = 2))
-c_print[is.na(c_print)] <- " "
-
-RMSE <- select_results$RMSE
-# RMSE[is.na(RMSE)] <- 0
-RMSE <- as.numeric(RMSE)
-RMSE_print<- f(round(RMSE, digits =3))
-RMSE_print[is.na(RMSE_print)] <- " "
-
-schart_results <- select_results %>% 
-  # select(c(mean_bias, q05, q95, pixel, county, grid, property, treatment.fe, county.fe, grid.fe, property.fe))
-  # select(-c(se_pixel, se_grid, se_property, se_county, RMSE, cover, sigma_p, cover_dif, pixel.fe)) %>% 
-  select(c(mean_bias, q05, q95, s0, s1, s2, s3))
-index.ci <- match(c("q05","q95"), names(schart_results))
-
-labels <- list("Value of sigma" = c("0", "0.1", "0.2", "0.3"))
-
-
-topline = -0.03
-midline = topline-0.015
-ylim <- c(midline-0.012,0.02)
-
-
-png(paste0(out_dir,"spec_prop_did.png"), width = 10, height = 9, units = "in", res = 150)
-par(bg = palette$white)
-par(oma=c(1,0,1,1))
-
-schart(schart_results, labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
-       leftmargin = 15, col.est = c(palette$dark, palette$red), heights = c(3,1), cex = c(1.75,1.75))
-
-mtext("Bias", side=2, at = 0.018, font=2, las=1, line=.5, cex = 2)
-
-Axis(side=2, at = c(-0.01, 0, 0.01), labels=TRUE, cex = 3)
-abline(h=0, lty=2, lwd = 2)
-abline(h=topline)
-abline(h=midline)
-lapply(1:length(RMSE), function(i) {
-  text(x= i, y=midline+0.0075, paste0(RMSE_print[i]), col="black", font=1, cex=2)
-  text(x= i, y=midline-0.0075, paste0(c_print[i]), col="black", font=1, cex=2)
-})
-
-mtext("RMSE", side=2, at = midline+0.0075, font=2, las=1, line=.5, cex = 2)
-
-mtext("Coverage\nprobability", side=2, at = midline-0.0075, font=2, las=1, line=.5, cex = 2)
-dev.off()
-
-
-
-
-
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# Spec charts: structuring model around unit of analysis ------------------
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-select_results <- full_summary %>% 
-  filter(std_p==0.25,
-         # (pixel==1 & property.fe==1) | (pixel==1 & treatment.fe==1 & se_pixel==1),
-         is.na(notes))
-
-
-ggplot(my_data, aes(x, y, fill = m)) + geom_split_violin()
-
-
-
-# Panel A - Pixel-level analyses
-select_results <- full_summary %>% 
-  filter(sigma_p==0.3,
-         !((se_grid==1 | se_property==1 | se_county==1) & (treatment.fe==1)),
-         !pixel.fe==T,
-         pixel==T) %>% 
-  mutate(cover_dif = (cover - 0.95)*100) %>% 
-  arrange(desc(pixel), desc(treatment.fe), desc(county.fe), desc(grid.fe), desc(property.fe))
-
-na_row <- c("mean_bias" = NA,
-            "q05" = NA,
-            "q95" = NA)
-
-select_results <- rbind(na_row, select_results, na_row)
-
-
-coverage <- select_results$cover
-# coverage[is.na(coverage)] <- 0
-c_print <- f(round(coverage, digits = 2))
-c_print[is.na(c_print)] <- " "
-
-RMSE <- select_results$RMSE
-# RMSE[is.na(RMSE)] <- 0
-RMSE <- as.numeric(RMSE)
-RMSE_print<- f(round(RMSE, digits =3))
-RMSE_print[is.na(RMSE_print)] <- " "
-
-schart_results <- select_results %>% 
-  # select(c(mean_bias, q05, q95, pixel, county, grid, property, treatment.fe, county.fe, grid.fe, property.fe))
-  # select(-c(se_pixel, se_grid, se_property, se_county, RMSE, cover, sigma_p, cover_dif, pixel.fe)) %>% 
-  select(c(mean_bias, q05, q95, treatment.fe, county.fe, grid.fe, property.fe))
-index.ci <- match(c("q05","q95"), names(schart_results))
+  select(c(mean_bias, q025, q975, treatment.fe, county.fe, grid.fe, property.fe))%>%
+  mutate_at(vars(treatment.fe:property.fe), ~as.logical(as.integer(.)))%>%
+  as.data.frame()
+index.ci <- match(c("q025","q975"), names(schart_results))
 
 labels <- list("Treatment FE", "County FE", "Grid FE", "Property FE")
 
@@ -802,7 +896,7 @@ par(bg = palette$white)
 par(oma=c(1,0,1,1))
 
 schart(schart_results, labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
-       highlight = 5, leftmargin = 20, col.est = c(palette$dark, palette$red), heights = c(3,1), cex = c(1.75,1.75))
+       highlight = 5, leftmargin = 15, col.est = c(palette$dark, palette$red), heights = c(4, 2.75), cex = c(1.5,1.5))
 
 mtext("Bias", side=2, at = 0.018, font=2, las=1, line=.5, cex = 2)
 
@@ -824,16 +918,18 @@ dev.off()
 
 # Panel B - Aggregate units of analysis
 select_results <- full_summary %>% 
-  filter(sigma_p==0.3,
-         !((se_grid==1 | se_property==1 | se_county==1) & (treatment.fe==1)),
-         !pixel.fe==T,
-         pixel==F) %>% 
+  filter(std_p==0.3,
+         #!((se_grid==1 | se_property==1 | se_county==1) & (treatment.fe==1)),
+         pixel==0,
+         weights == 0,
+         gridsize == 10 | is.na(gridsize)
+  ) %>% 
   mutate(cover_dif = (cover - 0.95)*100) %>% 
-  arrange(desc(pixel), desc(treatment.fe), desc(county.fe), desc(grid.fe), desc(property.fe))
+  arrange(property.fe, grid.fe, county.fe)
 
 na_row <- c("mean_bias" = NA,
-            "q05" = NA,
-            "q95" = NA)
+            "q025" = NA,
+            "q975" = NA)
 
 select_results <- rbind(na_row, select_results, na_row)
 
@@ -851,8 +947,10 @@ RMSE_print[is.na(RMSE_print)] <- " "
 
 schart_results <- select_results %>% 
   # select(-c(se_pixel, se_grid, se_property, se_county, RMSE, cover, sigma_p, cover_dif, pixel.fe)) %>% 
-  select(c(mean_bias, q05, q95, county, grid, property))
-index.ci <- match(c("q05","q95"), names(schart_results))
+  select(c(mean_bias, q025, q975, county, grid, property))%>%
+  mutate_at(vars(county:property), ~as.logical(as.integer(.)))%>%
+  as.data.frame()
+index.ci <- match(c("q025","q975"), names(schart_results))
 
 labels <- list("Grid", "County", "Property")
 
@@ -866,7 +964,7 @@ png(paste0(out_dir,"spec_prop_agg.png"), width = 10, height = 9, units = "in", r
 par(bg = palette$white)
 
 schart(schart_results, labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
-       highlight = 4, leftmargin = 25, col.est = c(palette$dark, palette$red), heights = c(3,1), cex = c(1.75, 1.75))
+       highlight = 4, leftmargin = 18, col.est = c(palette$dark, palette$red), heights = c(4, 2.75), cex = c(1.5, 1.5))
 
 mtext("Bias", side=2, at = 0.018, font=2, las=1, line=.5, cex = 2)
 
@@ -885,68 +983,92 @@ mtext("Coverage\nprobability", side=2, at = midline-0.0075, font=2, las=1, line=
 dev.off()
 
 
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Multi GT results ------------------
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+county_es <- readRDS(paste0(results_dir,"results_multi/county_es.rds"))
+pixel_es <- readRDS(paste0(results_dir,"results_multi/pixel_es.rds"))%>%
+  filter(estimator != "Borusyak, Jaravel, Spiess (2021)")
 
 
+color_scale = c("TWFE" = palette$red, "Gardner (2021)" = palette$dark, "Callaway and Sant'Anna (2020)" = palette$blue, "Borusyak, Jaravel, Spiess (2021)" = palette$dark_green,  "Truth" = palette$green)
+
+# Get list of estimators
+estimators = unique(county_es$estimator)
+
+# Subset factor levels
+levels = c("TWFE", "Borusyak, Jaravel, Spiess (2021)", "Callaway and Sant'Anna (2020)", "Gardner (2021)", "Truth")
+levels = levels[levels %in% estimators]
+
+# Subset color scales
+color_scale = color_scale[names(color_scale) %in% estimators]
+
+# create confidence intervals
+out_pix = pixel_es %>%
+  dplyr::mutate(
+    ci_lower = q05,
+    ci_upper = q95,
+    estimator = factor(estimator, levels = levels)
+  )
+
+# create confidence intervals
+out_county = county_es %>%
+  dplyr::mutate(
+    ci_lower = q05,
+    ci_upper = q95,
+    estimator = factor(estimator, levels = levels)
+  )
+
+# position 
+position = position_dodge(width = 0.5)
+
+ylimmin = min(min(out_pix$ci_lower), min(out_county$ci_lower))
+ylimmax = max(max(out_pix$ci_upper), max(out_county$ci_upper))
+ylim = c(ylimmin, ylimmax)
+
+p1 <- ggplot(out_pix, ggplot2::aes(x = term, y = estimate, color = estimator, ymin = ci_lower, ymax = ci_upper)) +
+  geom_point(position = position, size = 2.6) +
+  geom_errorbar(position = position) +
+  geom_vline(xintercept = -0.5, linetype = "dashed", size = 0.25) +
+  labs(y = "Mean point estimate", x = "Event Time", color = "Estimator") +
+  theme_minimal(base_size = 14) +
+  scale_color_manual(values = color_scale) +
+  guides(
+    color = ggplot2::guide_legend(title.position = "top", nrow = 2)
+  ) +
+  ylim(ylimmin, ylimmax)+
+  ggtitle(" Pixel as unit of analysis")+
+  theme(plot.title = element_text(hjust = 0))
+
+# ggsave(paste0(out_dir, "newDID_pix.png"), width = 3, height = 3, units = "in")
 
 
+p2 <- ggplot(out_county, ggplot2::aes(x = term, y = estimate, color = estimator, ymin = ci_lower, ymax = ci_upper)) +
+  geom_point(position = position, size = 2.6) +
+  geom_errorbar(position = position) +
+  geom_vline(xintercept = -0.5, linetype = "dashed", size = 0.25) +
+  labs(y = "Mean point estimate", x = "Event Time", color = "Estimator") +
+  theme_minimal(base_size = 14) +
+  scale_color_manual(values = color_scale) +
+  guides(
+    color = ggplot2::guide_legend(title.position = "top", nrow = 2)
+  ) +
+  ylim(ylimmin, ylimmax)+
+  ggtitle("Aggregated unit of analysis")+
+  theme(axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        plot.title = element_text(hjust = 0))
+
+# ggsave(paste0(out_dir, "newDID_agg.png"), width = 5, height = 2.6, units = "in")
 
 
+p4 <- ggplot(data.frame(l = p1$labels$y, x = 1, y = 1)) +
+  geom_text(aes(x, y, label = l), angle = 90) + 
+  theme_void() +
+  coord_cartesian(clip = "off")
 
-# # Panel B - Aggregate units of analysis
-# fe_results <- full_summary %>% 
-#   filter(sigma_p==0.3,
-#          !((se_grid==1 | se_property==1 | se_county==1) & (treatment.fe==1)),
-#          !pixel.fe==T) %>% 
-#   mutate(cover_dif = (cover - 0.95)*100) %>% 
-#   arrange(desc(pixel), desc(treatment.fe), desc(county.fe), desc(grid.fe), desc(property.fe))
-# 
-# 
-# coverage <- fe_results$cover
-# coverage[is.na(coverage)] <- 0
-# c_print <- f(round(fe_results$cover, digits = 2))
-# c_print[is.na(c_print)] <- " "
-# 
-# RMSE <- fe_results$RMSE
-# RMSE[is.na(RMSE)] <- 0
-# RMSE <- as.numeric(RMSE)
-# RMSE_print<- f(round(fe_results$RMSE, digits =3))
-# RMSE_print[is.na(RMSE_print)] <- " "
-# 
-# 
-# schart_results <- fe_results %>% 
-#   select(-c(se_pixel, se_grid, se_property, se_county, RMSE, cover, sigma_p, cover_dif, pixel.fe)) %>% 
-#   select(c(mean_bias, q05, q95, pixel, county, grid, property, treatment.fe, county.fe, grid.fe, property.fe))
-# index.ci <- match(c("q05","q95"), names(schart_results))
-# 
-# labels <- list(
-#   "Unit of analysis:" = c("pixel", "county", "grid", "property"),
-#   "Fixed effects:" = c("treatment FE", "grid FE", "property FE", "county FE"))
-# 
-# 
-# topline = -0.03
-# midline = topline-0.015
-# ylim <- c(midline-0.012,0.02)
-# 
-# 
-# # png(paste0(out_dir,"prop_spec.png"), width = 9, height = 7, units = "in", res = 150)
-# par(bg = palette$white)
-# 
-# schart(schart_results, labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
-#        highlight = c(4, 7), leftmargin = 12, col.est = c(palette$dark, palette$red))
-# 
-# mtext("Bias", side=2, at = 0.018, font=2, las=1, line=.5)
-# 
-# Axis(side=2, at = c(-0.01, 0, 0.01), labels=TRUE)
-# abline(h=topline)
-# abline(h=midline)
-# lapply(1:length(RMSE), function(i) {
-#   text(x= i, y=midline+0.0075, paste0(RMSE_print[i]), col="black", font=1, cex=1)
-#   text(x= i, y=midline-0.0075, paste0(c_print[i]), col="black", font=1, cex=1)
-# })
-# 
-# mtext("RMSE", side=2, at = midline+0.0075, font=2, las=1, line=.5)
-# 
-# mtext("Coverage\nprobability", side=2, at = midline-0.0075, font=2, las=1, line=.5)
-# dev.off()
-# 
+p1$labels$y <- p2$labels$y <- " "
 
+combined <- p4 + (p1 | p2) & theme(legend.position = "bottom")
+ggsave(paste0(out_dir, "newDID_combined.png"), width = 10, height = 7, units = "in")
