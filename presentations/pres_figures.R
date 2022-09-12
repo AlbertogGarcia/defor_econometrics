@@ -488,6 +488,29 @@ ggplot() +
   ylab("Frequency")
 ggsave(paste0(out_dir, "twfe_4.png"), width = 5, height = 2.6, units = "in")
 
+
+plot_cox <- readRDS(paste0(results_dir, "results/summary_long.RDS"))%>%
+  filter(std_p==0,
+         HE.estimator == 0,
+         is.na(notes),
+         (pixel.fe == 0 & county.fe == 0 & property.fe == 0 & grid.fe == 0)
+  ) %>%
+  mutate(model = ifelse(cox == 1, "Cox PH DID", "DID"))
+ggplot() +
+  geom_density(data = plot_cox, aes(x=as.numeric(bias), fill = model)) +
+  xlim(c(-0.008, 0.018)) +
+  ylim(c(0, 250)) +
+  scale_fill_manual(values = c("DID"=palette$dark, "Cox PH DID"=palette$light_grey)) +
+  theme_bw(base_size = 10) +
+  annotate("text", x = -0.0015, y = 25, color = palette$white, label = "DID", size = 4) +
+  annotate("text", x = 0.0075, y = 30, color = palette$dark, label = "Cox PH DID", size = 4) +
+  geom_vline(xintercept = 0, color = palette$red, linetype = "longdash", size = 0.5) +
+  theme(legend.position = "none",
+        panel.background = element_rect(fill = "#FAFAFA",colour = "#FAFAFA"),
+        plot.background = element_rect(fill = "#FAFAFA",colour = "#FAFAFA")) +
+  xlab("Bias") +
+  ylab("Frequency")  
+ggsave(paste0(out_dir, "cox_bias.png"), width = 5, height = 3, units = "in")
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Spec charts: Emphasize aggregation as solution -------------------------
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -577,7 +600,7 @@ schart(schart_results,
        axes = FALSE, 
        index.ci=index.ci, 
        ylab="", 
-#       highlight = 2, 
+       #       highlight = 2, 
        leftmargin = 15, 
        col.est = c(palette$dark, palette$red), 
        heights = c(4,2.75), 
@@ -654,7 +677,7 @@ schart(schart_results,
        axes = FALSE, 
        index.ci=index.ci, 
        ylab="", 
- #      highlight = 2, 
+       #      highlight = 2, 
        leftmargin = 15, 
        col.est = c(palette$dark, palette$red), 
        heights = c(4, 2.75), 
