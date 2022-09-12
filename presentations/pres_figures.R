@@ -513,7 +513,7 @@ full_summary <- full_summary %>%
 select_results <- full_summary %>% 
   filter(std_p==0,
          pixel == 1,
-         #(treatment.fe == 1 | grid.fe == 1  | property.fe == 1 | county.fe == 1),
+         (treatment.fe == 1 | grid.fe == 1  | property.fe == 1 | county.fe == 1),
          gridsize == 10 | is.na(gridsize),
          cox == 0,
          !(treatment.fe == 1 & property.fe == 1),
@@ -562,9 +562,9 @@ index.ci <- match(c("q025","q975"), names(schart_results))
 labels <- list("Pixel FE", "Treatment FE", "County FE", "Grid FE", "Property FE")
 
 
-topline = -0.01
+topline = -0.0075
 midline = topline-0.015
-ylim <- c(midline-0.012,0.037)
+ylim <- c(midline-0.012,0.0075)
 
 
 png(paste0(out_dir,"spec_did_fe.png"), width = 10, height = 9, units = "in", res = 150)
@@ -577,16 +577,16 @@ schart(schart_results,
        axes = FALSE, 
        index.ci=index.ci, 
        ylab="", 
-       highlight = 2, 
+#       highlight = 2, 
        leftmargin = 15, 
        col.est = c(palette$dark, palette$red), 
        heights = c(4,2.75), 
        cex = c(1.5,1.5))
 
-mtext("Bias", side=2, at = 0.038, font=2, las=1, line=.5, cex = 2)
+mtext("Bias   ", side=2, at = 0.00, font=2, las=1, line=.5, cex = 2)
 
-Axis(side=2, at = c(-0.005, 0, 0.01), labels=TRUE, cex = 3)
-abline(h=0, lty=2, lwd = 2)
+Axis(side=2, at = c(-0.005, 0, 0.005), labels=TRUE, cex = 3)
+#abline(h=0, lty=2, lwd = 2)
 abline(h=topline)
 abline(h=midline)
 lapply(1:length(RMSE), function(i) {
@@ -606,8 +606,7 @@ dev.off()
 ## Option 2 - aggregate unit of observation
 select_results <- full_summary %>% 
   filter(std_p==0,
-         #!((se_grid==1 | se_property==1 | se_county==1) & (treatment.fe==1)),
-         (pixel==0 | pixel.fe==1),
+         pixel==0,
          weights == 0,
          gridsize == 10 | is.na(gridsize)
   ) %>% 
@@ -633,17 +632,17 @@ RMSE_print[is.na(RMSE_print)] <- " "
 schart_results <- select_results %>% 
   # select(c(mean_bias, q05, q95, pixel, county, grid, property, treatment.fe, county.fe, grid.fe, property.fe))
   # select(-c(se_pixel, se_grid, se_property, se_county, RMSE, cover, sigma_p, cover_dif, pixel.fe)) %>% 
-  select(c(mean_bias, q025, q975, pixel.fe, county.fe, grid.fe, property.fe))%>%
-  mutate_at(vars(pixel.fe:property.fe), ~as.logical(as.integer(.)))
+  select(c(mean_bias, q025, q975, county.fe, grid.fe, property.fe))%>%
+  mutate_at(vars(county.fe:property.fe), ~as.logical(as.integer(.)))
 index.ci <- match(c("q025","q975"), names(schart_results))
 
-labels <- list("Pixel", "Grid", "County", "Property")
+labels <- list("Grid", "County", "Property")
 
 
-topline = -0.025
-midline = topline-0.015
-ylim <- c(midline-0.012,0.04)
-
+# topline = -0.01
+# midline = topline-0.015
+# ylim <- c(midline-0.012,0.01)
+# 
 
 png(paste0(out_dir,"spec_did_agg.png"), width = 10, height = 9, units = "in", res = 150)
 par(bg = palette$white)
@@ -655,16 +654,16 @@ schart(schart_results,
        axes = FALSE, 
        index.ci=index.ci, 
        ylab="", 
-       highlight = 2, 
+ #      highlight = 2, 
        leftmargin = 15, 
        col.est = c(palette$dark, palette$red), 
        heights = c(4, 2.75), 
        cex = c(1.5,1.5))
 
-mtext("Bias", side=2, at = 0.038, font=2, las=1, line=.5, cex = 2)
+mtext("Bias   ", side=2, at = 0.0, font=2, las=1, line=.5, cex = 2)
 
-Axis(side=2, at = c(-0.02, 0, 0.02), labels=TRUE, cex = 3)
-abline(h=0, lty=2, lwd = 2)
+Axis(side=2, at = c(-0.005, 0, 0.005), labels=TRUE, cex = 3)
+#abline(h=0, lty=2, lwd = 2)
 abline(h=topline)
 abline(h=midline)
 lapply(1:length(RMSE), function(i) {
@@ -684,7 +683,8 @@ select_results <- full_summary %>%
   filter(std_p==0,
          cox == 1
   ) %>% 
-  mutate(cover_dif = (cover - 0.95)*100) 
+  mutate(cover_dif = (cover - 0.95)*100) %>%
+  arrange(HE.estimator)
 
 select_results <- rbind(na_row, select_results, na_row)%>%
   as.data.frame()
@@ -710,14 +710,14 @@ index.ci <- match(c("q025","q975"), names(schart_results))
 labels <- list("Cox PH DID", "Proposed alternative")
 
 
-topline = -0.025
-midline = topline-0.015
-ylim <- c(midline-0.012,0.012)
+topline = -0.01
+midline = topline-0.01
+ylim <- c(midline-0.008,0.011)
 
 
 png(paste0(out_dir,"cox_did.png"), width = 10, height = 9, units = "in", res = 150)
 par(bg = palette$white)
-par(oma=c(1,0,1,1))
+par(oma=c(1.5,0,1,1))
 
 schart(schart_results, 
        labels = labels, 
@@ -728,10 +728,10 @@ schart(schart_results,
        highlight = 2, 
        leftmargin = 20, 
        col.est = c(palette$dark, palette$red), 
-       heights = c(4, 3), 
-       cex = c(1.5,1.5))
+       heights = c(3, 2), 
+       cex = c(1.25,1.25))
 
-mtext("Bias", side=2, at = 0.038, font=2, las=1, line=.5, cex = 2)
+mtext("Bias", side=2, at = 0.0, font=2, las=1, line=.5, cex = 2)
 
 Axis(side=2, at = c(-0.01, 0, 0.01), labels=TRUE, cex = 3)
 abline(h=0, lty=2, lwd = 2)
@@ -820,12 +820,12 @@ par(bg = palette$white)
 par(oma=c(1,0,1,1))
 
 schart(schart_results, labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
-       leftmargin = 15, col.est = c(palette$dark, palette$red), heights = c(4,2.75), cex = c(1.5,1.5))
+       leftmargin = 15, col.est = c(palette$dark, palette$red), heights = c(4.25,3.5), cex = c(1.5,1.5))
 
-mtext("Bias", side=2, at = 0.018, font=2, las=1, line=.5, cex = 2)
+mtext("Bias   ", side=2, at = 0.0, font=2, las=1, line=.5, cex = 2)
 
-Axis(side=2, at = c(-0.01, 0, 0.005), labels=TRUE, cex = 3)
-abline(h=0, lty=2, lwd = 2)
+Axis(side=2, at = c(-0.01, 0.005), labels=TRUE, cex = 3)
+#abline(h=0, lty=2, lwd = 2)
 abline(h=topline)
 abline(h=midline)
 lapply(1:length(RMSE), function(i) {
@@ -898,10 +898,10 @@ par(oma=c(1,0,1,1))
 schart(schart_results, labels = labels, ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
        highlight = 5, leftmargin = 15, col.est = c(palette$dark, palette$red), heights = c(4, 2.75), cex = c(1.5,1.5))
 
-mtext("Bias", side=2, at = 0.018, font=2, las=1, line=.5, cex = 2)
+mtext("Bias   ", side=2, at = 0.0, font=2, las=1, line=.5, cex = 2)
 
-Axis(side=2, at = c(-0.01, 0, 0.01), labels=TRUE, cex = 3)
-abline(h=0, lty=2, lwd = 2)
+Axis(side=2, at = c(-0.01, 0.01), labels=TRUE, cex = 3)
+#abline(h=0, lty=2, lwd = 2)
 abline(h=topline)
 abline(h=midline)
 lapply(1:length(RMSE), function(i) {
@@ -942,7 +942,7 @@ c_print[is.na(c_print)] <- " "
 RMSE <- select_results$RMSE
 # RMSE[is.na(RMSE)] <- 0
 RMSE <- as.numeric(RMSE)
-RMSE_print<- f(round(RMSE, digits =3))
+RMSE_print<- f(round(RMSE, digits =4))
 RMSE_print[is.na(RMSE_print)] <- " "
 
 schart_results <- select_results %>% 
@@ -969,7 +969,7 @@ schart(schart_results, labels, ylim = ylim, axes = FALSE, index.ci=index.ci, yla
 mtext("Bias", side=2, at = 0.018, font=2, las=1, line=.5, cex = 2)
 
 Axis(side=2, at = c(-0.01, 0, 0.01), labels=TRUE, cex = 3)
-abline(h=0, lty=2, lwd = 2)
+#abline(h=0, lty=2, lwd = 2)
 abline(h=topline)
 abline(h=midline)
 lapply(1:length(RMSE), function(i) {
@@ -1026,6 +1026,8 @@ ylimmin = min(min(out_pix$ci_lower), min(out_county$ci_lower))
 ylimmax = max(max(out_pix$ci_upper), max(out_county$ci_upper))
 ylim = c(ylimmin, ylimmax)
 
+par(oma=c(0,0,0,0))
+
 p1 <- ggplot(out_pix, ggplot2::aes(x = term, y = estimate, color = estimator, ymin = ci_lower, ymax = ci_upper)) +
   geom_point(position = position, size = 2.6) +
   geom_errorbar(position = position) +
@@ -1039,8 +1041,9 @@ p1 <- ggplot(out_pix, ggplot2::aes(x = term, y = estimate, color = estimator, ym
   ylim(ylimmin, ylimmax)+
   ggtitle(" Pixel as unit of analysis")+
   theme(plot.title = element_text(hjust = 0))
+p1 + theme(legend.position = "bottom")
 
-# ggsave(paste0(out_dir, "newDID_pix.png"), width = 3, height = 3, units = "in")
+ggsave(paste0(out_dir, "new_did_pix.png"), width = 8, height = 6, units = "in")
 
 
 p2 <- ggplot(out_county, ggplot2::aes(x = term, y = estimate, color = estimator, ymin = ci_lower, ymax = ci_upper)) +
@@ -1059,16 +1062,6 @@ p2 <- ggplot(out_county, ggplot2::aes(x = term, y = estimate, color = estimator,
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank(),
         plot.title = element_text(hjust = 0))
+p2 + theme(legend.position = "bottom")
 
-# ggsave(paste0(out_dir, "newDID_agg.png"), width = 5, height = 2.6, units = "in")
-
-
-p4 <- ggplot(data.frame(l = p1$labels$y, x = 1, y = 1)) +
-  geom_text(aes(x, y, label = l), angle = 90) + 
-  theme_void() +
-  coord_cartesian(clip = "off")
-
-p1$labels$y <- p2$labels$y <- " "
-
-combined <- p4 + (p1 | p2) & theme(legend.position = "bottom")
-ggsave(paste0(out_dir, "newDID_combined.png"), width = 10, height = 7, units = "in")
+ggsave(paste0(out_dir, "new_did_agg.png"), width = 8, height = 6, units = "in")
