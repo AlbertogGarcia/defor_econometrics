@@ -161,7 +161,6 @@ kable(lit_table, format = "latex",
 ```
 \clearpage
 
-
 In each of the studies detailed in Table \@ref(tab:table-lit), the researcher's goal is to measure the impact that a specific policy had on deforestation within treated units, also known as the \textit{average treatment effect on the treated} ($ATT$). The $ATT$ estimates the difference between the average deforestation rate of treated units with treatment, and the average deforestation rate of treated units without treatment. The fundamental challenge is that, for every treated unit, the researcher is unable to observe the value that the outcome would have taken in the absence of treatment [@holland1986]. In our case, this means that the researcher cannot observe the deforestation that would have occurred in treated units had they not received treatment. 
 
 We model deforestation $(y_{ivt})$ as a binary choice by a landowner to clear a small plot of land $i$ within their larger property $v$ at time $t$. The decision to deforest depends upon a latent variable $(y_{ivt}^*)$ that represents the monetary returns from the plot of land in its cleared state $(V_{ivt}^{cleared})$ relative to the returns from its forested state $(V_{ivt}^{uncleared})$, such that:
@@ -188,17 +187,17 @@ However, this basic model makes an assumption that the decision to deforest is r
    \end{cases}
 \end{align}
 
-Below, we present a simple example of panel data following this guidance in the 2x2 setting. Suppose we observe data on nine pixels with structure similar to @hansen2013 and are interested in deforestation over six years, where treatment of some pixels begins in year 4. Note that panel datasets with this structure still maintain variation across groups, pre and post-treatment. 
+Below, we present a simple example of panel data following this guidance. Suppose we observe data on nine pixels with structure similar to @hansen2013 and are interested in deforestation over six years, where treatment of some pixels begins in year 4. Note that panel datasets with this structure still maintain variation across groups, pre and post-treatment. 
 
-```{r tile-fig, echo = FALSE, warnings = FALSE, results = FALSE, message=FALSE, fig.cap="Example pixelated deforestation data, indicating year of deforestation.",  fig.width = 3, fig.height = 3, out.width="100%"}
+```{r tile-fig, echo = FALSE, warnings = FALSE, results = FALSE, message=FALSE, fig.cap="Example pixelated deforestation data, indicating year of deforestation.",  fig.width = 2.5, fig.height = 2.5, out.width="75%"}
 # Setup the data
-m <- matrix(c("Pixel 1:\nnever\ncleared","Pixel 2:\ncleared in\nyear 2","Pixel 3:\ncleared in\nyear 4","Pixel 4:\ncleared in\nyear 1","Pixel 5:\ncleared in\nyear 6","Pixel 6:\ncleared in\nyear 3","Pixel 7:\ncleared in\nyear 5","Pixel 8:\nnever\ncleared", "Pixel 9:\ncleared in\nyear 2"), nrow=3, ncol=3, byrow = T)
+m <- matrix(c("Pixel 1:\nnever\ncleared","Pixel 2:\ncleared in\nyear 2","Pixel 3:\ncleared in\nyear 3","Pixel 4:\ncleared in\nyear 1","Pixel 5:\ncleared in\nyear 4","Pixel 6:\ncleared in\nyear 2","Pixel 7:\ncleared in\nyear 4","Pixel 8:\nnever\ncleared", "Pixel 9:\ncleared in\nyear 3"), nrow=3, ncol=3, byrow = T)
 df <- expand.grid(x=1:ncol(m),y=1:nrow(m))
 df$val <- m[as.matrix(df[c('y','x')])]
 
 ggplot(df, aes(x=x, y=y, label=val)) + 
   geom_tile(fill='transparent', colour = 'black') + 
-  geom_text(size = 4) + 
+  geom_text(size = 3) + 
   scale_y_reverse() +
   theme_classic() + 
   theme(axis.text  = element_blank(),
@@ -217,12 +216,10 @@ ggplot(df, aes(x=x, y=y, label=val)) +
 Period & Year & Pixel 1 & Pixel 2 & Pixel 3 & Pixel 4 & Pixel 5 & Pixel 6 & Pixel 7 & Pixel 8 & Pixel 9\\
 \hline 
 Pre-      & 1 & 0 & 0 & 0 &  1 & 0 & 0 & 0 & 0 &  0 \\
-treatment & 2 & 0 & 1 & 0 &  - & 0 & 0 & 0 & 0 &  1\\
-          & 3 & 0 & - & 0 &  - & 0 & 1 & 0 & 0 &  -\\
+treatment & 2 & 0 & 1 & 0 &  - & 0 & 1 & 0 & 0 &  0\\
 \hline   
-Post-     & 4 & 0 & - & 1 &  - & 0 & - & 0 & 0 &  -\\
-treatment & 5 & 0 & - & - &  - & 0 & - & 1 & 0 &  -\\
-          & 6 & 0 & - & - &  - & 1 & - & - & 0 &  -\\
+Post-     & 3 & 0 & - & 1 &  - & 0 & - & 0 & 0 &  1\\
+treatment & 4 & 0 & - & - &  - & 1 & - & 1 & 0 &  -\\
 \hline                                       
 \end{tabular}
 \end{table}
