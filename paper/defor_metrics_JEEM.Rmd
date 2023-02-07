@@ -71,7 +71,7 @@ FOR ROBERT:
 - read through and edit updated introduction and broader structure
 - does this flow better?
 - not an assignment, but a question I have:
-In 2x2 setting where each period does consist of one year, TWFE is equal to exactly the difference in post-treatment means. However, when each period consists of more years (e.g., Table 3) the TWFE is slightly different than the ex-post difference in means. I'm guessing this has to do with proportion of pixels still present in the panel in the different post-treatment years, but not sure how much we want to precisely hone in on that difference. Might become more clear if we adjust proof to account for more years. 
+In 2x2 setting where each period does consist of one year, TWFE is equal to exactly the difference in post-treatment means. However, when each period consists of more years (e.g., Table 3) the TWFE is slightly different than the ex-post difference in means (and the final period difference in means). I'm guessing this has to do with proportion of pixels still present in the panel in the different post-treatment years, but not sure how much we want to precisely hone in on that difference. Might become more clear if we adjust proof to account for more years. 
 
 
 COMPLETED:
