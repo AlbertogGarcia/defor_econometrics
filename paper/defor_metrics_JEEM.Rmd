@@ -143,7 +143,7 @@ Our main result shows that TWFE regressions with point unit fixed effects do not
 
 To help guide future impact evaluations, we identify multiple ways in which this bias can be reduced or even eliminated. In the land use context, one easily implemented solution is to aggregate the binary pixels spatially. Both pixel-level TWFE specifications with spatially aggregated unit fixed effects and TWFE specifications with spatially aggregated units of analysis recover the expected treatment effect parameter. We also present a new survival-based DID estimator that relies on the common trends assumption typically invoked in linear models. We then explore non-random selection that arises due to irreversibility in the deforestation setting and how this feature of the data may lead to bias. Finally, we reflect on the econometric benefits that emerge when researchers are able to match their model structure to the relevant scale of the deforestation process. 
 
-# Setup
+# Setup {#setup}
 
 We focus on the case in which a researcher would like to quantify the impact an intervention has had on deforestation rates. We assume that the intervention has clearly defined boundaries (e.g., a protected area, certified concession, or indigenous territory), and that the researcher has access to spatially explicit observations of forest cover and forest loss spanning multiple years over the periods before and after the intervention was adopted. This general setting describes a broad array of studies that apply panel methods to remotely sensed data. Table \@ref(tab:table-lit) shows an unsystematic review of avoided deforestation impact evaluation studies using panel econometric methods and data accessed as pixelated binary deforestation. There also exist a vast array of studies using matching [e.g., @pfaff2014; @robalino2015; @pfaff2015], but Table \@ref(tab:table-lit) focuses on only those incorporating panel approaches.
 
@@ -182,7 +182,7 @@ We model deforestation $(y_{ivt})$ as a binary choice by a landowner to clear a 
 
 This generic clearing rule underpins a broad class of more specific static and dynamic models that have been used to explore the determinants of deforestation [e.g., @pfaff1999; @kerr2003; @pfaff2004].
 
-However, this basic model makes an assumption that the decision to deforest is reversible. In reality, a number of characteristics of both the process of deforestation, as well as the methods used to detect deforestation in individual plots, complicate this assumption. First, the goal of many conservation interventions is to prevent the loss of mature forests that may take decades, if not centuries, to regrow. In such cases, deforestation itself may be considered irreversible in human time scales, focusing the researchers' attention upon the first instance in which a plot is deforested. Even when deforestation of secondary forests is an object of interest, constraints imposed by remotely sensed datasets may force empirical researchers to treat deforestation as irreversible. Gradual processes of reforestation are inherently harder to identify than abrupt losses of forest cover [@hansen2013]. In addition, determining the precise year in which the extended process of forest regrowth began is currently an active area of research for the remote sensing community, and often requires many years of post-regrowth observations. As a result, commonly used deforestation datasets such as the Global Forest Change product often only identify the first year in which a pixel was cleared [@hansen2013]. Whether desired, or due to technical limitations, the resulting inability to observe repeated deforestation means that deforestation is, in effect, an irreversible process in most conservation impact evaluations. In response to this irreversibility, studies including @jones2015 and @alix-garcia2017 have suggested that deforested pixels should be dropped in the periods after they are first cleared. We follow this guidance, further modifying our outcome, $y^o_{ivt}$, the observed binary deforestation variable:
+However, this basic model makes an assumption that the decision to deforest is reversible. In reality, a number of characteristics of both the process of deforestation, as well as the methods used to detect deforestation in individual plots, complicate this assumption. First, the goal of many conservation interventions is to prevent the loss of mature forests that may take decades, if not centuries, to regrow. In such cases, deforestation itself may be considered irreversible in human time scales, focusing the researchers' attention upon the first instance in which a plot is deforested. Even when deforestation of secondary forests is an object of interest, constraints imposed by remotely sensed datasets may force empirical researchers to treat deforestation as irreversible. Gradual processes of reforestation are inherently harder to identify than abrupt losses of forest cover [@hansen2013]. In addition, determining the precise year in which the extended process of forest regrowth began is currently an active area of research for the remote sensing community, and often requires many years of post-regrowth observations. As a result, commonly used deforestation datasets such as the Global Forest Change product often only identify the first year in which a pixel was cleared [@hansen2013]. Whether desired, or due to technical limitations, the resulting inability to observe repeated deforestation means that deforestation is, in effect, an irreversible process in most conservation impact evaluations. In response to this irreversibility, studies including @jones2015 and @alix-garcia2017 have suggested that deforested pixels should be dropped in the periods after they are first cleared. We follow this guidance, further modifying our outcome, $y^o_{ivt}$, the observed binary deforestation variable. An example panel dataset with this structure can be seen in \@ref(example-panel)
 
 <!-- NOTE: Add more citations to previous paragraph -->
 
@@ -194,43 +194,6 @@ However, this basic model makes an assumption that the decision to deforest is r
    \end{cases}
 \end{align}
 
-Below, we present a simple example of panel data with this structure. Suppose we observe a pixelated map of nine pixels with structure similar to @hansen2013 and are interested in deforestation over four years, where treatment of some pixels begins in year 3. Following the above guidance, Table XX yields the panel dataset. Note that panel datasets with this structure still maintain variation pre- and post-treatment.
-
-```{r tile-fig, echo = FALSE, warnings = FALSE, results = FALSE, message=FALSE, fig.cap="Example pixelated deforestation data, indicating year of deforestation.",  fig.width = 2.5, fig.height = 2.5, out.width="75%"}
-# Setup the data
-m <- matrix(c("Pixel 1:\nnever\ncleared","Pixel 2:\ncleared\nYear 2","Pixel 3:\ncleared\nYear 3","Pixel 4:\ncleared\nYear 1","Pixel 5:\ncleared\nYear 4","Pixel 6:\ncleared\nYear 2","Pixel 7:\ncleared\nYear 4","Pixel 8:\nnever\ncleared", "Pixel 9:\ncleared\nYear 3"), nrow=3, ncol=3, byrow = T)
-df <- expand.grid(x=1:ncol(m),y=1:nrow(m))
-df$val <- m[as.matrix(df[c('y','x')])]
-
-ggplot(df, aes(x=x, y=y, label=val)) + 
-  geom_tile(fill='transparent', colour = 'black') + 
-  geom_text(size = 3) + 
-  scale_y_reverse() +
-  theme_classic() + 
-  theme(axis.text  = element_blank(),
-        panel.grid = element_blank(),
-        axis.line  = element_blank(),
-        axis.ticks = element_blank(),
-        axis.title = element_blank())+
-  coord_fixed()
-
-```
-
-\begin{center}
-\begin{table}[h!]
-\begin{tabular}{| c | c | c c c c c c c c c |}
-\hline
-Period & Year & Pixel 1 & Pixel 2 & Pixel 3 & Pixel 4 & Pixel 5 & Pixel 6 & Pixel 7 & Pixel 8 & Pixel 9\\
-\hline 
-Pre-      & 1 & 0 & 0 & 0 &  1 & 0 & 0 & 0 & 0 &  0 \\
-treatment & 2 & 0 & 1 & 0 &  - & 0 & 1 & 0 & 0 &  0\\
-\hline   
-Post-     & 3 & 0 & - & 1 &  - & 0 & - & 0 & 0 &  1\\
-treatment & 4 & 0 & - & - &  - & 1 & - & 1 & 0 &  -\\
-\hline                                       
-\end{tabular}
-\end{table}
-\end{center}
 
 Our parameter of interest, the $ATT$, is the average effect of an intervention on treated pixels. Let $y_{it}(1)$ and $y_{it}(0)$ denote the potential outcomes of pixel $i$ in property $v$ in time $t$ with and without the treatment, respectively. In addition, let $t_0$ denote the year that the intervention was implemented and let $D_i$ represent a dummy indicating whether pixel $i$ is ever treated. The $ATT$ can now be expressed as: 
 
@@ -493,7 +456,6 @@ The $ATT$ in our simulated setting is, therefore, defined:
 ATT =& P(y^*_{ivt}(1) > 1 | D_i = 1, t \geq t_0) - P(y^*_{ivt}(0) > 1 | D_i = 1, t \geq t_0)\\
 =& P(\beta_0 + \beta_1 + \beta_{2,1} + \beta_3 + \alpha_i + u_{it} + \rho_{v} > 1) - P(\beta_0 + \beta_1 + \beta_{2,1} + \alpha_i + u_{it} + \rho_{v} > 1)
 \end{align}
-
 
 ## Assumed parameter values
 
@@ -1390,7 +1352,7 @@ Researchers can take several practical steps in the design of their econometric 
 
 <!-- In order to avoid issues associated with TWFE models that incorporate point fixed effects, researchers can take advantage of aggregated spatial units. TWFE models with aggregated units of analysis and point level TWFE models with aggregated fixed effects are both viable solutions. Which spatial unit of aggregation is preferable depends upon the process by which land use change actually occurs. Bias can arise from non-random sample selection when the outcome represents an irreversible state, as is the case in the deforestation setting. It can also arise when the specification is unrelated to the scale of the process determining land use change. As such, we explore the benefits of conducting estimation and inference at the scale that drives landscape heterogeneity and provide guidance for when the researcher does not have access to geospatial boundaries detailing the relevant units. -->
 
-Our research contributes to an emerging literature calling for a deeper understanding of the interdependencies between the creation of remotely sensed data, and the interpretation of that data through econometric models [@jain2020; @alix-garcia_remotely_2022]. <!-- Note: At some point during review, we'll want to cite Carleton, Proctor and Sum. Currently their draft is still "do not cite", but would be relevant here. --> However, we have largely abstracted away from prior concerns that characteristics of the remote sensing data collection process, including sensor properties, atmospheric conditions, and image processing methods, may influence the structure of output data products. Of particular concern is the potential for these processes to give rise to non-classical measurement error, which can lead to biased estimates of the $ATT$ [@wooldridge2010].  Importantly, our study implicitly assumes that pixel-level outcomes are measured without any non-classical measurement error. Fortunately, @alix-garcia_remotely_2022 propose a solution for unbiased causal inference in the context of a remotely sensed binary outcome in which misclassification is non-classical.
+Our research contributes to an emerging literature calling for a deeper understanding of the interdependencies between the creation of remotely sensed data, and the interpretation of that data through econometric models [@jain2020; @alix-garcia_remotely_2022; @proctor_parameter_2023]. However, we have largely abstracted away from prior concerns that characteristics of the remote sensing data collection process, including sensor properties, atmospheric conditions, and image processing methods, may influence the structure of output data products. Of particular concern is the potential for these processes to give rise to non-classical measurement error, which can lead to biased estimates of the $ATT$ [@wooldridge2010]. Importantly, our study implicitly assumes that pixel-level outcomes are measured without any non-classical measurement error. Fortunately, @alix-garcia_remotely_2022 propose a solution for unbiased causal inference in the context of a remotely sensed binary outcome in which misclassification is non-classical.
 
 Although this paper focuses upon efforts to identify the impacts of conservation policies on deforestation, the lessons we highlight are relevant to a wider audience. Specifically, many of our key findings apply to diverse settings in which the outcome of interest represents an irreversible, binary event. For example, studies exploring the drivers of unidirectional technology adoption may fall prey to the same issues we have identified in the context of deforestation. Moving forward, researchers should carefully consider the underlying structure of their data, and ensure that their chosen models minimize bias and allow inference at expected levels of confidence. Misleading causal inference may lead policymakers to avoid effective policies, or to adopt interventions that worsen environmental damages. 
 
@@ -1407,6 +1369,46 @@ We thank Kelsey Jack, Andrew Plantinga, and Jennifer Alix-Garcia for useful comm
 <div id="refs"></div>
 
 # Appendix {#appendix}
+
+## Example pixel-level panel data structure {#example-panel}
+
+Below, we present a simple example of panel data with the structure described in section \@ref(setup). Suppose we observe a pixelated map of nine pixels with structure similar to @hansen2013 and are interested in deforestation over four years, where treatment of some pixels begins in year 3. Following the above guidance yields the panel dataset. Note that panel datasets with this structure still maintain variation pre- and post-treatment.
+
+```{r tile-fig, echo = FALSE, warnings = FALSE, results = FALSE, message=FALSE, fig.cap="Example pixelated deforestation data, indicating year of deforestation.",  fig.width = 2.5, fig.height = 2.5, out.width="75%"}
+# Setup the data
+m <- matrix(c("Pixel 1:\nnever\ncleared","Pixel 2:\ncleared\nYear 2","Pixel 3:\ncleared\nYear 3","Pixel 4:\ncleared\nYear 1","Pixel 5:\ncleared\nYear 4","Pixel 6:\ncleared\nYear 2","Pixel 7:\ncleared\nYear 4","Pixel 8:\nnever\ncleared", "Pixel 9:\ncleared\nYear 3"), nrow=3, ncol=3, byrow = T)
+df <- expand.grid(x=1:ncol(m),y=1:nrow(m))
+df$val <- m[as.matrix(df[c('y','x')])]
+
+ggplot(df, aes(x=x, y=y, label=val)) + 
+  geom_tile(fill='transparent', colour = 'black') + 
+  geom_text(size = 3) + 
+  scale_y_reverse() +
+  theme_classic() + 
+  theme(axis.text  = element_blank(),
+        panel.grid = element_blank(),
+        axis.line  = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank())+
+  coord_fixed()
+
+```
+
+\begin{center}
+\begin{table}[h!]
+\begin{tabular}{| c | c | c c c c c c c c c |}
+\hline
+Period & Year & Pixel 1 & Pixel 2 & Pixel 3 & Pixel 4 & Pixel 5 & Pixel 6 & Pixel 7 & Pixel 8 & Pixel 9\\
+\hline 
+Pre-      & 1 & 0 & 0 & 0 &  1 & 0 & 0 & 0 & 0 &  0 \\
+treatment & 2 & 0 & 1 & 0 &  - & 0 & 1 & 0 & 0 &  0\\
+\hline   
+Post-     & 3 & 0 & - & 1 &  - & 0 & - & 0 & 0 &  1\\
+treatment & 4 & 0 & - & - &  - & 1 & - & 1 & 0 &  -\\
+\hline                                       
+\end{tabular}
+\end{table}
+\end{center}
 
 
 ## Proof showing point-level TWFE regression models with point fixed effects do not identify $ATT$ {#TWFE-proof}
