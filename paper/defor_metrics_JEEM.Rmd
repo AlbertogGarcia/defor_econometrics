@@ -56,7 +56,8 @@ nocite:
 <!-- TODO list:  
 
 - Consistent use of "point" or "pixel" in proofs and early sections
-- More examples beyond deforestation: educational attainment, mortality
+- More examples beyond deforestation: educational attainment, epidemiology
+- 
 
 Tentative assigning of list items:
 
@@ -129,7 +130,7 @@ Economists and conservation scientists are increasingly measuring treatment effe
 
 # Introduction
 
-Policymakers often need to understand the causal impacts of conservation interventions. Can payments for ecosystem services encourage lasting reforestation? Do marine protected areas stop unsustainable harvesting of fish? While randomized experiments are the gold standard for the identification of causal relationships [@edwards2020; @jayachandran2017], conservation often poses questions that are prohibitively expensive, unethical or impossible to pursue through experimentation. In such settings, a growing portfolio of statistical techniques enable researchers to draw causal conclusions using observational data [@larsen2019; @baylis2016; @ferraro2014; @miteva2012]. Increasingly, these econometric approaches to impact evaluation are being used to disentangle the causal relationships that underpin conservation decisionmaking [@butsic2017; @baylis2016; @williams2020]. Panel econometric methods such as difference-in-differences (DID) and two-way fixed effects (TWFE) regression are among the most popular approaches researchers adopt to conduct impact evaluation with observational data [@santanna_dr_2020; @dechaisemartin2020], and this extends to the conservation setting. In particular, their application to forest conservation has become increasingly common in recent years due to new availability of remotely sensed data detailing land cover change [@blackman2013; @jones2015]. To date, insufficient attention has been paid to how the structure of such data may affect the performance of popular panel econometric tools.
+Policymakers often need to understand the causal impacts of conservation interventions. Can payments for ecosystem services encourage lasting reforestation? Do marine protected areas stop unsustainable harvesting of fish? While randomized experiments are the gold standard for the identification of causal relationships [@edwards2020; @jayachandran2017], conservation often poses questions that are prohibitively expensive, unethical or impossible to pursue through experimentation. In such settings, a growing portfolio of statistical techniques enable researchers to draw causal conclusions using observational data [@larsen2019; @baylis2016; @ferraro2014; @miteva2012]. Increasingly, these econometric approaches to impact evaluation are being used to disentangle the causal relationships that underpin conservation decisionmaking [@butsic2017; @baylis2016; @williams2020]. Panel econometric methods such as difference-in-differences (DID) and two-way fixed effects (TWFE) regression are among the most popular approaches researchers adopt to conduct impact evaluation with observational data [@dechaisemartin2020; @santanna_dr_2020; @goodman-bacon2021], and this extends to the conservation setting. In particular, their application to forest conservation has become increasingly common in recent years due to new availability of remotely sensed data detailing land cover change [@blackman2013; @jones2015]. To date, insufficient attention has been paid to how the structure of such data may affect the performance of popular panel econometric tools.
 
 <!-- Policymakers often need to understand the causal impacts of policy interventions that seek to avoid or increase the occurence of binary, irreversible events. Such events include mortality [e.g., @friedman], technology adoption [e.g., @bollinger], reincarceration [e.g., @mastrobuoni], and deforestation [e.g., @rico-straffon_2023]. Do anti-malaria initiatives reduce infant mortality? Are protected areas effective at avoiding deforestation? Panel econometric methods such as difference-in-differences (DID) and two-way fixed effects (TWFE) regression are among the most popular approaches researchers adopt to conduct impact evaluation with observational data [@santanna_dr_2020; @dechaisemartin2020], and this extends to contexts with irreversible outcomes. In particular, their application to forest conservation has become increasingly common in recent years due to new availability of remotely sensed data detailing land cover change [@blackman2013; @jones2015]. To date, insufficient attention has been paid to how such data may affect the performance of popular panel econometric tools. -->
 
@@ -145,7 +146,7 @@ To help guide future impact evaluations, we identify multiple ways in which this
 
 # Setup {#setup}
 
-We focus on the case in which a researcher would like to quantify the impact an intervention has had on deforestation rates. We assume that the intervention has clearly defined boundaries (e.g., a protected area, certified concession, or indigenous territory), and that the researcher has access to spatially explicit observations of forest cover and forest loss spanning multiple years over the periods before and after the intervention was adopted. This general setting describes a broad array of studies that apply panel methods to remotely sensed data. Table \@ref(tab:table-lit) shows an unsystematic review of avoided deforestation impact evaluation studies using panel econometric methods and data accessed as pixelated binary deforestation. There also exist a vast array of studies using matching [e.g., @pfaff2014; @robalino2015; @pfaff2015], but Table \@ref(tab:table-lit) focuses on only those incorporating panel approaches.
+We focus on the case in which a researcher would like to quantify the impact an intervention has had on deforestation rates. We assume that the intervention has clearly defined boundaries (e.g., a protected area, certified concession, or indigenous territory), and that the researcher has access to spatially explicit observations of forest cover and forest loss spanning multiple years over the periods before and after the intervention was adopted. This general setting describes a broad array of studies that apply panel methods to remotely sensed data. Table \@ref(tab:table-lit) shows an unsystematic review of avoided deforestation impact evaluation studies using panel econometric methods and data accessed as pixelated binary deforestation. There also exist a vast array of studies using matching as the primary identification approach [e.g., @pfaff_governance_2014; @robalino2015; @pfaff2015], but Table \@ref(tab:table-lit) focuses on only those incorporating panel approaches.
 
 \renewcommand{\arraystretch}{1.5}
 ```{r table-lit}
@@ -1491,7 +1492,7 @@ However, this is only valid when $y_{i1}=0$. As a result, we can restate as:
 &= \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y_{i2} - \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y_{i2}
 \end{align*}
 
-Thus far, we have shown that $\beta_{TWFE}$ is equal
+Thus far, we have shown that $\beta_{TWFE}$ is equal to the ex-post difference in means between treatment and control units. 
 
 
 Using the potential outcomes framework, we consider the potential outcomes for each observation as $y_{i,2}(D_i)$. In this notation, the treatment effect for unit $i$ can be defined as
@@ -1499,24 +1500,6 @@ Using the potential outcomes framework, we consider the potential outcomes for e
 $$\tau_i = y_{i,2}(1) - y_{i,2}(0) $$
 
 
-
-Applying the potential outcomes notation to indicate whether we see the treated or untreated outcome:
-\begin{align*}
-\hat{\beta}_{TWFE}&= \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y_{i2}(1) - \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y_{i2}(0)\\
-\end{align*}
-
-Adding and subtracting $\frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y_{i2}(0)$ gives:
-\begin{align*}
-\hat{\beta}_{TWFE}&=    \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y_{i2}(1) - y_{i2}(0)  \\
-+& \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=1}y_{i2}(0) - \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y_{i2}(0) 
-\end{align*}
-
-And finally, taking the expectation gives:
-\begin{align*}
-E[\hat{\beta}_{TWFE}]&=ATT+Diff\\
-\beta_{TWFE}&=ATT+Diff\\
-\blacksquare &
-\end{align*}
 
 ## Keeping pixels in periods after they are first deforested is not a viable solution  {#keep-pixels}
 
