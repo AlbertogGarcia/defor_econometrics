@@ -168,7 +168,7 @@ kable(lit_table, format = "latex",
 
 ```
 
-We model deforestation $(y_{ivt})$ as a binary choice by a landowner to clear a small plot of land $i$ within their larger property $v$ in year $t$. The decision to deforest depends upon a latent variable $(y_{ivt}^*)$ that represents the monetary returns from the plot of land in its cleared state $(V_{ivt}^{cleared})$ relative to the returns from its forested state $(V_{ivt}^{uncleared})$, such that:
+We model deforestation $(y_{ivt})$ as a binary choice by a landowner to clear a small plot of land $i$ within their larger property $v$ in year $t$, where $t \in T$. The decision to deforest depends upon a latent variable $(y_{ivt}^*)$ that represents the monetary returns from the plot of land in its cleared state $(V_{ivt}^{cleared})$ relative to the returns from its forested state $(V_{ivt}^{uncleared})$, such that:
 
 \begin{align}
  y^*_{ivt} = V^{cleared}_{ivt} - V^{uncleared}_{ivt} (\#eq:clearing)\\
@@ -193,7 +193,7 @@ However, this basic model makes an assumption that the decision to deforest is r
 \end{align}
 
 
-Our parameter of interest, the $ATT$, is the average effect of an intervention on treated pixels. Let $y_{ivt}(1)$ and $y_{ivt}(0)$ denote the potential outcomes of pixel $i$ in property $v$ in year $t$ with and without the treatment, respectively. In addition, let $t_0$ denote the year that the intervention was first implemented and let $D_i$ represent a dummy indicating whether pixel $i$ is ever treated. The $ATT$ can now be expressed as: 
+Our parameter of interest, the $ATT$, is the average effect of an intervention on treated pixels. Let $y_{ivt}(1)$ and $y_{ivt}(0)$ denote the potential outcomes of pixel $i$ in property $v$ in year $t$ with and without the treatment, respectively. In addition, let $T_{pre}$ denote the years prior to the existence of the intervention and $T_{post}$ the years in and after the intervention is implemented. We allow both $T_{pre}$ and $T{post}$ to consist of multiple years. Then, let $t_0$ denote the first year of $T_{post}$. Let $D_i$ represent a dummy variable indicating whether pixel $i$ is ever treated. The $ATT$ can now be expressed as: 
 
 \begin{align}
 ATT = E[y_{ivt}(1) - y_{ivt}(0) |  t\geq t_0, D_i=1]
@@ -222,7 +222,7 @@ Under the above two assumptions, the researcher can estimate the $ATT$ using a t
 \textbf{Regression 1:} (DID regression)
 Let $\beta_{DID}$ denote the coefficient of the interaction between $D_{i}$ and an indicator for whether the intervention has been implemented in time $t$, $\mathbb{1} \{ t\geq t_0\}$,  in the following (population) OLS regression: 
 \begin{align*}
-y^o_{ivt} = \alpha_0 + \alpha_1 D_i + \alpha_2 \mathbb{1} \{ t\geq t_0\}+ \beta_{DID} \text{ x } D_i \mathbb{1} \{ t\geq t_0\}  + \epsilon_{ivt}
+y^o_{ivt} = \alpha_0 + \alpha_1 D_i + \alpha_2 \mathbb{1} \{ t\geq t_0\}+ \beta_{DID} \times D_i \mathbb{1} \{ t\geq t_0\}  + \epsilon_{ivt}
 \end{align*}
 
 Conceptually, the DID estimator calculates the treatment effect as the difference between the differences of the treated and untreated observations before and after treatment [@butsic2017]. 
@@ -275,9 +275,9 @@ There may be cases in which researchers do want to keep observations in the pane
 
 ## Hazard rate ratios from a single survival model do not estimate the $ATT$ under common trends
 
-Survival analysis has emerged as a common approach to modeling irreversible events [@emmert-streib_survival_2019]. It used frequently to model events such as mortality [@puterman_predicting_2020] and recidivism [e.g., @luallen_recidivism_2018], but can also be appliedd to deforestation contexts. Survival models, such as the Cox Proportional Hazards model, quantify how covariates relate to changes in the length of time that a unit remains in a sample. In the case of deforestation, survival analyses can be used to explore how policy adoption changes the duration that treated, forested pixels survive until they are first cleared. 
+Survival analysis has emerged as a common approach to modeling irreversible events [@emmert-streib_survival_2019]. It used frequently to model events such as mortality [e.g., @puterman_predicting_2020] and recidivism [e.g., @luallen_recidivism_2018], but can also be appliedd to deforestation contexts. Survival models, such as the Cox Proportional Hazards model, quantify how covariates relate to changes in the length of time that a unit remains in a sample. In the case of deforestation, survival analyses can be used to explore how policy adoption changes the duration that treated, forested pixels survive until they are first cleared. 
 
-Despite the theoretical appeal of using survival models to study deforestation, they are still relatively uncommon in conservation impact evaluation. One emerging approach introduces the intuition of a difference-in-differences research design into a Cox Proportional Hazards model [e.g. @heilmayr2020; @sales2022]. Specifically, researchers estimate a Cox proportional hazards model of the following general form [e.g., @mastrobuoni]:
+Despite the theoretical appeal of using survival models to study deforestation, they are still relatively uncommon in conservation impact evaluation. One emerging approach introduces the intuition of a difference-in-differences research design into a Cox Proportional Hazards model [e.g., @heilmayr2020; @sales2022]. Specifically, researchers estimate a Cox proportional hazards model of the following general form [e.g., @mastrobuoni]:
 
 \textbf{Regression 3:} (Cox DID regression)
 Let $\beta_{coxDID}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
@@ -406,7 +406,7 @@ analysis_km2 <- nobs * 0.0009
 knitr::include_graphics("figs/landscape_map.png")
 ```
 
-Figure \@ref(fig:counterfactual) displays a simulated conservation intervention that reduced deforestation rates in treated areas --- the landscape is depicted as observed by the researcher at the end of the observation period, including the unobservable counterfactual of what would have happened if the conservation intervention had not been adopted. Note that in untreated areas, there is no counterfactual deforestation, since no intervention ever took place. We begin each Monte Carlo simulation by creating a synthetic landscape consisting of `r sqrt(nobs)` rows and `r sqrt(nobs)` columns of square pixels (`r nobs` total pixels), equivalent to a raster that is `r analysis_to_fig_ratio` times larger than what is illustrated in Figure \@ref(fig:counterfactual). We assume that each pixel has a resolution of 30 meters, comparable to the resolution of many Landsat-based, remote sensing analyses. The landscape thus represents an area of approximately `r analysis_km2` km2. We then divide this landscape into a variety of spatial units, composed of either uniform aggregations of pixels (i.e. large or small "grid cells"), or randomly spaced Thiessen polygons (i.e. "counties" or "properties"). Grid cells are intended to represent arbitrary units of spatial aggregation imposed by the researcher. In contrast, counties and properties are intended to represent simulated administrative units over which policy or land use decisions are made. Table \@ref(tab:res) summarizes the relative scale of each of these spatial units under our baseline specifications.
+Figure \@ref(fig:counterfactual) displays a simulated conservation intervention that reduced deforestation rates in treated areas --- the landscape is depicted as observed by the researcher at the end of the observation period, including the unobservable counterfactual of what would have happened if the conservation intervention had not been adopted. Note that in untreated areas, there is no counterfactual deforestation, since no intervention ever took place. We begin each Monte Carlo simulation by creating a synthetic landscape consisting of `r sqrt(nobs)` rows and `r sqrt(nobs)` columns of square pixels (22,500 total pixels), equivalent to a raster that is `r analysis_to_fig_ratio` times larger than what is illustrated in Figure \@ref(fig:counterfactual). We assume that each pixel has a resolution of 30 meters, comparable to the resolution of many Landsat-based, remote sensing analyses. The landscape thus represents an area of approximately `r analysis_km2` km2. We then divide this landscape into a variety of spatial units, composed of either uniform aggregations of pixels (i.e. large or small "grid cells"), or randomly spaced Thiessen polygons (i.e. "counties" or "properties"). Grid cells are intended to represent arbitrary units of spatial aggregation imposed by the researcher. In contrast, counties and properties are intended to represent simulated administrative units over which policy or land use decisions are made. Table \@ref(tab:res) summarizes the relative scale of each of these spatial units under our baseline specifications.
 
 <!-- TODO (during review): Note that our counties are still really small. The average municipality in Brazil is 1,500 km2, and the smallest county in the US is ~15km2. While this is in review, should we simulate with larger counties?-->
 
