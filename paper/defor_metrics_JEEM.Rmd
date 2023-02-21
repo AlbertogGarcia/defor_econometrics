@@ -66,6 +66,9 @@ FOR ALBERT:
 - double check all labels
 - Finish adding new citations
 - missing XX cites
+- more informative figure captions
+- keep figures 3 and 4 consistent
+- typo in "imputation bias section"
 
 FOR ROBERT: 
 - read through and edit updated introduction and broader structure
@@ -74,7 +77,6 @@ FOR ROBERT:
 COMPLETED:
 - tried to ground Monte Carlo setup in potential outcomes 
 - added example panel into appendix in order to avoid same confusion as reviewer 4 
-- moved exercise comparing TWFE to ex-post single difference in results section, more intuition behind failure of TWFE
 - made changes to specification charts, hopefully making easier to read; TWFE vs. DID now has own spec chart to highlight that they are not equivalent
 - added discussion for when keeping points might be desirable
 - adjusted structure now follows:
@@ -118,6 +120,7 @@ palette <- list("white" = "#FAFAFA",
                 "dark" = "#0c2230",
                 "red" = "#ed195a",
                 "blue" = "#1c86ee",
+                "dark_blue" = "#00008b",
                 "green" = "#7CAE7A",
                 "dark_green" = "#496F5D",
                 "gold" = "#DAA520")
@@ -635,11 +638,11 @@ select_results <- as.data.frame(subset(select_results, select=-c(cover, RMSE)))
 index.ci <- match(c("q05","q95"), names(select_results))
 
 # One could also add information about model fit to this chart
-topline = -0.01
+topline = -0.007
 
-midline = topline-0.018-.0025
+midline = topline-0.004-.0025
 
-ylim <- c(midline-.018,0.0175)
+ylim <- c(midline-.005,0.014)
 #bottomline = (min(ylim)+topline)/2
 #Create the plot
 
@@ -651,7 +654,7 @@ leg_cex = 1.2
 schart(select_results,labels, ylim = ylim, index.ci=index.ci, col.est = c(palette$dark, palette$blue),
        bg.dot=c(palette$dark, "grey95", "white", palette$blue),
        col.dot=c(palette$dark, "grey95", "white", palette$blue),
-       ylab="Bias", highlight=c(2, 3, 8,9,10)
+       ylab="    Bias", highlight=c(2, 3, 8,9,10)
        ,band.ref=c(-.05, .04)
        , axes = FALSE
        #, col.band.ref="#c7e9f9"
@@ -663,16 +666,16 @@ abline(h=midline)
 lapply(1:(length(RMSE_print)), function(i) {
   # text(x= i, y=min(ylim)+.002, paste0(i), col="black", font=2, cex = 1)
   mtext(if(i<10){paste0(i)}, side=1, at = i + 1, font=2, cex=.95)#, line=1, at=-1)
-  text(x= i, y=midline+0.005, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex)
-  text(x= i, y=min(ylim)+0.0025, paste0(c_print[i]), col="black", font=1, cex=cov_cex )
+  text(x= i, y=midline+0.0015, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex)
+  text(x= i, y=min(ylim)+0.0008, paste0(c_print[i]), col="black", font=1, cex=cov_cex )
 })
 text(x=mean(1:nrow(select_results))
-     , y=midline-.005, "coverage probability", col="black", font=2)
+     , y=midline - 0.0015, "coverage probability", col="black", font=2)
 text(x=mean(1:nrow(select_results))
-     , y=topline-.005, "RMSE", col="black", font=2)
-text(x=2.5 , y=0.016, "Survival models", col=palette$blue, font=1)
-text(x=5.6 , y=0.0145, "Aggregated\nfixed effects", col=palette$dark, font=1)
-text(x=9 , y=0.0145, "Aggregated unit\nof analysis", col=palette$blue, font=1)
+     , y=topline-.0018, "RMSE", col="black", font=2)
+text(x=2.5 , y=0.0135, "Survival models", col=palette$blue, font=1)
+text(x=5.6 , y=0.0125, "Aggregated\nfixed effects", col=palette$dark, font=1)
+text(x=9 , y=0.0125, "Aggregated unit\nof analysis", col=palette$blue, font=1)
 
 ```
 
@@ -701,25 +704,119 @@ In practice, researchers cannot recover the second and fourth terms of the bias 
 <!-- Albert to do: I worry that this framing may confuse the reader - above we talk about how our measure of deforestation is irreversible, but now we talk about reforestation. Either needs to be clarified, re-written with a different approach to clarifying this process, or removed  -->
 
 
-```{r selection-fig, results = FALSE, warning = FALSE, message = FALSE, fig.cap="Non-random selection introduces bias into estimates. Specifications are ordered by absolute value of mean bias (least to most bias) ",  fig.width = 10, fig.height = 7, out.width="100%"}
+<!-- ```{r selection-fig, results = FALSE, warning = FALSE, message = FALSE, fig.cap="Non-random selection introduces bias into estimates. Specifications are ordered by absolute value of mean bias (least to most bias) ",  fig.width = 10, fig.height = 7, out.width="100%"} -->
+
+<!-- specchart_long <- readRDS("results/summary_selection.rds") -->
+
+<!-- df_summary <- specchart_long %>% -->
+<!--   filter(is.na(notes) &  -->
+<!--            pixel.fe == 0 &  -->
+<!--            (cox == 0 | HE.estimator ==1) & -->
+<!--            weights == 0 &  -->
+<!--            (grid.fe == 0 | gridsize == max(gridsize, na.rm = T))& -->
+<!--            prop_concern == 0 -->
+<!--            & (property.fe == 0 | se_county == 0) -->
+<!--          & (property.fe == 0 | treatment.fe == 0) -->
+<!--            ) %>% -->
+<!--   mutate_at(vars(bias, cover), as.numeric -->
+<!--          )%>% -->
+<!--   mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, HE.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.)) -->
+<!--   )%>% -->
+<!--   group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, HE.estimator, se_pixel, se_grid, se_property, se_county)%>% -->
+<!--   summarise(RMSE = rmse(bias, 0), -->
+<!--             q05 = quantile(bias, probs = .05), -->
+<!--             q95 = quantile(bias, probs = .95), -->
+<!--             Bias = mean(bias), -->
+<!--             cover = mean(cover))%>% -->
+<!--   select(Bias, everything()) -->
+
+<!-- df_summary <- df_summary %>%   -->
+<!--   dplyr::arrange(abs(Bias)) -->
+
+<!-- par(oma=c(1,0,1,1)) -->
+
+<!-- labels <- list("Unit of analysis:" = c("pixel", "grid", "property", "county"), -->
+<!--                "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE", "treatment FE"), -->
+<!--                "Survival" = c("ATT-Cox estimator"), -->
+<!--                "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county")) -->
+
+<!-- na_row <- c("Bias" = NA, -->
+<!--             "q05" = NA, -->
+<!--             "q95" = NA) -->
+
+<!-- select_results <- rbind(na_row, as.data.frame(df_summary), na_row) -->
+
+<!-- coverage <- select_results$cover -->
+<!-- c_print <- round(coverage, digits = 3) -->
+<!-- c_print[is.na(c_print)] <- "" -->
+
+<!-- RMSE <- select_results$RMSE -->
+<!-- RMSE <- as.numeric(RMSE) -->
+<!-- RMSE_print<- round(RMSE, digits = 4) -->
+<!-- RMSE_print[is.na(RMSE_print)] <- "" -->
+
+<!-- coverage <- round(df_summary$cover, digits=3) -->
+<!-- RMSE <- round(df_summary$RMSE, digits=5) -->
+<!-- select_results <- as.data.frame(subset(select_results, select=-c(cover, RMSE))) -->
+
+
+<!-- index.ci <- match(c("q05","q95"), names(select_results)) -->
+
+<!-- topline = -0.012 -->
+
+<!-- midline = topline-0.007-.001 -->
+
+<!-- ylim <- c(midline-.007,0.005) -->
+<!-- #Create the plot -->
+
+<!-- schart(select_results,labels, ylim = ylim, index.ci=index.ci, col.est = c(palette$dark, palette$red), -->
+<!--        bg.dot=c(palette$dark, "grey95", "white", palette$red), -->
+<!--        col.dot=c(palette$dark, "grey95", "white", palette$red), -->
+<!--        ylab="Bias", -->
+<!--        band.ref=c(-.05, .04), -->
+<!-- heights = c(8,10), -->
+<!-- cex = c(1.25, 1.25), -->
+<!-- leftmargin = 13,  -->
+<!--         axes = FALSE -->
+<!--        #, col.band.ref="#c7e9f9" -->
+<!-- ) # make some room at the bottom -->
+<!-- Axis(side=2, at = c( -0.005, 0 , 0.005), labels=TRUE) -->
+<!-- abline(h=topline) -->
+<!-- abline(h=midline) -->
+<!-- #abline(h=bottomline) -->
+<!-- lapply(1:length(RMSE_print), function(i) { -->
+<!--   # text(x= i, y=min(ylim)+.002, paste0(i), col="black", font=2, cex = 1) -->
+<!--   #mtext(paste0(i), side=1, at = i, font=2, cex=.95)#, line=1, at=-1) -->
+<!--   text(x= i, y=topline-0.0065, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex) -->
+<!--   text(x= i, y=midline - 0.007, paste0(c_print[i]), col="black", font=1, cex=cov_cex ) -->
+<!-- }) -->
+<!-- # mtext('coverage\nprobability', side=2, las=1, at = loc_1, adj = 1, font=2, line=1) -->
+<!-- # mtext('RMSE', side=2, las=1, at = loc_2, font=2, line=1) -->
+<!-- text(x=mean(1:nrow(select_results)) -->
+<!--      , y=midline-.0025, "coverage probability", col="black", font=2) -->
+<!-- text(x=mean(1:nrow(select_results)) -->
+<!--      , y=topline-.0025, "RMSE", col="black", font=2) -->
+
+<!-- ``` -->
+
+```{r selection-fig, echo = FALSE, warnings = FALSE, results = FALSE, message=FALSE, fig.cap="bias, distribution, and coverage of all models with clustered standard errors.",  fig.width = 9, fig.height = 8, out.width="100%"}
 
 specchart_long <- readRDS("results/summary_selection.rds")
 
+
 df_summary <- specchart_long %>%
-  filter(is.na(notes) & 
-           pixel.fe == 0 & 
-           (cox == 0 | HE.estimator ==1) &
-           weights == 0 & 
-           (grid.fe == 0 | gridsize == max(gridsize, na.rm = T))&
-           prop_concern == 0
+  filter(is.na(notes) & pixel.fe ==0,
+           weights == 0 
+         & (grid.fe == 0 | gridsize == max(gridsize, na.rm = T))
+            & prop_concern == 0
            & (property.fe == 0 | se_county == 0)
          & (property.fe == 0 | treatment.fe == 0)
            ) %>%
   mutate_at(vars(bias, cover), as.numeric
          )%>%
-  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, HE.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
+  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, HE.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
   )%>%
-  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, HE.estimator, se_pixel, se_grid, se_property, se_county)%>%
+  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, HE.estimator, se_pixel, se_grid, se_property, se_county)%>%
   summarise(RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
             q95 = quantile(bias, probs = .95),
@@ -727,14 +824,13 @@ df_summary <- specchart_long %>%
             cover = mean(cover))%>%
   select(Bias, everything())
 
-df_summary <- df_summary %>%  
-  dplyr::arrange(abs(Bias))
+df_summary <- rbind(df_summary[6,], df_summary[4:5,], df_summary[7:9,],  df_summary[1:3,])
 
 par(oma=c(1,0,1,1))
 
 labels <- list("Unit of analysis:" = c("pixel", "grid", "property", "county"),
                "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE", "treatment FE"),
-               "Survival" = c("ATT-Cox estimator"),
+               "Survival" = c("Cox PH model", "ATT-Cox estimator"),
                "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
 
 na_row <- c("Bias" = NA,
@@ -752,47 +848,49 @@ RMSE <- as.numeric(RMSE)
 RMSE_print<- round(RMSE, digits = 4)
 RMSE_print[is.na(RMSE_print)] <- ""
 
-coverage <- round(df_summary$cover, digits=3)
-RMSE <- round(df_summary$RMSE, digits=5)
 select_results <- as.data.frame(subset(select_results, select=-c(cover, RMSE)))
-
 
 index.ci <- match(c("q05","q95"), names(select_results))
 
-topline = -0.012
+# One could also add information about model fit to this chart
+topline = -0.009
 
-midline = topline-0.007-.001
+midline = topline-0.004-.0025
 
-ylim <- c(midline-.007,0.005)
+ylim <- c(midline-.005,0.012)
+#bottomline = (min(ylim)+topline)/2
 #Create the plot
 
-schart(select_results,labels, ylim = ylim, index.ci=index.ci, col.est = c(palette$dark, palette$red),
-       bg.dot=c(palette$dark, "grey95", "white", palette$red),
-       col.dot=c(palette$dark, "grey95", "white", palette$red),
-       ylab="Bias",
-       band.ref=c(-.05, .04),
-heights = c(8,10),
-cex = c(1.25, 1.25),
-leftmargin = 13, 
-        axes = FALSE
+rmse_cex = 1
+cov_cex = 1.1
+leg_cex = 1.2
+
+
+schart(select_results,labels, ylim = ylim, index.ci=index.ci, col.est = c(palette$dark, palette$dark_blue),
+       bg.dot=c(palette$dark, "grey95", "white", palette$dark_blue),
+       col.dot=c(palette$dark, "grey95", "white", palette$dark_blue),
+       ylab="    Bias", highlight=c(2, 3, 8,9,10)
+       ,band.ref=c(-.05, .04)
+       , axes = FALSE
        #, col.band.ref="#c7e9f9"
 ) # make some room at the bottom
-Axis(side=2, at = c( -0.005, 0 , 0.005), labels=TRUE)
+Axis(side=2, at = c( 0, 0.01), labels=TRUE)
 abline(h=topline)
 abline(h=midline)
 #abline(h=bottomline)
-lapply(1:length(RMSE_print), function(i) {
+lapply(1:(length(RMSE_print)), function(i) {
   # text(x= i, y=min(ylim)+.002, paste0(i), col="black", font=2, cex = 1)
-  #mtext(paste0(i), side=1, at = i, font=2, cex=.95)#, line=1, at=-1)
-  text(x= i, y=topline-0.0065, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex)
-  text(x= i, y=midline - 0.007, paste0(c_print[i]), col="black", font=1, cex=cov_cex )
+  mtext(if(i<10){paste0(i)}, side=1, at = i + 1, font=2, cex=.95)#, line=1, at=-1)
+  text(x= i, y=midline+0.0015, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex)
+  text(x= i, y=min(ylim)+0.0008, paste0(c_print[i]), col="black", font=1, cex=cov_cex )
 })
-# mtext('coverage\nprobability', side=2, las=1, at = loc_1, adj = 1, font=2, line=1)
-# mtext('RMSE', side=2, las=1, at = loc_2, font=2, line=1)
 text(x=mean(1:nrow(select_results))
-     , y=midline-.0025, "coverage probability", col="black", font=2)
+     , y=midline - 0.0015, "coverage probability", col="black", font=2)
 text(x=mean(1:nrow(select_results))
-     , y=topline-.0025, "RMSE", col="black", font=2)
+     , y=topline-.0018, "RMSE", col="black", font=2)
+text(x=2.5 , y=0.012, "Survival models", col=palette$dark_blue, font=1)
+text(x=5.6 , y=0.011, "Aggregated\nfixed effects", col=palette$dark, font=1)
+text(x=9 , y=0.011, "Aggregated unit\nof analysis", col=palette$dark_blue, font=1)
 
 ```
 
@@ -848,9 +946,9 @@ labels <- list("",
                "")
 
 
-topline = -0.014
-midline = topline-0.004
-ylim <- c(midline-0.003,0.005)
+topline = -0.012
+midline = topline-0.003
+ylim <- c(midline-0.002,0.003)
 
 par(oma=c(1,0,1,1))
 
@@ -867,8 +965,8 @@ Axis(side=2, at = c(-0.01, -0.005, 0, 0.005, 0.01), labels=TRUE)
 abline(h=topline)
 abline(h=midline)
 lapply(1:length(RMSE), function(i) {
-  text(x= i, y=topline-0.0025, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex)
-  text(x= i, y=midline-0.0025, paste0(c_print[i]), col="black", font=1, cex=cov_cex)
+  text(x= i, y=topline-0.002, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex)
+  text(x= i, y=midline-0.002, paste0(c_print[i]), col="black", font=1, cex=cov_cex)
 })
 text(x=mean(1:nrow(schart_results))
      , y=midline-.001, "coverage probability", col="black", font=2)
