@@ -3,7 +3,7 @@ title: "Impact evaluation with binary, irreversible outcomes: the case of forest
 author: 
 - Alberto Garcia^[University of California, Santa Barbara, Bren School of Environmental Science \& Management; \color{blue}albertogarcia@ucsb.edu]
 - Robert Heilmayr^[University of California, Santa Barbara, Bren School of Environmental Science \& Management and Environmental Studies Program; \color{blue}rheilmayr@ucsb.edu]
-date: "January 20, 2023"
+date: "February 20, 2023"
 output:
   bookdown::pdf_document2:
     latex_engine: xelatex
@@ -54,21 +54,18 @@ nocite:
 
 <!-- TODO list:  
 
-- Consistent use of "point" or "pixel" in proofs and early sections
-- More examples beyond deforestation: educational attainment, epidemiology
-- 
-
 Tentative assigning of list items:
 
 FOR ALBERT:
 - clean up proofs
-- clean up appendix math
 - double check all labels
 - Finish adding new citations
 - missing XX cites
 - more informative figure captions
 - keep figures 3 and 4 consistent
 - typo in "imputation bias section"
+- Consistent use of "point" or "pixel" in proofs and early sections
+- Monte Carlo description: number of iterations, landscape generatino, other descriptives
 
 FOR ROBERT: 
 - read through and edit updated introduction and broader structure
@@ -409,7 +406,7 @@ analysis_km2 <- nobs * 0.0009
 knitr::include_graphics("figs/landscape_map.png")
 ```
 
-Figure \@ref(fig:counterfactual) displays a simulated conservation intervention that reduced deforestation rates in treated areas --- the landscape is depicted as observed by the researcher at the end of the observation period, including the unobservable counterfactual of what would have happened if the conservation intervention had not been adopted. Note that in untreated areas, there is no counterfactual deforestation, since no intervention ever took place. We begin each Monte Carlo simulation by creating a synthetic landscape consisting of `r sqrt(nobs)` rows and `r sqrt(nobs)` columns of square pixels, equivalent to a raster that is `r analysis_to_fig_ratio` times larger than what is illustrated in Figure \@ref(fig:counterfactual). We assume that each pixel has a resolution of 30 meters, comparable to the resolution of many Landsat-based, remote sensing analyses. The landscape thus represents an area of approximately `r analysis_km2` km2. We then divide this landscape into a variety of spatial units, composed of either uniform aggregations of pixels (i.e. large or small "grid cells"), or randomly spaced Thiessen polygons (i.e. "counties" or "properties"). Grid cells are intended to represent arbitrary units of spatial aggregation imposed by the researcher. In contrast, counties and properties are intended to represent simulated administrative units over which policy or land use decisions are made. Table \@ref(tab:res) summarizes the relative scale of each of these spatial units under our baseline specifications.
+Figure \@ref(fig:counterfactual) displays a simulated conservation intervention that reduced deforestation rates in treated areas --- the landscape is depicted as observed by the researcher at the end of the observation period, including the unobservable counterfactual of what would have happened if the conservation intervention had not been adopted. Note that in untreated areas, there is no counterfactual deforestation, since no intervention ever took place. We begin each Monte Carlo simulation by creating a synthetic landscape consisting of `r sqrt(nobs)` rows and `r sqrt(nobs)` columns of square pixels (`r nobs` total pixels), equivalent to a raster that is `r analysis_to_fig_ratio` times larger than what is illustrated in Figure \@ref(fig:counterfactual). We assume that each pixel has a resolution of 30 meters, comparable to the resolution of many Landsat-based, remote sensing analyses. The landscape thus represents an area of approximately `r analysis_km2` km2. We then divide this landscape into a variety of spatial units, composed of either uniform aggregations of pixels (i.e. large or small "grid cells"), or randomly spaced Thiessen polygons (i.e. "counties" or "properties"). Grid cells are intended to represent arbitrary units of spatial aggregation imposed by the researcher. In contrast, counties and properties are intended to represent simulated administrative units over which policy or land use decisions are made. Table \@ref(tab:res) summarizes the relative scale of each of these spatial units under our baseline specifications.
 
 <!-- TODO (during review): Note that our counties are still really small. The average municipality in Brazil is 1,500 km2, and the smallest county in the US is ~15km2. While this is in review, should we simulate with larger counties?-->
 
@@ -458,15 +455,13 @@ ATT =& P(y^*_{ivt}(1) > 1 | D_i = 1, t \geq t_0) - P(y^*_{ivt}(0) > 1 | D_i = 1,
 =& P(\beta_0 + \beta_1 + \beta_{2,1} + \beta_3 + \alpha_i + u_{it} + \rho_{v} > 1) - P(\beta_0 + \beta_1 + \beta_{2,1} + \alpha_i + u_{it} + \rho_{v} > 1)
 \end{align}
 
-## Assumed parameter values
+## Assumed parameter values and evaluation criteria
 
 For the remainder of the paper, we explore a guiding example that has been parameterized to represent an impactful intervention in a high deforestation setting. Conservation interventions often have annual treatment effects smaller than a 1 percentage point reduction in the annual deforestation rate [e.g. @robalino2013; @jones2017]. These modest reductions in the annual deforestation rate, however, can amount to large landscape-scale effects. For example, @alix-garcia2018 find that environmental land registration in Brazil’s Amazonian states of Mato Grosso and Para reduced the annual deforestation rate by an average of 0.5 percentage points, which has resulted in an overall reduction in deforestation of 10\%. 
 
 Our initial simulated landscape has the following characteristics: 6 years in each of the pre-treatment and post-treatment periods ($T = 12$, $t_0 = 7$); a pre-treatment deforestation rate of 2\% in the control area; a pre-treatment deforestation rate of 5\% in the intervention area; a decrease in the deforestation rate of 0.5 percentage points between the first and second period in the absence of treatment; and an average reduction of 1 percentage point in the deforestation rate in treated units due to the intervention ($ATT = -0.01$). We assume that $\sigma_u = 0.5$. Finally, we begin by assuming away time invariant pixel ($\sigma_a = 0$) and property-level disturbances ($\sigma_p = 0$) but relax this assumption in Section \@ref(property). Note that Assumptions 1 and 2 are satisfied by construction. The derivations detailing the mapping from the landscape characteristics to the corresponding parameters in $y^*_{ivt}$ can be found in Appendix \@ref(parameter-mapping). 
 
-## Evaluation criteria
-
-We compare econometric models using a combination of estimate bias, root mean squared error (RMSE), and coverage probability. Using our Monte Carlo simulations, we calculate estimate bias as the difference between each model's mean estimate of the $ATT$ and the known $ATT$ parameter. RMSE describes the distribution of estimates around the $ATT$. Coverage probability is defined as the proportion of simulations in which the true $ATT$ lies within the simulation's 95\% confidence interval (CI). As such, we would expect the $ATT$ to lie within this CI 95\% of the time, however, factors such as the bias of the estimates, their distribution, and treatment of standard errors may impact coverage.  
+We compare econometric models using a combination of estimate bias, root mean squared error (RMSE), and coverage probability based on 500 replications of each set of parameters. Using our Monte Carlo simulations, we calculate estimate bias as the difference between each model's mean estimate of the $ATT$ and the known $ATT$ parameter. RMSE describes the distribution of estimates around the $ATT$. Coverage probability is defined as the proportion of simulations in which the true $ATT$ lies within the simulation's 95\% confidence interval (CI). As such, we would expect the $ATT$ to lie within this CI 95\% of the time, however, factors such as the bias of the estimates, their distribution, and treatment of standard errors may impact coverage.  
 
 # Results {#results}
 
@@ -1080,7 +1075,7 @@ lapply(1:length(RMSE), function(i) {
 
 ```
 
-Although spatial aggregation can improve the performance of OLS-based model specifications, there is no clear analog for survival models. Figure \@ref(fig:summary) in the appendix shows that the performance of $\widehat{ATT_{Cox}}$ suffers as $\sigma_p$ increases. When unobserved, spatial processes contribute to the underlying DGP, linear models that effectively control for these processes are likely to outperform survival analysis-based estimates of the impact of conservation interventions.
+Although spatial aggregation can improve the performance of OLS-based model specifications, there is no clear analog for survival models. Figure \@ref(fig:summary) in the appendix shows that the performance of $\widehat{ATT_{Cox}}$ suffers as $\sigma_p$ increases. When unobserved, spatial processes contribute to the underlying DGP, linear models that effectively control for these processes are likely to outperform survival analysis-based estimates of the impact of conservation interventions. Survival analysis-based estimators may perform better when the preferred unit of analysis is actually the individual point (i.e., mortality, recidivism).
 
 
 
