@@ -1,7 +1,6 @@
 ---
 title: "Impact evaluation with binary, irreversible outcomes: the case of forest conservation using remotely sensed data"
 author: 
-# - Alberto Garcia\thanks{University of California, Santa Barbara, Bren School of Environmental Science \& Management; \color{blue}{albertogarcia@ucsb.edu},\color{blue}{ rheilmayr@ucsb.edu}}  \and Robert Heilmayr\footnotemark[1]
 - Alberto Garcia^[University of California, Santa Barbara, Bren School of Environmental Science \& Management; \color{blue}albertogarcia@ucsb.edu]
 - Robert Heilmayr^[University of California, Santa Barbara, Bren School of Environmental Science \& Management and Environmental Studies Program; \color{blue}rheilmayr@ucsb.edu]
 date: "January 20, 2023"
@@ -262,7 +261,7 @@ Despite widespread use of pixel-level analyses of deforestation, the application
 
 Regression 2 thus forgoes the benefits that panel methods provide, and if the treated area has a different baseline deforestation rate than the control, will generate a biased estimate of the intervention's impact. Many conservation interventions are specifically targeted towards locations with either low opportunity costs for conservation or high threats of conversion. As a result, it is likely that many conservation impact evaluations will have treatment and control units that experienced different pre-treatment deforestation rates. It is important to note that this bias could even lead to changes in the estimated treatment effect's sign, in addition to errors in the effect's magnitude and significance. 
 
-Intuition for this result stems from the use of point unit fixed effects in the regression specification. By including point fixed effects in TWFE regressions, researchers hope to control for local confounders, including pre-treatment differences in the outcome. However, when following common guidance to drop observations in the periods after the irreversible event is first realized, these fixed effects do not behave as the researcher expects. Observations that realize the event (i.e. are deforested) in years prior to treatment are by definition not observed for the entire panel. Implicitly, the pre-treatment outcomes get assigned as 0 for both the treatment and control groups. In section XX, we show that $\hat{\beta}_{TWFE}$ is equivalent to the coefficient from a TWFE regression on a dataset where any pixel deforested in years prior to treatment is simply dropped from the dataset completely.
+Intuition for this result stems from the use of point unit fixed effects in the regression specification. By including point fixed effects in TWFE regressions, researchers hope to control for local confounders, including pre-treatment differences in the outcome. However, when following common guidance to drop observations in the periods after the irreversible event is first realized, these fixed effects do not behave as the researcher expects. Observations that realize the event (i.e. are deforested) in years prior to treatment are by definition not observed for the entire panel. Implicitly, the pre-treatment outcomes get assigned as 0 for both the treatment and control groups. In section \@ref(TWFE-equivalence), we show that $\hat{\beta}_{TWFE}$ is equivalent to the coefficient from a TWFE regression on a dataset where any pixel deforested in years prior to treatment is simply dropped from the dataset completely.
 
 <!-- Researchers often find themselves in situations where the more flexible TWFE model is preferable to the simple DID, such as in the case of multiple groups and time periods. While many economists may be transitioning to newly developed estimators to address settings in which multiple groups undergo treatment in different time periods [e.g., @callaway2020; @gardner2021], we show in section \@ref(multipleGT) that many of these estimators suffer from the same issue. -->
 
@@ -276,7 +275,7 @@ There may be cases in which researchers do want to keep observations in the pane
 
 ## Hazard rate ratios from a single survival model do not estimate the $ATT$ under common trends
 
-Survival analysis has emerged as a common approach to modeling irreversible events [@emmert-streib2019]. It used particularly often to model events such as mortality [XX] and recidivism [@luallen_recidivism_2017; @mastrobuoni]. Survival models, such as the Cox Proportional Hazards model, quantify how covariates relate to changes in the length of time that a unit remains in a sample. In the case of deforestation, survival analyses can be used to explore how policy adoption changes the duration that treated, forested pixels survive until they are first cleared. 
+Survival analysis has emerged as a common approach to modeling irreversible events [@emmert-streib2019]. It used frequently to model events such as mortality [XX] and recidivism [@luallen_recidivism_2017; @mastrobuoni], but can also be appliedd to deforestation contexts. Survival models, such as the Cox Proportional Hazards model, quantify how covariates relate to changes in the length of time that a unit remains in a sample. In the case of deforestation, survival analyses can be used to explore how policy adoption changes the duration that treated, forested pixels survive until they are first cleared. 
 
 Despite the theoretical appeal of using survival models to study deforestation, they are still relatively uncommon in conservation impact evaluation. One emerging approach introduces the intuition of a difference-in-differences research design into a Cox Proportional Hazards model [e.g. @heilmayr2020; @sales2022]. Specifically, researchers estimate a Cox proportional hazards model of the following general form [e.g., @mastrobuoni]:
 
@@ -472,7 +471,7 @@ We compare econometric models using a combination of estimate bias, root mean sq
 
 TWFE models have risen to prominence due to their flexibility in applying DID methods to settings with multiple groups and variation in treatment timing. However, TWFE models with pixel fixed effects are not a viable approach to estimate the $ATT$ as defined here in deforestation impact evaluations. Figure \@ref(fig:did-twfe) shows the bias associated with Regression 2, a pixel-level TWFE regression with pixel unit fixed effects. In our guiding example, the ex-post single difference is 0.02 (the $ATT$ plus the post-treatment group difference in deforestation rates), when the true $ATT$ is equal to -0.01. This means that a positive bias of 0.03 results from the use of this regression model. 
 
-Figure \@ref(fig:did-twfe) explicitly contradicts the common wisdom that 2x2 TWFE and DID estimators are numerically equivalent, a finding unique to this setting. We further examine this finding. Table \@ref(tab:twfe-comp) shows that the coefficient of interest from Regression 2 is numerically equivalent to that from the same regression on a dataset where all pixels deforested in the first period are dropped completely. The estimated coefficient is not numerically equivalent to the ex-post difference in means, although both estimate the same parameter. This exercise provides further evidence that this commonly used TWFE regression does not use the pre-treatment variation in deforestation at all, which is necessary to recover the $ATT$ in this setting.  
+Figure \@ref(fig:did-twfe) explicitly contradicts the common wisdom that 2x2 TWFE and DID estimators are numerically equivalent, a finding unique to this setting. We further examine this finding in section \@ref(TWFE-equivalence) and show that the coefficient of interest from Regression 2 is numerically equivalent to that from the same regression on a dataset where all pixels deforested in the first period are dropped completely. 
 
 ```{r did-twfe, echo = FALSE, warnings = FALSE, results = FALSE, message=FALSE, fig.cap="bias, distribution, and coverage of pixel-level DID and TWFE with pixel unit fixed effects. Standard errors are clustered at the pixel.",  fig.width = 6, fig.height = 4, out.width="100%"}
 
@@ -562,28 +561,6 @@ legend(x=2.59, y=0.044, col = "black", legend = "0.05 to 0.95 quantile \n of est
 
 ```
 
-
-```{r twfe-comp}
-models_of_interest <- c("DID", "TWFE", "TWFE on dataset dropping deforested pixels prior to treatment", "ex-post difference in means", "final year difference in means")
-
-twfe_comp <- readRDS("results/TWFE_comp.rds")%>%
-  mutate(q25 = round(q25, digits = 5),
-         q75 = round(q75, digits = 5),
-         Model = ifelse(model == "final period difference in means", "final year difference in means", model))%>%
-  unite("0.25 to 0.75 quantile", c(q25, q75), sep = " , ", remove = TRUE)%>%
-  filter(Model %in% models_of_interest)%>%
-  select(Model, Bias, everything(), - model)
-
-kable(twfe_comp, format = "latex", row.names = FALSE,  booktabs = T,
-      caption = "TWFE with pixel fixed effects is numerically equivalent to TWFE on dataset with all pixels deforested pre-treatment dropped completely from the dataset"
-       ,
-        col.names = NULL
-      ) %>%
-  add_header_above(c("Model"=1, "Bias" = 1, "RMSE" = 1, "0.25 to 0.75 quantile" = 1), escape = TRUE, line =TRUE, bold = TRUE)%>%
-  kable_styling(font_size = 10, latex_options = c("HOLD_position", "striped"),
-                position = "center")
-
-```
 
 ## Traditional difference-in-differences model
 
@@ -1364,7 +1341,9 @@ We thank Kelsey Jack, Andrew Plantinga, and Jennifer Alix-Garcia for useful comm
 # References
 <div id="refs"></div>
 
-# Appendix {#appendix}
+\renewcommand{\thesection}{A}
+
+# Appendix {-}
 
 ## Example pixel-level panel data structure {#example-panel}
 
@@ -1406,8 +1385,9 @@ treatment & 4 & 0 & - & - &  - & 1 & - & 1 & 0 &  -\\
 \end{table}
 \end{center}
 
+## TWFE regression models with point fixed effects do not identify $ATT$
 
-## Proof showing point-level TWFE regression models with point fixed effects do not identify $ATT$ {#TWFE-proof}
+### Proof {#TWFE-proof}
 
 In settings with a binary and unrepeatable outcome variable, the commonly used point-level TWFE model yields the post-treatment difference in outcomes (single difference), rather than the desired $ATT$.
 
@@ -1490,13 +1470,38 @@ However, this is only valid when $y_{i1}=0$. As a result, we can restate as:
 Thus far, we have shown that $\beta_{TWFE}$ is equal to the ex-post difference in means between treatment and control units. 
 
 
-Using the potential outcomes framework, we consider the potential outcomes for each observation as $y_{i,2}(D_i)$. In this notation, the treatment effect for unit $i$ can be defined as
+Using the potential outcomes framework, we consider the potential outcomes for each observation as $y_{i,t}(D_i)$, where $D_i$ denotes the treatment status of unit $i$ in time $t$. In this notation and in the 2x2 case, the $ATT$ can be defined as
 
-$$\tau_i = y_{i,2}(1) - y_{i,2}(0) $$
+$$ATT = E[y_{i,2}(1)| D_i = 1] - E[y_{i,2}(0)| D_i = 1] $$
+
+### Point-level TWFE is equivalent to coefficient from same regression on dataset without pixels deforested pre-treatment {#TWFE-equivalence}
+
+Table \@ref(tab:twfe-comp) shows coefficient estimates from the Monte Carlo setup described in the main text on altered datasets. It demonstrates that the coefficient of interest from Regression 2 is numerically equivalent to that from the same regression on a dataset where all pixels deforested in the first period are dropped completely. The estimated coefficient is not numerically equivalent to the ex-post difference in means, although both estimate the same parameter. This exercise provides further evidence that this commonly used TWFE regression does not use the pre-treatment variation in deforestation at all, which is necessary to recover the $ATT$ in this setting.  
+
+```{r twfe-comp}
+models_of_interest <- c("DID", "TWFE", "TWFE on dataset dropping deforested pixels prior to treatment", "ex-post difference in means", "final year difference in means")
+
+twfe_comp <- readRDS("results/TWFE_comp.rds")%>%
+  mutate(q25 = round(q25, digits = 5),
+         q75 = round(q75, digits = 5),
+         Model = ifelse(model == "final period difference in means", "final year difference in means", model))%>%
+  unite("0.25 to 0.75 quantile", c(q25, q75), sep = " , ", remove = TRUE)%>%
+  filter(Model %in% models_of_interest)%>%
+  select(Model, Bias, everything(), - model)
+
+kable(twfe_comp, format = "latex", row.names = FALSE,  booktabs = T,
+      caption = "TWFE with pixel fixed effects is numerically equivalent to TWFE on dataset with all pixels deforested pre-treatment dropped completely from the dataset"
+       ,
+        col.names = NULL
+      ) %>%
+  add_header_above(c("Model"=1, "Bias" = 1, "RMSE" = 1, "0.25 to 0.75 quantile" = 1), escape = TRUE, line =TRUE, bold = TRUE)%>%
+  kable_styling(font_size = 10, latex_options = c("HOLD_position", "striped"),
+                position = "center")
+
+```
 
 
-
-## Keeping pixels in periods after they are first deforested is not a viable solution  {#keep-pixels}
+## Keeping pixels in periods after they are first deforested is not a viable solution {#keep-pixels}
 
 Remotely sensed metrics of deforestation at the pixel level are often subject to the dynamics of forest disturbance and regrowth. After a deforestation event occurs, the deforested area is unlikely to revert to forest cover within the study period, as it takes several years for forest to regenerate to a detectable level. Further, many data products do not allow for the monitoring of forest regrowth. In the panel therefore, it is likely that in the periods after a pixel is first realized as deforested, subsequent observations of the pixel will also observe the pixel as deforested. 
 
@@ -1556,8 +1561,6 @@ Introducing potential outcomes and simplifying:
 exp(\beta_{coxDID}) &= \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]E[y_{ivt}(0)  |  t < t_0, D_i=0] }{E[y_{ivt}(0)  |  t\geq t_0, D_i=0]E[y_{ivt}(0)  |  t < t_0, D_i=1] }
 \end{align}
 
-
-
 Now, operating under Assumption 1 (Proportional Trends) and substituting for the right-hand side of (7):
 
 \begin{align}
@@ -1565,7 +1568,6 @@ exp(\beta_{coxDID}) &= \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]E[y_{ivt}(0)  |  
 &= HRRT\\
 \blacksquare &
 \end{align}
-
 
 ## Initial Monte Carlo parameter to $\beta$ coefficient mapping {#parameter-mapping}
 
