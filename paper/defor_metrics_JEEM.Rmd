@@ -76,17 +76,6 @@ COMPLETED:
 - added example panel into appendix in order to avoid same confusion as reviewer 4 
 - made changes to specification charts, hopefully making easier to read; TWFE vs. DID now has own spec chart to highlight that they are not equivalent
 - added discussion for when keeping points might be desirable
-- adjusted structure now follows:
-1) Intro
-2) Setup
-3) TWFE does not identify ATT with binary, irreversible outcomes
-4) Alternative estimators
-5) Monte Carlo Simulations
-6) Results
-7) Non-random sample selection
-8) Selecting the appropriate spatial structure
-9) Staggered treatment
-10) Conclusion
 
 -->
 
