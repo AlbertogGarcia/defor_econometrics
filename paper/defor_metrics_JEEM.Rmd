@@ -613,7 +613,8 @@ df_summary <- specchart_long %>%
             cover = mean(cover))%>%
   select(Bias, everything())
 
-df_summary <- rbind(df_summary[6,], df_summary[4:5,], df_summary[7:9,],  df_summary[1:3,])
+df_summary <- rbind(df_summary[5,], df_summary[7:9,],  df_summary[1:4,],
+                    df_summary[6,])
 
 par(oma=c(1,0,1,1))
 
@@ -658,7 +659,7 @@ leg_cex = 1.2
 schart(select_results,labels, ylim = ylim, index.ci=index.ci, col.est = c(palette$dark, palette$blue),
        bg.dot=c(palette$dark, "grey95", "white", palette$blue),
        col.dot=c(palette$dark, "grey95", "white", palette$blue),
-       ylab="    Bias", highlight=c(2, 3, 8,9,10)
+       ylab="    Bias", highlight=c(2,3,4,5, 9, 10)
        ,band.ref=c(-.05, .04)
        , axes = FALSE
        #, col.band.ref="#c7e9f9"
@@ -677,9 +678,10 @@ text(x=mean(1:nrow(select_results))
      , y=midline - 0.0015, "coverage probability", col="black", font=2)
 text(x=mean(1:nrow(select_results))
      , y=topline-.0018, "RMSE", col="black", font=2)
-text(x=2.5 , y=0.0135, "Survival models", col=palette$blue, font=1)
-text(x=5.6 , y=0.0125, "Aggregated\nfixed effects", col=palette$dark, font=1)
-text(x=9 , y=0.0125, "Aggregated unit\nof analysis", col=palette$blue, font=1)
+text(x=3.5 , y=0.0125, "Aggregated\nfixed effects", col=palette$dark, font=1)
+text(x=6.9 , y=0.0125, "Aggregated unit\nof analysis", col=palette$blue, font=1)
+text(x=9.5 , y=0.0135, "Survival models", col=palette$blue, font=1)
+
 
 ```
 
@@ -828,7 +830,8 @@ df_summary <- specchart_long %>%
             cover = mean(cover))%>%
   select(Bias, everything())
 
-df_summary <- rbind(df_summary[6,], df_summary[4:5,], df_summary[7:9,],  df_summary[1:3,])
+df_summary <- rbind(df_summary[5,], df_summary[7:9,],  df_summary[1:4,],
+                    df_summary[6,])
 
 par(oma=c(1,0,1,1))
 
@@ -873,7 +876,7 @@ leg_cex = 1.2
 schart(select_results,labels, ylim = ylim, index.ci=index.ci, col.est = c(palette$dark, palette$dark_blue),
        bg.dot=c(palette$dark, "grey95", "white", palette$dark_blue),
        col.dot=c(palette$dark, "grey95", "white", palette$dark_blue),
-       ylab="    Bias", highlight=c(2, 3, 8,9,10)
+       ylab="    Bias", highlight=c(2, 3,4, 5, 9,10)
        ,band.ref=c(-.05, .04)
        , axes = FALSE
        #, col.band.ref="#c7e9f9"
@@ -892,9 +895,10 @@ text(x=mean(1:nrow(select_results))
      , y=midline - 0.0015, "coverage probability", col="black", font=2)
 text(x=mean(1:nrow(select_results))
      , y=topline-.0018, "RMSE", col="black", font=2)
-text(x=2.5 , y=0.012, "Survival models", col=palette$dark_blue, font=1)
-text(x=5.6 , y=0.011, "Aggregated\nfixed effects", col=palette$dark, font=1)
-text(x=9 , y=0.011, "Aggregated unit\nof analysis", col=palette$dark_blue, font=1)
+text(x=3.5 , y=0.011, "Aggregated\nfixed effects", col=palette$dark, font=1)
+text(x=6.9 , y=0.011, "Aggregated unit\nof analysis", col=palette$dark_blue, font=1)
+text(x=9.5 , y=0.012, "Survival models", col=palette$dark_blue, font=1)
+
 
 ```
 
