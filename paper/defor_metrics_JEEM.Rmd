@@ -254,7 +254,7 @@ In the case of two groups and two time periods, the TWFE regression typically yi
 
 One can also use fixed effects at the level of an aggregated unit rather than the point to resolve bias associated with TWFE regressions with point unit fixed effects. In the deforestation context, aggregation is often done spatially, aggregating pixels into larger units such as a grid cell [e.g., @rico-straffon_2023], property [e.g., @heilmayr2016], or larger administrative unit [e.g., @pfaff1999]. Point-level TWFE models with aggregated unit fixed effects are all in the form of Regression 4.
 
-\textbf{Regression 4:} (point-level TWFE regression with aggregated unit fixed effects)
+\textbf{Regression 3:} (point-level TWFE regression with aggregated unit fixed effects)
 Let $\beta_{FE,j}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
 \begin{align*}
 y^o_{ivt} = \alpha + \beta_{FE,j} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \lambda_t + \gamma_j + \epsilon_{ivt}
@@ -265,7 +265,7 @@ y^o_{ivt} = \alpha + \beta_{FE,j} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \la
 
 Another potential solution to the bias associated with TWFE models is for researchers to aggregate multiple point level observations into larger units of analysis. The researcher must now calculate the event rate (i.e., deforestation rate) in each time period within the relevant unit. 
 
-\textbf{Regression 5:} (TWFE regression with aggregated unit of analysis)
+\textbf{Regression 4:} (TWFE regression with aggregated unit of analysis)
 Let $\beta_{j}$ denote the coefficient of the interaction between $D_{j}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
 \begin{align*}
 z_{jt} = \alpha + \beta_{j} \text{ x } D_j \mathbb{1} \{ t\geq t_0\} + \lambda_t + \gamma_j + \epsilon_{jt}
@@ -285,7 +285,7 @@ Survival analysis has emerged as a common approach to modeling irreversible even
 
 Despite the theoretical appeal of using survival models to study deforestation, they are still relatively uncommon in conservation impact evaluation. One emerging approach introduces the intuition of a difference-in-differences research design into a Cox Proportional Hazards model [e.g., @heilmayr2020; @sales2022]. Specifically, researchers estimate a Cox proportional hazards model of the following general form [e.g., @mastrobuoni]:
 
-\textbf{Regression 3:} (Cox DID regression)
+\textbf{Regression 5:} (Cox DID regression)
 Let $\beta_{coxDID}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
 \begin{align*}
 h(t) = \delta_0(t)exp( \alpha_0 + \alpha_1 D_i + \alpha_2 \mathbb{1} \{ t\geq t_0\}+ \beta_{coxDID} \text{ x } D_i \mathbb{1} \{ t\geq t_0\}  + \epsilon_{it})
@@ -302,7 +302,7 @@ h(t) = \delta_0(t)exp( \alpha_0 + \alpha_1 D_i + \alpha_2 \mathbb{1} \{ t\geq t_
 
 The rapid growth of the conservation impact evaluation literature has resulted in a diversity of model structures that all attempt to estimate the effectiveness of conservation interventions (Table \@ref(tab:table-lit)). To explore the relative performance of these different models, we employ a series of Monte Carlo simulations. Specifically, we randomly generate synthetic landscapes with known policy effectiveness and analyze the performance of different econometric models in estimating the policy's known impact.
 
-## Landscape configuration
+### Landscape configuration
 
 ```{r res-input}
 
@@ -358,7 +358,7 @@ kable(resolution_df, format = "latex", row.names = FALSE,  booktabs = T,
 
 ```
 
-## Data generating process
+### Data generating process
 
 Each of our simulated landscapes consists of administrative units that are either untreated $(D_i=0)$ or are assigned to a conservation treatment $(D_i=1)$. We observe deforestation in two, even-length periods. There exists both a pre-treatment ($T_{pre}$; $t < t_{0}$) and a post-treatment ($T_{post}$; $t \ge t_{0})$ period, each consisting of multiple years.
 
@@ -393,7 +393,7 @@ ATT =& P(y^*_{ivt}(1) > 1 | D_i = 1, t \geq t_0) - P(y^*_{ivt}(0) > 1 | D_i = 1,
 =& P(\beta_0 + \beta_1 + \beta_{2,1} + \beta_3 + \alpha_i + u_{it} + \rho_{v} > 1) - P(\beta_0 + \beta_1 + \beta_{2,1} + \alpha_i + u_{it} + \rho_{v} > 1)
 \end{align}
 
-## Assumed parameter values and evaluation criteria
+### Assumed parameter values and evaluation criteria
 
 For the remainder of the paper, we explore a guiding example that has been parameterized to represent an impactful intervention in a high deforestation setting. Conservation interventions often have annual treatment effects smaller than a 1 percentage point reduction in the annual deforestation rate [e.g. @robalino2013; @jones2017]. These modest reductions in the annual deforestation rate, however, can amount to large landscape-scale effects. For example, @alix-garcia2018 find that environmental land registration in Brazil’s Amazonian states of Mato Grosso and Para reduced the annual deforestation rate by an average of 0.5 percentage points, which has resulted in an overall reduction in deforestation of 10\%. 
 
@@ -571,13 +571,7 @@ legend(x=2.59, y=0.044, col = "black", legend = "0.05 to 0.95 quantile \n of est
 
 ## Traditional difference-in-differences model
 
-In the two-group, two-period case the traditional DID (Regression 1) is an unbiased estimator of the $ATT$, as shown in Figure \@ref(fig:did-twfe) and column 3 of Figure \@ref(fig:summary-fig) (The traditional DID is equivalent to including treatment fixed effects). However, researchers often want to use TWFE models because of their flexibility in situations that do not fall under the simplest DID setting. Therefore, we explore the trade-offs below when using aggregated units of analysis and fixed effects when using TWFE models for impact evaluation with binary irreversible outcomes.
-
-## Survival analysis
-
-Survival analysis provides an appealing alternative to traditional linear estimators when studying irreversible changes such as deforestation. The simple, single-regression DID framing of the Cox Proportional hazards model  (Regression 3), however, is not a viable solution (Section \@ref(survival)) under the typical common trends assumption (Assumption 1). Column 1 of Figure \@ref(fig:summary-fig) shows the bias associated with this model in our parameterization where Assumption 1 holds but Assumption 3 does not. In light of the fact that the simple Cox DID is not a viable analog to the traditional DID, we explore whether our proposed estimator, $\widehat{ATT_{Cox}}$, recovers relevant treatment effect parameters in the deforestation setting. We see in column 2 that $\widehat{ATT_{Cox}}$ indeed recovers our parameter of interest, the $ATT$.
-
-Although our proposed, survival analysis-based approach to estimation yields a good estimate of the true $ATT$ in this simple setting, multiple considerations raise questions about the utility of this non-linear model in more complex settings. One of the primary reasons for the use of survival analysis is censoring. This occurs when the researcher has partial information about the subjects’ survival times but does not have access to precise event times. While the researcher may not observe all pixels until they are deforested, many other common forms of censoring are rarely a concern in the context of deforestation since remote sensing typically enables the creation of balanced panels. Further, the proposed strategy to drop pixels in the periods after they are first deforested successfully addresses irreversibility in deforestation events. Finally, as we show in the following sections, survival analysis is likely to suffer from bias when the data generating process underpinning deforestation is influenced by unobservable characteristics of more aggregated spatial units such as the preferences of a property-owner. While researchers can account for this in OLS specifications, there is no clear solution in survival analysis. 
+In the two-group, two-period case the traditional DID (Regression 1) is an unbiased estimator of the $ATT$, as shown in Figure \@ref(fig:did-twfe) and column 1 of Figure \@ref(fig:summary-fig) (The traditional DID is equivalent to including treatment fixed effects). However, researchers often want to use TWFE models because of their flexibility in situations that do not fall under the simplest DID setting. Therefore, we explore the trade-offs below when using aggregated units of analysis and fixed effects when using TWFE models for impact evaluation with binary irreversible outcomes.
 
 ## Models using spatial aggregation
 
@@ -586,6 +580,13 @@ We proposed using aggregation as a way to avoid the issues associated with integ
 While we detail the tradeoffs of various deforestation rate calculations in the appendix (Appendix \@ref(rate-formula)), the following results are based on Equation \@ref(eq:deforrate). 
 
 Columns 7-9 of Figure \@ref(fig:summary-fig) show that neither the bias nor RMSE of the estimates vary dramatically across different levels of aggregation. 
+
+## Survival analysis
+
+Survival analysis provides an appealing alternative to traditional linear estimators when studying irreversible changes such as deforestation. The simple, single-regression DID framing of the Cox Proportional hazards model  (Regression 5), however, is not a viable solution (Section \@ref(survival)) under the typical common trends assumption (Assumption 1). Column 1 of Figure \@ref(fig:summary-fig) shows the bias associated with this model in our parameterization where Assumption 1 holds but Assumption 3 does not. In light of the fact that the simple Cox DID is not a viable analog to the traditional DID, we explore whether our proposed estimator, $\widehat{ATT_{Cox}}$, recovers relevant treatment effect parameters in the deforestation setting. We see in column 2 that $\widehat{ATT_{Cox}}$ indeed recovers our parameter of interest, the $ATT$.
+
+Although our proposed, survival analysis-based approach to estimation yields a good estimate of the true $ATT$ in this simple setting, multiple considerations raise questions about the utility of this non-linear model in more complex settings. One of the primary reasons for the use of survival analysis is censoring. This occurs when the researcher has partial information about the subjects’ survival times but does not have access to precise event times. While the researcher may not observe all pixels until they are deforested, many other common forms of censoring are rarely a concern in the context of deforestation since remote sensing typically enables the creation of balanced panels. Further, the proposed strategy to drop pixels in the periods after they are first deforested successfully addresses irreversibility in deforestation events. Finally, as we show in the following sections, survival analysis is likely to suffer from bias when the data generating process underpinning deforestation is influenced by unobservable characteristics of more aggregated spatial units such as the preferences of a property-owner. While researchers can account for this in OLS specifications, there is no clear solution in survival analysis. 
+
 
 ```{r summary-fig, echo = FALSE, warnings = FALSE, results = FALSE, message=FALSE, fig.cap="bias, distribution, and coverage of all models with clustered standard errors.",  fig.width = 9, fig.height = 8, out.width="100%"}
 
@@ -659,7 +660,7 @@ leg_cex = 1.2
 schart(select_results,labels, ylim = ylim, index.ci=index.ci, col.est = c(palette$dark, palette$blue),
        bg.dot=c(palette$dark, "grey95", "white", palette$blue),
        col.dot=c(palette$dark, "grey95", "white", palette$blue),
-       ylab="    Bias", highlight=c(2,3,4,5, 9, 10)
+       ylab="    Bias", highlight=c(6,7,8)
        ,band.ref=c(-.05, .04)
        , axes = FALSE
        #, col.band.ref="#c7e9f9"
@@ -680,8 +681,7 @@ text(x=mean(1:nrow(select_results))
      , y=topline-.0018, "RMSE", col="black", font=2)
 text(x=3.5 , y=0.0125, "Aggregated\nfixed effects", col=palette$dark, font=1)
 text(x=6.9 , y=0.0125, "Aggregated unit\nof analysis", col=palette$blue, font=1)
-text(x=9.5 , y=0.0135, "Survival models", col=palette$blue, font=1)
-
+text(x=9.5 , y=0.0135, "Survival models", col=palette$dark, font=1)
 
 ```
 
@@ -705,105 +705,6 @@ Non-random sample selection did not bias our initial simulations as presented in
 In order to see how this non-random selection influences estimates in our simulated setting, we set $\sigma_a$, the standard error of the time-invariant pixel-level disturbances equal to $0.1$. Figure \@ref(fig:selection-fig) shows that non-random selection introduces a slight downward bias across every specification.
 
 In practice, researchers cannot recover the second and fourth terms of the bias term in equation 20, meaning that the magnitude of this bias is unknown to the researcher. However, this bias is likely to be of a smaller magnitude than in our simulated setting if deforestation rates are lower or more similar across treated and control groups.
-
-<!-- Another way to think about this bias is through the lens of reforestation timing. In equation 10, we see that the bias arises when the expectation of the observed $y^o_{ivt}$ and the true $y_{ivt}$ differ. This occurs when the researcher cannot observe reforestation timing in the data, and thus deforestation is irreversible in the panel dataset. We note that in practice, researchers cannot recover the second and fourth terms of the bias term in equation 10, meaning that the magnitude of this bias is unknown to the researcher. However, this bias is likely to be of a smaller magnitude in reality than in our simulated setting, since our simulated time frame for forest regrowth is too short to reflect true reforestation timing.  -->
-<!-- Albert to do: I worry that this framing may confuse the reader - above we talk about how our measure of deforestation is irreversible, but now we talk about reforestation. Either needs to be clarified, re-written with a different approach to clarifying this process, or removed  -->
-
-
-<!-- ```{r selection-fig, results = FALSE, warning = FALSE, message = FALSE, fig.cap="Non-random selection introduces bias into estimates. Specifications are ordered by absolute value of mean bias (least to most bias) ",  fig.width = 10, fig.height = 7, out.width="100%"} -->
-
-<!-- specchart_long <- readRDS("results/summary_selection.rds") -->
-
-<!-- df_summary <- specchart_long %>% -->
-<!--   filter(is.na(notes) &  -->
-<!--            pixel.fe == 0 &  -->
-<!--            (cox == 0 | HE.estimator ==1) & -->
-<!--            weights == 0 &  -->
-<!--            (grid.fe == 0 | gridsize == max(gridsize, na.rm = T))& -->
-<!--            prop_concern == 0 -->
-<!--            & (property.fe == 0 | se_county == 0) -->
-<!--          & (property.fe == 0 | treatment.fe == 0) -->
-<!--            ) %>% -->
-<!--   mutate_at(vars(bias, cover), as.numeric -->
-<!--          )%>% -->
-<!--   mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, HE.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.)) -->
-<!--   )%>% -->
-<!--   group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, HE.estimator, se_pixel, se_grid, se_property, se_county)%>% -->
-<!--   summarise(RMSE = rmse(bias, 0), -->
-<!--             q05 = quantile(bias, probs = .05), -->
-<!--             q95 = quantile(bias, probs = .95), -->
-<!--             Bias = mean(bias), -->
-<!--             cover = mean(cover))%>% -->
-<!--   select(Bias, everything()) -->
-
-<!-- df_summary <- df_summary %>%   -->
-<!--   dplyr::arrange(abs(Bias)) -->
-
-<!-- par(oma=c(1,0,1,1)) -->
-
-<!-- labels <- list("Unit of analysis:" = c("pixel", "grid", "property", "county"), -->
-<!--                "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE", "treatment FE"), -->
-<!--                "Survival" = c("ATT-Cox estimator"), -->
-<!--                "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county")) -->
-
-<!-- na_row <- c("Bias" = NA, -->
-<!--             "q05" = NA, -->
-<!--             "q95" = NA) -->
-
-<!-- select_results <- rbind(na_row, as.data.frame(df_summary), na_row) -->
-
-<!-- coverage <- select_results$cover -->
-<!-- c_print <- round(coverage, digits = 3) -->
-<!-- c_print[is.na(c_print)] <- "" -->
-
-<!-- RMSE <- select_results$RMSE -->
-<!-- RMSE <- as.numeric(RMSE) -->
-<!-- RMSE_print<- round(RMSE, digits = 4) -->
-<!-- RMSE_print[is.na(RMSE_print)] <- "" -->
-
-<!-- coverage <- round(df_summary$cover, digits=3) -->
-<!-- RMSE <- round(df_summary$RMSE, digits=5) -->
-<!-- select_results <- as.data.frame(subset(select_results, select=-c(cover, RMSE))) -->
-
-
-<!-- index.ci <- match(c("q05","q95"), names(select_results)) -->
-
-<!-- topline = -0.012 -->
-
-<!-- midline = topline-0.007-.001 -->
-
-<!-- ylim <- c(midline-.007,0.005) -->
-<!-- #Create the plot -->
-
-<!-- schart(select_results,labels, ylim = ylim, index.ci=index.ci, col.est = c(palette$dark, palette$red), -->
-<!--        bg.dot=c(palette$dark, "grey95", "white", palette$red), -->
-<!--        col.dot=c(palette$dark, "grey95", "white", palette$red), -->
-<!--        ylab="Bias", -->
-<!--        band.ref=c(-.05, .04), -->
-<!-- heights = c(8,10), -->
-<!-- cex = c(1.25, 1.25), -->
-<!-- leftmargin = 13,  -->
-<!--         axes = FALSE -->
-<!--        #, col.band.ref="#c7e9f9" -->
-<!-- ) # make some room at the bottom -->
-<!-- Axis(side=2, at = c( -0.005, 0 , 0.005), labels=TRUE) -->
-<!-- abline(h=topline) -->
-<!-- abline(h=midline) -->
-<!-- #abline(h=bottomline) -->
-<!-- lapply(1:length(RMSE_print), function(i) { -->
-<!--   # text(x= i, y=min(ylim)+.002, paste0(i), col="black", font=2, cex = 1) -->
-<!--   #mtext(paste0(i), side=1, at = i, font=2, cex=.95)#, line=1, at=-1) -->
-<!--   text(x= i, y=topline-0.0065, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex) -->
-<!--   text(x= i, y=midline - 0.007, paste0(c_print[i]), col="black", font=1, cex=cov_cex ) -->
-<!-- }) -->
-<!-- # mtext('coverage\nprobability', side=2, las=1, at = loc_1, adj = 1, font=2, line=1) -->
-<!-- # mtext('RMSE', side=2, las=1, at = loc_2, font=2, line=1) -->
-<!-- text(x=mean(1:nrow(select_results)) -->
-<!--      , y=midline-.0025, "coverage probability", col="black", font=2) -->
-<!-- text(x=mean(1:nrow(select_results)) -->
-<!--      , y=topline-.0025, "RMSE", col="black", font=2) -->
-
-<!-- ``` -->
 
 ```{r selection-fig, echo = FALSE, warnings = FALSE, results = FALSE, message=FALSE, fig.cap="bias, distribution, and coverage of all models with clustered standard errors.",  fig.width = 9, fig.height = 8, out.width="100%"}
 
@@ -876,7 +777,7 @@ leg_cex = 1.2
 schart(select_results,labels, ylim = ylim, index.ci=index.ci, col.est = c(palette$dark, palette$dark_blue),
        bg.dot=c(palette$dark, "grey95", "white", palette$dark_blue),
        col.dot=c(palette$dark, "grey95", "white", palette$dark_blue),
-       ylab="    Bias", highlight=c(2, 3,4, 5, 9,10)
+       ylab="    Bias", highlight=c(6,7,8)
        ,band.ref=c(-.05, .04)
        , axes = FALSE
        #, col.band.ref="#c7e9f9"
@@ -895,9 +796,9 @@ text(x=mean(1:nrow(select_results))
      , y=midline - 0.0015, "coverage probability", col="black", font=2)
 text(x=mean(1:nrow(select_results))
      , y=topline-.0018, "RMSE", col="black", font=2)
-text(x=3.5 , y=0.011, "Aggregated\nfixed effects", col=palette$dark, font=1)
-text(x=6.9 , y=0.011, "Aggregated unit\nof analysis", col=palette$dark_blue, font=1)
-text(x=9.5 , y=0.012, "Survival models", col=palette$dark_blue, font=1)
+text(x=3.5 , y=0.0108, "Aggregated\nfixed effects", col=palette$dark, font=1)
+text(x=6.9 , y=0.0108, "Aggregated unit\nof analysis", col=palette$dark_blue, font=1)
+text(x=9.5 , y=0.0118, "Survival models", col=palette$dark, font=1)
 
 
 ```
