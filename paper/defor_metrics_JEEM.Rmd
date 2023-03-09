@@ -131,11 +131,11 @@ Researchers often account for irreversible, binary outcomes by adopting non-line
 We then explore non-random selection that arises due to irreversibility in the deforestation setting
 and how this feature of the data may lead to bias. Finally, we reflect on the econometric benefits that emerge when researchers are able to match their model structure to the relevant scale of the deforestation process and explore how area weighting may change the interpretation of researchers' treatment effect estimates. 
 
-This work makes important contributions to several literatures. First, our research contributes to an emerging literature aimed at better understanding how best to integrate remotely sensed data and econometric methods of causal inference [@jain2020; @gibson2021]. Several studies have begun to document measurement error in satellite-based measurements and explore its implications for econometric analysis [e.g., @alix-garcia_remotely_2022; @proctor_parameter_2023]. For example, @alix-garcia_remotely_2022 address misclassification in the context of a remotely sensed binary forest cover outcome and propose a solution for unbiased causal inference. Our paper implicitly assumes away issues of non-classical measurement error but demonstrates that researchers may still recover biased treatment effect estimates when using an irreversible, binary forest cover outcome.
+This work makes important contributions to several literatures. First, our research contributes to an emerging literature aimed at better understanding how best to integrate remotely sensed data and econometric methods of causal inference [@jain2020; @gibson2021]. Several studies have begun to document measurement error in satellite-based measurements and explore its implications for econometric analysis [e.g., @proctor_parameter_2023]. For example, @alix-garcia_remotely_2022 address misclassification in the context of a remotely sensed binary forest cover outcome and propose a solution for unbiased causal inference. Our paper implicitly assumes away issues of non-classical measurement error but demonstrates that researchers may still recover biased treatment effect estimates when using an irreversible, binary forest cover outcome.
 
 We also make contributions to the emerging literature on empirical practices in difference-in-differences settings. We complement the growing literature on the causal interpretation of coefficients from TWFE models, showing that TWFE regressions may not identify the expected treatment effect parameter when applied to binary, irreversible outcomes. While much of the recent work on TWFE models identifies concerns in the staggered adoption setting [e.g., @callaway2020; @dechaisemartin2020; @goodman-bacon2021], our results apply even in the 2x2 setting. To our knowledge, we present the first documented case where the TWFE and DID estimators are numerically distinct in the two-period, two-group context. We also contribute to the literature on DID in non-linear settings and survival analysis in economics. XX show that . XX wooldrideg shows that  
 
-Although this paper focuses upon impact evaluation of forest conservation policies, our findings are relevant to a wider audience. Specifically, these results apply to diverse settings in which the outcome of interest represents an irreversible, binary event. We identify several studies examining events such as mortality, recidivism, and technology adoption that fall prey to the same concerns we identify in this paper. 
+Although this paper focuses upon impact evaluation of forest conservation policies, our findings are relevant to a wider audience. Specifically, these results apply to diverse settings in which the outcome of interest represents an irreversible, binary event. Such events include mortality [e.g., @friedman], technology adoption [e.g., @bollinger], and reincarceration [e.g., @mastrobuoni]. We identify several studies examining events such as mortality, recidivism, and technology adoption that fall prey to the same concerns we identify in this paper. 
 
 
 # Empirical context
@@ -214,6 +214,10 @@ We also make the following stable unit treatment value assumption (SUTVA)
 
 Assumption 2 requires that the potential outcomes for pixel $i$, $y_{it}(1)$ and $y_{it}(0)$, do not depend on the treatment status of any other pixel. There also cannot exist unobserved versions of treatment that may affect the potential outcomes. 
 
+## Candidate empirical models
+
+### Traditional difference-in-differences estimator
+
 Under the above two assumptions, the researcher can estimate the $ATT$ using a traditional DID regression. 
 
 \textbf{Regression 1:} (DID regression)
@@ -232,8 +236,18 @@ When the $y^o_{ivt}$s are i.i.d. and Assumptions 1 and 2 hold, it is straightfor
 \beta_{DID}=ATT
 \end{align*}
 
+### Point-level TWFE regression
 
-## Candidate empirical models
+Researchers often want to estimate the $ATT$ in a setting that does not fit the two-group, two-period case covered by the standard DID model. In such cases, TWFE regressions are frequently used to apply DID methods to multiple groups or treatment periods [@imai_kim_2021; @goodman-bacon2021]. This amounts to estimating a regression that includes unit and time fixed effects to control for unobservable confounding variables that vary across units or through time. 
+
+\textbf{Regression 2:} (Point TWFE regression)
+Let $\beta_{TWFE}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression: 
+\begin{align*}
+y^o_{ivt} =  \beta_{TWFE} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \lambda_t + \gamma_i + \epsilon_{ivt}
+\end{align*}
+Here $\lambda_t$ and $\gamma_i$ represent the year and point (pixel) fixed effects, respectively. 
+
+In the case of two groups and two time periods, the TWFE regression typically yields an estimate of the $ATT$ that is numerically equivalent to the estimate generated by the DID model [@wooldridge2010; @imai_kim_2021]. With this in mind, many researchers have used the TWFE model as a "generalized DID" that can be estimated not only in the 2x2 case, but also in settings where different units are exposed to treatment in more than two distinct time periods (Table \@ref(tab:table-lit)). For example, a researcher may use a TWFE regression model to examine the effectiveness of a network of protected areas where the protected areas were created at different times, or a payment for ecosystem services (PES) program that enrolled properties in annual cohorts. 
 
 
 ### Aggregated unit fixed effects
@@ -263,6 +277,21 @@ Arguably the most commonly used formula in the deforestation literature to calcu
 z_{jt} &= \frac{F_{j,t-1} - F_{j,t}}{F_{j,t-1}} (\#eq:deforrate)
 \end{align}
 , where $F_{j,t}$ and $F_{j,t-1}$ are the share of spatial unit $j$ with forest cover at times $t$ and $t-1$, respectively.
+
+### Survival analysis
+
+
+Survival analysis has emerged as a common approach to modeling irreversible events [@emmert-streib_survival_2019]. It used frequently to model events such as mortality [e.g., @puterman_predicting_2020] and recidivism [e.g., @luallen_recidivism_2018], but can also be appliedd to deforestation contexts. Survival models, such as the Cox Proportional Hazards model, quantify how covariates relate to changes in the length of time that a unit remains in a sample. In the case of deforestation, survival analyses can be used to explore how policy adoption changes the duration that treated, forested pixels survive until they are first cleared. 
+
+Despite the theoretical appeal of using survival models to study deforestation, they are still relatively uncommon in conservation impact evaluation. One emerging approach introduces the intuition of a difference-in-differences research design into a Cox Proportional Hazards model [e.g., @heilmayr2020; @sales2022]. Specifically, researchers estimate a Cox proportional hazards model of the following general form [e.g., @mastrobuoni]:
+
+\textbf{Regression 3:} (Cox DID regression)
+Let $\beta_{coxDID}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
+\begin{align*}
+h(t) = \delta_0(t)exp( \alpha_0 + \alpha_1 D_i + \alpha_2 \mathbb{1} \{ t\geq t_0\}+ \beta_{coxDID} \text{ x } D_i \mathbb{1} \{ t\geq t_0\}  + \epsilon_{it})
+\end{align*}
+
+, where $h(t)$ is the hazard rate of deforestation, $t$ years into the study period; and $\delta_0(t)$ is the baseline hazard function. 
 
 
 # Methods
@@ -375,22 +404,7 @@ We compare econometric models using a combination of estimate bias, root mean sq
 
 # Analytical results
 
-## TWFE does not identify $ATT$ with binary, irreversible outcomes
-
-## Point-level TWFE regression
-
-Researchers often want to estimate the $ATT$ in a setting that does not fit the two-group, two-period case covered by the standard DID model. In such cases, TWFE regressions are frequently used to apply DID methods to multiple groups or treatment periods [@imai_kim_2021; @goodman-bacon2021]. This amounts to estimating a regression that includes unit and time fixed effects to control for unobservable confounding variables that vary across units or through time. 
-
-\textbf{Regression 2:} (Point TWFE regression)
-Let $\beta_{TWFE}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression: 
-\begin{align*}
-y^o_{ivt} =  \beta_{TWFE} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \lambda_t + \gamma_i + \epsilon_{ivt}
-\end{align*}
-Here $\lambda_t$ and $\gamma_i$ represent the year and point (pixel) fixed effects, respectively. 
-
-In the case of two groups and two time periods, the TWFE regression typically yields an estimate of the $ATT$ that is numerically equivalent to the estimate generated by the DID model [@wooldridge2010; @imai_kim_2021]. With this in mind, many researchers have used the TWFE model as a "generalized DID" that can be estimated not only in the 2x2 case, but also in settings where different units are exposed to treatment in more than two distinct time periods (Table \@ref(tab:table-lit)). For example, a researcher may use a TWFE regression model to examine the effectiveness of a network of protected areas where the protected areas were created at different times, or a payment for ecosystem services (PES) program that enrolled properties in annual cohorts. 
-
-## Irreversible Point FE bias
+## Irreversible Point FE bias: TWFE does not identify $ATT$ with binary, irreversible outcomes
 
 Despite widespread use of pixel-level analyses of deforestation, the application of TWFE models to a binary, irreversible process yields a biased estimate of the $ATT$. Specifically, we show that in the 2x2 case, the coefficient of interest from the point TWFE model $(\beta_{TWFE})$ estimates the post-treatment difference in outcomes (single difference), rather than the desired $ATT$ (full proof contained in Appendix \@ref(TWFE-proof)). 
 
@@ -413,19 +427,7 @@ There may be cases in which researchers do want to keep observations in the pane
 
 ## Survival analysis
 
-## Hazard rate ratios from a single survival model do not estimate the $ATT$ under common trends
-
-Survival analysis has emerged as a common approach to modeling irreversible events [@emmert-streib_survival_2019]. It used frequently to model events such as mortality [e.g., @puterman_predicting_2020] and recidivism [e.g., @luallen_recidivism_2018], but can also be appliedd to deforestation contexts. Survival models, such as the Cox Proportional Hazards model, quantify how covariates relate to changes in the length of time that a unit remains in a sample. In the case of deforestation, survival analyses can be used to explore how policy adoption changes the duration that treated, forested pixels survive until they are first cleared. 
-
-Despite the theoretical appeal of using survival models to study deforestation, they are still relatively uncommon in conservation impact evaluation. One emerging approach introduces the intuition of a difference-in-differences research design into a Cox Proportional Hazards model [e.g., @heilmayr2020; @sales2022]. Specifically, researchers estimate a Cox proportional hazards model of the following general form [e.g., @mastrobuoni]:
-
-\textbf{Regression 3:} (Cox DID regression)
-Let $\beta_{coxDID}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
-\begin{align*}
-h(t) = \delta_0(t)exp( \alpha_0 + \alpha_1 D_i + \alpha_2 \mathbb{1} \{ t\geq t_0\}+ \beta_{coxDID} \text{ x } D_i \mathbb{1} \{ t\geq t_0\}  + \epsilon_{it})
-\end{align*}
-
-, where $h(t)$ is the hazard rate of deforestation, $t$ years into the study period; and $\delta_0(t)$ is the baseline hazard function. 
+### Hazard rate ratios from a single survival model do not estimate the $ATT$ under common trends
 
 Multiple studies across a wide variety of settings have interpreted the resulting exponentiatated coefficient $exp(\beta_{coxDID})$ as a hazard ratio that is indicative of the impact that treatment has had on the relative likelihood of survival. Specifically, based on the way this hazard ratio is interpreted in multiple papers, it appears that many researchers expect this hazard ratio to represent the ratio of the hazard rates in the treatment group post-treatment, relative to the counterfactual in that group had treatment not occurred. This desired hazard ratio measuring the relative impact of treatment on the treated, which we denote as the $HRTT$, can be considered a reframing of the traditional $ATT$ as a ratio rather than a difference: 
 
@@ -440,7 +442,7 @@ Both in conservation and alternative settings, researchers using Regression 3 ha
 
 Assumption 3 requires that pixels in treated and untreated areas would have experienced the same ratio of change in their probability of deforestation across the two periods had no intervention occurred. Note that Assumption 1 and Assumption 3 cannot simultaneously hold (unless there is no trend at all). This means that researchers estimating Regression 3 under the traditional common trends assumption (Assumption 1) will not recover the $HRTT$, the relevant treatment effect parameter. 
 
-## Proposing a new survival analysis-based estimator of the $ATT$
+### Proposing a new survival analysis-based estimator of the $ATT$
 
 To the best of our knowledge, no prior studies have successfully combined the Cox Proportional Hazards model and the difference in differences research design to recover an unbiased estimate of the $ATT$ under the traditional common trends assumption (Assumption 1). Here we outline a new estimation approach that first recovers an unbiased estimate of the $HRTT$ and then translates this into an estimate of the $ATT$ that holds under Assumption 1. First, we note that the desired $HRTT$ can be re-written as a combination of three different hazard ratios: 
 
