@@ -575,18 +575,17 @@ In the two-group, two-period case the traditional DID (Regression 1) is an unbia
 
 ## Models using spatial aggregation
 
-We proposed using aggregation as a way to avoid the issues associated with integrating TWFE models with binary outcomes when the outcome is irreversible. Columns 4-6 of Figure \@ref(fig:summary-fig) show that pixel level TWFE regressions are unbiased estimators of the $ATT$ when grid, county, or property fixed effects are used rather than pixel fixed effects. We also see that, in the absence of property level perturbations (i.e. $\sigma_p=0$ in the DGP), all three models provide similar estimates and estimate distributions. 
+We proposed using aggregation as a way to avoid the issues associated with integrating TWFE models with binary outcomes when the outcome is irreversible.
 
-While we detail the tradeoffs of various deforestation rate calculations in the appendix (Appendix \@ref(rate-formula)), the following results are based on Equation \@ref(eq:deforrate). 
+Columns 2-4 of Figure \@ref(fig:summary-fig) show that $\beta_{FE,j}$ from pixel level TWFE regressions in the form of Regression 3 is an unbiased estimator of the $ATT$. These regressions use grid, county, or property fixed effects rather than pixel fixed effects. We also see that, in the absence of property level perturbations (i.e. $\sigma_p=0$ in the DGP), all three models provide similar estimates and estimate distributions. 
 
-Columns 7-9 of Figure \@ref(fig:summary-fig) show that neither the bias nor RMSE of the estimates vary dramatically across different levels of aggregation. 
+Similarly, columns 5-7 show that that $\beta_{j}$ from TWFE regressions in the form of Regression 4 is an unbiased estimator of the $ATT$. These TWFE regressions use an aggregated unit of analysis, where the deforestation rate for unit $j$ is explicitly calculated in each time $t$. While we detail the tradeoffs of various deforestation rate calculations in the appendix (Appendix \@ref(rate-formula)), the following results are based on Equation \@ref(eq:deforrate). Neither the bias nor RMSE of the estimates vary dramatically across different levels of aggregation. 
 
 ## Survival analysis
 
-Survival analysis provides an appealing alternative to traditional linear estimators when studying irreversible changes such as deforestation. The simple, single-regression DID framing of the Cox Proportional hazards model  (Regression 5), however, is not a viable solution (Section \@ref(survival)) under the typical common trends assumption (Assumption 1). Column 1 of Figure \@ref(fig:summary-fig) shows the bias associated with this model in our parameterization where Assumption 1 holds but Assumption 3 does not. In light of the fact that the simple Cox DID is not a viable analog to the traditional DID, we explore whether our proposed estimator, $\widehat{ATT_{Cox}}$, recovers relevant treatment effect parameters in the deforestation setting. We see in column 2 that $\widehat{ATT_{Cox}}$ indeed recovers our parameter of interest, the $ATT$.
+Survival analysis provides an appealing alternative to traditional linear estimators when studying irreversible changes such as deforestation. The simple, single-regression DID framing of the Cox Proportional hazards model  (Regression 5), however, is not a viable solution (Section \@ref(survival)) under the typical common trends assumption (Assumption 1). Column 8 of Figure \@ref(fig:summary-fig) shows the bias associated with this model in our parameterization where Assumption 1 holds but Assumption 3 does not. In light of the fact that the simple Cox DID is not a viable analog to the traditional DID, we explore whether our proposed estimator, $\widehat{ATT_{Cox}}$, recovers relevant treatment effect parameters in the deforestation setting. We see in column 9 that $\widehat{ATT_{Cox}}$ indeed recovers our parameter of interest, the $ATT$.
 
 Although our proposed, survival analysis-based approach to estimation yields a good estimate of the true $ATT$ in this simple setting, multiple considerations raise questions about the utility of this non-linear model in more complex settings. One of the primary reasons for the use of survival analysis is censoring. This occurs when the researcher has partial information about the subjects’ survival times but does not have access to precise event times. While the researcher may not observe all pixels until they are deforested, many other common forms of censoring are rarely a concern in the context of deforestation since remote sensing typically enables the creation of balanced panels. Further, the proposed strategy to drop pixels in the periods after they are first deforested successfully addresses irreversibility in deforestation events. Finally, as we show in the following sections, survival analysis is likely to suffer from bias when the data generating process underpinning deforestation is influenced by unobservable characteristics of more aggregated spatial units such as the preferences of a property-owner. While researchers can account for this in OLS specifications, there is no clear solution in survival analysis. 
-
 
 ```{r summary-fig, echo = FALSE, warnings = FALSE, results = FALSE, message=FALSE, fig.cap="bias, distribution, and coverage of all models with clustered standard errors.",  fig.width = 9, fig.height = 8, out.width="100%"}
 
@@ -614,8 +613,8 @@ df_summary <- specchart_long %>%
             cover = mean(cover))%>%
   select(Bias, everything())
 
-df_summary <- rbind(df_summary[5,], df_summary[7:9,],  df_summary[1:4,],
-                    df_summary[6,])
+df_summary <- rbind(df_summary[5,], df_summary[7:9,],  df_summary[1:3,],
+                    df_summary[6,], df_summary[4,])
 
 par(oma=c(1,0,1,1))
 
@@ -685,7 +684,6 @@ text(x=9.5 , y=0.0135, "Survival models", col=palette$dark, font=1)
 
 ```
 
-
 # Non-random sample selection can generate bias {#property}
 
 Irreversibility in observed deforestation also creates the potential for non-random sample selection. Specifically, deforested pixels are no longer at risk of clearing in the periods after they are first deforested. This means the "at risk" set of pixels changes through time as more pixels become deforested. As such, the distribution that describes the returns to clearing the at-risk pixels may change through time as well, leading to non-random selection of the sample through time. For example, pixels with extremely high returns to clearing are more likely to be cleared early on, regardless of treatment status. In subsequent periods, therefore, these high return pixels are less likely to be present in the sample at all. In the context of two-groups and two-periods, only the second period suffers from this non-random sample selection. We express the bias introduced from non-random sample selection below.
@@ -731,8 +729,8 @@ df_summary <- specchart_long %>%
             cover = mean(cover))%>%
   select(Bias, everything())
 
-df_summary <- rbind(df_summary[5,], df_summary[7:9,],  df_summary[1:4,],
-                    df_summary[6,])
+df_summary <- rbind(df_summary[5,], df_summary[7:9,],  df_summary[1:3,],
+                    df_summary[6,], df_summary[4,])
 
 par(oma=c(1,0,1,1))
 
@@ -799,7 +797,6 @@ text(x=mean(1:nrow(select_results))
 text(x=3.5 , y=0.0108, "Aggregated\nfixed effects", col=palette$dark, font=1)
 text(x=6.9 , y=0.0108, "Aggregated unit\nof analysis", col=palette$dark_blue, font=1)
 text(x=9.5 , y=0.0118, "Survival models", col=palette$dark, font=1)
-
 
 ```
 
