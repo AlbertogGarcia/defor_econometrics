@@ -1,5 +1,5 @@
 ---
-title: "Impact evaluation with binary, irreversible outcomes: the case of forest conservation using remotely sensed data"
+title: "Conservation impact evaluation using irreversible remotely sensed data"
 author: 
 - Alberto Garcia^[University of California, Santa Barbara, Bren School of Environmental Science \& Management; \color{blue}albertogarcia@ucsb.edu]
 - Robert Heilmayr^[University of California, Santa Barbara, Bren School of Environmental Science \& Management and Environmental Studies Program; \color{blue}rheilmayr@ucsb.edu]
