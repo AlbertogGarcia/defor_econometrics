@@ -133,7 +133,7 @@ We then explore non-random selection that arises due to irreversibility in the d
 
 This work makes important contributions to several literatures. First, our research contributes to an emerging literature aimed at better understanding how best to integrate remotely sensed data and econometric methods of causal inference [@jain2020; @gibson_lights_2021]. Several studies have begun to document measurement error in satellite-based measurements and explore its implications for econometric analysis [e.g., @proctor_parameter_2023]. For example, @alix-garcia_remotely_2022 address misclassification in the context of a remotely sensed binary forest cover outcome and propose a solution for unbiased causal inference. Our paper implicitly assumes away issues of non-classical measurement error but demonstrates that researchers may still recover biased treatment effect estimates when using an irreversible, binary forest cover outcome. 
 
-We contribute to work in environmental economics and conservation science seeking to rigorously estimate the impacts of conservation policy. Causal impact evaluation in nature conservation has emerged relatively recently [@borner_effectiveness_2020], and a wide array of papers has called for researchers to improve the rigor of their approaches in this space [@ferraro2019; @avelino2016; @baylis2016; @miteva2012]. While a burgeoning literature and increased interest in causal conservation impact evaluation has sought to meet this call, this study identifies key obstacles when integrating quasiexperimental econometric methods with frequently used sources of land cover data.  
+We contribute to work in environmental economics and conservation science seeking to rigorously estimate the impacts of conservation policy. Causal impact evaluation in nature conservation has emerged relatively recently [@borner_effectiveness_2020], and a wide array of papers has called for researchers to improve the rigor of their approaches in this space [@ferraro2019; @avelino2016; @baylis2016; @miteva2012]. While a burgeoning literature of quasiexperimental conservation impact evaluation has sought to meet this call, this study identifies key obstacles when integrating these econometric methods with frequently used sources of land cover data.  
 
 Finally, we add to the emerging literature on empirical practices in difference-in-differences settings. We complement the growing literature on the causal interpretation of coefficients from TWFE models, showing that individual unit-level TWFE regressions may not identify the expected treatment effect parameter when applied to binary, irreversible outcomes. While much of the recent work on TWFE models identifies concerns in the staggered adoption setting [e.g., @callaway2020; @dechaisemartin2020; @goodman-bacon2021], our results apply even in the 2x2 setting. To our knowledge, we present the first documented case where the TWFE and DID estimators are numerically distinct in the two-period, two-group context. Further, we show that recently developed estimators suffer from similar issues to TWFE regressions in the context of irreversible, binary outcomes. 
 
@@ -183,7 +183,7 @@ However, this basic model makes an assumption that the decision to deforest is r
 <!-- NOTE: Add more citations to previous paragraph -->
 
 \begin{align}
- y^o_{it} = \begin{cases}
+ y^o_{ivt} = \begin{cases}
       1   & y^*_{ivt} > 0 \text{ and } y^*_{iv \tau} \leq 0 \text{ for all } \tau<t  \\
       0   &  y^*_{ivt} \leq 0 \text{ and } y^*_{iv \tau} \leq 0 \text{ for all } \tau<t \\
       - & otherwise
@@ -260,7 +260,7 @@ One can also use aggregated units in the TWFE specification. Regression 3 outlin
 \textbf{Regression 3:} (Individual unit-level TWFE regression with aggregated unit fixed effects)
 Let $\beta_{FE,j}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
 \begin{align*}
-y^o_{ivt} = \alpha + \beta_{FE,j} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \lambda_t + \gamma_j + \epsilon_{ivt}
+y^o_{ivt} =  \beta_{FE,j} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \lambda_t + \gamma_j + \epsilon_{ivt}
 \end{align*}
 , where $\lambda_t$ denotes year fixed effects and $\gamma_j$ denotes fixed effects at the level of an aggregated unit. If $k$ differs from the level of treatment assignment, one must also include a treatment group indicator or fixed effects at the level of the unit at which treatment is assigned. 
 
@@ -271,7 +271,7 @@ Another potential solution to the bias associated with TWFE models is for resear
 \textbf{Regression 4:} (TWFE regression with aggregated unit of analysis)
 Let $\beta_{j}$ denote the coefficient of the interaction between $D_{j}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
 \begin{align*}
-z_{jt} = \alpha + \beta_{j} \text{ x } D_j \mathbb{1} \{ t\geq t_0\} + \lambda_t + \gamma_j + \epsilon_{jt}
+z_{jt} =  \beta_{j} \text{ x } D_j \mathbb{1} \{ t\geq t_0\} + \lambda_t + \gamma_j + \epsilon_{jt}
 \end{align*}
 , where $\lambda_t$ denotes year fixed effects and $\gamma_j$ denotes fixed effects at the level of the aggregated unit. Regression 5 differs from Regression 4 in both the treatment variable, $D_j$ and the outcome variable, $z_{jt}$. The treatment variable $D_j = \frac{1}{N_j}\sum_{i=1}^{N_j}D_i$, is the average treatment value amongst all pixels in unit $j$. If treatment is assigned at the level of $j$, $D_j=1$. The outcome variable, $z_{jt}$, denotes the event rate within unit $j$ in period $t$. 
 
@@ -300,9 +300,9 @@ h(t) = \delta_0(t)exp( \alpha_0 + \alpha_1 D_i + \alpha_2 \mathbb{1} \{ t\geq t_
 
 ## Analytical proofs
 
-The rapid growth of the conservation impact evaluation literature has resulted in a diversity of model structures that all attempt to estimate the effectiveness of conservation interventions (Table \@ref(tab:table-lit)). However, researchers have not adequately considered how the irreversible, binary structure of these data may affect the properties of some estimators. We use analytical proofs to demonstrate several concerns that arise with the use of specific model specifications in the context of an irreversible, binary outcome. All of our analytical results apply to any setting with an irreversible, binary outcome. In particular, we have identified several studies outside of the forest conservation literature that fall prey to the issues we present.  
+The rapid growth of the conservation impact evaluation literature has resulted in a diversity of model structures that all attempt to estimate the effectiveness of conservation interventions (Table \@ref(tab:table-lit)). However, researchers have not adequately considered how the irreversible, binary structure of these data may affect the properties of some estimators. We use analytical proofs to demonstrate several concerns that arise with the use of specific model specifications in the context of an irreversible, binary outcome. All of our analytical results apply to any setting with an irreversible, binary outcome, and we have indeed identified several studies outside of the forest conservation literature that fall prey to the issues we present.  
 
-For our analytical results, we restrict ourselves to the case where $t\in \{1,2\}$ and $t_0 = 2$. We can then denote $y^0_{iv1}$ and $y^0_{iv2}$ as the outcomes for individual unit $i$ in the first and second periods, respectively. In this setting, $y^0_{iv1} \in \{0, 1\}$ and $y^0_{iv2} \in \{0, 1, -\}$, meaning that although only outcomes in the second period are dropped, there exists variation in deforestation across both periods. 
+For our analytical results, we restrict ourselves to the case where $t\in \{1,2\}$ and $t_0 = 2$. We can then denote $y^0_{iv1}$ and $y^0_{iv2}$ as the outcomes for individual unit $i$ in the first and second periods, respectively. In this setting, $y^0_{iv1} \in \{0, 1\}$ and $y^0_{iv2} \in \{0, 1, -\}$, meaning that although only outcomes in the second period are dropped, there exists variation in deforestation across both periods. We present the core analytical results in the main text, and the detailed proofs can be found in the Appendix. 
 
 ## Simulation models
 
