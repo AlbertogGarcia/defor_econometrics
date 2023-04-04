@@ -366,7 +366,7 @@ kable(resolution_df, format = "latex", row.names = FALSE,  booktabs = T,
 
 ### Data generating process
 
-Each of our simulated landscapes consists of administrative units that are either untreated $(D_i=0)$ or are assigned to a conservation treatment $(D_i=1)$. We observe deforestation in two, even-length periods. There exists both a pre-treatment ($T_{pre}$; $t < t_{0}$) and a post-treatment ($T_{post}$; $t \ge t_{0})$ period, each consisting of multiple years.
+Each of our simulated landscapes consists of administrative units that are either untreated $(D_i=0)$ or are assigned to a conservation treatment $(D_i=1)$. We observe deforestation in two even-length periods, each of which consists of multiple years.
 
 We follow Equation \@ref(eq:clearing) and model these binary deforestation events as a function of each pixel's unobservable value along the continous, latent variable ($y^*_{ivt}$) indicating the return to clearing pixel $i$, in property $v$, in year $t$. 
 \begin{align*}
@@ -479,6 +479,21 @@ Because the numerator of $HRTT$, $E[y_{iv2}(1)  |  D_i=1]$, can be estimated as 
 \end{align}
 
 We have shown that the simple extension of the traditional DID to the survival setting only recovers an easily interpretable measure of a policy's impact under an assumption that cannot simultaneously hold with the traditional common trends assumption, the ``Proportional Trends" assumption. In contrast, our proposed estimator, which relies on separate estimation of relevant hazard ratios, does recover the relevant analog of the $ATT$ under the traditional common trends assumption (Assumption 1). We explore the performance of $\widehat{ATT}_{Cox}$ relative to the proposed OLS regressions under various circumstances likely to arise in the deforestation setting in the next sections. If a researcher opts to use survival analysis to recover an intervention's impact, their choice of estimator should depend on which trends assumption is plausible in their specific setting. 
+
+## Non-random sample selection can generate bias in irreversible settings {#selection-bias}
+
+Irreversibility in observed deforestation creates the potential for non-random sample selection. Specifically, deforested pixels are no longer at risk of clearing in the periods after they are first deforested. This means the "at risk" set of pixels changes through time as more pixels become deforested. As such, the distribution that describes the returns to clearing the at-risk pixels may change through time as well, leading to non-random selection of the sample through time. For example, pixels with extremely high returns to clearing are more likely to be cleared early on, regardless of treatment status. In subsequent periods, therefore, these high return pixels are less likely to be present in the sample at all. In the context of two-groups and two-periods, only the second period suffers from this non-random sample selection. We express the bias introduced from non-random sample selection below.
+
+\textbf{Result:} Under Assumptions 1 and 2, in the two-group, two-period case, $\beta_{DID}$ suffers from non-random sample selection bias when the $y^o_{ivt}$s are not i.i.d.
+
+\begin{align}
+\beta_{DID} = & ATT +  \underbrace{E[y^o_{iv2}| D_i=1]-E[y_{iv2}| D_i=1] - (E[y^o_{iv2}| D_i=0]-E[y_{iv2}| D_i=0])}_\text{{bias emerging from non-random sample selection}}
+\end{align}
+
+\textbf{Proof:} Appendix \@ref(selection-proof) Q.E.D.
+
+In essence, the first and third expectations in the bias term are conditional on the pixel remaining forested after the first period.
+
 
 # Simulation results
 
@@ -689,21 +704,11 @@ text(x=9.5 , y=0.0135, "Survival models", col=palette$dark, font=1)
 
 ```
 
-# Non-random sample selection can generate bias {#property}
+\clearpage
 
-Irreversibility in observed deforestation also creates the potential for non-random sample selection. Specifically, deforested pixels are no longer at risk of clearing in the periods after they are first deforested. This means the "at risk" set of pixels changes through time as more pixels become deforested. As such, the distribution that describes the returns to clearing the at-risk pixels may change through time as well, leading to non-random selection of the sample through time. For example, pixels with extremely high returns to clearing are more likely to be cleared early on, regardless of treatment status. In subsequent periods, therefore, these high return pixels are less likely to be present in the sample at all. In the context of two-groups and two-periods, only the second period suffers from this non-random sample selection. We express the bias introduced from non-random sample selection below.
+# Non-random sample selection {#selection-results}
 
-\textbf{Result:} Under Assumptions 1 and 2, in the two-group, two-period case, $\beta_{DID}$ suffers from non-random sample selection bias when the $y^o_{ivt}$s are not i.i.d.
-
-\begin{align}
-\beta_{DID} = & ATT +  \underbrace{E[y^o_{ivt}|t\geq t_0, D_i=1]-E[y_{ivt}|t\geq t_0, D_i=1] - (E[y^o_{ivt}|t\geq t_0, D_i=0]-E[y_{ivt}|t\geq t_0, D_i=0])}_\text{{bias emerging from non-random sample selection}}
-\end{align}
-
-\textbf{Proof:} Appendix \@ref(selection-proof) Q.E.D.
-
-In essence, the first and third expectations in the bias term are conditional on the pixel remaining forested after the first period.
-
-Non-random sample selection did not bias our initial simulations as presented in Figure \@ref(fig:summary-fig) because we assumed away time-invariant pixel and property-level disturbances. The sample of at risk pixels in each time period did not depend on the deforestation that occurred the previous period, since the $y^o_{ivt}$s were i.i.d.. However, once time-invariant disturbances enter the DGP, the distribution of the $y^o_{iv2}s$ is potentially different from that of the $y^o_{iv1}$s. This is likely to be the case in reality, since each plot of land will have time-invariant characteristics such as slope, elevation, market access, agricultural suitability, etc. that impact its expected returns to clearing. 
+We now explore how the non-random sample selection described in section \@ref(selection-bias) may influence estimates in our simulated landscapes. Non-random sample selection did not bias our initial simulations as presented in Figure \@ref(fig:summary-fig) because we assumed away time-invariant pixel and property-level disturbances. The sample of at risk pixels in each time period did not depend on the deforestation that occurred the previous period, since the $y^o_{ivt}$s were i.i.d.. However, once time-invariant disturbances enter the DGP, the distribution of the $y^o_{ivt}s$ is potentially different in each year of the panel. This is likely to be the case in reality, since each plot of land will have time-invariant characteristics such as slope, elevation, market access, agricultural suitability, etc. that impact its expected returns to clearing. 
 
 In order to see how this non-random selection influences estimates in our simulated setting, we set $\sigma_a$, the standard error of the time-invariant pixel-level disturbances equal to $0.1$. Figure \@ref(fig:selection-fig) shows that non-random selection introduces a slight downward bias across every specification.
 
@@ -807,7 +812,7 @@ text(x=9.5 , y=0.0118, "Survival models", col=palette$dark, font=1)
 
 # Selecting the appropriate spatial structure
 
-## Model structures that match the spatial process deforestation can reduce bias
+## Model structures that match the spatial process of deforestation can reduce bias
 
 Connecting the econometric model to the process by which land use change occurs on the ground has clear benefits for estimation and inference in deforestation impact evaluation. Table \@ref(tab:table-lit) shows that researchers often use an arbitrary spatial unit such as a point, pixel, or grid cell as the unit of analysis. While this may be a useful way of structuring data, it can lead to biased results if land use change is determined through a process that is mediated by other spatial structures.
 
