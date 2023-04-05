@@ -1516,6 +1516,8 @@ Taking the expectation gives:
 E[\hat{\beta}_{TWFE}]&=ATT+E[y_{i2}(0)|D_i = 1] - E[y_{i2}(0)|D_i = 0]
 \end{align*}
 
+, where the expectation of the $y^o_{ivt}$s is equal to that of the $y_{ivt}$s if they are i.id..
+
 \begin{align*}
 \beta_{TWFE}&=ATT+E[y_{i2}(0)|D_i = 1] - E[y_{i2}(0)|D_i = 0]
 \end{align*}
