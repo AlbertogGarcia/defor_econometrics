@@ -178,19 +178,21 @@ We model deforestation $(y_{ivt})$ as a binary choice by a landowner to clear a 
 
 This generic clearing rule underpins a broad class of more specific static and dynamic models that have been used to explore the determinants of deforestation [e.g., @pfaff1999; @kerr2003; @pfaff2004].
 
-However, this basic model makes an assumption that the decision to deforest is reversible. In reality, a number of characteristics of both the process of deforestation, as well as the methods used to detect deforestation in individual plots, complicate this assumption. First, the goal of many conservation interventions is to prevent the loss of mature forests that may take decades, if not centuries, to regrow. In such cases, deforestation itself may be considered irreversible in human time scales, focusing the researchers' attention upon the first instance in which a plot is deforested. Even when deforestation of secondary forests is an object of interest, constraints imposed by remotely sensed datasets may force empirical researchers to treat deforestation as irreversible. Gradual processes of reforestation are inherently harder to identify than abrupt losses of forest cover [@hansen2013]. In addition, determining the precise year in which the extended process of forest regrowth began is currently an active area of research for the remote sensing community, and often requires many years of post-regrowth observations. As a result, commonly used deforestation datasets such as the Global Forest Change product often only identify the first year in which a pixel was cleared [@hansen2013]. Whether desired, or due to technical limitations, the resulting inability to observe repeated deforestation means that deforestation is, in effect, an irreversible process in most conservation impact evaluations. In response to this irreversibility, studies including @jones2015 and @alix-garcia2017 have suggested that deforested pixels should be dropped in the periods after they are first cleared. We follow this guidance, further modifying our outcome, $y^o_{ivt}$, the observed binary deforestation variable:
+However, this basic model makes an assumption that the decision to deforest is reversible. In reality, a number of characteristics of both the process of deforestation, as well as the methods used to detect deforestation in individual plots, complicate this assumption. First, the goal of many conservation interventions is to prevent the loss of mature forests that may take decades, if not centuries, to regrow. In such cases, deforestation itself may be considered irreversible in human time scales, focusing the researchers' attention upon the first instance in which a plot is deforested. Even when deforestation of secondary forests is an object of interest, constraints imposed by remotely sensed datasets may force empirical researchers to treat deforestation as irreversible. Gradual processes of reforestation are inherently harder to identify than abrupt losses of forest cover [@hansen2013]. In addition, determining the precise year in which the extended process of forest regrowth began is currently an active area of research for the remote sensing community, and often requires many years of post-regrowth observations. As a result, commonly used deforestation datasets such as the Global Forest Change product often only identify the first year in which a pixel was cleared [@hansen2013]. Whether desired, or due to technical limitations, the resulting inability to observe repeated deforestation means that deforestation is, in effect, an irreversible process in most conservation impact evaluations. To incorporate this irreversibility into our model, we denote $C_i$ as the first year in which $y^*_{ivt} > 0$, where $y_{ivt}$ is not observed when $t > C_i$. 
+
+In response to this irreversibility, studies including @jones2015 and @alix-garcia2017 have suggested that deforested pixels should be dropped in the periods after they are first cleared. We follow this guidance, further modifying our outcome, $y^o_{ivt}$, the observed binary deforestation variable:
 
 <!-- NOTE: Add more citations to previous paragraph -->
 
 \begin{align}
  y^o_{ivt} = \begin{cases}
-      1   & y^*_{ivt} > 0 \text{ and } y^*_{iv \tau} \leq 0 \text{ for all } \tau<t  \\
-      0   &  y^*_{ivt} \leq 0 \text{ and } y^*_{iv \tau} \leq 0 \text{ for all } \tau<t \\
-      - & otherwise
+      1   & t = C_i  \\
+      0   &  t < C_i \\
+      - & t > C_i
    \end{cases}
 \end{align}
 
-Here, $-$ indicates that the outcome for pixel $i$ in time $t$ has been dropped from the panel. A simple illustrative panel dataset with this structure can be seen in \@ref(example-panel).
+Here, $-$ indicates that the outcome for pixel $i$ in time $t$ has been dropped from the panel in years where $t > C_i$. A simple illustrative panel dataset with this structure can be seen in \@ref(example-panel).
 
 Our parameter of interest, the $ATT$, is the average effect of an intervention on treated pixels. Let $y_{ivt}(1)$ and $y_{ivt}(0)$ denote the potential outcomes of pixel $i$ in property $v$ in year $t$ with and without the treatment, respectively. In addition, let $t_0$ denote the first year in which the intervention of interest is implemented and let $D_i$ represent a dummy indicating whether pixel $i$ is ever treated. The $ATT$ can now be expressed as: 
 
@@ -1398,12 +1400,302 @@ treatment & 4 & 0 & - & - &  - & 1 & - & 1 & 0 &  -\\
 \end{table}
 \end{center}
 
-## TWFE regression models with point fixed effects do not identify $ATT$
+## Analytical results
 
-### Proof {#TWFE-proof}
+### Setup 
+
+Let $y_{it}$ be the binary outcome of interest for individual unit $i$ at time $t$. We assume that researchers have access to outcome data pre-treatment ($t = 1$) and post-treatment ($t=2$). Some units ($D_i = 1$) are exposed to a policy treatment in the second time period ($t_0 = 2$ denotes the time of first treatment for treated points). Let $W_{it} = 1$ if unit $i$ is treated before time $t$ and $W_{it} = 0$ otherwise. Using the potential outcome notation, denote $y_{it}(0)$ the outcome of unit $i$ at time $t$ if it does not receive treatment by time $t$ and $y_{it}(1)$ the outcome for the same unit if it receives treatment. 
+
+Thus, the realized outcome for unit $i$ at time $t$ is 
+$$y_{it}= W_{it}y_{it}(1) + (1 - W_{it})y_{it}(0)$$. 
+
+The parameter of interest, the $ATT$ is defined: 
+
+$$ATT = E[y_{it}(1) - y_{it}(0)| D_i = 1] $$
+
+Make the following common trends assumption, under which we evaluate these methods:
+
+$$ E[y_{i2}(0) - y_{i1}(0)| D_i = 1] = E[y_{i2}(0) - y_{i1}(0)| D_i = 0] $$
+
+Lastly, define $C_i$ as the first year in which an irreversible event of interest (e.g., deforestation) is realized for individual unit $i$ and suppose $y_{it}$ is not observable when $t > C_i$.
 
 
-### Point-level TWFE is equivalent to coefficient from same regression on dataset without pixels deforested pre-treatment {#TWFE-equivalence}
+### TWFE regression models with point fixed effects do not identify $ATT$ {#TWFE-proof}
+
+In settings with a binary and unrepeatable outcome variable, the commonly used unit-level TWFE model yields the post-treatment difference in outcomes (single difference), rather than the desired $ATT$.\\
+
+We define the observed outcome $y^o_{it}$:
+
+\begin{align}
+ y^o_{it} = \begin{cases}
+      1   & t = C_i \\
+      0   &  t < C_i \\
+      - & t > C_i
+   \end{cases}
+\end{align}
+
+, where $y^o_{it} = -$ indicates that the outcome for pixel $i$ has been dropped from the panel in time $t$. 
+
+Lastly, define the traditional individual unit level TWFE regression:
+
+$$ y^o_{it} = \alpha + \beta_{TWFE} \text{ x } W_{it}  + \gamma_i + \lambda_t+ u_{it}$$
+, where
+
+- $\gamma_i$ indicate point fixed effects
+
+- $\lambda_t$ indicate year fixed effects \\
+
+
+In the 2x2 case, we can write
+
+$$ y^o_{i1}=\alpha+\gamma_i+u_{i1}$$
+
+and
+
+\[y^o_{i2}= \begin{cases} 
+      \alpha+\beta_{TWFE} \text{ x }D_i+\gamma_i+\eta_{t=2} + u_{i2} & y^o_{i1}= 0\\
+      - & y^o_{i1} \neq 0 
+   \end{cases}
+\]
+
+, where $\eta_{t=2}$, an indicator for the post-treatment period, subsumes $\lambda_t$. Note that we substituted $W_{it}$ for $D_i$, since the two are equivalent post-treatment. 
+
+In the 2x2 case, the TWFE estimator is equivalent to the first differences estimator, and yields:
+
+\[y^o_{i2}-y^o_{i1}= \begin{cases} 
+      (\alpha+\beta_{TWFE} \text{ x }D_i+\gamma_i+\eta_{t=2} + u_{i2}) - (\alpha+\gamma_i+u_{i1}) & y^o_{i1}= 0\\
+      - & y^o_{i1} \neq 0 
+   \end{cases}
+\]
+
+
+ Focusing on the first case, where $y^o_{i1}=0$
+\begin{align*}
+y^o_{i2}-y^o_{i1}&=(\alpha+\beta_{TWFE}\text{ x }D_i+\gamma_i+\eta_{t=2} + u_{i2}) - (\alpha+\gamma_i+u_{i1})\\
+&=\beta_{TWFE}\text{ x }D_i + \eta_{t=2} + \Delta u_{i}
+\end{align*}
+
+The general expression can be restated as:
+
+\[y^o_{i2}-y^o_{i1}= \begin{cases} 
+ \beta_{TWFE} \text{ x }D_i + \eta_{t=2} + \Delta u_{i} & y^o_{i1}= 0\\
+      - & y^o_{i1} \neq 0 
+   \end{cases}
+\]
+
+With binary treatment ($D_i$), $\hat{\beta}_{TWFE}$, the regression’s estimate of $\beta_{TWFE}$ can be expressed as the double difference in mean outcomes across treated / untreated units, and across the two time periods:
+
+\begin{align*}
+\hat{\beta}&= \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y^o_{i2} - \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y^o_{i1} - (\frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y^o_{i2} - \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y^o_{i1})
+\end{align*}
+
+However, this is only valid when $y^o_{i1}=0$. As a result, we can restate as: 
+
+\begin{align*}
+\hat{\beta}_{TWFE}&= \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y^o_{i2} - 0 - (\frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y^o_{i2} - 0)\\
+&= \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y^o_{i2} - \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y^o_{i2}
+\end{align*}
+
+Thus far, we have shown that $\hat{\beta}_{TWFE}$ is equal to the ex-post difference in means between treatment and control units. 
+
+We now examine what this means for estimating the parameter of interest, the $ATT$.
+
+Applying the potential outcomes notation to indicate whether we see the treated or untreated outcome:
+\begin{align*}
+\hat{\beta}_{TWFE}&= \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y^o_{i2}(1) - \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y^o_{i2}(0)\\
+\end{align*}
+
+Adding and subtracting $\frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y^o_{i2}(0)$ gives:
+\begin{align*}
+\hat{\beta}_{TWFE}&=    \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y^o_{i2}(1) - y^o_{i2}(0)  \\
++& \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1}y^o_{i2}(0) - \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y^o_{i2}(0) 
+\end{align*}
+
+Taking the expectation gives:
+\begin{align*}
+E[\hat{\beta}_{TWFE}]&=ATT+E[y_{i2}(0)|D_i = 1] - E[y_{i2}(0)|D_i = 0]
+\end{align*}
+
+\begin{align*}
+\beta_{TWFE}&=ATT+E[y_{i2}(0)|D_i = 1] - E[y_{i2}(0)|D_i = 0]
+\end{align*}
+
+Now, imposing the common trends assumption, substituting for $E[y_{i2}(0)|D_i = 1]$, and simplifying:
+\begin{align*}
+\beta_{TWFE}&=ATT+E[y_{i1}(0)|D_i = 1] - E[y_{i1}(0)|D_i = 0]
+\end{align*}
+
+### Cox PH DID identifies $HRTT$ when proportional trends assumption holds {#proportional-trends}
+
+
+Consider the cox proportional hazards model of the censored $y_{it}$ regressed on the treatment dummy, $D_i$, the post dummy, $\mathbb{1}\{ t \geq t_0 \}$, and their interaction:
+
+\begin{align*}
+h(t) = \delta_0(t)exp( \alpha_0 + \alpha_1 D_i + \alpha_2 \mathbb{1} \{ t\geq t_0\}+ \beta_{coxDID} \text{ x } D_i \mathbb{1} \{ t\geq t_0\}  + \epsilon_{it})
+\end{align*}
+
+, where $h(t)$ is the hazard rate of deforestation, $t$ years into the study period; and $\delta_0(t)$ is the baseline hazard function. 
+
+The exponentiated coefficient on the interaction between two binary variables, $D_i$ and $\mathbb{1}\{ t \geq t_0 \}$, $exp(\beta_{coxDID})$,  is expressed as the ratio of the two pre-post hazard rate ratios across the two groups:
+
+\begin{align}
+exp(\beta_{coxDID}) &= \frac{E[y_{i2}  | D_i=1]/E[y_{i1}  | D_i=1] }{E[y_{i2}  | D_i=0]/E[y_{i1}  |  D_i=0] }
+\end{align}
+
+Introducing potential outcomes and simplifying:
+
+\begin{align}
+exp(\beta_{coxDID}) &= \frac{E[y_{i2}(1)  |   D_i=1]E[y_{i1}(0)  | D_i=0] }{E[y_{i2}(0)  |  D_i=0]E[y_{i1}(0)  |  D_i=1] }
+\end{align}
+
+Now, operating under Assumption 1 (Proportional Trends) and substituting for the right-hand side of (7):
+
+\begin{align}
+exp(\beta_{coxDID}) &= \frac{E[y_{i2}(1)  |  D_i=1]E[y_{i1}(0)  | D_i=1] }{E[y_{i2}(0)  | D_i=1]E[y_{i1}(0) | D_i=1] }
+\end{align}
+
+, showing that under proportional trends, $exp(\beta_{coxDID}) = HRRT$
+
+
+### Keeping pixels in periods after they are first deforested is not a viable solution {#keep-pixels}
+
+Remotely sensed metrics of deforestation at the pixel level are often subject to the dynamics of forest disturbance and regrowth. After a deforestation event occurs, the deforested area is unlikely to revert to forest cover within the study period, as it takes several years for forest to regenerate to a detectable level. Further, many data products do not allow for the monitoring of forest regrowth. In the panel therefore, it is likely that in the periods after a pixel is first realized as deforested, subsequent observations of the pixel will also observe the pixel as deforested. 
+
+The logic for dropping binary pixels after they first become deforested is as follows. A forested pixel switches from its assigned value of 0 to a value of 1 following a discrete deforestation event. Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested may imply that it has actively been deforested in each subsequent time period. In fact, no new deforestation event has ocurred, but the area simply remains deforested from the prior event. These pixels, therefore, contribute positively towards the deforestation rate in each period they are left in the panel. As such, the coefficient cannot recover the $ATT$. 
+
+Define an alternative observed outcome $y^{alt}_{it}$, where rather than dropping units from the panel, the outcome is imputed as a 1 when $t > C_0$.
+
+\begin{align}
+ y^{alt}_{it} = \begin{cases}
+      0   &  t < C_0 \\
+      1 & t \geq C_0
+   \end{cases}
+\end{align}
+
+Now, consider the difference-in-differences estimand with respect to outcome $y^{alt}_{it}$:
+
+\begin{align*}
+\psi =& E[y^{alt}_{i2} | D_i=1] - E[y^{alt}_{i1} | D_i=1] - (E[y^{alt}_{i2} |  D_i=0] - E[y^{alt}_{i1} | D_i=0] )
+\end{align*}
+
+Because $y^{alt}_{it}$ is binary, $psi$ can be re-expressed using probabilities:
+
+\begin{align*}
+\psi =& P(y^{alt}_{i2} = 1 | D_i=1) - P(y^{alt}_{i1} = 1 | D_i=1) - (P(y^{alt}_{i2} = 1|  D_i=0) - P(y^{alt}_{i1} = 1| D_i=0) )
+\end{align*}
+
+Because we observe $y^{alt}_{it} = 1$ anytime after $C_0$, we can express the probability that $y^{alt}_{it} = 1$ as a function of the probability that $C_0$ occurred prior to time $t$. Then, the terms with $y^{alt}_{i2}$s are re-expressed. 
+
+\begin{align*}
+\psi =& P(y_{i2} = 1 | D_i=1)\cup P(y_{i1} = 1 | D_i=1) - P(y_{i1} = 1 | D_i=1) - \\
+& (P(y_{i2} = 1|  D_i=0) \cup (P(y_{i1} = 1|  D_i=0) - P(y_{i1} = 1| D_i=0) )
+\end{align*}
+
+Applying the potential outcomes notation: 
+
+\begin{align*}
+\psi =& P(y_{i2}(1) = 1 | D_i=1)\cup P(y_{i1}(0) = 1 | D_i=1) - P(y_{i1}(0) = 1 | D_i=1) - \\
+& (P(y_{i2}(0) = 1|  D_i=0) \cup (P(y_{i1}(0) = 1|  D_i=0) - P(y_{i1}(0) = 1| D_i=0) )
+\end{align*}
+
+The bias that results from using $y^{alt}_{it}$ is expressed as the difference between the $ATT$ and $\psi$. After re-expressing the $ATT$ in terms of probability:
+
+\begin{align*}
+\psi - ATT =& P(y_{i2}(1) = 1 | D_i=1)\cup P(y_{i1}(0) = 1 | D_i=1) - P(y_{i1}(0) = 1 | D_i=1) - \\
+& (P(y_{i2}(0) = 1|  D_i=0) \cup (P(y_{i1}(0) = 1|  D_i=0) - P(y_{i1}(0) = 1| D_i=0) )\\
+- & [P(y_{i2}(1) = 1 | D_i=1) - P(y_{i2}(0) = 1 | D_i=1)]
+\end{align*}
+
+Under the common trends assumption and substituting for the unobserved term, $P(y_{i2}(0) = 1 | D_i=1)$, yields
+
+\begin{align*}
+\psi - ATT =& P(y_{i2}(1) = 1 | D_i=1)\cup P(y_{i1}(0) = 1 | D_i=1) - P(y_{i1}(0) = 1 | D_i=1) - \\
+& (P(y_{i2}(0) = 1|  D_i=0) \cup (P(y_{i1}(0) = 1|  D_i=0) - P(y_{i1}(0) = 1| D_i=0) )\\
+- & [P(y_{i2}(1) = 1 | D_i=1) - (P(y_{i2}(0) = 1 | D_i=0)  - P(y_{i1}(0) = 1 | D_i=0) + P(y_{i1}(0) = 1 | D_i=1))]\\
+=& P(y_{i2}(1) = 1 | D_i=1)\cap P(y_{i1}(0) = 1 | D_i=1) + P(y_{i2}(1) = 1 | D_i=1) - \\
+& (P(y_{i2}(0) = 1|  D_i=0) \cap (P(y_{i1}(0) = 1|  D_i=0) + P(y_{i2}(0) = 1|  D_i=0) )\\
+- & [P(y_{i2}(1) = 1 | D_i=1) - (P(y_{i2}(0) = 1 | D_i=0)  - P(y_{i1}(0) = 1 | D_i=0) + P(y_{i1}(0) = 1 | D_i=1))]
+\end{align*}
+, where the second equality uses the definition of union operator.
+
+Simplifying now yields:
+\begin{align*}
+\psi - ATT = & P(y_{i2}(1) = 1 | D_i=1)\cap P(y_{i1}(0) = 1 | D_i=1)  - \\
+& (P(y_{i2}(0) = 1|  D_i=0) \cap (P(y_{i1}(0) = 1|  D_i=0) \\
+- & [ P(y_{i1}(0) = 1 | D_i=1)- P(y_{i1}(0) = 1 | D_i=0) ]
+\end{align*}
+
+### Analytical expression of non-random sample selection bias in two-period two-group setting {#selection-proof}
+
+
+Consider again, the observed outcome, $y^o_{it}$. We begin with the $DID$ estimand in the two-group, two-period case:
+
+\begin{align*}
+\beta_{DID} = &E[y^o_{ivt} |  t\geq t_0, D_i=1] - E[y^o_{ivt} |  t<t_0, D_i=1] - (E[y^o_{ivt} |  t\geq t_0, D_i=0] - E[y^o_{ivt} |  t<t_0, D_i=0] )
+ \end{align*}
+
+ Now the bias generated due to non-random sample selection can be represented as the difference between this estimand and the $ATT$:
+\begin{align*}
+\beta_{DID} -ATT = &E[y^o_{ivt} |  t\geq t_0, D_i=1] - E[y^o_{ivt} |  t<t_0, D_i=1] - (E[y^o_{ivt} |  t\geq t_0, D_i=0] - E[y^o_{ivt} |  t<t_0, D_i=0] )\\
+&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=1])
+\end{align*}
+
+In the first period, the expectation of $y^o_{ivt}$ is the same as that of $y_{ivt}$, giving: 
+\begin{align*}
+\beta_{DID} -ATT=& E[y^o_{ivt} |  t\geq t_0, D_i=1] - E[y_{ivt} |  t<t_0, D_i=1] - (E[y^o_{ivt} |  t\geq t_0, D_i=0] - E[y_{ivt} |  t<t_0, D_i=0] )\\
+&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=1])
+\end{align*}
+
+Applying potential outcomes:
+\begin{align*}
+\beta_{DID} -ATT =& E[y^o_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t<t_0, D_i=1] - (E[y^o_{ivt}(0) |  t\geq t_0, D_i=0] - E[y_{ivt}(0) |  t<t_0, D_i=0] )\\
+&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=1])
+\end{align*}
+
+
+Applying our common trends assumption:
+\begin{align*}
+\beta_{DID} -ATT =& E[y^o_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t<t_0, D_i=0] - (E[y^o_{ivt}(0) |  t\geq t_0, D_i=0] - E[y_{ivt}(0) |  t<t_0, D_i=0] )\\
+&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=0])
+\end{align*}
+3
+Simplifying: 
+\begin{align*}
+\beta_{DID} -ATT =& E[y^o_{ivt}(1) |  t\geq t_0, D_i=1] - E[y^o_{ivt}(0) |  t\geq t_0, D_i=0]  \\
+&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=0])
+\end{align*}
+
+\textbf{Extending to our simulations:}
+
+In the context of our monte carlo simulations, this can be extended:
+
+\begin{align*}
+\beta_{DID} -ATT =& P[y^o_{ivt}(1)=1 |  t\geq t_0, D_i=1] - P[y^o_{ivt}(0)=1 |  t\geq t_0, D_i=0]  \\
+&-(P[y_{ivt}(1)=1 |  t\geq t_0, D_i=1] - P[y_{ivt}(0)=1 |  t\geq t_0, D_i=0])
+\end{align*}
+
+\begin{align*}
+\beta_{DID} -ATT =& P[(y_{ivt}(1)=1 |  t\geq t_0, D_i=1) | (y_{ivt}(0)=0 |  t< t_0, D_i=1)]\\
+&- P[(y_{ivt}(0)=1 |  t\geq t_0, D_i=0) | (y_{ivt}(0)=0 |  t< t_0, D_i=0)]  \\
+&-(P[y_{ivt}(1)=1 |  t\geq t_0, D_i=1] - P[y_{ivt}(0)=1 |  t\geq t_0, D_i=0])
+\end{align*}
+
+\begin{align*}
+\beta_{DID} -ATT =& P[(y^*_{ivt}(1)>0 |  t\geq t_0, D_i=1) | (y^*_{ivt}(0) \leq 0 |  t< t_0, D_i=1)]\\
+&- P[(y^*_{ivt}(0)>0 |  t\geq t_0, D_i=0) | (y^*_{ivt}(0) \leq 0 |  t< t_0, D_i=0)]  \\
+&-(P[y^*_{ivt}(1)>0 |  t\geq t_0, D_i=1] - P[y^*_{ivt}(0)>0 |  t\geq t_0, D_i=0])
+\end{align*}
+
+Here, we let $t \in \{ 1,2 \}$ denote the first and second periods, respectively:
+
+\begin{align*}
+\beta_{DID} -ATT =& P[(\beta_0+\beta_1+\beta_{2,1}+\beta_3+\alpha_i + u_{i2} + \rho_{v}>0 |  t\geq t_0, D_i=1) | (\beta_0+\beta_1 +\alpha_i + u_{i1} + \rho_{v}\leq 0 |  t< t_0, D_i=1)]\\
+&- P[(\beta_0+\beta_{2,0}+\alpha_i + u_{i2} + \rho_{v}>0 |  t\geq t_0, D_i=0) | (\beta_0+\alpha_i + u_{i1} + \rho_{v} \leq 0 |  t< t_0, D_i=0)]  \\
+&-(P[\beta_0+\beta_1+\beta_{2,1}+\beta_3+\alpha_i + u_{i2} + \rho_{v}>0|  t\geq t_0, D_i=1] - P[\beta_0+\beta_{2,0}+\alpha_i + u_{i2} + \rho_{v}>0|  t\geq t_0, D_i=0])
+\end{align*}
+
+
+## Further Monte Carlo evidence that individual unit-level TWFE is equivalent to coefficient from same regression on dataset without pixels deforested pre-treatment {#TWFE-equivalence}
 
 Table \@ref(tab:twfe-comp) shows coefficient estimates from the Monte Carlo setup described in the main text on altered datasets. It demonstrates that the coefficient of interest from Regression 2 is numerically equivalent to that from the same regression on a dataset where all pixels deforested in the first period are dropped completely. The estimated coefficient is not numerically equivalent to the ex-post difference in means, although this is true in the 2x2 case. This exercise provides further evidence that this commonly used TWFE regression does not use the pre-treatment variation in deforestation at all, which is necessary to recover the $ATT$ in this setting.  
 
@@ -1429,72 +1721,28 @@ kable(twfe_comp, format = "latex", row.names = FALSE,  booktabs = T,
 
 ```
 
-## Cox PH DID identifies $HRTT$ when proportional trends assumption holds {#proportional-trends}
 
-The exponentiated coefficient on the interaction between two binary variables, $D_i$ and $\mathbb{1}\{ t \geq t_0 \}$, $exp(\beta_{coxDID})$,  is expressed as the ratio of the two pre-post hazard rate ratios across the two groups:
 
-\begin{align}
-exp(\beta_{coxDID}) &= \frac{E[y_{ivt}  |  t\geq t_0, D_i=1]/E[y_{ivt}  |  t < t_0, D_i=1] }{E[y_{ivt}  |  t\geq t_0, D_i=0]/E[y_{ivt}  |  t < t_0, D_i=0] }
-\end{align}
+<!-- ## Monte Carlo evidence that keeping pixels in panel after deforestation event does not recover ATT -->
 
-Introducing potential outcomes and simplifying:
+<!-- Figure \@ref(fig:keep-pixels) demonstrates the bias incurred from keeping deforested pixels in the panel after they are first realized as deforested in the context of our guiding example. Pixels that were deforested prior to the implementation of the policy continued to contribute to the deforestation rate in the post period in both the treatment and control groups. Dropping the pixels in the periods after they are first observed as deforested eliminates this bias in the DID model, as seen in Figure \@ref(fig:keep-pixels).  -->
 
-\begin{align}
-exp(\beta_{coxDID}) &= \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]E[y_{ivt}(0)  |  t < t_0, D_i=0] }{E[y_{ivt}(0)  |  t\geq t_0, D_i=0]E[y_{ivt}(0)  |  t < t_0, D_i=1] }
-\end{align}
+<!-- ```{r keep-pixels, message=FALSE, out.width="100%", fig.cap="Distribution of DID estimates leaving deforested pixels in the panel and of DID estimates dropping deforested pixels. Note that leaving deforested pixels in the panel incurs severe bias.", fig.pos='H', fig.align='center'} -->
 
-Now, operating under Assumption 1 (Proportional Trends) and substituting for the right-hand side of (7):
+<!-- keeps <- readRDS("results/keeps.rds") -->
+<!--  suppressWarnings(kbias <- melt(keeps, value.name = "bias")) -->
 
-\begin{align}
-exp(\beta_{coxDID}) &= \frac{E[y_{ivt}(1)  |  t\geq t_0, D_i=1]E[y_{ivt}(0)  |  t < t_0, D_i=1] }{E[y_{ivt}(0)  |  t\geq t_0, D_i=1]E[y_{ivt}(0)  |  t < t_0, D_i=1] }\\
-&= HRRT\\
-\blacksquare &
-\end{align}
-
-## Keeping pixels in periods after they are first deforested is not a viable solution {#keep-pixels}
-
-Remotely sensed metrics of deforestation at the pixel level are often subject to the dynamics of forest disturbance and regrowth. After a deforestation event occurs, the deforested area is unlikely to revert to forest cover within the study period, as it takes several years for forest to regenerate to a detectable level. Further, many data products do not allow for the monitoring of forest regrowth. In the panel therefore, it is likely that in the periods after a pixel is first realized as deforested, subsequent observations of the pixel will also observe the pixel as deforested. 
-
-The logic for dropping binary pixels after they first become deforested is as follows. A forested pixel switches from its assigned value of 0 to a value of 1 following a discrete deforestation event. Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested may imply that it has actively been deforested in each subsequent time period. In fact, no new deforestation event has ocurred, but the area simply remains deforested from the prior event. These pixels, therefore, contribute positively towards the deforestation rate in each period they are left in the panel. As such, the coefficient cannot recover the $ATT$. 
-
-### Analytical expression of bias in two-period two-group case when pixels are not dropped from the panel
-
-The DID estimand is
-\begin{align*}
-& E[y_{it} |  t\geq t_0, D_i=1] - E[y_{it} |  t<t_0, D_i=1] - (E[y_{it} |  t\geq t_0, D_i=0] - E[y_{it} |  t<t_0, D_i=0] )\\
-=& P(y_{it}=1 |  t\geq t_0, D_i=1) - P(y_{it}=1 |  t<t_0, D_i=1) - \\
-& (P(y_{it}=1 |  t\geq t_0, D_i=0) - P(y_{it}=1 |  t<t_0, D_i=0) )
-\end{align*}
-
-In the case of an irreversible binary outcome, the first and third terms can be reexpressed, giving
-\begin{align*}
-& P(y_{it}=1 |  t\geq t_0, D_i=1)\cup P(y_{it}=1 |  t<t_0, D_i=1) - P(y_{it}=1 |  t<t_0, D_i=1) - \\
- & (P(y_{it}=1 |  t\geq t_0, D_i=0)\cup P(y_{it}=1 |  t<t_0, D_i=0) - P(y_{it}=1 |  t<t_0, D_i=0) ) \\
-=& P(y_{it}=1 |  t\geq t_0, D_i=1) + P(y_{it}=1 |  t<t_0, D_i=1) -P(y_{it}=1 |  t\geq t_0, D_i=1)\cap P(y_{it}=1 |  t<t_0, D_i=1) -\\
-& P(y_{it}=1 |  t<t_0, D_i=1) -\\
-& (P(y_{it}=1 |  t\geq t_0, D_i=0) + P(y_{it}=1 |  t<t_0, D_i=0) - P(y_{it}=1 |  t\geq t_0, D_i=0)\cap P(y_{it}=1 |  t<t_0, D_i=0) 
-\end{align*}
-
-### Monte Carlo evidence
-
-Figure \@ref(fig:keep-pixels) demonstrates the bias incurred from keeping deforested pixels in the panel after they are first realized as deforested in the context of our guiding example. Pixels that were deforested prior to the implementation of the policy continued to contribute to the deforestation rate in the post period in both the treatment and control groups. Dropping the pixels in the periods after they are first observed as deforested eliminates this bias in the DID model, as seen in Figure \@ref(fig:keep-pixels). 
-
-```{r keep-pixels, message=FALSE, out.width="100%", fig.cap="Distribution of DID estimates leaving deforested pixels in the panel and of DID estimates dropping deforested pixels. Note that leaving deforested pixels in the panel incurs severe bias.", fig.pos='H', fig.align='center'}
-
-keeps <- readRDS("results/keeps.rds")
- suppressWarnings(kbias <- melt(keeps, value.name = "bias"))
-  
-ggplot(data = kbias, aes(x = bias, fill=variable)) +
-    geom_density(alpha = .8) +
-    guides(fill=guide_legend(title=NULL))+
-    geom_vline(xintercept = 0, linetype = "dashed")+
-    theme(plot.caption = element_text(hjust = 0.5))+
-     labs(x= "Bias")+
-  xlim(-0.01, 0.122)+
-    theme_minimal(base_size = 18)+
-  scale_fill_manual(labels=c("DID dropping pixels", "DID w/o dropping pixels"), values = c( palette$green, palette$red)
-                    )
-```
+<!-- ggplot(data = kbias, aes(x = bias, fill=variable)) + -->
+<!--     geom_density(alpha = .8) + -->
+<!--     guides(fill=guide_legend(title=NULL))+ -->
+<!--     geom_vline(xintercept = 0, linetype = "dashed")+ -->
+<!--     theme(plot.caption = element_text(hjust = 0.5))+ -->
+<!--      labs(x= "Bias")+ -->
+<!--   xlim(-0.01, 0.122)+ -->
+<!--     theme_minimal(base_size = 18)+ -->
+<!--   scale_fill_manual(labels=c("DID dropping pixels", "DID w/o dropping pixels"), values = c( palette$green, palette$red) -->
+<!--                     ) -->
+<!-- ``` -->
 
 
 
@@ -1637,70 +1885,6 @@ and
 \Leftrightarrow \\
 &\mu = G^{-1}(ATT + F(\beta_0 + \beta_1 +\beta_{2,1}) )- (\beta_0 + \beta_1 +\beta_{2,1})\\
 \end{align*}
-
-## Analytical expression of non-random sample selection bias in two-period two-group setting {#selection-proof}
-
-In the two-group, two-period case, the bias can be expressed by the difference between the $DID$ estimand and the $ATT$: 
-\begin{align*}
-\beta_{DID} -ATT = &E[y^o_{ivt} |  t\geq t_0, D_i=1] - E[y^o_{ivt} |  t<t_0, D_i=1] - (E[y^o_{ivt} |  t\geq t_0, D_i=0] - E[y^o_{ivt} |  t<t_0, D_i=0] )\\
-&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=1])
-\end{align*}
-
-In the first period, the expectation of $y^o_{ivt}$ is the same as that of $y_{ivt}$, giving: 
-\begin{align*}
-\beta_{DID} -ATT=& E[y^o_{ivt} |  t\geq t_0, D_i=1] - E[y_{ivt} |  t<t_0, D_i=1] - (E[y^o_{ivt} |  t\geq t_0, D_i=0] - E[y_{ivt} |  t<t_0, D_i=0] )\\
-&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=1])
-\end{align*}
-
-Applying potential outcomes:
-\begin{align*}
-\beta_{DID} -ATT =& E[y^o_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t<t_0, D_i=1] - (E[y^o_{ivt}(0) |  t\geq t_0, D_i=0] - E[y_{ivt}(0) |  t<t_0, D_i=0] )\\
-&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=1])
-\end{align*}
-
-
-Applying our common trends assumption:
-\begin{align*}
-\beta_{DID} -ATT =& E[y^o_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t<t_0, D_i=0] - (E[y^o_{ivt}(0) |  t\geq t_0, D_i=0] - E[y_{ivt}(0) |  t<t_0, D_i=0] )\\
-&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=0])
-\end{align*}
-3
-Simplifying: 
-\begin{align*}
-\beta_{DID} -ATT =& E[y^o_{ivt}(1) |  t\geq t_0, D_i=1] - E[y^o_{ivt}(0) |  t\geq t_0, D_i=0]  \\
-&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=0])
-\end{align*}
-
-\textbf{Extending to our simulations:}
-
-In the context of our monte carlo simulations, this can be extended:
-
-\begin{align*}
-\beta_{DID} -ATT =& P[y^o_{ivt}(1)=1 |  t\geq t_0, D_i=1] - P[y^o_{ivt}(0)=1 |  t\geq t_0, D_i=0]  \\
-&-(P[y_{ivt}(1)=1 |  t\geq t_0, D_i=1] - P[y_{ivt}(0)=1 |  t\geq t_0, D_i=0])
-\end{align*}
-
-\begin{align*}
-\beta_{DID} -ATT =& P[(y_{ivt}(1)=1 |  t\geq t_0, D_i=1) | (y_{ivt}(0)=0 |  t< t_0, D_i=1)]\\
-&- P[(y_{ivt}(0)=1 |  t\geq t_0, D_i=0) | (y_{ivt}(0)=0 |  t< t_0, D_i=0)]  \\
-&-(P[y_{ivt}(1)=1 |  t\geq t_0, D_i=1] - P[y_{ivt}(0)=1 |  t\geq t_0, D_i=0])
-\end{align*}
-
-\begin{align*}
-\beta_{DID} -ATT =& P[(y^*_{ivt}(1)>0 |  t\geq t_0, D_i=1) | (y^*_{ivt}(0) \leq 0 |  t< t_0, D_i=1)]\\
-&- P[(y^*_{ivt}(0)>0 |  t\geq t_0, D_i=0) | (y^*_{ivt}(0) \leq 0 |  t< t_0, D_i=0)]  \\
-&-(P[y^*_{ivt}(1)>0 |  t\geq t_0, D_i=1] - P[y^*_{ivt}(0)>0 |  t\geq t_0, D_i=0])
-\end{align*}
-
-Here, we let $t \in \{ 1,2 \}$ denote the first and second periods, respectively:
-
-\begin{align*}
-\beta_{DID} -ATT =& P[(\beta_0+\beta_1+\beta_{2,1}+\beta_3+\alpha_i + u_{i2} + \rho_{v}>0 |  t\geq t_0, D_i=1) | (\beta_0+\beta_1 +\alpha_i + u_{i1} + \rho_{v}\leq 0 |  t< t_0, D_i=1)]\\
-&- P[(\beta_0+\beta_{2,0}+\alpha_i + u_{i2} + \rho_{v}>0 |  t\geq t_0, D_i=0) | (\beta_0+\alpha_i + u_{i1} + \rho_{v} \leq 0 |  t< t_0, D_i=0)]  \\
-&-(P[\beta_0+\beta_1+\beta_{2,1}+\beta_3+\alpha_i + u_{i2} + \rho_{v}>0|  t\geq t_0, D_i=1] - P[\beta_0+\beta_{2,0}+\alpha_i + u_{i2} + \rho_{v}>0|  t\geq t_0, D_i=0])
-\end{align*}
-
-
 
 ## Full summary figure from all specifications and values of $\sigma_p$ {#full-summary}
 
@@ -2130,7 +2314,6 @@ $$y_{it} = \beta_{0,c} 1\{ t = 0\} + \beta_{1,c}1\{ t = 1\} + \beta_{2,c}1\{ t =
 <!-- \begin{align} -->
 <!-- \text{Outcome 2:} &= \frac{F_{i0} - F_{it}}{F_{i0}} -->
 <!-- \end{align} -->
-<!-- <!-- Are there any examples in which people used this formula in the literature? --> -->
 
 <!-- Lastly, we consider a formula derived from the Compound Interest Law that has also been used in recent studies [e.g. @ruggiero2019; @puyravaud2003]. Outcome 3 is given by: -->
 
@@ -2170,21 +2353,3 @@ $$y_{it} = \beta_{0,c} 1\{ t = 0\} + \beta_{1,c}1\{ t = 1\} + \beta_{2,c}1\{ t =
 <!-- knitr::include_graphics("figs/outcome_byyr1.png") -->
 
 <!-- ``` -->
-
-<!-- ## Unit of Analysis -->
-
-<!-- Researchers must decide on the unit of analysis for their econometric model, which comes with several implications both for the interpretation of results and consideration of spatial autocorrelation. Analyses using a binary pixel or plot are standard in the literature [@jones2015], but authors have used multiple areal units including larger grids or irregular polygons based on administrative boundaries. A pixel or grid cell (e.g., pixels aggregated to a 5kmx5km grid) level analysis may be preferable in contexts where there is no clear alternative unit of interest, however, the pixel is often times used without any explanation for why it is preferred to alternative options. -->
-
-<!-- Pixel level analyses often times require the researcher to sample points in the interest of computational feasibility [e.g. @alix-garcia2018; @anderson2018]. In our paper, we do not consider the impact this may have on the analysis. Sampling pixels from the landscape may ignore important spatial dependencies or relationships that would be captured with aggregation. Some papers, as a result, choose to aggregate pixels to the grid level. This maintains the landscape-scale interpretation provided by pixel level analyses, while allowing the author to include every pixel in the analysis within a manageable number of grid cells. In exchange for fine-scale spatial specificity, using coarser-resolution cells rather than pixels has the benefits of diluting the effects of possible spatial misalignments between datasets, enabling easier interpolation of missing data within cells, and subsuming localized spatial correlation [@busch2015a]. Although not necessarily an issue, one consideration of using grid cell aggregation is the potential for the grid cell to overlap two or more administrative units. In this case, the treatment variable will be continuous, or the researcher must make a decision as to how treatment should be represented.  -->
-
-<!-- Other papers in the literature choose to conduct analysis at the level of the property or comparable decision making unit. This level of analysis matches the scale at which management decisions often occur [@carlson2018], and has been promoted in the context of PES programs that enroll at the property level. Using the entire area owned by an individual landowner or a larger administrative unit such as the county provides the advantage of accounting for spillover effects that occur when the intervention spurs deforestation on other parts of the relevant unit [@blackman2018; @alix-garcia2014; @arriagada2012]. Some researchers have avoided them due to interpretability in certain situations. The interpretation on the treatment effect coefficient is the average effect on a property with average characteristics [@alix-garcia2017]. The effect of the intervention on a landowner's land use decisions is likely what the researcher is after when evaluating PES program, however, this measure may be less directly related to the success of a landscape-scale intervention. If a property does not have an easily attributable first date of treatment because of shifts or overlaps in boundaries over time, it may also not be an easy unit of analysis to work with.  -->
-
-<!-- ### Functional form -->
-
-<!-- While the vast majority of papers use OLS, maintaining a linear functional form, some authors do justify their use of alternate functional forms based on the structure of observed data. In many cases, the distribution of observed data is nonnegative and concentrated near zero deforestation [@carlson2018; @busch2015a]. @busch2015a argues a poisson model is theoretically consistent with forest cover loss within an aggregated unit being the count of many independent, discrete binary observations of forest cover loss at the pixel level.  -->
-
-<!-- While non-linear functional forms may be theoretically preferable to OLS, this is often times more complicated to implement in practice. In order to obtain an interpretable estimate of the $ATT$, researchers using non-linear functional forms generally need to compute marginal or average partial effects from the estimated coefficients. It has been noted in the impact evaluation literature that fixed effects cannot typically be used in most non-linear methods due to the incidental parameters problem [e.g. @jones2015; @wendland2015], favoring the use of OLS in regression models containing fixed effects. @fernandez-val2016 show that a bias correction is needed to get asymptotically unbiased estimates logit, probit, and poisson TWFE models. These bias corrections are available in various statistical packages and are necessary in order to get unbiased estimates when using fixed effects with non-linear functional forms. -->
-
-
-
-<!-- In our paper, coefficient estimates are converted into the $ATT$ using the \textbf{mfx} package in R, which takes into account the binary nature of the treatment variable.  -->
