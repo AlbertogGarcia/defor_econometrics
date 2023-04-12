@@ -3,7 +3,7 @@ title: "Conservation impact evaluation using irreversible remotely sensed data"
 author: 
 - Alberto Garcia^[University of California, Santa Barbara, Bren School of Environmental Science \& Management; \color{blue}albertogarcia@ucsb.edu]
 - Robert Heilmayr^[University of California, Santa Barbara, Bren School of Environmental Science \& Management and Environmental Studies Program; \color{blue}rheilmayr@ucsb.edu]
-date: "March 31, 2023"
+date: "April 1, 2023"
 output:
   bookdown::pdf_document2:
     latex_engine: xelatex
@@ -20,7 +20,6 @@ header-includes:
   \usepackage{sectsty}
   \usepackage{mathtools}
 nocite: 
-- '@baehr2021'
 - '@alix-garcia2017'
 - '@alix-garcia2018'
 - '@anderson2018'
@@ -73,7 +72,7 @@ library(kableExtra)
 library(tidyverse)
 library(Metrics)
 library(reshape2)
-library(patchwork)
+library(ggpubr)
 library(grid)
 library(gridExtra)
 library(ggplot2)
@@ -708,7 +707,7 @@ text(x=9.5 , y=0.0135, "Survival models", col=palette$dark, font=1)
 
 \clearpage
 
-# Non-random sample selection {#selection-results}
+## Non-random sample selection {#selection-results}
 
 We now explore how the non-random sample selection described in section \@ref(selection-bias) may influence estimates in our simulated landscapes. Non-random sample selection did not bias our initial simulations as presented in Figure \@ref(fig:summary-fig) because we assumed away time-invariant pixel and property-level disturbances. The sample of at risk pixels in each time period did not depend on the deforestation that occurred the previous period, since the $y^o_{ivt}$s were i.i.d.. However, once time-invariant disturbances enter the DGP, the distribution of the $y^o_{ivt}s$ is potentially different in each year of the panel. This is likely to be the case in reality, since each plot of land will have time-invariant characteristics such as slope, elevation, market access, agricultural suitability, etc. that impact its expected returns to clearing. 
 
@@ -1194,21 +1193,19 @@ p2 <- ggplot(out_county, ggplot2::aes(x = term, y = estimate, color = estimator,
         axis.ticks.y=element_blank(),
         plot.title = element_text(hjust = 0))
 
-p4 <- ggplot(data.frame(l = p1$labels$y, x = 1, y = 1)) +
-      geom_text(aes(x, y, label = l), angle = 90) + 
-      theme_void() +
-      coord_cartesian(clip = "off")
+p2$labels$y <- " "
 
-p1$labels$y <- p2$labels$y <- " "
-
-combined <- p4 + (p1 | p2) & theme(legend.position = "bottom")
 ```
 
 ```{r multiGT, results = FALSE, warning = FALSE, out.width="100%", fig.cap="New estimators, similar to TWFE regressions with pixel unit fixed effects, cannot identify ATT with pixel as unit of analysis", fig.pos='H', fig.width = 9, fig.height = 6, fig.show='hold'}
 
-combined + plot_layout(widths = c(1, 25), guides = "collect") 
-grid.rect(x= unit(0.56, "npc"), y = unit(0.605, "npc"), width = .86, height = .625, gp = gpar(lwd = 2, col = "black", fill = NA))
-grid.rect(x= unit(0.56, "npc"), y = unit(0.605, "npc"), width = 0, height = .625, gp = gpar(lwd = 2, col = "black", fill = NA))
+ggarrange(p1, p2, ncol=2, nrow=1, legend.grob = get_legend(p2), legend="bottom")
+
+x_u = 0.535
+y_u = 0.595
+ht = 0.685
+grid.rect(x= unit(x_u, "npc"), y = unit(y_u, "npc"), width = 0.9, height = ht, gp = gpar(lwd = 2, col = "black", fill = NA))
+grid.rect(x= unit(0.5, "npc"), y = unit(y_u, "npc"), width = 0, height = ht, gp = gpar(lwd = 2, col = "black", fill = NA))
 
 
 ```
@@ -1312,21 +1309,21 @@ p2 <- ggplot(out_county, ggplot2::aes(x = term, y = estimate, color = estimator,
         axis.ticks.y=element_blank(),
         plot.title = element_text(hjust = 0))
 
-p4 <- ggplot(data.frame(l = p1$labels$y, x = 1, y = 1)) +
-      geom_text(aes(x, y, label = l), angle = 90) + 
-      theme_void() +
-      coord_cartesian(clip = "off")
+p2$labels$y <- " "
 
-p1$labels$y <- p2$labels$y <- " "
-
-combined <- p4 + (p1 | p2) & theme(legend.position = "bottom")
+#combined <- p4 + (p1 | p2) & theme(legend.position = "bottom")
 ```
 
 ```{r multiGT2, fig.cap="TWFE regressions suffer from weighting concerns when treatment effects vary across groups and through time", results = FALSE, warning = FALSE, out.width="100%", fig.pos='H', fig.width = 9, fig.height = 6, fig.show='hold'}
 
-combined + plot_layout(widths = c(1, 25), guides = "collect")
-grid.rect(x= unit(0.56, "npc"), y = unit(0.605, "npc"), width = .86, height = .625, gp = gpar(lwd = 2, col = "black", fill = NA))
-grid.rect(x= unit(0.56, "npc"), y = unit(0.605, "npc"), width = 0, height = .625, gp = gpar(lwd = 2, col = "black", fill = NA))
+ggarrange(p1, p2, ncol=2, nrow=1, legend.grob = get_legend(p2), legend="bottom")
+
+x_u = 0.535
+y_u = 0.595
+ht = 0.685
+grid.rect(x= unit(x_u, "npc"), y = unit(y_u, "npc"), width = 0.9, height = ht, gp = gpar(lwd = 2, col = "black", fill = NA))
+grid.rect(x= unit(0.5, "npc"), y = unit(y_u, "npc"), width = 0, height = ht, gp = gpar(lwd = 2, col = "black", fill = NA))
+
 
 ```
 
