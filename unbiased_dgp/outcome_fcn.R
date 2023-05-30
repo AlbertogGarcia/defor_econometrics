@@ -8,6 +8,8 @@ library(tictoc)
 library(fixest)
 source(here::here('unbiased_dgp', 'grid_landscape.R'))
 
+join <- fabricatr::join_using
+
 #begin function
 outcome_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std_v = 0.5, cellsize){
   
