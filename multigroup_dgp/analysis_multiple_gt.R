@@ -1,4 +1,3 @@
-source(here::here('multigroup_dgp', 'multipleGT.R'))
 source(here::here('multigroup_dgp', 'multipleGT_agg.R'))
 source(here::here('multigroup_dgp', 'multipleGT_pix.R'))
 source(here::here('multigroup_dgp', 'trends_fcn.R'))
@@ -28,7 +27,9 @@ n=200
 
 set.seed(0930)
 
-multiGT_agg <- multipleGT_agg(n, nobs, base_a, base_b, base_c, trend1, trend2, trend3, ATT_a, ATT_b, dyn_ATT_a, dyn_ATT_b, std_a, std_v, std_p, cellsize, ppoints, cpoints)
+agg_estimators = c("all")
+multiGT_agg <- multipleGT_agg(n, nobs, estimator_list = agg_estimators,
+                              base_a, base_b, base_c, trend1, trend2, trend3, ATT_a, ATT_b, dyn_ATT_a, dyn_ATT_b, std_a, std_v, std_p, cellsize, ppoints, cpoints)
 
 export(multiGT_agg$es_long, "multigroup_dgp/results_multi/county_long.rds")
 
@@ -42,8 +43,9 @@ county_es <- multiGT_agg$es_long %>%
 
 export(county_es, "multigroup_dgp/results_multi/county_es.rds")
 
-
-multiGT_pix <- multipleGT_pix(n, nobs, base_a, base_b, base_c, trend1, trend2, trend3, ATT_a, ATT_b, dyn_ATT_a, dyn_ATT_b, std_a, std_v, std_p, cellsize=10, ppoints=50, cpoints)
+pix_estimators <- c("TWFE", "did2s", "did", "impute")
+multiGT_pix <- multipleGT_pix(n, nobs, estimator_list = pix_estimators,
+                              base_a, base_b, base_c, trend1, trend2, trend3, ATT_a, ATT_b, dyn_ATT_a, dyn_ATT_b, std_a, std_v, std_p, cellsize=10, ppoints=50, cpoints)
 
 export(multiGT_pix$es_long, "multigroup_dgp/results_multi/pixel_long.rds")
 
@@ -73,7 +75,8 @@ ATT_b =  0.02
 
 set.seed(0930)
 
-multiGT_agg <- multipleGT_agg(n, nobs, base_a, base_b, base_c, trend1, trend2, trend3, ATT_a, ATT_b, dyn_ATT_a, dyn_ATT_b, std_a, std_v, std_p, cellsize=10, ppoints=50, cpoints)
+multiGT_agg <- multipleGT_agg(n, nobs, estimator_list = agg_estimators,
+                              base_a, base_b, base_c, trend1, trend2, trend3, ATT_a, ATT_b, dyn_ATT_a, dyn_ATT_b, std_a, std_v, std_p, cellsize=10, ppoints=50, cpoints)
 library(rio)
 export(multiGT_pix$es_long, "multigroup_dgp/results_multi/county_long_hetTE.rds")
 
@@ -94,7 +97,8 @@ my_event_study_plot(county_es, seperate = FALSE)+
   #geom_segment(aes(x = -0.5, y = -0.02, xend = 2.5, yend = -0.02), color = "limegreen")
 
 
-multiGT_pix <- multipleGT_pix(n, nobs, base_a, base_b, base_c, trend1, trend2, trend3, ATT_a, ATT_b, dyn_ATT_a, dyn_ATT_b, std_a, std_v, std_p, cellsize=10, ppoints=50, cpoints)
+multiGT_pix <- multipleGT_pix(n, nobs, estimator_list = pix_estimators,
+                              base_a, base_b, base_c, trend1, trend2, trend3, ATT_a, ATT_b, dyn_ATT_a, dyn_ATT_b, std_a, std_v, std_p, cellsize=10, ppoints=50, cpoints)
 
 export(multiGT_pix$es_long, "multigroup_dgp/results_multi/pixel_long_hetTE.rds")
 

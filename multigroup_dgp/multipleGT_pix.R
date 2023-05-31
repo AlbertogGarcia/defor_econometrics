@@ -6,10 +6,9 @@ library(DeclareDesign)
 library(DataCombine)
 library(did2s)
 source(here::here('multigroup_dgp', 'multi_group_landscape.R'))
-source(here::here('multigroup_dgp', 'my_event_study.R'))
 
 #begin function
-multipleGT_pix <- function(n, nobs, base_a, base_b, base_c, trend1, trend2, trend3, ATT_a, ATT_b, dyn_ATT_a, dyn_ATT_b, std_a = 0.0, std_v = 0.25, std_p = 0.0, cellsize, ppoints, cpoints){
+multipleGT_pix <- function(n, nobs, estimator_list, base_a, base_b, base_c, trend1, trend2, trend3, ATT_a, ATT_b, dyn_ATT_a, dyn_ATT_b, std_a = 0.0, std_v = 0.25, std_p = 0.0, cellsize, ppoints, cpoints){
   
   countyscape = multi_group_landscape(nobs, cellsize, ppoints, cpoints)
   pixloc_df = countyscape$pixloc_df
@@ -20,7 +19,7 @@ multipleGT_pix <- function(n, nobs, base_a, base_b, base_c, trend1, trend2, tren
   county_es_long <- pixel_es_long
   
   #provide column names
-  cnames <- c('term', 'estimate', 'std.error', 'estimator', 'iteration')
+  cnames <- c('estimator', 'term', 'estimate', 'std.error', 'iteration')
   colnames(pixel_es_long) <- cnames
   colnames(county_es_long) <- cnames
   
@@ -120,11 +119,12 @@ multipleGT_pix <- function(n, nobs, base_a, base_b, base_c, trend1, trend2, tren
     ######### pixel estimates  
     #########################################################################
     
-    y_it_es <- my_event_study(yname = "y_it",
+    y_it_es <- did2s::event_study(yname = "y_it",
                               tname = "year",
                               idname = "pixels",
                               gname = "G",
-                              data = panels) %>%
+                              data = panels,
+                              estimator = estimator_list) %>%
       mutate(iteration = i,
              uoa = "pixel")
 
