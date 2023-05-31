@@ -5,7 +5,12 @@ library(here)
 library(DeclareDesign)
 library(DataCombine)
 library(did2s)
+library(purrr)
+
+join <- fabricatr::join_using
+
 source(here::here('multigroup_dgp', 'multi_group_landscape.R'))
+source(here::here('multigroup_dgp', 'my_event_study.R'))
 
 #begin function
 multipleGT_pix <- function(n, nobs, estimator_list, base_a, base_b, base_c, trend1, trend2, trend3, ATT_a, ATT_b, dyn_ATT_a, dyn_ATT_b, std_a = 0.0, std_v = 0.25, std_p = 0.0, cellsize, ppoints, cpoints){
@@ -118,15 +123,23 @@ multipleGT_pix <- function(n, nobs, estimator_list, base_a, base_b, base_c, tren
     #########################################################################
     ######### pixel estimates  
     #########################################################################
-    
-    y_it_es <- did2s::event_study(yname = "y_it",
+     
+    y_it_es <- estimator_list %>%
+      purrr::map_dfr(\(x) 
+                       my_event_study(yname = "y_it",
                               tname = "year",
                               idname = "pixels",
                               gname = "G",
                               data = panels,
-                              estimator = estimator_list) %>%
+                              estimator = x) 
+                       )%>%
       mutate(iteration = i,
              uoa = "pixel")
+    
+    est_did = did::att_gt(yname = "y_it", tname = "year", idname = "pixels", gname = "G", xformla = NULL, data = panels,
+                          panel = FALSE)
+    
+    est_did = did::aggte(est_did, type = "dynamic", na.rm = TRUE)
 
     pixel_es_long <- rbind(pixel_es_long, y_it_es)%>%
       mutate(std.error = as.numeric(ifelse(is.na(std.error), 0.0, std.error)),

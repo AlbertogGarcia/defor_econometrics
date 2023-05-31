@@ -5,6 +5,8 @@ library(here)
 library(DeclareDesign)
 library(DataCombine)
 library(did2s)
+join <- fabricatr::join_using
+
 source(here::here('multigroup_dgp', 'multi_group_landscape.R'))
 
 #begin function
@@ -137,14 +139,18 @@ multipleGT_agg <- function(n, nobs, estimator_list,
     #########################################################################
     ######### county estimates  
     #########################################################################
-    county_es <- did2s::event_study(yname = "deforrate",
-                                tname = "year",
-                                idname = "county",
-                                gname = "G",
-                                data = countylevel_df,
-                                estimator = estimator_list)%>%
+    county_es <- estimator_list %>%
+      purrr::map_dfr(\(x) 
+                     did2s::event_study(yname = "deforrate",
+                                        tname = "year",
+                                        idname = "county",
+                                        gname = "G",
+                                        data = countylevel_df,
+                                        estimator = x) 
+      )%>%
       mutate(iteration = i,
              uoa = "county")
+    
     
     county_es_long <- rbind(county_es_long, county_es)%>%
       mutate(std.error = as.numeric(ifelse(is.na(std.error), 0.0, std.error)),

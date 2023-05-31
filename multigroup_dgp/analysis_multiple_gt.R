@@ -43,7 +43,13 @@ county_es <- multiGT_agg$es_long %>%
 
 export(county_es, "multigroup_dgp/results_multi/county_es.rds")
 
-pix_estimators <- c("TWFE", "did2s", "did", "impute")
+pix_estimators <- c("TWFE", 
+                    "did2s", # Gardner (2021)
+                    "did", # Callaway and Sant'anna (2021)
+                  #  "impute", # Borusyak, Jaravel, and Spiess (2021) does not work with this pixel level panel
+                    "sunab", # Sun and Abraham (2020)
+                    "staggered" # Roth and Sant'Anna (2021)
+                    )
 multiGT_pix <- multipleGT_pix(n, nobs, estimator_list = pix_estimators,
                               base_a, base_b, base_c, trend1, trend2, trend3, ATT_a, ATT_b, dyn_ATT_a, dyn_ATT_b, std_a, std_v, std_p, cellsize=10, ppoints=50, cpoints)
 
