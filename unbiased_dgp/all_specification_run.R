@@ -144,7 +144,7 @@ all_specification_run <- function(nobs, years, b0, b1, b2_0, b2_1, b3, std_a = s
       1,0,0,0, # unit of analysis:pixel, grid, property, county
       0,1,0,0,1, # FE: pixel, grid, property, county, treatment
       0,0,0, # weights, cox, HE estimator
-      0,0,1,0, # se cluster level: pixel, grid, property, county
+      0,1,0,0, # se cluster level: pixel, grid, property, county
       bias, cover, power
     )
     
@@ -175,6 +175,13 @@ all_specification_run <- function(nobs, years, b0, b1, b2_0, b2_1, b3, std_a = s
   
   # County UOA model
   county_DID <- feols(deforrate ~  post:treat|year+county, data = countylevel_df)
+  
+  estimate <- tail(county_DID$coefficients, n = 1)
+  bias <- estimate - ATT
+  se <- tail(summary(county_DID, cluster = ~county)$se, n=1)
+  cover <- dplyr::between(ATT, estimate - 1.96 * se, estimate + 1.96 * se)*1
+  power <- dplyr::between(0, estimate - 1.96 * se, estimate + 1.96 * se)*1
+  
   
   results[6 + length(cellsize_list), c(firstcol:lastcol)] <- c(
     NA,

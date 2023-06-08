@@ -19,7 +19,8 @@ outcome_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std
   #N_treat = gridscape$N_treat    
   ATT <- pnorm(b0+b1+b2_1+b3, 0, (std_a^2+std_v^2)^.5) - pnorm(b0+b1+b2_1, 0, (std_a^2+std_v^2)^.5)
   
-  pixloc <- pixloc_df
+  pixloc <- pixloc_df %>%
+    mutate_at(vars(pixels), as.character)
   
   coeffmatrix <- matrix(nrow = n, ncol = 3)
   
@@ -81,8 +82,7 @@ outcome_fcn <- function(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a = 0.1, std
     gridlevel_df <- as.data.frame(panels) %>%
       dplyr::group_by(grid, year, post) %>%
       dplyr::summarise(defor = mean(defor),
-                       treat = mean(treat),
-                       garea = mean(garea)) %>%
+                       treat = mean(treat)) %>%
       ungroup()
     
     
