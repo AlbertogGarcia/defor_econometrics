@@ -115,7 +115,7 @@ The proliferation of panel, impact evaluations of conservation interventions has
 In this paper, we investigate whether the irreversible, binary data structure that characterizes many deforestation studies affects the performance of common panel econometric methods including difference-in-differences (DID), two-way fixed effects (TWFE) and survival models. We use a combination of analytical proofs and Monte Carlo simulations to demonstrate that many prior econometric analyses of deforestation are likely biased --- the significance, magnitude and even direction of estimated effects might be incorrect. While we focus primarily upon impact evaluation of forest conservation policies, our findings are relevant to the broader set of research contexts in which the outcome of interest represents an irreversible, binary event, including recidivism [@agan_minimum_2018; @mastrobuoni], individual mortality [@li_exposure_2022; @friedman2013; @dolan_bednet_2019], technology adoption [@bollinger_visibility_2022], and employee retention [@bueno_retention_2018; @feng_incentives_2018]. 
 
 <!-- 3-4 paragraphs detailed findings -->
-Our core result shows that TWFE regressions with individual unit fixed effects do not identify the desired treatment effect when applied to panel datasets with binary, irreversible outcomes. In more traditional data settings, the DID estimator is numerically equivalent to the linear TWFE estimator in the case of two-periods (each of which can consist of multiple years) and two-groups [@imai_kim_2021; @goodman-bacon2021]. However we demonstrate that, when applied to binary, irreversible panel data, the TWFE estimator is distinct from the standard DID estimator. Specifically, the coefficient of interest in TWFE specifications does not recover the $ATT$, but instead recovers an ex-post difference in deforestation rates between treatment and control areas. This is particularly worrisome in the context of forest conservation, where interventions often target areas with high deforestation rates (e.g., Brazil's blacklisted Priority Municipalities) or low opportunity costs (e.g., protected areas). Papers published in both conservation science and economics journals frequently use this problematic specification to recover treatment effect estimates. This concern also extends to many recently developed DID estimators that estimate treatment effects in staggered adoption settings [e.g., @sun_dynamic_2021; @gardner2021; @borusyak2021]. 
+Our core result shows that TWFE regressions with individual unit fixed effects do not identify the desired treatment effect when applied to panel datasets with binary, irreversible outcomes. In more traditional data settings, the DID estimator is numerically equivalent to the linear TWFE estimator in the case of two-periods (each of which can consist of multiple years) and two-groups [@imai_kim_2021; @goodman-bacon2021]. However we demonstrate that, when applied to binary, irreversible panel data, the TWFE estimator is distinct from the standard DID estimator. Specifically, the coefficient of interest in TWFE specifications does not recover the $ATT$, but instead recovers an ex-post difference in deforestation rates between treatment and control areas. This is particularly worrisome in the context of forest conservation, where interventions often target areas with high deforestation rates (e.g., Brazil's blacklisted Priority Municipalities) or low opportunity costs (e.g., protected areas). Papers published in both conservation science and economics journals frequently use this problematic specification to recover treatment effect estimates. We further show that this concern also extends to many recently developed DID estimators that estimate treatment effects in staggered adoption settings [e.g., @sun_dynamic_2021; @gardner2021; @borusyak2021]. 
 
 To help guide future impact evaluations, we identify multiple ways in which this bias can be reduced or even eliminated. In the land use context, one easily implemented solution is to aggregate the binary pixels spatially. Both pixel-level TWFE specifications with spatially aggregated unit fixed effects and TWFE specifications with spatially aggregated units of analysis recover the expected treatment effect parameter. Another potential solution is for researchers to adopt non-linear survival models that explicitly account for the binary, irreversible nature of the outcome variable. However, we show that prior efforts to use survival models in DID research designs require identifying assumptions that would violate the traditional linear common trends assumption. In response, we develop and test a new survival-based DID estimator that relies on the more traditional linear common trends assumption. 
 
@@ -126,6 +126,19 @@ Our conclusions yield important insights for the community of environmental econ
 
 Our research also contributes to an emerging literature proposing methodological improvements for the integration of remotely sensed data with econometric methods of causal inference [@jain2020; @gibson_lights_2021]. Several studies have begun to document measurement error in satellite-based measurements and explore its implications for econometric analysis [e.g., @proctor_parameter_2023]. For example, @alix-garcia_remotely_2022 address misclassification in the context of a remotely sensed binary forest cover outcome and propose a solution for unbiased causal inference. Our paper illustrates that, even in settings without non-classical measurement error, researchers may still recover biased estimates of treatment effects when using common remotely sensed, deforestation data products.
 
+<!-- Roadmap -->
+
+The remainder of the paper proceeds as follows. 
+
+Section \@ref(setup) introduces our empirical context, including the irreversibility inherent to forest conservation impact evaluation and common econometric approaches in forest conservation impact evaluation and other literatures that often encounter binary, irreversible outcome data. 
+
+Section \@ref(methods) describes our analytical and Monte Carlo simulation methods to evaluate candidate econometric models.
+
+In Section \@ref(results-analytical), we present results from our analytical proofs. These include the bias associated with TWFE models incorporating unit fixed effects and the bias that may results from irreversibility inherent to these settings. We also introduce our new survival estimator that relies on the traditional linear common trends assumption. 
+
+Section \@ref(results-simulation) presents results from our extended Monte Carlo simulations in the context of a simulated conservation intervention. Here, we demonstrate the selection bias, and benefits to matching the analysis to the scale of the decision-making unit, and that many. We also simulate an intervention with staggered adoption and show that many recently developed DID estimators fail to recover the expected treatment effect parameter, similar to the TWFE with unit fixed effects. 
+
+Finally, Section \@ref(conclusion) concludes. 
 
 # Empirical context {#setup}
 
@@ -288,9 +301,9 @@ h(t) = \delta_0(t)exp( \alpha_0 + \alpha_1 D_i + \alpha_2 \mathbb{1} \{ t\geq t_
 
 , where $h(t)$ is the hazard rate of deforestation, $t$ years into the study period; and $\delta_0(t)$ is the baseline hazard function.
 
-# Methods
+# Methods {#methods}
 
-## Analytical proofs
+## Analytical proofs 
 
 The rapid growth of the conservation impact evaluation literature has resulted in a diversity of model structures that all attempt to estimate the effectiveness of conservation interventions (Table \@ref(tab:table-lit)). However, researchers have not adequately considered how the irreversible, binary structure of these data may affect the properties of some estimators. We use analytical proofs to demonstrate several concerns that arise with the use of specific model specifications in the context of an irreversible, binary outcome. All of our analytical results apply not only to forest conservation, but to any setting with an irreversible, binary outcome. 
 
@@ -397,12 +410,12 @@ ATT =& P(y^*_{ivt}(1) > 1 | D_i = 1, t \geq t_0) - P(y^*_{ivt}(0) > 1 | D_i = 1,
 
 For the remainder of the paper, we explore a guiding example that has been parameterized to represent an impactful intervention in a high deforestation setting. Conservation interventions often have annual treatment effects smaller than a 1 percentage point reduction in the annual deforestation rate [e.g. @robalino2013; @jones2017]. These modest reductions in the annual deforestation rate, however, can amount to large landscape-scale effects. For example, @alix-garcia2018 find that environmental land registration in Brazil’s Amazonian states of Mato Grosso and Para reduced the annual deforestation rate by an average of 0.5 percentage points, which has resulted in an overall reduction in deforestation of 10\%. 
 
-Our initial simulated landscape has the following characteristics: 6 years in each of the pre-treatment and post-treatment periods ($T = 12$, $t_0 = 7$); a pre-treatment deforestation rate of 2\% in the control area; a pre-treatment deforestation rate of 5\% in the intervention area; a decrease in the deforestation rate of 0.5 percentage points between the first and second period in the absence of treatment; and an average reduction of 1 percentage point in the deforestation rate in treated units due to the intervention ($ATT = -0.01$). We assume that $\sigma_u = 0.5$. Finally, we begin by assuming away time invariant pixel ($\sigma_a = 0$) and property-level disturbances ($\sigma_p = 0$) but relax this assumption in Section \@ref(sec:property). Note that Assumptions 1 and 2 are satisfied by construction. The derivations detailing the mapping from the landscape characteristics to the corresponding parameters in $y^*_{ivt}$ can be found in Appendix \@ref(parameter-mapping). 
+Our initial simulated landscape has the following characteristics: 6 years in each of the pre-treatment and post-treatment periods ($T = 12$, $t_0 = 7$); a pre-treatment deforestation rate of 2\% in the control area; a pre-treatment deforestation rate of 5\% in the intervention area; a decrease in the deforestation rate of 0.5 percentage points between the first and second period in the absence of treatment; and an average reduction of 1 percentage point in the deforestation rate in treated units due to the intervention ($ATT = -0.01$). We assume that $\sigma_u = 0.5$. Finally, we begin by assuming away time invariant pixel ($\sigma_a = 0$) and property-level disturbances ($\sigma_p = 0$) but relax this assumption in Section \@ref(property). Note that Assumptions 1 and 2 are satisfied by construction. The derivations detailing the mapping from the landscape characteristics to the corresponding parameters in $y^*_{ivt}$ can be found in Appendix \@ref(parameter-mapping). 
 
 We compare econometric models using a combination of estimate bias, root mean squared error (RMSE), and coverage probability based on 500 replications of each set of parameters. Using our Monte Carlo simulations, we calculate estimate bias as the difference between each model's mean estimate of the $ATT$ and the known $ATT$ parameter. RMSE describes the distribution of estimates around the $ATT$. Coverage probability is defined as the proportion of simulations in which the true $ATT$ lies within the simulation's 95\% confidence interval (CI). As such, we would expect the $ATT$ to lie within this CI 95\% of the time. Factors such as bias and treatment of standard errors impact coverage.
 
 
-# Analytical results
+# Analytical results {#results-analytical}
 
 ## TWFE with binary, irreversible outcomes yields biased estimate of $ATT$ 
 
@@ -419,9 +432,7 @@ Intuition for this result stems from the use of pixel-level, unit fixed effects 
 
 <!-- Prior work by @lechner2015 shows that the coefficients of interest from the traditional DID and TWFE model may differ in the 2x2 case if the panel data is unbalanced. Here, the dropping of pixels in the years after they are first deforested means that attrition is imposed by definition. This does not necessarily lead to violation of the common trends assumption, but it does lead to clear deviation between $\beta_{TWFE}$ and $\beta_{DID}$. -->
 
-Section \@ref(sec:simulation_results) corroborates Result 1 through simulations, and shows that the traditional DID does not suffer from similar concerns in the context of forest conservation. In addition, in Section \@ref(TWFE-equivalence), we also show that $\hat{\beta}_{TWFE}$ is equivalent to the coefficient from a TWFE regression on a dataset where any pixel deforested in years prior to treatment is completely excluded from the dataset (which would clearly be poor practice).
-
-<!-- Researchers often find themselves in situations where the more flexible TWFE model is preferable to the simple DID, such as in the case of multiple groups and time periods. While many economists may be transitioning to newly developed estimators to address settings in which multiple groups undergo treatment in different time periods [e.g., @callaway2020; @gardner2021], we show in section \@ref(multipleGT) that many of these estimators suffer from the same issue. -->
+Section \@ref(results-simulation) corroborates Result 1 through simulations, and shows that the traditional DID does not suffer from similar concerns in the context of forest conservation. In addition, in Section \@ref(TWFE-equivalence), we also show that $\hat{\beta}_{TWFE}$ is equivalent to the coefficient from a TWFE regression on a dataset where any pixel deforested in years prior to treatment is completely excluded from the dataset (which would clearly be poor practice).
 
 ## Alternative construction of $y^o_{ivt}$
 Although dropping previously deforested pixels from the panel introduces bias into the TWFE estimate of the $ATT$, keeping observations in the panel after initial deforestation introduces its own challenges, especially when researchers are interested in interpreting the $ATT$ in terms of a policy's impact on deforestation rates. The $ATT$ as defined in Section \@ref(setup) represents an estimate of the impact of an intervention on the frequency of deforestation events (i.e. the decision to clear). Economists have typically focused their attention on this clearing decision, estimating the impact of a policy on the deforestation rate (flow) rather than on the stock of aggregate forest remaining. Under this interpretation, keeping deforested pixels in the panel beyond the first period in which it was observed as deforested would incorrectly imply that it has actively been deforested in each subsequent time period when, in fact, no new deforestation event or clearing decision has occurred. This is intuitively problematic, because the deforestation rate in each period would be monotonically increasing by construction (Appendix \@ref(keep-pixels)). 
@@ -492,7 +503,7 @@ Irreversibility in observed deforestation creates the potential for non-random s
 In essence, the first and third expectations in the bias term are conditional on the pixel remaining forested after the first period.
 
 
-# Simulation results {#sec:simulation_results}
+# Simulation results {#results-simulation}
 
 ## TWFE bias {#twfe-bias}
 
@@ -596,7 +607,7 @@ Similarly, columns 5-7 show that $\beta_{j}$ from TWFE regressions in the form o
 
 Survival analysis provides an appealing alternative to traditional linear estimators when studying irreversible changes such as deforestation. The simple, single-regression DID framing of the Cox Proportional hazards model  (Regression 5), however, is not a viable solution (Section \@ref(cox-bias)) under the typical common trends assumption (Assumption 1). Column 8 of Figure \@ref(fig:summary-fig) shows the bias associated with this model in our parameterization where Assumption 1 holds but Assumption 3 does not. In light of the fact that the simple Cox DID is not a viable analog to the traditional DID, we explore whether our proposed estimator, $\widehat{ATT_{Cox}}$, recovers relevant treatment effect parameters in the deforestation setting. We see in column 9 that $\widehat{ATT_{Cox}}$ indeed recovers our parameter of interest, the $ATT$.
 
-Although our proposed, survival analysis-based approach to estimation yields a good estimate of the true $ATT$ in this simple setting, multiple considerations raise questions about the utility of this non-linear model in more complex settings. One of the primary reasons for the use of survival analysis is censoring. This occurs when the researcher has partial information about the subjects’ survival times but does not have access to precise event times. While the researcher may not observe changes in pixels after they are deforested, many other common forms of censoring are rarely a concern in the context of deforestation since remote sensing typically enables the creation of balanced panels. Further, the proposed strategy to drop pixels in the periods after they are first deforested successfully addresses irreversibility in deforestation events. Finally, as we show in the following sections, survival analysis is likely to suffer from bias when the data generating process underpinning deforestation is influenced by unobservable characteristics of more aggregated spatial units such as the preferences of a property-owner. While it is straightforward to account for this in OLS, factors such as incidental parameters problems and computational difficulty in non-linear models may complicate easy implementation in survival analysis [@lancaster2000; @val2016]
+Although our proposed, survival analysis-based approach to estimation yields a good estimate of the true $ATT$ in this simple setting, multiple considerations raise questions about the utility of this non-linear model in more complex settings. One of the primary reasons for the use of survival analysis is censoring. This occurs when the researcher has partial information about the subjects’ survival times but does not have access to precise event times. While the researcher may not observe changes in pixels after they are deforested, many other common forms of censoring are rarely a concern in the context of deforestation since remote sensing typically enables the creation of balanced panels. Further, the proposed strategy to drop pixels in the periods after they are first deforested successfully addresses irreversibility in deforestation events. Finally, as we show in the following sections, survival analysis is likely to suffer from bias when the data generating process underpinning deforestation is influenced by unobservable characteristics of more aggregated spatial units such as the preferences of a property-owner. While it is straightforward to account for this in OLS, factors such as incidental parameters problems and computational difficulty in non-linear models may complicate easy implementation in survival analysis [@lancaster_incidental_2000; @fernandez-val_2016]
 
 ```{r summary-fig, echo = FALSE, warnings = FALSE, results = FALSE, message=FALSE, fig.cap="Comparison of model performance, where candidate models are separated by whether they incorporate aggregated fixed effects in pixel-level specifications, aggregated units of analysis, or survival analysis. Point illustrates mean bias while the confidence interval illustrates the 0.05 to 0.95 quantile range of this bias.",  fig.width = 9, fig.height = 8, out.width="100%"}
 
@@ -795,7 +806,7 @@ text(x=9.5 , y=0.0118, "Survival models", col=palette$dark, font=1)
 
 ```
 
-## Selecting the appropriate spatial structure {#sec:property}
+## Selecting the appropriate spatial structure {#property}
 
 ### Model structures that match the spatial process of deforestation can reduce bias
 
@@ -1361,7 +1372,7 @@ grid.rect(x= unit(0.5, "npc"), y = unit(y_u, "npc"), width = 0, height = ht, gp 
 
 
 
-# Conclusions
+# Conclusions {#conclusion}
 
 By applying econometric methods of causal inference to remotely-sensed measurements of land use change, researchers have advanced society's understanding of the impacts of conservation interventions. However, this interdisciplinary research community has insufficiently considered how the data generating processes underpinning land use change and its measurement might affect the performance of standard econometric models. The analytical proofs and simulations presented in this paper highlight that the conclusions made in many prior studies may be biased. 
 
