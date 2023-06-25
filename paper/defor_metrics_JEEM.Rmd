@@ -128,17 +128,7 @@ Our research also contributes to an emerging literature proposing methodological
 
 <!-- Roadmap -->
 
-The remainder of the paper proceeds as follows. 
-
-Section \@ref(setup) introduces our empirical context, including the irreversibility inherent to forest conservation impact evaluation and common econometric approaches in forest conservation impact evaluation and other literatures that often encounter binary, irreversible outcome data. 
-
-Section \@ref(methods) describes our analytical and Monte Carlo simulation methods to evaluate candidate econometric models.
-
-In Section \@ref(results-analytical), we present results from our analytical proofs. These include the bias associated with TWFE models incorporating unit fixed effects and the bias that may results from irreversibility inherent to these settings. We also introduce our new survival estimator that relies on the traditional linear common trends assumption. 
-
-Section \@ref(results-simulation) presents results from our extended Monte Carlo simulations in the context of a simulated conservation intervention. Here, we demonstrate the selection bias, and benefits to matching the analysis to the scale of the decision-making unit, and that many. We also simulate an intervention with staggered adoption and show that many recently developed DID estimators fail to recover the expected treatment effect parameter, similar to the TWFE with unit fixed effects. 
-
-Finally, Section \@ref(conclusion) concludes. 
+The remainder of the paper proceeds as follows. Section \@ref(setup) introduces our empirical context. This includes the irreversibility inherent to forest conservation impact evaluation and common panel econometric approaches in forest conservation impact evaluation and other literatures that often encounter binary, irreversible outcome data. Section \@ref(methods) describes our analytical setup and Monte Carlo approach to evaluating candidate approaches in the context of a simulated conservation intervention. Section \@ref(results-analytical) presents results from our analytical proofs such as the ``irreversible unit FE bias" associated with TWFE models incorporating unit fixed effects and the ``selection bias" that may result from irreversibility inherent to these settings. We also introduce our new survival estimator. In Section \@ref(results-simulation), we present results from our extended Monte Carlo simulations that illustrate the biases mentioned above along with relatively straightforward solutions. We then demonstrate the benefits to matching analyses to the scale of the decision-making unit. Lastly, we simulate an intervention with staggered adoption to show that many recently developed DID estimators fail to recover the expected treatment effect parameter, falling prey to similar issues as TWFE with unit fixed effects. Finally, Section \@ref(conclusion) concludes. 
 
 # Empirical context {#setup}
 
