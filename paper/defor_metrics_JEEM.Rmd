@@ -3,7 +3,7 @@ title: "Conservation impact evaluation using remotely sensed data"
 author: 
 - Alberto Garcia^[University of California, Santa Barbara, Bren School of Environmental Science \& Management; \color{blue}albertogarcia@ucsb.edu]
 - Robert Heilmayr^[University of California, Santa Barbara, Bren School of Environmental Science \& Management and Environmental Studies Program; \color{blue}rheilmayr@ucsb.edu]
-date: "June 1, 2023"
+date: "June 27, 2023"
 output:
   bookdown::pdf_document2:
     latex_engine: xelatex
@@ -115,24 +115,25 @@ The proliferation of panel, impact evaluations of conservation interventions has
 In this paper, we investigate whether the irreversible, binary data structure that characterizes many deforestation studies affects the performance of common panel econometric methods including difference-in-differences (DID), two-way fixed effects (TWFE) and survival models. We use a combination of analytical proofs and Monte Carlo simulations to demonstrate that many prior econometric analyses of deforestation are likely biased --- the significance, magnitude and even direction of estimated effects might be incorrect. While we focus primarily upon impact evaluation of forest conservation policies, our findings are relevant to the broader set of research contexts in which the outcome of interest represents an irreversible, binary event, including recidivism [@agan_minimum_2018; @mastrobuoni], individual mortality [@li_exposure_2022; @friedman2013; @dolan_bednet_2019], technology adoption [@bollinger_visibility_2022], and employee retention [@bueno_retention_2018; @feng_incentives_2018]. 
 
 <!-- 3-4 paragraphs detailed findings -->
-Our core result shows that TWFE regressions with individual unit fixed effects do not identify the desired treatment effect when applied to panel datasets with binary, irreversible outcomes. In more traditional data settings, the DID estimator is numerically equivalent to the linear TWFE estimator in the case of two-periods (each of which can consist of multiple years) and two-groups [@imai_kim_2021; @goodman-bacon2021]. However we demonstrate that, when applied to binary, irreversible panel data, the TWFE estimator is distinct from the standard DID estimator. Specifically, the coefficient of interest in TWFE specifications does not recover the $ATT$, but instead recovers an ex-post difference in deforestation rates between treatment and control areas. This is particularly worrisome in the context of forest conservation, where interventions often target areas with high deforestation rates (e.g., Brazil's blacklisted Priority Municipalities) or low opportunity costs (e.g., protected areas). Papers published in both conservation science and economics journals frequently use this problematic specification to recover treatment effect estimates. We further show that this concern also extends to many recently developed DID estimators that estimate treatment effects in staggered adoption settings [e.g., @sun_dynamic_2021; @gardner2021; @borusyak2021]. 
+One of our core results shows that TWFE regressions with individual unit fixed effects do not identify the desired treatment effect when applied to panel datasets with binary, irreversible outcomes. In more traditional data settings, the DID estimator is numerically equivalent to the linear TWFE estimator in the case of two-periods (each of which can consist of multiple years) and two-groups [@imai_kim_2021; @goodman-bacon2021]. However we demonstrate that, when applied to binary, irreversible panel data, the TWFE estimator is distinct from the standard DID estimator. Specifically, the coefficient of interest in TWFE specifications does not recover the $ATT$, but instead recovers an ex-post difference in deforestation rates between treatment and control areas (coined \textit{Irreversible unit fixed effects bias}). This is particularly worrisome in the context of forest conservation, where interventions often target areas with high deforestation rates (e.g., Brazil's blacklisted Priority Municipalities) or low opportunity costs (e.g., protected areas). Papers published in both conservation science and economics journals frequently use this problematic specification to recover treatment effect estimates. We further show that this concern extends to many recently developed DID estimators that estimate treatment effects in staggered adoption settings [e.g., @sun_dynamic_2021; @gardner2021; @borusyak2021]. 
 
 To help guide future impact evaluations, we identify multiple ways in which this bias can be reduced or even eliminated. In the land use context, one easily implemented solution is to aggregate the binary pixels spatially. Both pixel-level TWFE specifications with spatially aggregated unit fixed effects and TWFE specifications with spatially aggregated units of analysis recover the expected treatment effect parameter. Another potential solution is for researchers to adopt non-linear survival models that explicitly account for the binary, irreversible nature of the outcome variable. However, we show that prior efforts to use survival models in DID research designs require identifying assumptions that would violate the traditional linear common trends assumption. In response, we develop and test a new survival-based DID estimator that relies on the more traditional linear common trends assumption. 
 
-Finally, we reflect on the econometric benefits that emerge when researchers are able to match their model structure to the relevant scale of decisionmaking. For example, in settings where individual landowners may have strong, heterogeneous preferences affecting land-use change, we show that incorporating property-level fixed effects can reduce bias and improve statistical coverage over alternate model structures.
+Finally, we reflect on the econometric benefits that emerge when researchers are able to incorporate institutional knowledge into their analyses, matching their model structure to the relevant scale of decisionmaking. For example, in settings where individual landowners may have strong, heterogeneous preferences affecting land-use change, we show that incorporating property-level fixed effects can reduce bias and improve statistical coverage over alternate model structures.
 
 <!-- 1-3 paragraphs contribution to literature -->
-Our conclusions yield important insights for the community of environmental economists, conservation scientists and policymakers that wish to understand the causal impacts of conservation policies. Causal impact evaluation in nature conservation has emerged relatively recently [@borner_effectiveness_2020], and a wide array of papers has called for researchers to improve the rigor of their approaches in this space [@ferraro2019; @avelino2016; @baylis2016; @miteva2012]. Our analyses raise potential concerns about the conclusions in many past studies, while providing researchers with practical guidance to improve the reliability of future analyses.
+Our conclusions yield important insights for the community of environmental economists, conservation scientists, and policymakers that wish to understand the causal impacts of conservation policies. Causal impact evaluation in nature conservation has emerged relatively recently [@borner_effectiveness_2020], and a wide array of papers has called for researchers to improve the rigor of their approaches in this space [@ferraro2019; @baylis2016; @miteva2012; @avelino2016]. Our analyses raise potential concerns about the conclusions in many past studies, while providing researchers with practical guidance to improve the reliability of future analyses.
 
-Our research also contributes to an emerging literature proposing methodological improvements for the integration of remotely sensed data with econometric methods of causal inference [@jain2020; @gibson_lights_2021]. Several studies have begun to document measurement error in satellite-based measurements and explore its implications for econometric analysis [e.g., @proctor_parameter_2023]. For example, @alix-garcia_remotely_2022 address misclassification in the context of a remotely sensed binary forest cover outcome and propose a solution for unbiased causal inference. Our paper illustrates that, even in settings without non-classical measurement error, researchers may still recover biased estimates of treatment effects when using common remotely sensed, deforestation data products.
+Our research also contributes to an emerging literature proposing methodological improvements for the integration of remotely sensed data with econometric methods of causal inference [@jain2020; @gibson_lights_2021]. Several studies have begun to document measurement error in satellite-based measurements and explore its implications for econometric analysis [@proctor_parameter_2023]. This extends to the forest conservation context. For example, @alix-garcia_remotely_2022 address misclassification in the context of a remotely sensed binary forest cover outcome and propose a solution for unbiased causal inference. Our paper implicitly assumes away issues of mismeasurement but illustrates that, even in settings without non-classical measurement error, the underlying structure of common remotely sensed, deforestation data products may still lead researchers to recover biased treatment effect estimates.
 
 <!-- Roadmap -->
 
-The remainder of the paper proceeds as follows. Section \@ref(setup) introduces our empirical context. This includes the irreversibility inherent to forest conservation impact evaluation and common panel econometric approaches in forest conservation impact evaluation and other literatures that often encounter binary, irreversible outcome data. Section \@ref(methods) describes our analytical setup and Monte Carlo approach to evaluating candidate approaches in the context of a simulated conservation intervention. Section \@ref(results-analytical) presents results from our analytical proofs such as the ``irreversible unit FE bias" associated with TWFE models incorporating unit fixed effects and the ``selection bias" that may result from irreversibility inherent to these settings. We also introduce our new survival estimator. In Section \@ref(results-simulation), we present results from our extended Monte Carlo simulations that illustrate the biases mentioned above along with relatively straightforward solutions. We then demonstrate the benefits to matching analyses to the scale of the decision-making unit. Lastly, we simulate an intervention with staggered adoption to show that many recently developed DID estimators fail to recover the expected treatment effect parameter, falling prey to similar issues as TWFE with unit fixed effects. Finally, Section \@ref(conclusion) concludes. 
+The remainder of the paper proceeds as follows. Section \@ref(setup) introduces our empirical context. This includes the irreversibility inherent to forest conservation impact evaluation and common panel econometric approaches in forest conservation impact evaluation and other literatures that often encounter binary, irreversible outcome data. Section \@ref(methods) describes our analytical setup and Monte Carlo approach to evaluating candidate approaches in the context of a simulated conservation intervention. Section \@ref(results-analytical) presents results from our analytical proofs such as the \textit{Irreversible unit fixed effects bias} associated with TWFE models incorporating irreversible, binary unit fixed effects and the non-random sample selection that may stem from irreversibility inherent to these settings. We also introduce our new survival estimator. In Section \@ref(results-simulation), we present results from our extended Monte Carlo simulations that illustrate the biases mentioned above along with relatively straightforward solutions. We then explore the benefits to matching analyses to the scale of the decision-making unit and the interpretation of analyses incorporating area weights. Lastly, we simulate an intervention with staggered adoption to show that many recently developed DID estimators fail to recover the expected treatment effect parameter, falling prey to similar issues as TWFE regressions with irreversible, binary unit fixed effects. Finally, Section \@ref(conclusion) concludes. 
 
 # Empirical context {#setup}
 
 ## Analysis setting
+
 We focus on the case in which a researcher would like to quantify the impact an intervention has had on deforestation rates. We assume that the intervention has clearly defined boundaries (e.g., a protected area, certified concession, or indigenous territory), and that the researcher has access to spatially explicit observations of forest cover and forest loss spanning multiple years over the periods before and after the intervention was adopted. This general setting describes a broad array of studies that apply panel methods to remotely sensed data. Table \@ref(tab:table-lit) shows an unsystematic review of impact evaluations that apply panel econometric methods to data accessed as pixel-level observations of binary deforestation.
 
 In each of the studies detailed in Table \@ref(tab:table-lit), the researcher's goal is to measure the impact that a specific policy has had on deforestation within treated units, also known as the \textit{average treatment effect on the treated} ($ATT$). The $ATT$ estimates the difference between the average deforestation rate of treated units with treatment, and the average deforestation rate treated units would've experienced without treatment. The fundamental challenge is that the researcher is unable to observe what would have occurred in treated units had they not received treatment [@holland1986].
@@ -252,7 +253,7 @@ In the case of two groups and two time periods, the TWFE regression typically yi
 
 ### TWFE model with aggregated unit fixed effects 
 
-One can also use aggregated units in the TWFE specification. Regression 3 outlines the use of unit fixed effects at the level of an aggregated unit rather than the individual binary unit. In the forest conservation context, aggregation is generally done spatially, aggregating pixels into larger units such as a grid cell [e.g., @rico-straffon_2023], property [e.g., @heilmayr2016], or larger administrative unit [e.g., @pfaff1999]. Individual unit-level TWFE models with aggregated fixed effects are all in the form of Regression 3.
+Some researchers have used unit fixed effects at the level of an aggregated unit rather than the individual binary unit. In the forest conservation context, aggregation is generally done spatially, aggregating pixels into larger units. For example, researchers using pixel-level TWFE regressions have used unit fixed effects at the level of a larger administrative unit such as the county [e.g., @blackman2015] or municipality [e.g., @heilmayr2020]. Regression 3 outlines the form of these individual unit-level TWFE models with aggregated unit fixed effects.
 
 \textbf{Regression 3:} (Individual unit-level TWFE regression with aggregated unit fixed effects)
 Let $\beta_{FE,j}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
@@ -263,7 +264,7 @@ y^o_{ivt} =  \beta_{FE,j} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \lambda_t +
 
 ### TWFE model with aggregated units of analysis 
 
-In addition to aggregating fixed effects, researchers can also transform their data by aggregating multiple pixel-level observations into larger units of analysis:
+In addition to aggregating fixed effects, researchers can also transform their data by aggregating multiple pixel-level observations into larger units of analysis and run a TWFE regression on the transformed dataset. For example, in the conservation case, researchers have often run a TWFE regression where the unit of analysis itself is the grid cell [e.g., @rico-straffon_2023], property [e.g., @heilmayr2016], or larger administrative unit [e.g., @sims2017]. 
 
 \textbf{Regression 4:} (TWFE regression with aggregated unit of analysis)
 Let $\beta_{j}$ denote the coefficient of the interaction between $D_{j}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
@@ -1370,7 +1371,7 @@ Researchers can take several practical steps in the design of their econometric 
 
 <!-- In order to avoid issues associated with TWFE models that incorporate point fixed effects, researchers can take advantage of aggregated spatial units. TWFE models with aggregated units of analysis and point level TWFE models with aggregated fixed effects are both viable solutions. Which spatial unit of aggregation is preferable depends upon the process by which land use change actually occurs. Bias can arise from non-random sample selection when the outcome represents an irreversible state, as is the case in the deforestation setting. It can also arise when the specification is unrelated to the scale of the process determining land use change. As such, we explore the benefits of conducting estimation and inference at the scale that drives landscape heterogeneity and provide guidance for when the researcher does not have access to geospatial boundaries detailing the relevant units. -->
 
-This paper complements an emerging literature calling for a deeper understanding of the interdependencies between the creation of remotely sensed data, and the interpretation of that data through econometric models [@jain2020; @alix-garcia_remotely_2022; @proctor_parameter_2023]. However, we have largely abstracted away from prior concerns that characteristics of the remote sensing data collection process, including sensor properties, atmospheric conditions, and image processing methods, may influence the structure of output data products. Of particular concern is the potential for these processes to give rise to non-classical measurement error, which can lead to biased estimates of the $ATT$ [@wooldridge2010]. Importantly, our study implicitly assumes that pixel-level outcomes are measured without any non-classical measurement error.
+This paper complements an emerging literature calling for a deeper understanding of the interdependencies between the creation of remotely sensed data and the interpretation of that data through econometric models [@jain2020; @alix-garcia_remotely_2022; @proctor_parameter_2023]. However, we have largely abstracted away from prior concerns that characteristics of the remote sensing data collection process, including sensor properties, atmospheric conditions, and image processing methods, may influence the structure of output data products. Of particular concern is the potential for these processes to give rise to non-classical measurement error, which can lead to biased estimates of the $ATT$ [@wooldridge2010]. Importantly, our study implicitly assumes that pixel-level outcomes are measured without any non-classical measurement error.
 
 This paper focuses upon efforts to identify the impacts of conservation policies on deforestation. However, the lessons we highlight are relevant to a wider audience, and many of our key findings apply to diverse settings in which the outcome of interest represents an irreversible, binary event. For example, estimates of the impacts of policies on unidirectional technology adoption, recidivism, or mortality may suffer from the same biases that we have identified in the context of deforestation. Moving forward, researchers should carefully consider the underlying structure of their data, and ensure that their chosen models minimize bias and allow inference at expected levels of confidence. Misleading causal inference may lead policymakers to avoid effective policies, or to adopt interventions that worsen environmental damages. 
 
@@ -1667,63 +1668,67 @@ Consider again, the observed outcome, $y^o_{it}$. We begin with the $DID$ estima
 
  Now the bias generated due to non-random sample selection can be represented as the difference between this estimand and the $ATT$:
 \begin{align*}
-\beta_{DID} -ATT = &E[y^o_{ivt} |  t\geq t_0, D_i=1] - E[y^o_{ivt} |  t<t_0, D_i=1] - (E[y^o_{ivt} |  t\geq t_0, D_i=0] - E[y^o_{ivt} |  t<t_0, D_i=0] )\\
-&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=1])
+\beta_{DID} -ATT = &E[y^o_{ivt} |  t\geq t_0, D_i=1] - E[y^o_{ivt} |  t<t_0, D_i=1] \\
+&- (E[y^o_{ivt} |  t\geq t_0, D_i=0] - E[y^o_{ivt} |  t<t_0, D_i=0] )\\
+&- (E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=1])
 \end{align*}
 
 In the first period, the expectation of $y^o_{ivt}$ is the same as that of $y_{ivt}$, giving: 
 \begin{align*}
-\beta_{DID} -ATT=& E[y^o_{ivt} |  t\geq t_0, D_i=1] - E[y_{ivt} |  t<t_0, D_i=1] - (E[y^o_{ivt} |  t\geq t_0, D_i=0] - E[y_{ivt} |  t<t_0, D_i=0] )\\
-&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=1])
+\beta_{DID} -ATT=& E[y^o_{ivt} |  t\geq t_0, D_i=1] - E[y_{ivt} |  t<t_0, D_i=1] \\
+& - (E[y^o_{ivt} |  t\geq t_0, D_i=0] - E[y_{ivt} |  t<t_0, D_i=0] )\\
+& - (E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=1])
 \end{align*}
 
 Applying potential outcomes:
 \begin{align*}
-\beta_{DID} -ATT =& E[y^o_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t<t_0, D_i=1] - (E[y^o_{ivt}(0) |  t\geq t_0, D_i=0] - E[y_{ivt}(0) |  t<t_0, D_i=0] )\\
-&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=1])
+\beta_{DID} -ATT =& E[y^o_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t<t_0, D_i=1] \\
+& - (E[y^o_{ivt}(0) |  t\geq t_0, D_i=0] - E[y_{ivt}(0) |  t<t_0, D_i=0] )\\
+& - (E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=1])
 \end{align*}
 
 
 Applying our common trends assumption:
 \begin{align*}
-\beta_{DID} -ATT =& E[y^o_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t<t_0, D_i=0] - (E[y^o_{ivt}(0) |  t\geq t_0, D_i=0] - E[y_{ivt}(0) |  t<t_0, D_i=0] )\\
-&-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=0])
+\beta_{DID} -ATT =& E[y^o_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t<t_0, D_i=0] \\
+& - (E[y^o_{ivt}(0) |  t\geq t_0, D_i=0] - E[y_{ivt}(0) |  t<t_0, D_i=0] )\\
+& - (E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=0])
 \end{align*}
-3
-Simplifying: 
+
+Finally, simplifying: 
 \begin{align*}
 \beta_{DID} -ATT =& E[y^o_{ivt}(1) |  t\geq t_0, D_i=1] - E[y^o_{ivt}(0) |  t\geq t_0, D_i=0]  \\
 &-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=0])
 \end{align*}
 
-\textbf{Extending to our simulations:}
+<!-- \textbf{Extending to our simulations:} -->
 
-In the context of our monte carlo simulations, this can be extended:
+<!-- In the context of our monte carlo simulations, this can be extended: -->
 
-\begin{align*}
-\beta_{DID} -ATT =& P[y^o_{ivt}(1)=1 |  t\geq t_0, D_i=1] - P[y^o_{ivt}(0)=1 |  t\geq t_0, D_i=0]  \\
-&-(P[y_{ivt}(1)=1 |  t\geq t_0, D_i=1] - P[y_{ivt}(0)=1 |  t\geq t_0, D_i=0])
-\end{align*}
+<!-- \begin{align*} -->
+<!-- \beta_{DID} -ATT =& P[y^o_{ivt}(1)=1 |  t\geq t_0, D_i=1] - P[y^o_{ivt}(0)=1 |  t\geq t_0, D_i=0]  \\ -->
+<!-- &-(P[y_{ivt}(1)=1 |  t\geq t_0, D_i=1] - P[y_{ivt}(0)=1 |  t\geq t_0, D_i=0]) -->
+<!-- \end{align*} -->
 
-\begin{align*}
-\beta_{DID} -ATT =& P[(y_{ivt}(1)=1 |  t\geq t_0, D_i=1) | (y_{ivt}(0)=0 |  t< t_0, D_i=1)]\\
-&- P[(y_{ivt}(0)=1 |  t\geq t_0, D_i=0) | (y_{ivt}(0)=0 |  t< t_0, D_i=0)]  \\
-&-(P[y_{ivt}(1)=1 |  t\geq t_0, D_i=1] - P[y_{ivt}(0)=1 |  t\geq t_0, D_i=0])
-\end{align*}
+<!-- \begin{align*} -->
+<!-- \beta_{DID} -ATT =& P[(y_{ivt}(1)=1 |  t\geq t_0, D_i=1) | (y_{ivt}(0)=0 |  t< t_0, D_i=1)]\\ -->
+<!-- &- P[(y_{ivt}(0)=1 |  t\geq t_0, D_i=0) | (y_{ivt}(0)=0 |  t< t_0, D_i=0)]  \\ -->
+<!-- &-(P[y_{ivt}(1)=1 |  t\geq t_0, D_i=1] - P[y_{ivt}(0)=1 |  t\geq t_0, D_i=0]) -->
+<!-- \end{align*} -->
 
-\begin{align*}
-\beta_{DID} -ATT =& P[(y^*_{ivt}(1)>0 |  t\geq t_0, D_i=1) | (y^*_{ivt}(0) \leq 0 |  t< t_0, D_i=1)]\\
-&- P[(y^*_{ivt}(0)>0 |  t\geq t_0, D_i=0) | (y^*_{ivt}(0) \leq 0 |  t< t_0, D_i=0)]  \\
-&-(P[y^*_{ivt}(1)>0 |  t\geq t_0, D_i=1] - P[y^*_{ivt}(0)>0 |  t\geq t_0, D_i=0])
-\end{align*}
+<!-- \begin{align*} -->
+<!-- \beta_{DID} -ATT =& P[(y^*_{ivt}(1)>0 |  t\geq t_0, D_i=1) | (y^*_{ivt}(0) \leq 0 |  t< t_0, D_i=1)]\\ -->
+<!-- &- P[(y^*_{ivt}(0)>0 |  t\geq t_0, D_i=0) | (y^*_{ivt}(0) \leq 0 |  t< t_0, D_i=0)]  \\ -->
+<!-- &-(P[y^*_{ivt}(1)>0 |  t\geq t_0, D_i=1] - P[y^*_{ivt}(0)>0 |  t\geq t_0, D_i=0]) -->
+<!-- \end{align*} -->
 
-Here, we let $t \in \{ 1,2 \}$ denote the first and second periods, respectively:
+<!-- Here, we let $t \in \{ 1,2 \}$ denote the first and second periods, respectively: -->
 
-\begin{align*}
-\beta_{DID} -ATT =& P[(\beta_0+\beta_1+\beta_{2,1}+\beta_3+\alpha_i + u_{i2} + \rho_{v}>0 |  t\geq t_0, D_i=1) | (\beta_0+\beta_1 +\alpha_i + u_{i1} + \rho_{v}\leq 0 |  t< t_0, D_i=1)]\\
-&- P[(\beta_0+\beta_{2,0}+\alpha_i + u_{i2} + \rho_{v}>0 |  t\geq t_0, D_i=0) | (\beta_0+\alpha_i + u_{i1} + \rho_{v} \leq 0 |  t< t_0, D_i=0)]  \\
-&-(P[\beta_0+\beta_1+\beta_{2,1}+\beta_3+\alpha_i + u_{i2} + \rho_{v}>0|  t\geq t_0, D_i=1] - P[\beta_0+\beta_{2,0}+\alpha_i + u_{i2} + \rho_{v}>0|  t\geq t_0, D_i=0])
-\end{align*}
+<!-- \begin{align*} -->
+<!-- \beta_{DID} -ATT =& P[(\beta_0+\beta_1+\beta_{2,1}+\beta_3+\alpha_i + u_{i2} + \rho_{v}>0 |  t\geq t_0, D_i=1) | (\beta_0+\beta_1 +\alpha_i + u_{i1} + \rho_{v}\leq 0 |  t< t_0, D_i=1)]\\ -->
+<!-- &- P[(\beta_0+\beta_{2,0}+\alpha_i + u_{i2} + \rho_{v}>0 |  t\geq t_0, D_i=0) | (\beta_0+\alpha_i + u_{i1} + \rho_{v} \leq 0 |  t< t_0, D_i=0)]  \\ -->
+<!-- &-(P[\beta_0+\beta_1+\beta_{2,1}+\beta_3+\alpha_i + u_{i2} + \rho_{v}>0|  t\geq t_0, D_i=1] - P[\beta_0+\beta_{2,0}+\alpha_i + u_{i2} + \rho_{v}>0|  t\geq t_0, D_i=0]) -->
+<!-- \end{align*} -->
 
 
 ## Further Monte Carlo evidence that individual unit-level TWFE is equivalent to coefficient from same regression on dataset without pixels deforested pre-treatment {#TWFE-equivalence}
@@ -2024,9 +2029,9 @@ text(x=29
 
 ```
 
-## Property-level models still outperform in alternative parameterizations {#property-alt}
+## Property-level models still suffer from least bias in alternative parameterizations {#property-alt}
 
-Figure \@ref(fig:alt-param) shows model performance for two alternate landscape parameterizations in the presence of property unobservables ($\sigma_p$), ordered from least to most biased. The top panel considers our initial parameterization, but switches the pre-treatment deforestation rates for the two groups. This leaves a pre-treatment deforestation rate of 5\% in the control areaand 2\% in the intervention area. The bottom panel considers the initial parameterization, but instead makes the $ATT$ positive (i.e. $ATT = 0.01$ rather than $-0.01$). 
+Figure \@ref(fig:alt-param) shows model performance for two alternate landscape parameterizations in the presence of property unobservables ($\sigma_p$), ordered from least to most biased. The top panel considers our initial parameterization, but switches the pre-treatment deforestation rates for the two groups. This leaves a pre-treatment deforestation rate of 5\% in the control area and 2\% in the intervention area. The bottom panel considers the initial parameterization, but instead makes the $ATT$ positive (i.e. $ATT = 0.01$ rather than $-0.01$). 
 
 ```{r alt-param, message = FALSE, warning = FALSE, results = FALSE, fig.align="center", fig.cap="Comparison of model performance in alternative landscape parameterizations. Candidate models are separated by whether they incorporate aggregated fixed effects in pixel-level specifications, aggregated units of analysis, or survival analysis. Point illustrates mean bias while the confidence interval illustrates the 0.05 to 0.95 quantile range of this bias.", out.width = "100%", fig.width = 9, fig.height = 5, fig.pos='H', fig.show='hold'}
 
