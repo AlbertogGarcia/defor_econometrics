@@ -2348,7 +2348,7 @@ outcome <- readRDS("results/outcomes.rds")
 caption <- paste0("Outcome 1. Mean bias: ", round(mean(outcome$outcome1), digits = 4),"; RMSE: ",round(rmse(0, outcome$outcome1), digits = 5), "\n", "Outcome 2. Mean bias: ", round(mean(outcome$outcome2), digits = 4),"; RMSE: ",round(rmse(0, outcome$outcome2), digits = 5), "\n", "Outcome 3. Mean bias: ", round(mean(outcome$outcome3), digits = 4),"; RMSE: ",round(rmse(0, outcome$outcome3), digits = 5))
 
 ggplot(data = cbias, aes(x = bias, fill=variable)) +
-    geom_density(alpha = .8) +
+    geom_density(alpha = .6) +
     guides(fill=guide_legend(title=NULL))+
     geom_vline(xintercept = 0, linetype = "dashed")+
     labs(x= "Bias", caption = caption) +
@@ -2359,16 +2359,6 @@ ggplot(data = cbias, aes(x = bias, fill=variable)) +
                     )
 ```
 
-Figure \@ref(fig:deforrates) demonstrates that outcome 1 results in the least bias in our guiding example. The other outcomes result in somewhat larger bias, although the differences between outcomes 1 and 3 is minimal in our setting. We do raise a concern about the use of outcome 2, especially for studies spanning relatively long time periods. In later time periods, the outcome variable will steadily increase, even if the true rate of deforestation has not changed through time. This concern is echoed by the fact that this outcome results in the most biased estimates of the $ATT$.
+Figure \@ref(fig:deforrates) demonstrates that outcome 1 results in the least bias and lowest RMSE in our guiding example. The other outcomes result in somewhat greater bias, although the differences between outcomes 1 and 3 is minimal in our setting. We do raise a concern about the use of outcome 2, especially for studies spanning relatively long time periods. In later time periods, the outcome variable will monotonically increase, even if the true rate of deforestation has not changed through time. This concern is echoed by the fact that this outcome results in the most biased estimates of the $ATT$.
 
-Regardless of authors' choice of formula, we advise that the formula used should be explicitly stated in a paper. This will help to avoid confusion as to which formula was used and help researchers understand which methods are the standard within the literature. Throughout our paper, all specifications using aggregated data use outcome 1. In our guiding example, it resulted in the least bias and lowest RMSE, and it is currently the most common deforestation rate calculation used in the literature.
-
-
-<!-- Here, we show that outcome formula 2) is problematic in our context. We examine the performance of the three outcomes in an example where $ATT=0$ and $trend=0$. This simple exercise allows us to gauge how the outcomes behave through time. As we see below, outcome 2) is the least robust to changes in the study period length, while outcomes 1) and 2) behave nearly identically.  -->
-
-
-<!-- ```{r formula-length, echo=FALSE, out.width="75%", fig.cap="Bias as a function of study period length with ATT =0 and no time trend", fig.pos='H', fig.align='center'} -->
-
-<!-- knitr::include_graphics("figs/outcome_byyr1.png") -->
-
-<!-- ``` -->
+Regardless of authors' choice of formula, we advise that the formula used should be explicitly stated in a paper. This will help to avoid confusion as to which formula was used and help researchers understand which methods are the standard within the literature. Throughout our paper, all specifications using aggregated data use outcome 1. In our guiding example, it resulted in the least bias and lowest RMSE, and our understanding is that it is currently the most common deforestation rate calculation used in the literature.
