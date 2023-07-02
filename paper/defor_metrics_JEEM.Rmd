@@ -264,7 +264,7 @@ y^o_{ivt} =  \beta_{FE,j} \text{ x } D_i \mathbb{1} \{ t\geq t_0\} + \lambda_t +
 
 ### TWFE model with aggregated units of analysis 
 
-In addition to aggregating fixed effects, researchers can also transform their data by aggregating multiple pixel-level observations into larger units of analysis and run a TWFE regression on the transformed dataset. For example, in the conservation case, researchers have often run a TWFE regression where the unit of analysis itself is the grid cell [e.g., @rico-straffon_2023], property [e.g., @heilmayr2016], or larger administrative unit [e.g., @sims2017]. 
+In addition to aggregating fixed effects, researchers can also transform their data by aggregating multiple pixel-level observations into larger units of analysis. For example, in the conservation case, researchers have often run a TWFE regression where the unit of analysis itself is the grid cell [e.g., @rico-straffon_2023], property [e.g., @heilmayr2016], or larger administrative unit [e.g., @sims2017]. 
 
 \textbf{Regression 4:} (TWFE regression with aggregated unit of analysis)
 Let $\beta_{j}$ denote the coefficient of the interaction between $D_{j}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
@@ -273,7 +273,7 @@ z_{jt} =  \beta_{j} \text{ x } D_j \mathbb{1} \{ t\geq t_0\} + \lambda_t + \gamm
 \end{align*}
 Regression 4 differs from Regression 3 in both the treatment variable, $D_j$ and the outcome variable, $z_{jt}$. The treatment variable $D_j = \frac{1}{N_j}\sum_{i=1}^{N_j}D_i$, is the average treatment value amongst all pixels in unit $j$. If treatment is assigned at the level of $j$, $D_j=1$. 
 
-The outcome variable, $z_{jt}$, denotes the event rate within unit $j$ in period $t$. Arguably the most commonly used formula in the deforestation literature to calculate $z_{jt}$, the deforestation rate in unit $j$ in time $t$, uses the share of unit $j$ with forest cover and its lag [e.g. @carlson2018; @busch2015]:
+The outcome variable, $z_{jt}$, denotes the event rate within unit $j$ in period $t$. Arguably the most commonly used formula for $z_{jt}$ in the deforestation literature is the deforestation rate calculated using the forested share of unit $j$ in period $t$ and its single-period lag $t-1$ [e.g. @carlson2018; @busch2015]:
 \begin{align} 
 z_{jt} &= \frac{F_{j,t-1} - F_{j,t}}{F_{j,t-1}} (\#eq:deforrate)
 \end{align}
