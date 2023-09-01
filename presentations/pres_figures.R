@@ -1088,3 +1088,331 @@ p2 <- ggplot(out_county, ggplot2::aes(x = term, y = estimate, color = estimator,
 p2 + theme(legend.position = "bottom")
 
 ggsave(paste0(out_dir, "new_did_agg.png"), width = 8, height = 6, units = "in")
+
+
+
+
+
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Updated figures - 9/1/2023 ------------------
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+## Solution - aggregate fixed effects
+specchart_long <- readRDS("paper/results/results_selection.rds")
+
+df_summary <- specchart_long %>%
+  filter(is.na(notes),
+         # pixel.fe ==0,
+         weights == 0 ,
+         (grid.fe == 0 | gridsize == max(gridsize, na.rm = T)),
+         (property.fe == 0 | se_county == 0)
+  ) %>%
+  mutate_at(vars(bias, cover), as.numeric
+  )%>%
+  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, HE.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
+  )%>%
+  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, HE.estimator, se_pixel, se_grid, se_property, se_county)%>%
+  summarise(RMSE = rmse(bias, 0),
+            q05 = quantile(bias, probs = .05),
+            q95 = quantile(bias, probs = .95),
+            Bias = mean(bias),
+            cover = mean(cover))%>%
+  select(Bias, everything())
+
+df_summary_1 <- rbind(df_summary[10,], df_summary[5,], df_summary[7:9,])
+df_summary_2 <- rbind(df_summary[10,],  df_summary[1:3,])
+
+
+labels <- list("Unit of analysis:" = c("pixel", "grid", "property", "county"),
+               "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE", "treatment FE"),
+               "Survival" = c("Cox PH model", "ATT-Cox estimator"),
+               "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
+
+na_row <- setNames(data.frame(matrix(ncol = ncol(df_summary), nrow = 0)), colnames(df_summary))
+na_row[1,] <- NA
+
+select_results <- rbind(na_row, as.data.frame(df_summary_1), na_row)
+
+
+coverage <- select_results$cover
+c_print <- round(coverage, digits = 3)
+c_print[is.na(c_print)] <- ""
+
+RMSE <- select_results$RMSE
+RMSE <- as.numeric(RMSE)
+RMSE_print<- round(RMSE, digits = 4)
+RMSE_print[is.na(RMSE_print)] <- ""
+
+select_results <- as.data.frame(subset(select_results, select=-c(cover, RMSE)))
+
+index.ci <- match(c("q05","q95"), names(select_results))
+
+# One could also add information about model fit to this chart
+topline = -0.009
+
+midline = topline-0.004-.0025
+
+ylim <- c(midline-.005,0.04)
+#bottomline = (min(ylim)+topline)/2
+#Create the plot
+
+rmse_cex = 1
+cov_cex = 1
+leg_cex = 1.2
+
+par(oma=c(1,0,1,1))
+
+svg(paste0('presentations/figs/1_FE_agg.svg'))
+schart(select_results,labels, ylim = ylim, index.ci=index.ci, col.est = c(palette$dark, palette$red),
+       bg.dot=c(palette$dark, "grey95", "white", palette$red),
+       col.dot=c(palette$dark, "grey95", "white", palette$red),
+       ylab="    Bias", highlight=c(2)
+       ,band.ref=c(-.05, .04)
+       , axes = FALSE
+       #, col.band.ref="#c7e9f9"
+) # make some room at the bottom
+Axis(side=2, at = c(0, 0.01, 0.02, 0.03), labels=TRUE)
+abline(h=topline)
+abline(h=midline)
+#abline(h=bottomline)
+lapply(1:(length(RMSE_print)), function(i) {
+  # text(x= i, y=min(ylim)+.002, paste0(i), col="black", font=2, cex = 1)
+  # mtext(if(i<6){paste0(i)}, side=1, at = i + 1, font=2, cex=.95)#, line=1, at=-1)
+  text(x= i, y=midline+0.003, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex)
+  text(x= i, y=min(ylim)+0.0006, paste0(c_print[i]), col="black", font=1, cex=cov_cex )
+})
+dev.off()
+
+
+
+## Solution - aggregate units of observation
+select_results <- rbind(na_row, as.data.frame(df_summary_2), na_row)
+
+
+coverage <- select_results$cover
+c_print <- round(coverage, digits = 3)
+c_print[is.na(c_print)] <- ""
+
+RMSE <- select_results$RMSE
+RMSE <- as.numeric(RMSE)
+RMSE_print<- round(RMSE, digits = 4)
+RMSE_print[is.na(RMSE_print)] <- ""
+
+select_results <- as.data.frame(subset(select_results, select=-c(cover, RMSE)))
+
+index.ci <- match(c("q05","q95"), names(select_results))
+
+# One could also add information about model fit to this chart
+topline = -0.009
+
+midline = topline-0.004-.0025
+
+ylim <- c(midline-.005,0.04)
+#bottomline = (min(ylim)+topline)/2
+#Create the plot
+
+rmse_cex = 1
+cov_cex = 1
+leg_cex = 1.2
+
+par(oma=c(1,0,1,1))
+
+svg(paste0('presentations/figs/2_unit_agg.svg'))
+schart(select_results,labels, ylim = ylim, index.ci=index.ci, col.est = c(palette$dark, palette$red),
+       bg.dot=c(palette$dark, "grey95", "white", palette$red),
+       col.dot=c(palette$dark, "grey95", "white", palette$red),
+       ylab="    Bias", highlight=c(2)
+       ,band.ref=c(-.05, .04)
+       , axes = FALSE
+       #, col.band.ref="#c7e9f9"
+) # make some room at the bottom
+Axis(side=2, at = c(0, 0.01, 0.02, 0.03), labels=TRUE)
+abline(h=topline)
+abline(h=midline)
+#abline(h=bottomline)
+lapply(1:(length(RMSE_print)), function(i) {
+  # text(x= i, y=min(ylim)+.002, paste0(i), col="black", font=2, cex = 1)
+  # mtext(if(i<6){paste0(i)}, side=1, at = i + 1, font=2, cex=.95)#, line=1, at=-1)
+  text(x= i, y=midline+0.003, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex)
+  text(x= i, y=min(ylim)+0.0006, paste0(c_print[i]), col="black", font=1, cex=cov_cex )
+})
+dev.off()
+
+
+## Problem - spatial error structure
+results_full <- readRDS("paper/results/results_full.rds")
+
+full_summary <- results_full %>%
+  filter(treatment.fe == 1 & se_pixel == 1 & is.na(notes) & cox == 0) %>%
+  mutate_at(vars(bias, cover), as.numeric) %>%
+  group_by(std_p) %>%
+  summarise(Bias = mean(bias),
+            cover = mean(cover),
+            RMSE = rmse(bias, 0),
+            q05 = quantile(bias, probs = .05),
+            q95 = quantile(bias, probs = .95)) %>%
+  mutate(s0 = std_p==0,
+         s1 = std_p==0.1,
+         s2 = std_p==0.2,
+         s3 = std_p==0.3) %>% 
+  arrange(desc(s0), desc(s1), desc(s2), desc(s3))
+
+na_row <- setNames(data.frame(matrix(ncol = ncol(full_summary), nrow = 0)), colnames(full_summary))
+na_row[1,] <- NA
+
+select_results <- rbind(na_row, as.data.frame(full_summary), na_row)
+
+
+coverage <- select_results$cover
+c_print <- round(coverage, digits = 3)
+c_print[is.na(c_print)] <- " "
+
+RMSE <- select_results$RMSE
+RMSE <- as.numeric(RMSE)
+RMSE_print<- round(RMSE, digits = 4)
+RMSE_print[is.na(RMSE_print)] <- " "
+
+schart_results <- select_results %>%
+  mutate(F_col = FALSE,
+         F_col2 = FALSE)%>%
+  select(c(Bias, F_col, F_col2, q05, q95))
+index.ci <- match(c("q05","q95"), names(schart_results))
+
+labels <- list("",
+               "")
+
+
+topline = -0.012
+midline = topline-0.003
+ylim <- c(midline-0.002,0.003)
+
+par(oma=c(1,0,1,1))
+
+svg(paste0('presentations/figs/3_spatial_error.svg'), height = 5.5, width = 7.5)
+
+schart(as.data.frame(schart_results), labels = labels, 
+       ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="",
+       #leftmargin = 16, 
+       col.est = c(palette$dark, palette$red), 
+       bg.dot=c("white", "white", "white", "white"),
+       col.dot=c("white", "white", "white", "white"),
+       heights = c(6,1), cex = c(1.25,1.25))
+
+#mtext("Bias             ", side=2, at = -0.00, font=2, las=1, line=.5)
+Axis(side=2, at = c(-0.01, -0.005, 0, 0.005, 0.01), labels=TRUE)
+abline(h=topline)
+abline(h=midline)
+lapply(1:length(RMSE), function(i) {
+  text(x= i, y=midline+0.002, paste0(RMSE_print[i], " "), col="black", font=1, cex=rmse_cex)
+  text(x= i, y=ylim[1]+0.001, paste0(c_print[i]), col="black", font=1, cex=cov_cex)
+})
+# text(x=mean(1:nrow(schart_results))
+#      , y=midline-.001, "Coverage probability", col="black", font=2)
+# text(x=mean(1:nrow(schart_results))
+#      , y=topline-.001, "RMSE", col="black", font=2)
+# mtext("RMSE", side=2, at = midline+0.003, font=2, las=1, line=.5)
+# mtext("Coverage\nprobability", side=2, at = midline-0.003, font=2, las=1, line=.5)
+
+# mtext(paste0(0), side=1, at = 2, font=2, cex=1.2, line=3)
+# mtext(paste0(0.1), side=1, at = 3, font=2, cex=1.2, line=3)
+# mtext(paste0(0.2), side=1, at = 4, font=2, cex=1.2, line=3)
+# mtext(paste0(0.3), side=1, at = 5, font=2, cex=1.2, line=3)
+# mtext(bquote("Value of " ~ sigma[p]), side=1, at = 0, font=2, cex=1.25, line=3)
+dev.off()
+
+## Solution - match scale to disturbances
+grid_p = 10
+grid_c = 30
+grid_small = grid_p
+grid_large = grid_c
+
+
+
+full_summary <- results_full %>%
+  mutate_at(vars(bias, cover, power), as.numeric)%>%
+  filter(std_p==0.3 , 
+         is.na(notes) , 
+         gridsize %in% c(grid_p, grid_c) | grid.fe == 0,
+         pixel.fe == 0 , 
+         weights == 0 , 
+         cox == 0 
+  ) %>%
+  group_by(pixel, grid, property, county, grid.fe, property.fe, county.fe, treatment.fe, se_pixel, se_grid, se_property, se_county, gridsize)%>%
+  summarise(Bias = mean(bias),
+            cover = mean(cover),
+            power = mean(power),
+            RMSE = rmse(bias, 0),
+            q05 = quantile(bias, probs = .05),
+            q95 = quantile(bias, probs = .95))%>%
+  mutate(grid.fe_large = ifelse(gridsize == grid_large, 1, 0),
+         grid.fe_small = ifelse(gridsize == grid_small, 1, 0),
+         grid_large = ifelse(grid.fe_large == 1 & grid == 1, 1, 0),
+         grid_small = ifelse(grid.fe_small == 1 & grid == 1, 1, 0)
+  )%>%
+  mutate_at(vars(grid.fe_small, grid.fe_large), ~replace(., is.na(.), 0))
+
+# Panel A - Pixel-level analyses
+select_results_A <- full_summary %>% 
+  filter(pixel==1) %>% 
+  dplyr::arrange(Bias)
+# dplyr::arrange(property.fe, county.fe, grid.fe, gridsize)
+
+# select_results_B <- full_summary %>% 
+#   filter(pixel==0) %>% 
+#   dplyr::arrange(Bias)
+# # dplyr::arrange(property, county, grid, gridsize)
+
+na_row <- setNames(data.frame(matrix(ncol = ncol(select_results_A), nrow = 0)), colnames(select_results_A))
+na_row[1,] <- NA
+
+select_results <- rbind(na_row, select_results_A, na_row)
+
+coverage <- select_results$cover
+c_print <- round(coverage, digits = 4)
+c_print[is.na(c_print)] <- " "
+
+RMSE <- select_results$RMSE
+RMSE <- as.numeric(RMSE)
+RMSE_print<- round(RMSE, digits =4)
+RMSE_print[is.na(RMSE_print)] <- " "
+
+gridsize_print <- select_results$gridsize
+gridsize_print[is.na(gridsize_print)] <- " "
+
+schart_results <- select_results %>%
+  mutate(F_col = FALSE,
+         F_col2 = FALSE)%>%
+  select(c(Bias, F_col, F_col2, q05, q95))
+index.ci <- match(c("q05","q95"), names(schart_results))
+
+labels <- list("",
+               "")
+
+topline = -0.0125
+midline = topline-0.005
+ylim <- c(midline-0.004,0.0078)
+
+
+par(oma=c(1,0,1,1))
+
+svg(paste0('presentations/figs/4_spatial_agg.svg'), height = 5.5, width = 8)
+
+schart(as.data.frame(schart_results), labels = labels, 
+       ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
+       highlight = c(6),  
+       #  leftmargin = 16, 
+       col.est = c(palette$dark, palette$red), 
+       heights = c(6,1), cex = c(1.25, 1.25),
+       bg.dot=c(palette$dark, "white", "white", palette$red),
+       col.dot=c(palette$dark, "white", "white", palette$red)
+)
+Axis(side=2, at = c(-0.01, -0.005, 0, 0.005), labels=TRUE)
+abline(h=topline)
+abline(h=midline)
+lapply(1:length(RMSE), function(i) {
+  text(x= i, y=midline+0.0025, paste0(RMSE_print[i], " "), col="black", font=1, cex=rmse_cex)
+  text(x= i, y=ylim[1]+0.0015, paste0(c_print[i]), col="black", font=1, cex=cov_cex)
+})
+dev.off()
+
