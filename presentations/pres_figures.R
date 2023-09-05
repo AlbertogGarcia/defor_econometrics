@@ -1282,10 +1282,9 @@ index.ci <- match(c("q05","q95"), names(schart_results))
 labels <- list("",
                "")
 
-
-topline = -0.012
-midline = topline-0.003
-ylim <- c(midline-0.002,0.003)
+topline = -0.0125
+midline = topline-0.005
+ylim <- c(midline-0.004,0.0078)
 
 par(oma=c(1,0,1,1))
 
@@ -1304,8 +1303,8 @@ Axis(side=2, at = c(-0.01, -0.005, 0, 0.005, 0.01), labels=TRUE)
 abline(h=topline)
 abline(h=midline)
 lapply(1:length(RMSE), function(i) {
-  text(x= i, y=midline+0.002, paste0(RMSE_print[i], " "), col="black", font=1, cex=rmse_cex)
-  text(x= i, y=ylim[1]+0.001, paste0(c_print[i]), col="black", font=1, cex=cov_cex)
+  text(x= i, y=midline+0.0025, paste0(RMSE_print[i], " "), col="black", font=1, cex=rmse_cex)
+  text(x= i, y=ylim[1]+0.0015, paste0(c_print[i]), col="black", font=1, cex=cov_cex)
 })
 # text(x=mean(1:nrow(schart_results))
 #      , y=midline-.001, "Coverage probability", col="black", font=2)
@@ -1396,7 +1395,7 @@ ylim <- c(midline-0.004,0.0078)
 
 par(oma=c(1,0,1,1))
 
-svg(paste0('presentations/figs/4_spatial_agg.svg'), height = 5.5, width = 8)
+svg(paste0('presentations/figs/4_spatial_agg.svg'), height = 5.5, width = 7.5)
 
 schart(as.data.frame(schart_results), labels = labels, 
        ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="", 
