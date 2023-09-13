@@ -50,18 +50,6 @@ nocite:
 
 ---
 
-<!-- TODO list:  
-
-- Cross references (Double check references and convert non-hyperlinked refs)
-- margins in appendix math text
-
-Completed:
-- sub-header symmetry
-- Figure captions
-- citations referring to "several papers" claims
-- leaving pixels in explanation
-
--->
 
 \sectionfont{\fontsize{11}{11}\selectfont}
 \subsectionfont{\fontsize{11}{11}\selectfont}
@@ -410,7 +398,7 @@ We compare econometric models using a combination of estimate bias, root mean sq
 
 ## TWFE with binary, irreversible outcomes yields biased estimate of $ATT$ 
 
-Despite widespread use of pixel-level analyses of deforestation, the application of TWFE models to a binary, irreversible process yields a biased estimate of the $ATT$. Specifically, we show that the coefficient of interest from the unit-level TWFE model $(\beta_{TWFE})$ estimates the post-treatment difference in outcomes (single difference), rather than the desired $ATT$ (full proof contained in Appendix \@ref(TWFE-proof)). 
+Despite widespread use of pixel-level analyses of deforestation, the application of TWFE models to a binary, irreversible process yields a biased estimate of the $ATT$. Specifically, we show that the coefficient of interest from the unit-level TWFE model $(\beta_{TWFE})$ estimates the post-treatment difference in outcomes (single difference), rather than the desired $ATT$. 
 
 \textbf{Result 1:} (Irreversible unit FE bias)
 \begin{align}
@@ -419,13 +407,26 @@ Despite widespread use of pixel-level analyses of deforestation, the application
 
 Regression 2 thus forgoes the benefits that panel methods provide, failing to properly control for time-invariant differences in treated and control units. If the treated area has a different baseline deforestation rate than the control, Regression 2 will generate a biased estimate of the intervention's impact. Many conservation interventions are specifically targeted towards locations with either low opportunity costs for conservation or high threats of conversion. As a result, it is likely that many conservation impact evaluations will have treatment and control units that experienced different pre-treatment deforestation rates. It is important to note that this bias could even lead to changes in the estimated treatment effect's sign, in addition to errors in the effect's magnitude and significance. 
 
-Intuition for this result stems from the use of pixel-level, unit fixed effects in the regression specification. By including pixel-level fixed effects in TWFE regressions, researchers hope to control for local confounders, including pre-treatment differences in the outcome. However, when following common guidance to drop observations in the periods after the irreversible event is first realized, these fixed effects do not behave as the researcher expects. Observations that realize the event (i.e. are deforested) in years prior to treatment are, by definition, not observed for the entire panel. As a result, all pixels that contribute to the estimates of post-treatment effects must have a common pre-treatment outcome of 0. Interestingly, $\beta_{TWFE}$ differs from $\beta_{DID}$ in our context, even in the 2x2 case. 
+Intuition for this result stems from the use of individual-unit fixed effects in the regression specification. By including individual-unit fixed effects in TWFE regressions, researchers hope to control for local confounders, including pre-treatment differences in the outcome. However, when following common guidance to drop observations in the periods after the irreversible event is first realized, these fixed effects do not behave as the researcher expects. Observations that realize the event (i.e., are deforested) in years prior to treatment are, by definition, not observed for the entire panel. In fact, $\beta_{TWFE}$ differs from $\beta_{DID}$ in our context, even in the 2x2 case. 
 
-<!-- Prior work by @lechner2015 shows that the coefficients of interest from the traditional DID and TWFE model may differ in the 2x2 case if the panel data is unbalanced. Here, the dropping of pixels in the years after they are first deforested means that attrition is imposed by definition. This does not necessarily lead to violation of the common trends assumption, but it does lead to clear deviation between $\beta_{TWFE}$ and $\beta_{DID}$. -->
+The full proof for Result 1 is contained in Appendix \@ref(TWFE-proof), but here, we demonstrate the intuition discussed above. In the 2x2 case, the estimator, $\hat{\beta}_{TWFE}$, can be expressed:
 
-Section \@ref(results-simulation) corroborates Result 1 through simulations, and shows that the traditional DID does not suffer from similar concerns in the context of forest conservation. In addition, in Section \@ref(TWFE-equivalence), we also show that $\hat{\beta}_{TWFE}$ is equivalent to the coefficient from a TWFE regression on a dataset where any pixel deforested in years prior to treatment is completely excluded from the dataset (which would clearly be poor practice).
+\begin{align*}
+\hat{\beta}_{TWFE}&= \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y^o_{i2} - \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y^o_{i1} - (\frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y^o_{i2} - \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y^o_{i1})
+\end{align*}
+
+This is similar to the typical DID estimator. However, by definition of $y^o_{it}$ this expression is only valid when $y^o_{i1}=0$. In the case where $y^o_{i1}=1$, it must be the case that $y^o_{i2}$ has been dropped. As a result, all pixels that contribute to the estimates of post-treatment effects must have a common pre-treatment outcome of 0. As a result, \hat{\beta}_{TWFE} simplifies: 
+
+\begin{align*}
+\hat{\beta}_{TWFE} &= \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y^o_{i2} - \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y^o_{i2}
+\end{align*}
+
+That is, \hat{\beta}_{TWFE} is equal to a simple ex-post difference in means between treatment and control units, which extends to Result 1 under the relevant assumptions. Ultimately, an irreversible event only happens once, making estimation with individual-unit fixed effects meaningless.
+
+Section \@ref(results-simulation) corroborates Result 1 through simulations and shows that the traditional DID does not suffer from similar concerns in the context of forest conservation. In addition, we show in Section \@ref(TWFE-equivalence) that $\hat{\beta}_{TWFE}$ is equivalent to the coefficient from a TWFE regression on a dataset where any pixel deforested in years prior to treatment is completely excluded from the dataset (which would clearly be poor practice).
 
 ## Alternative construction of $y^o_{ivt}$
+
 Although dropping previously deforested pixels from the panel introduces bias into the TWFE estimate of the $ATT$, keeping observations in the panel after initial deforestation introduces its own challenges, especially when researchers are interested in interpreting the $ATT$ in terms of a policy's impact on deforestation rates. The $ATT$ as defined in Section \@ref(setup) represents an estimate of the impact of an intervention on the frequency of deforestation events (i.e. the decision to clear). Economists have typically focused their attention on this clearing decision, estimating the impact of a policy on the deforestation rate (flow) rather than on the stock of aggregate forest remaining. Under this interpretation, keeping deforested pixels in the panel beyond the first period in which it was observed as deforested would incorrectly imply that it has actively been deforested in each subsequent time period when, in fact, no new deforestation event or clearing decision has occurred. This is intuitively problematic, because the deforestation rate in each period would be monotonically increasing by construction (Appendix \@ref(keep-pixels)). 
 
 If researchers do keep cleared pixels in their sample after they are deforested, the correct interpretation of the $ATT$ is that it is a measure of a policy's impact on the aggregate stock of ever cleared forests. However, when reforestation timing is unaccounted for and deforestation is treated as an absorbing state, the interpretation of this measure becomes more challenging. Rather than measuring the area of land that is not in a forested state area at time $t$, this outcome variable measures the stock of ever-deforested area through the current time period. Therefore, if reforestation timing is not accounted for, researchers should be careful not to interpret these aggregate measures as deforested area (or forest cover if looking at $1 -$ deforested area), but rather as cumulative deforestation over the study period. 
@@ -451,7 +452,7 @@ Assumption 3 requires that pixels in treated and untreated areas would have expe
 
 ### Proposing a new survival analysis-based estimator of the $ATT$
 
-To the best of our knowledge, no prior studies have successfully combined the Cox Proportional Hazards model and the difference in differences research design to recover an unbiased estimate of the $ATT$ under the traditional common trends assumption (Assumption 1). Here we outline a new estimation approach that first recovers an unbiased estimate of the $HRTT$ and then translates this into an estimate of the $ATT$ that holds under Assumption 1. First, we note that the desired $HRTT$ can be re-written as a combination of three different hazard ratios: 
+To the best of our knowledge, no prior studies have successfully combined the Cox Proportional Hazards model and the difference-in-differences research design to recover an unbiased estimate of the $ATT$ under the traditional common trends assumption (Assumption 1). Here we outline a new estimation approach that first recovers an unbiased estimate of the $HRTT$ and then translates this into an estimate of the $ATT$ that holds under Assumption 1. First, we note that the desired $HRTT$ can be re-written as a combination of three different hazard ratios: 
 
 \begin{align}
 HR_1 &= \frac{E[y_{iv2}(1)  | D_i=1]} {E[y_{iv1}(0)  |  D_i=1]}\\
@@ -500,7 +501,7 @@ In essence, the first and third expectations in the bias term are conditional on
 
 TWFE models have risen to prominence due to their flexibility in applying DID methods to settings with multiple groups and variation in treatment timing. However, we have shown that TWFE models with pixel fixed effects are not a viable approach to estimate the $ATT$. Figure \@ref(fig:did-twfe) shows the bias associated with Regression 2, a pixel-level TWFE regression with pixel unit fixed effects. In our guiding example, the ex-post single difference is 0.02 (the $ATT$ plus the post-treatment group difference in deforestation rates), when the true $ATT$ is equal to -0.01. This means that a positive bias of 0.03 results from the use of this regression model. 
 
-Figure \@ref(fig:did-twfe) further shows that the TWFE and DID estimators are not numerically equivalent, even in our 2x2 context. We further examine this finding in section \@ref(TWFE-equivalence) and show that the coefficient of interest from Regression 2 is numerically equivalent to that from the same regression on a dataset where all pixels deforested in the first period are excluded from the dataset completely. 
+Figure \@ref(fig:did-twfe) further shows that the TWFE and DID estimators are not numerically equivalent, even in our 2x2 context. We further examine this finding in section \@ref(TWFE-equivalence), showing that the coefficient of interest from Regression 2 is numerically equivalent to that from the same regression on a dataset where all pixels deforested in the first period are excluded from the dataset completely (i.e., there is no deforestation in the dataset pre-treatment). This exercise explicitly demonstrates that the individual-unit TWFE regression uses none of the pre-treatment variation in deforestation, which is the crucial benefit of DID approaches.
 
 ```{r did-twfe, echo = FALSE, warnings = FALSE, results = FALSE, message=FALSE, fig.cap="Comparison of model performance under pixel-level DID and TWFE with pixel unit fixed effects. Point illustrates mean bias while the confidence interval illustrates the 0.05 to 0.95 quantile range of this bias from the Monte Carlo simulations. Standard errors are clustered at the pixel.",  fig.width = 7, fig.height = 5, out.width="85%"}
 
@@ -1382,7 +1383,6 @@ This entire paper, including the underlying data, results, figures, and tables c
 # Acknowledgements {-}
 We thank Kelsey Jack, Andrew Plantinga, and Jennifer Alix-Garcia for useful comments on early versions of this paper. We are grateful for feedback received at the BIOECON XXII conference and TWEEDS. We thank the University of California, Santa Barbara's Academic Senate for a Faculty Research Grant that supported this work. This paper is based upon work supported by the National Aeronautics and Space Administration under Grant No. 80NSSC20K1489 issued through the Land Cover and Land Use Change Program. This paper contributes to the Global Land Programme.
 
-
 # References
 <div id="refs"></div>
 
@@ -1452,7 +1452,7 @@ Lastly, define $C_i$ as the first year in which an irreversible event of interes
 
 ### TWFE regression models with point fixed effects do not identify $ATT$ {#TWFE-proof}
 
-In settings with a binary and unrepeatable outcome variable, the commonly used unit-level TWFE model yields the post-treatment difference in outcomes (single difference), rather than the desired $ATT$.\\
+In settings with a binary and unrepeatable outcome variable, the commonly used unit-level TWFE model yields the post-treatment difference in outcomes (single difference), rather than the desired $ATT$.
 
 We define the observed outcome $y^o_{it}$:
 
@@ -1473,7 +1473,7 @@ $$ y^o_{it} = \alpha + \beta_{TWFE} \text{ x } W_{it}  + \gamma_i + \lambda_t+ u
 
 - $\gamma_i$ indicate point fixed effects
 
-- $\lambda_t$ indicate year fixed effects \\
+- $\lambda_t$ indicate year fixed effects 
 
 
 In the 2x2 case, we can write
@@ -1701,35 +1701,6 @@ Finally, simplifying:
 &-(E[y_{ivt}(1) |  t\geq t_0, D_i=1] - E[y_{ivt}(0) |  t\geq t_0, D_i=0])
 \end{align*}
 
-<!-- \textbf{Extending to our simulations:} -->
-
-<!-- In the context of our monte carlo simulations, this can be extended: -->
-
-<!-- \begin{align*} -->
-<!-- \beta_{DID} -ATT =& P[y^o_{ivt}(1)=1 |  t\geq t_0, D_i=1] - P[y^o_{ivt}(0)=1 |  t\geq t_0, D_i=0]  \\ -->
-<!-- &-(P[y_{ivt}(1)=1 |  t\geq t_0, D_i=1] - P[y_{ivt}(0)=1 |  t\geq t_0, D_i=0]) -->
-<!-- \end{align*} -->
-
-<!-- \begin{align*} -->
-<!-- \beta_{DID} -ATT =& P[(y_{ivt}(1)=1 |  t\geq t_0, D_i=1) | (y_{ivt}(0)=0 |  t< t_0, D_i=1)]\\ -->
-<!-- &- P[(y_{ivt}(0)=1 |  t\geq t_0, D_i=0) | (y_{ivt}(0)=0 |  t< t_0, D_i=0)]  \\ -->
-<!-- &-(P[y_{ivt}(1)=1 |  t\geq t_0, D_i=1] - P[y_{ivt}(0)=1 |  t\geq t_0, D_i=0]) -->
-<!-- \end{align*} -->
-
-<!-- \begin{align*} -->
-<!-- \beta_{DID} -ATT =& P[(y^*_{ivt}(1)>0 |  t\geq t_0, D_i=1) | (y^*_{ivt}(0) \leq 0 |  t< t_0, D_i=1)]\\ -->
-<!-- &- P[(y^*_{ivt}(0)>0 |  t\geq t_0, D_i=0) | (y^*_{ivt}(0) \leq 0 |  t< t_0, D_i=0)]  \\ -->
-<!-- &-(P[y^*_{ivt}(1)>0 |  t\geq t_0, D_i=1] - P[y^*_{ivt}(0)>0 |  t\geq t_0, D_i=0]) -->
-<!-- \end{align*} -->
-
-<!-- Here, we let $t \in \{ 1,2 \}$ denote the first and second periods, respectively: -->
-
-<!-- \begin{align*} -->
-<!-- \beta_{DID} -ATT =& P[(\beta_0+\beta_1+\beta_{2,1}+\beta_3+\alpha_i + u_{i2} + \rho_{v}>0 |  t\geq t_0, D_i=1) | (\beta_0+\beta_1 +\alpha_i + u_{i1} + \rho_{v}\leq 0 |  t< t_0, D_i=1)]\\ -->
-<!-- &- P[(\beta_0+\beta_{2,0}+\alpha_i + u_{i2} + \rho_{v}>0 |  t\geq t_0, D_i=0) | (\beta_0+\alpha_i + u_{i1} + \rho_{v} \leq 0 |  t< t_0, D_i=0)]  \\ -->
-<!-- &-(P[\beta_0+\beta_1+\beta_{2,1}+\beta_3+\alpha_i + u_{i2} + \rho_{v}>0|  t\geq t_0, D_i=1] - P[\beta_0+\beta_{2,0}+\alpha_i + u_{i2} + \rho_{v}>0|  t\geq t_0, D_i=0]) -->
-<!-- \end{align*} -->
-
 
 ## Further Monte Carlo evidence that individual unit-level TWFE is equivalent to coefficient from same regression on dataset without pixels deforested pre-treatment {#TWFE-equivalence}
 
@@ -1779,8 +1750,6 @@ kable(twfe_comp, format = "latex", row.names = FALSE,  booktabs = T,
 <!--   scale_fill_manual(labels=c("DID dropping pixels", "DID w/o dropping pixels"), values = c( palette$green, palette$red) -->
 <!--                     ) -->
 <!-- ``` -->
-
-
 
 
 ## Initial Monte Carlo parameter to $\beta$ coefficient mapping {#parameter-mapping}
