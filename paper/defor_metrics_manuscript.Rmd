@@ -591,7 +591,9 @@ legend(x=2.59, y=0.046, col = "black", legend = "0.05 to 0.95 quantile \n of est
 
 In the two-group, two-period case the traditional DID (Regression 1) is an unbiased estimator of the $ATT$, as shown in Figure \@ref(fig:did-twfe) and column 1 of Figure \@ref(fig:summary-fig) (The traditional DID is equivalent to including treatment fixed effects). However, researchers often want to use TWFE models because of their flexibility in situations that do not fall under the simplest DID setting. 
 
-Alternate forms of aggregation may provide a useful way to avoid the issues associated with integrating TWFE models with binary outcomes when the outcome is irreversible. Columns 2-4 of Figure \@ref(fig:summary-fig) show that in pixel level TWFE regressions in the form of Regression 3, $\beta_{FE,j}$ is an unbiased estimator of the $ATT$. These regressions use grid, county, or property fixed effects rather than pixel fixed effects. We also see that, in the absence of property level perturbations (i.e. $\sigma_p=0$ in the DGP), all three models provide similar estimates and estimate distributions. 
+Alternate forms of aggregation may provide a useful way to avoid the issues associated with integrating TWFE models with binary outcomes when the outcome is irreversible. Columns 2-4 of Figure \@ref(fig:summary-fig) show that in pixel level TWFE regressions in the form of Regression 3, $\beta_{FE,j}$ can be an unbiased estimator of the $ATT$. These regressions use grid, county, or property fixed effects rather than pixel fixed effects. We also see that, in the absence of property level perturbations (i.e. $\sigma_p=0$ in the DGP), all three models provide similar estimates and estimate distributions. 
+
+In principle, it is possible for $\beta_{FE,j}$ from Regression 3 to suffer from bias similar to that of the individual-unit TWFE regression. This occurs if an entire aggregated unit, $j$ is deforested prior to $t_0$. Figure \@ref(fig:varying-gridsize) in Section \@ref(gridsize-bias) shows bias in $\beta_{FE,j}$ as a function of grid size. When grid sizes are particularly small, $\beta_{FE,j}$ suffers from bias, since it is more likely that an entire grid cell becomes deforested early on. Because this is more likely to occur in grid cells with higher pre-treatment deforestation rates (the treatment group in our simulations), some of the irreversible unit TWFE bias leaks into $\beta_{FE,j}$ of the aggregated unit TWFE regression. In practice, this bias is more likely to arise when the aggregated unit, $j$ has few pixels or when spatial autocorrelation is severe. Luckily, researchers can examine their dataset to determine whether this bias may be relevant.
 
 Similarly, columns 5-7 show that $\beta_{j}$ from TWFE regressions in the form of Regression 4 is an unbiased estimator of the $ATT$. These TWFE regressions use an aggregated unit of analysis, where the deforestation rate for unit $j$ is explicitly calculated in each time $t$. The following results are based on Equation \@ref(eq:deforrate). Neither the bias nor RMSE of the estimates vary dramatically across different levels of aggregation. 
 
@@ -1762,7 +1764,7 @@ ggplot(data = dropkeep_coeff, aes(x = coeff, fill=model)) +
                      labels = c("ATT(-0.01)", "0", expression(psi)))
 ```
 
-## Specifications in the form of Regression 3 may suffer from bias if aggregated unit is too small
+## Specifications in the form of Regression 3 may suffer from bias if aggregated unit is too small {#gridsize-bias}
 
 ```{r varying-gridsize, out.width="100%", fig.cap="Mean coefficient bias varies with grid cell size for Regressions 3 and 4. Mean coefficient bias and 0.05 to 0.95 quantiles shown by regression specification.", fig.width = 9, fig.height = 5, fig.pos='H', fig.show='hold'}
 
