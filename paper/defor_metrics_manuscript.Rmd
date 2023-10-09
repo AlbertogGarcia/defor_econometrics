@@ -1,9 +1,9 @@
 ---
-title: "Estimating impacts on non-reversible outcomes: the case of forest conservation"
+title: "Impact evaluation with nonrepeatable outcomes: the case of forest conservation"
 author: 
 - Alberto Garcia^[University of California, Santa Barbara, Bren School of Environmental Science \& Management; \color{blue}albertogarcia@ucsb.edu]
 - Robert Heilmayr^[University of California, Santa Barbara, Bren School of Environmental Science \& Management and Environmental Studies Program; \color{blue}rheilmayr@ucsb.edu]
-date: "October 1, 2023"
+date: "October 15, 2023"
 output:
   bookdown::pdf_document2:
     latex_engine: xelatex
@@ -1598,71 +1598,71 @@ exp(\beta_{coxDID}) &= \frac{E[y_{i2}(1)  |  D_i=1]E[y_{i1}(0)  | D_i=1] }{E[y_{
 
 ### Keeping pixels in periods after they are first deforested is not a viable solution {#keep-pixels}
 
-Remotely sensed metrics of deforestation at the pixel level are often subject to the dynamics of forest disturbance and regrowth. After a deforestation event occurs, the deforested area is unlikely to revert to forest cover within the study period, as it takes several years for forest to regenerate to a detectable level. Further, many data products do not allow for the monitoring of forest regrowth. In the panel therefore, it is likely that in the periods after a pixel is first realized as deforested, subsequent observations of the pixel will also observe the pixel as deforested. 
+<!-- Remotely sensed metrics of deforestation at the pixel level are often subject to the dynamics of forest disturbance and regrowth. After a deforestation event occurs, the deforested area is unlikely to revert to forest cover within the study period, as it takes several years for forest to regenerate to a detectable level. Further, many data products do not allow for the monitoring of forest regrowth. In the panel therefore, it is likely that in the periods after a pixel is first realized as deforested, subsequent observations of the pixel will also observe the pixel as deforested.  -->
 
-The logic for dropping binary pixels after they first become deforested is as follows. A forested pixel switches from its assigned value of 0 to a value of 1 following a discrete deforestation event. Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested may imply that it has actively been deforested in each subsequent time period. In fact, no new deforestation event has ocurred, but the area simply remains deforested from the prior event. These pixels, therefore, contribute positively towards the deforestation rate in each period they are left in the panel. As such, the coefficient cannot recover the $ATT$. 
+<!-- The logic for dropping binary pixels after they first become deforested is as follows. A forested pixel switches from its assigned value of 0 to a value of 1 following a discrete deforestation event. Keeping the deforested pixel in the panel beyond the first period in which it was observed as deforested may imply that it has actively been deforested in each subsequent time period. In fact, no new deforestation event has occurred, but the area simply remains deforested from the prior event. These pixels, therefore, contribute positively towards the deforestation rate in each period they are left in the panel. As such, the coefficient cannot recover the $ATT$.  -->
 
-Define an alternative observed outcome $y^{alt}_{it}$, where rather than dropping units from the panel, the outcome is imputed as a 1 when $t > C_i$.
+<!-- Define an alternative observed outcome $y^{alt}_{it}$, where rather than dropping units from the panel, the outcome is imputed as a 1 when $t > C_i$. -->
 
-\begin{align}
- y^{alt}_{it} = \begin{cases}
-      0   &  t < C_i \\
-      1 & t \geq C_i
-   \end{cases}
-\end{align}
+<!-- \begin{align} -->
+<!--  y^{alt}_{it} = \begin{cases} -->
+<!--       0   &  t < C_i \\ -->
+<!--       1 & t \geq C_i -->
+<!--    \end{cases} -->
+<!-- \end{align} -->
 
-Now, consider the difference-in-differences estimand with respect to outcome $y^{alt}_{it}$:
+<!-- Now, consider the difference-in-differences estimand with respect to outcome $y^{alt}_{it}$: -->
 
-\begin{align*}
-\psi =& E[y^{alt}_{i2} | D_i=1] - E[y^{alt}_{i1} | D_i=1] - (E[y^{alt}_{i2} |  D_i=0] - E[y^{alt}_{i1} | D_i=0] )
-\end{align*}
+<!-- \begin{align*} -->
+<!-- \psi =& E[y^{alt}_{i2} | D_i=1] - E[y^{alt}_{i1} | D_i=1] - (E[y^{alt}_{i2} |  D_i=0] - E[y^{alt}_{i1} | D_i=0] ) -->
+<!-- \end{align*} -->
 
-Because $y^{alt}_{it}$ is binary, $\psi$ can be re-expressed using probabilities:
+<!-- Because $y^{alt}_{it}$ is binary, $\psi$ can be re-expressed using probabilities: -->
 
-\begin{align*}
-\psi =& P(y^{alt}_{i2} = 1 | D_i=1) - P(y^{alt}_{i1} = 1 | D_i=1) - (P(y^{alt}_{i2} = 1|  D_i=0) - P(y^{alt}_{i1} = 1| D_i=0) )
-\end{align*}
+<!-- \begin{align*} -->
+<!-- \psi =& P(y^{alt}_{i2} = 1 | D_i=1) - P(y^{alt}_{i1} = 1 | D_i=1) - (P(y^{alt}_{i2} = 1|  D_i=0) - P(y^{alt}_{i1} = 1| D_i=0) ) -->
+<!-- \end{align*} -->
 
-Because we observe $y^{alt}_{it} = 1$ anytime after $C_i$, we can express the probability that $y^{alt}_{it} = 1$ as a function of the probability that $C_i$ occurred prior to time $t$. Then, the terms with $y^{alt}_{i2}$s are re-expressed. 
+<!-- Because we observe $y^{alt}_{it} = 1$ anytime after $C_i$, we can express the probability that $y^{alt}_{it} = 1$ as a function of the probability that $C_i$ occurred prior to time $t$. Then, the terms with $y^{alt}_{i2}$s are re-expressed.  -->
 
-\begin{align*}
-\psi =& P(y_{i2} = 1 | D_i=1)\cup P(y_{i1} = 1 | D_i=1) - P(y_{i1} = 1 | D_i=1) - \\
-& (P(y_{i2} = 1|  D_i=0) \cup (P(y_{i1} = 1|  D_i=0) - P(y_{i1} = 1| D_i=0) )
-\end{align*}
+<!-- \begin{align*} -->
+<!-- \psi =& P(y_{i2} = 1 | D_i=1)\cup P(y_{i1} = 1 | D_i=1) - P(y_{i1} = 1 | D_i=1) - \\ -->
+<!-- & (P(y_{i2} = 1|  D_i=0) \cup (P(y_{i1} = 1|  D_i=0) - P(y_{i1} = 1| D_i=0) ) -->
+<!-- \end{align*} -->
 
-Applying the potential outcomes notation: 
+<!-- Applying the potential outcomes notation:  -->
 
-\begin{align*}
-\psi =& P(y_{i2}(1) = 1 | D_i=1)\cup P(y_{i1}(0) = 1 | D_i=1) - P(y_{i1}(0) = 1 | D_i=1) - \\
-& (P(y_{i2}(0) = 1|  D_i=0) \cup (P(y_{i1}(0) = 1|  D_i=0) - P(y_{i1}(0) = 1| D_i=0) )
-\end{align*}
+<!-- \begin{align*} -->
+<!-- \psi =& P(y_{i2}(1) = 1 | D_i=1)\cup P(y_{i1}(0) = 1 | D_i=1) - P(y_{i1}(0) = 1 | D_i=1) - \\ -->
+<!-- & (P(y_{i2}(0) = 1|  D_i=0) \cup (P(y_{i1}(0) = 1|  D_i=0) - P(y_{i1}(0) = 1| D_i=0) ) -->
+<!-- \end{align*} -->
 
-The bias that results from using $y^{alt}_{it}$ is expressed as the difference between the $ATT$ and $\psi$. After re-expressing the $ATT$ in terms of probability:
+<!-- The bias that results from using $y^{alt}_{it}$ is expressed as the difference between the $ATT$ and $\psi$. After re-expressing the $ATT$ in terms of probability: -->
 
-\begin{align*}
-\psi - ATT =& P(y_{i2}(1) = 1 | D_i=1)\cup P(y_{i1}(0) = 1 | D_i=1) - P(y_{i1}(0) = 1 | D_i=1) - \\
-& (P(y_{i2}(0) = 1|  D_i=0) \cup (P(y_{i1}(0) = 1|  D_i=0) - P(y_{i1}(0) = 1| D_i=0) )\\
-- & [P(y_{i2}(1) = 1 | D_i=1) - P(y_{i2}(0) = 1 | D_i=1)]
-\end{align*}
+<!-- \begin{align*} -->
+<!-- \psi - ATT =& P(y_{i2}(1) = 1 | D_i=1)\cup P(y_{i1}(0) = 1 | D_i=1) - P(y_{i1}(0) = 1 | D_i=1) - \\ -->
+<!-- & (P(y_{i2}(0) = 1|  D_i=0) \cup (P(y_{i1}(0) = 1|  D_i=0) - P(y_{i1}(0) = 1| D_i=0) )\\ -->
+<!-- - & [P(y_{i2}(1) = 1 | D_i=1) - P(y_{i2}(0) = 1 | D_i=1)] -->
+<!-- \end{align*} -->
 
-Under the common trends assumption and substituting for the unobserved term, $P(y_{i2}(0) = 1 | D_i=1)$, yields
+<!-- Under the common trends assumption and substituting for the unobserved term, $P(y_{i2}(0) = 1 | D_i=1)$, yields -->
 
-\begin{align*}
-\psi - ATT =& P(y_{i2}(1) = 1 | D_i=1)\cup P(y_{i1}(0) = 1 | D_i=1) - P(y_{i1}(0) = 1 | D_i=1) - \\
-& (P(y_{i2}(0) = 1|  D_i=0) \cup (P(y_{i1}(0) = 1|  D_i=0) - P(y_{i1}(0) = 1| D_i=0) )\\
-- & [P(y_{i2}(1) = 1 | D_i=1) - (P(y_{i2}(0) = 1 | D_i=0)  - P(y_{i1}(0) = 1 | D_i=0) + P(y_{i1}(0) = 1 | D_i=1))]\\
-=& P(y_{i2}(1) = 1 | D_i=1)\cap P(y_{i1}(0) = 1 | D_i=1) + P(y_{i2}(1) = 1 | D_i=1) - \\
-& (P(y_{i2}(0) = 1|  D_i=0) \cap (P(y_{i1}(0) = 1|  D_i=0) + P(y_{i2}(0) = 1|  D_i=0) )\\
-- & [P(y_{i2}(1) = 1 | D_i=1) - (P(y_{i2}(0) = 1 | D_i=0)  - P(y_{i1}(0) = 1 | D_i=0) + P(y_{i1}(0) = 1 | D_i=1))]
-\end{align*}
-, where the second equality uses the definition of union operator.
+<!-- \begin{align*} -->
+<!-- \psi - ATT =& P(y_{i2}(1) = 1 | D_i=1)\cup P(y_{i1}(0) = 1 | D_i=1) - P(y_{i1}(0) = 1 | D_i=1) - \\ -->
+<!-- & (P(y_{i2}(0) = 1|  D_i=0) \cup (P(y_{i1}(0) = 1|  D_i=0) - P(y_{i1}(0) = 1| D_i=0) )\\ -->
+<!-- - & [P(y_{i2}(1) = 1 | D_i=1) - (P(y_{i2}(0) = 1 | D_i=0)  - P(y_{i1}(0) = 1 | D_i=0) + P(y_{i1}(0) = 1 | D_i=1))]\\ -->
+<!-- =& P(y_{i2}(1) = 1 | D_i=1)\cap P(y_{i1}(0) = 1 | D_i=1) + P(y_{i2}(1) = 1 | D_i=1) - \\ -->
+<!-- & (P(y_{i2}(0) = 1|  D_i=0) \cap (P(y_{i1}(0) = 1|  D_i=0) + P(y_{i2}(0) = 1|  D_i=0) )\\ -->
+<!-- - & [P(y_{i2}(1) = 1 | D_i=1) - (P(y_{i2}(0) = 1 | D_i=0)  - P(y_{i1}(0) = 1 | D_i=0) + P(y_{i1}(0) = 1 | D_i=1))] -->
+<!-- \end{align*} -->
+<!-- , where the second equality uses the definition of union operator. -->
 
-Simplifying now yields:
-\begin{align*}
-\psi - ATT = & P(y_{i2}(1) = 1 | D_i=1)\cap P(y_{i1}(0) = 1 | D_i=1)  - \\
-& (P(y_{i2}(0) = 1|  D_i=0) \cap (P(y_{i1}(0) = 1|  D_i=0) \\
-- & [ P(y_{i1}(0) = 1 | D_i=1)- P(y_{i1}(0) = 1 | D_i=0) ]
-\end{align*}
+<!-- Simplifying now yields: -->
+<!-- \begin{align*} -->
+<!-- \psi - ATT = & P(y_{i2}(1) = 1 | D_i=1)\cap P(y_{i1}(0) = 1 | D_i=1)  - \\ -->
+<!-- & (P(y_{i2}(0) = 1|  D_i=0) \cap (P(y_{i1}(0) = 1|  D_i=0) \\ -->
+<!-- - & [ P(y_{i1}(0) = 1 | D_i=1)- P(y_{i1}(0) = 1 | D_i=0) ] -->
+<!-- \end{align*} -->
 
 ### Analytical expression of non-random sample selection bias in two-period two-group setting {#selection-proof}
 
@@ -1739,32 +1739,37 @@ kable(twfe_comp, format = "latex", row.names = FALSE,  booktabs = T,
 
 ## Monte Carlo evidence individual unit DID and TWFE recover alternate parameter if pixels are retained
 
-```{r keep-pixels, message=FALSE, out.width="100%", fig.cap="Distribution of DID and individual unit TWFE coefficient estimates. Distributions of DID and TWFE coefficients when keeping pixels appear in purple, since they are numerically equivalent. $\\psi$ denotes the estimand as derived in A.2.4.", fig.pos='H', fig.align='center'}
+```{r keep-pixels, message=FALSE, out.width="100%", fig.cap="Distribution of DID and individual unit TWFE coefficient estimates. Distributions of DID and TWFE coefficients when keeping pixels appear in purple, since they are numerically equivalent.", fig.pos='H', fig.align='center'}
 
 keeps <- readRDS("results/results_pixKeep.rds")
 
 dropkeep_coeff <- keeps %>%
   pivot_longer(cols = c(1, 2, 3), names_to = "model", values_to = "coeff")
 
+DID_keep_estimand = dropkeep_coeff$DID_keep_estimand[1]
 ATT = dropkeep_coeff$ATT[1]
   
-DID_keep_estimand = dropkeep_coeff$DID_keep_estimand[1]
+drop_beta = expression(hat(beta)[DID])
+
+keep_beta = expression(hat(beta)[impute])
   
-    
 ggplot(data = dropkeep_coeff, aes(x = coeff, fill=model)) +
     geom_density(alpha = .5) +
     guides(fill=guide_legend(title=NULL))+
     geom_vline(xintercept = ATT, color = palette$green, linetype = "dashed")+
-  geom_vline(xintercept = DID_keep_estimand, color = palette$dark, linetype = "dashed")+
     theme(plot.caption = element_text(hjust = 0.5))+
-     labs(x= "Coefficient estimates")+
+     labs(x= "Coefficient estimates", y = "")+
   xlim(-0.02, 0.122)+
     theme_minimal(base_size = 12)+
   scale_fill_manual(labels=c("DID dropping pixels", "TWFE w/o dropping pixels", "DID w/o dropping pixels"), values = c( palette$green, palette$red, palette$blue)
                     )+
   scale_x_continuous(limits = c(-0.025, DID_keep_estimand + 0.01),
-                     breaks = c(ATT, 0, DID_keep_estimand),
-                     labels = c("ATT(-0.01)", "0", expression(psi)))
+                     breaks = c(ATT, 0),
+                     labels = c("ATT(-0.01)", "0"))+
+  annotate("text", x = ATT - 0.0023, y = 20, 
+           parse = T, label = as.character(drop_beta))+
+  annotate("text", x = 0.0185, y = 20, 
+           parse = T, label = as.character(keep_beta))
 ```
 
 ## Specifications in the form of Regression 3 may suffer from bias if aggregated unit is too small {#gridsize-bias}
