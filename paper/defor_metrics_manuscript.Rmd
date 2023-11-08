@@ -47,6 +47,7 @@ nocite:
 - '@sims2017'
 - '@tabor2017'
 - '@wendland2015'
+- '@rana_inviting_2024'
 
 ---
 
@@ -111,14 +112,12 @@ To help guide future impact evaluations, we identify multiple ways in which this
 Finally, we reflect on the econometric benefits that emerge when researchers are able to incorporate institutional knowledge into their analyses by aligning their model structure with the relevant scale of decisionmaking. For example, in settings where individual landowners may have strong, heterogeneous preferences affecting land-use change, we show that incorporating property-level fixed effects can reduce bias and improve statistical coverage over alternate model structures.
 
 <!-- 1-3 paragraphs contribution to literature -->
-<!-- Robert TODO: Revise this paragraph a bit to clarify the challenge we identify -->
 Our conclusions yield important insights for the community of environmental economists, conservation scientists, and policymakers that wish to understand the causal impacts of conservation policies. Causal impact evaluation in nature conservation has emerged relatively recently [@borner_effectiveness_2020], and multiple papers have called for improved rigor in this space [@ferraro2019; @baylis2016; @miteva2012]. In this paper, we identify key challenges associated with the estimation of panel econometric models using popular deforestation datasets. Although recent studies in the forest conservation literature have begun to adopt alternative DID estimators that are robust to general treatment effect heterogeneity [e.g., @rico-straffon_2023], we demonstrate that these methods are not immune to the lessons identified in this paper.  We also build on prior work by @avelino2016, showing the benefits that can emerge when matching analyses to the scale at which heterogeneity operates in the context of inherently spatial processes such as land use change. Ultimately, our analyses raise potential concerns about the conclusions in many past studies, while providing researchers with practical guidance to improve the reliability of future analyses. 
 
 Our research also contributes to an emerging literature proposing methodological improvements for the integration of remotely sensed data with econometric methods of causal inference. Review studies have identified the need for social scientists to better understand the structure and limitations of remotely sensed data products [@jain2020; @donaldson_view_2016]. Several studies have begun to document measurement error in satellite-based measurements and explore its implications for econometric analysis [@proctor_parameter_2023; @gibson_lights_2021]. This includes work specific to the forest conservation context. For example, @alix-garcia_remotely_2022 address misclassification in the context of a remotely sensed binary forest cover outcome and propose a solution for unbiased causal inference. @torchiana_improving_2022 present a hidden Markov model that corrects for misclassification bias in land use change settings. Our paper implicitly assumes away issues of mismeasurement but illustrates that, even in settings without non-classical measurement error, the underlying structure and limitations of remotely sensed, deforestation data products may still lead researchers to recover biased treatment effect estimates.
 
 <!-- Roadmap -->
 
-<!-- TODO: Need to clean up this paragraph -->
 The remainder of the paper proceeds as follows. In Section \@ref(setup), we introduce our empirical context, focusing on the nonrepeatability inherent to forest conservation impact evaluation. We also discuss common panel econometric approaches used in the conservation literature and in other fields that often encounter binary, nonrepeatable outcome data. Section \@ref(methods) describes the setup for our analytical proofs and the Monte Carlo simulations we use to evaluate candidate econometric approaches in the context of a simulated conservation intervention. In Section \@ref(results-analytical), we present the results of our analytical proofs, including the derivation of the \textit{nonrepeatable unit fixed effects bias} associated with TWFE models incorporating nonrepeatable, binary unit fixed effects and the non-random sample selection that may stem from nonrepeatability inherent to these settings. We also introduce our newly developed survival estimator. Next, in Section \@ref(results-simulation), we present results from our Monte Carlo simulations that illustrate the biases mentioned previously along with proposed solutions. We then explore the advantages to matching analyses to the scale of the decisionmaking unit and discuss the interpretation of coefficients from analyses incorporating area weighting. Additionally, we simulate an intervention with staggered adoption to show that many recently developed DID estimators fail to recover the expected treatment effect parameter when pixels are used as the unit of analysis, similar to TWFE regressions with irreversible, binary unit fixed effects. Finally, Section \@ref(conclusion) concludes. 
 
 # Empirical context {#setup}
@@ -1409,7 +1408,6 @@ grid.rect(x= unit(0.5, "npc"), y = unit(y_u, "npc"), width = 0, height = ht, gp 
 ```
 
 
-
 # Discussion and conclusions {#conclusion}
 
 By applying econometric methods of causal inference to remotely-sensed measurements of land use change, researchers have advanced society's understanding of the impacts of conservation interventions. However, this interdisciplinary research community has insufficiently considered how the data generating processes underpinning land use change and its measurement might affect the performance of standard econometric models. The analytical proofs and simulations presented in this paper highlight that the conclusions made in many prior studies may be biased. 
@@ -1417,7 +1415,8 @@ By applying econometric methods of causal inference to remotely-sensed measureme
 Researchers can take several practical steps in the design of their econometric models to more accurately measure the impacts of conservation policies. First, despite past guidance to the contrary, researchers should recognize that pixel-level, TWFE models are unable to yield unbiased estimates of a policy's impact when applied to nonrepeatable outcomes. Researchers can easily avoid this bias by aggregating either the units of observation, or the scale at which fixed effects are estimated. Second, while survival models provide an appealing empirical framework with which to study deforestation, past studies have typically overlooked implicit assumptions made when applying survival models to the difference-in-differences research design. To resolve this challenge, we propose a new, survival-based estimation procedure that enables researchers to recover an unbiased estimate of the $ATT$ under the traditional parallel trends assumption. 
 
 Finally, we provide evidence suggesting that researchers should seek to align the structure of their econometric models to match the real-world units at which land use decisions are being made. For example, if unobservable, property-level characteristics are thought to be an important driver of deforestation, the inclusion of property-level fixed effects can improve the accuracy of model estimates and inference. We encourage researchers to have an understanding of the institutional context to help decide which level of aggregation might best map onto the scale of autocorrelation within a landscape. Methods to address autocorrelation exist [e.g., @geniaux_new_2018], but we are unaware of any work empirically estimating the scale at which it operates within a landscape. Ultimately, context plays a role in what is feasible, and researchers should make clear the limits to their impact evaluation strategy. 
-Although we have sought to address several of the most important considerations for the design of panel, econometric analyses of conservation impacts, multiple extensions deserve further consideration in future research. First, DEFORESTATION RATES. Second, SELECTION BIAS. Finally, deforestation in one location may affect the returns landowners receive from clearing nearby forests. For example, proximate deforestation may make additional clearing less costly, or may remove ecosystem services that enhance agricultural productivity. In such cases, models that explicitly account for spatial autocorrelation due to deforestation spillovers may be necessary. While complete solutions to all of these challenges are beyond the scope of this paper, we do provide public access to our simulation model's code in the hope that it will enable continued improvement in the design of conservation impact evaluations.
+
+Although we have sought to address several of the most important considerations for the design of panel, econometric analyses of conservation impacts, multiple extensions deserve further consideration in future research. First, applied researchers may benefit from a more thorough evaluation of the tradeoffs between different deforestation rate calculations. Our chosen formula is the most common in the conservation literature and performed best in the context of our DGP. However, alternate DGPs, such as those that explicitly incorporate the nonlinearity often found in deforestation, may affect which calculations best reflect the true DGP. Second, we have not identified clear solutions to to the selection bias that may emerge in settings with nonrepeatable outcomes. This bias may be a minor issue in many settings, but there is room for researchers to develop approaches to either reduce or diagnose this bias in empirical applications. Finally, deforestation in one location may affect the returns landowners receive from clearing nearby forests. For example, proximate deforestation may make additional clearing less costly, or may remove ecosystem services that enhance agricultural productivity. In such cases, models that explicitly account for spatial autocorrelation due to deforestation spillovers may be necessary. While complete solutions to all of these challenges are beyond the scope of this paper, we do provide public access to our simulation model's code in the hope that it will enable continued improvement in the design of conservation impact evaluations.
 
 This paper complements an emerging literature calling for a deeper understanding of the interdependencies between the creation of remotely sensed data and the interpretation of that data through econometric models [@jain2020; @alix-garcia_remotely_2022; @proctor_parameter_2023]. However, we have largely abstracted away from prior concerns that characteristics of the remote sensing data collection process, including sensor properties, atmospheric conditions, and image processing methods, may influence the structure of output data products. Of particular concern is the potential for these processes to give rise to non-classical measurement error, which can lead to biased estimates of the $ATT$ [@wooldridge2010]. Importantly, our study implicitly assumes that pixel-level outcomes are measured without any non-classical measurement error.
 
@@ -1666,7 +1665,7 @@ Some researchers may consider an alternate outcome variable, where rather than d
 We can rewrite $y^{alt}_{it}$ in terms of an alternate variable, $y^C_{it}$, which denotes whether unit $i$ is observed in the exact year the nonrepeatable event is realized:
 
 \begin{align}
-y^{alt}_{it} = \sum^t_{i = 1} y^{C}_{it}
+y^{alt}_{it} = \sum^t_{k = 1} y^{C}_{it}
 \end{align}
 
 , where
@@ -1688,25 +1687,36 @@ and
 
 $$y^{C}_{it}= W_{it}y^{C}_{it}(1) + (1 - W_{it})y^{C}_{it}(0)$$
 
+
+
 The relevant treatment effect parameter for the researcher, instead of the $ATT$, can now be expressed as it relates to $y^{alt}_{it}$:
 
 $$ATT_{alt} = E[y^{alt}_{it}(1) - y^{alt}_{it}(0)| D_i = 1]$$
 
-And similarly, make the following analog common trends assumption, now relating to $y^{alt}_{it}$:
+Similarly, make the following analog common trends assumption, now relating to $y^{alt}_{it}$:
 
 \begin{align}
- E[y^{alt}_{i2}(0) - y^{alt}_{i1}(0)| D_i = 1] = & E[y^{alt}_{i2}(0) - y^{alt}_{i1}(0)| D_i = 0]
+ E[y^{alt}_{i2}(0) - y^{alt}_{i1}(0)| D_i = 1] = & E[y^{alt}_{i2}(0) - y^{alt}_{i1}(0)| D_i = 0] 
 \end{align}
 
-This common trends assumption can be written in terms of $y^C_{it}$, and therefore simplifies to the following:
+$ATT_{alt}$ can be rewritten in terms of $y^C_{it}$ based on equation 23 above.
+
 \begin{align}
-E[  y^{C}_{i2}(0) + y^{C}_{i1}(0) - y^{C}_{i1}(0)| D_i= 1] = & E[ y^{C}_{i2}(0) + y^{C}_{i1}(0) - y^{C}_{i1}(0)| D_i= 0] \notag\\
+ATT_{alt} =& E[\sum^t_{k = 1} y^{C}_{it}(1) - \sum^t_{k = 1} y^{C}_{it}(0)| D_i = 1]\notag\\
+=& E[\sum^T_{k = t_0} y^{C}_{it}(1) + \sum^{t_0}_{k = 1} y^{C}_{it}(0) - \sum^T_{k = t_0} y^{C}_{it}(0) + \sum^{t_0}_{k = 1} y^{C}_{it}(0)| D_i = 1]\notag\\
+=& E[\sum^T_{k = t_0} y^{C}_{it}(1) - \sum^T_{k = t_0} y^{C}_{it}(0)| D_i = 1] \label{eq:lat-ATT-int}
+\end{align}
+
+Equation \@ref(eq:lat-ATT-int) now makes the interpretation of this alternative treatment effect parameter more clear. $ATT_{alt}$ is equal to the average effect of treatment on accumulated deforestation across all post-treatment years for treated units.
+
+We can also rewrite the new common trends assumption, where it simplifies to the following:
+\begin{align}
+E[  y^{C}_{i2}(0) + y^{C}_{i1}(0) - y^{C}_{i1}(0)| D_i= 1] = & E[ y^{C}_{i2}(0) + y^{C}_{i1}(0) - y^{C}_{i1}(0)| D_i= 0] \notag \\
 \Leftrightarrow & \notag \\
-E[  y^{C}_{i2}(0) | D_i= 1] = & E[ y^{C}_{i2}(0)| D_i= 0] (\#eq:CTA-alt)
+E[  y^{C}_{i2}(0) | D_i= 1] = & E[ y^{C}_{i2}(0)| D_i= 0] \label{eq:CTA-alt}
 \end{align}
 
 This shows that the implicit common trends assumption made when using $y^{alt}_{it}$ as an outcome is equivalent to assuming that the probability of clearing post-treatment for the control units is equivalent to what it would have been for the treatment units had they not received treatment.
-
 
 
 #### Coefficient under retention of deforested pixels
@@ -1759,8 +1769,6 @@ Thus, $\beta_{impute}$ recovers $ATT_{alt}$, which is equivalent to the differen
 One concern with this alternate parameter is that pixels deforested prior to treatment are implicitly assumed to be at risk. Put another way, $P(  y^{C}_{i2} = 1|y^C_{i1} = 1) = 0$. However, units for which $y^C_{i1} = 1$ still contribute to the treatment effect parameter.
 
 In order to recover an interpretable $ATT_{alt}$, one must implicitly make the assumption that $E[  y^{C}_{i2}(0) | D_i= 1] = E[ y^{C}_{i2}(0)| D_i= 0]$. This assumption may be less plausible when $E[  y^{C}_{i1}(0) | D_i= 1] \neq E[ y^{C}_{i1}(0)| D_i= 0]$. Further, when $E[  y^{C}_{i1}(0) | D_i= 1] \neq E[ y^{C}_{i1}(0)| D_i= 0]$, in order for \@ref(eq:CTA-alt) to hold, $E[y^C_{it}|y^C_{it} = 0]$ must differ across treatment and control groups. This is because the proportion of at-risk versus already cleared units differs across control and treatment groups. 
-
-
 
 
 
