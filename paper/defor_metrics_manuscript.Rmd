@@ -90,6 +90,7 @@ palette <- list("white" = "#FAFAFA",
 # Abstract {-}
 
 The application of quasiexperimental impact evaluation to remotely sensed measures of deforestation has yielded important evidence detailing the effectiveness of conservation policies. However, researchers have paid insufficient attention to the binary and nonrepeatable structure of most deforestation datasets. Using analytical proofs and simulations, we demonstrate that many commonly employed econometric models are biased when applied to binary and nonrepeatable outcomes. The significance, magnitude and even direction of estimated effects from many studies are likely incorrect, threatening to undermine the evidence base that underpins conservation policy adoption and design. To address these concerns, we provide guidance and new strategies for the design of panel econometric models that yield more reliable estimates of the impacts of forest conservation policies. 
+<!-- These suggestions have the potential to improve the accuracy of econometric analyses of any binary, nonrepeatable outcomes.   -->
 
 # Introduction
 
