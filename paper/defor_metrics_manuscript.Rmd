@@ -444,7 +444,9 @@ In response to the Nonrepeatable unit FE bias shown above, some researchers may 
    \end{cases}
 \end{align}
 
-The use of $y^{alt}_{ivt}$ introduces its own concerns, however. In settings with nonrepeatable outcomes, unit $i$ is only effectively observed until $C_0$. When $y_{ivt} = 1$, unit $i$ has reached an absorbing state. Consequently, for $y^{alt}_{ivt}=1$, only one period of risk is observed for any unit $i$. In other words, any subsequent observations of $y^{alt}_{ivt}$ beyond $C_0$ do not contain any information about the data generating process of interest, because $P(y^{alt}_{ivt+s} = 1 | y^{alt}_{ivt} = 1)$ always holds for $s\geq 1$, irrespective of right-hand side variables. The number of periods for which unit $i$ is effectively observed is therefore not fixed but endogenous [@farbmacher_linear_2023]. 
+The use of $y^{alt}_{ivt}$ introduces its own concerns, however. In settings with nonrepeatable outcomes, unit $i$ is only effectively observed until $C_0$. If $y_{ivt} = 1$, unit $i$ has reached an absorbing state and for all periods in which $y^{alt}_{ivt}=1$, only one period of risk is actually observed. Therefore, any panel regression will not use observations on $i$ later than the period in which $i$ enters the absorbing state, because they are not informative about the transition to that state [@farbmacher_linear_2023]. In other words, any subsequent observations of $y^{alt}_{ivt}$ beyond $C_0$ do not contain any information about the data generating process of interest.
+
+<!-- , because $P(y^{alt}_{ivt+s} = 1 | y^{alt}_{ivt} = 1)$ always holds for $s\geq 1$. -->
 
 We show in \@ref(keep-pixels-proof) that the use of $y^{alt}_{ivt}$ recovers an alternate parameter from that of the $ATT$. In the context of deforestation, identification of this treatment effect parameter requires the assumption that aggregate post-treatment clearing would have been the same in treatment and control areas without treatment. Consequently, if treatment and control areas have differing pre-treatment deforestation rates, this assumption implicitly requires a different deforestation rate among pixels still at risk across the two groups. This stems from the fact that the two groups will have a differing proportion of pixels at risk post-treatment. The $ATT$ as defined in Section 2 represents an estimate of the impact of an intervention on the frequency of deforestation events (i.e. the decision to clear). Economists have typically focused their attention on this clearing decision, estimating the impact of a policy on the deforestation rate (flow) rather than the stock of cleared forest. For the reasons discussed here, we use $y^o_{ivt}$ rather than $y^{alt}_{ivt}$ as the relevant outcome for the remainder of the paper. 
 
@@ -1651,7 +1653,7 @@ exp(\beta_{coxDID}) &= \frac{E[y_{i2}(1)  |  D_i=1]E[y_{i1}(0)  | D_i=1] }{E[y_{
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -->
 
-#### Setting up the alternate $ATT$
+#### Interpreting the alternate $ATT$
 
 Some researchers may consider an alternate outcome variable, where rather than dropping units from the panel, the outcome is imputed as a 1 when $t > C_i$. Define this alternate outcome, $y^{alt}_{it}$, as follows:
 
