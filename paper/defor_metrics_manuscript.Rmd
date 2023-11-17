@@ -400,7 +400,9 @@ Despite widespread use of pixel-level analyses of deforestation, the application
 
 Regression 2 thus forgoes the benefits that panel methods provide, failing to properly control for time-invariant differences in treated and control units. If the treated area has a different baseline deforestation rate than the control, Regression 2 will generate a biased estimate of the intervention's impact. Many conservation interventions are specifically targeted towards locations with either low opportunity costs for conservation or high threats of conversion. As a result, it is likely that many conservation impact evaluations will have treatment and control units that experienced different pre-treatment deforestation rates. It is important to note that this bias could even lead to changes in the estimated treatment effect's sign, in addition to errors in the effect's magnitude and significance. 
 
-Intuition for this result stems from the use of individual unit fixed effects in the regression specification. By including individual unit fixed effects in TWFE regressions, researchers hope to control for local confounders, including pre-treatment differences in the outcome. However, when following common guidance to drop observations in the periods after the nonrepeatable event is first realized, these fixed effects do not behave as the researcher expects. Observations that realize the event (i.e., are deforested) in years prior to treatment are, by definition, not observed for the entire panel. Because the event only happens once, estimation with individual unit fixed effects becomes meaningless. In fact, $\beta_{TWFE}$ differs from $\beta_{DID}$ in our context, even in the 2x2 case. 
+Intuition for this result stems from the use of individual unit fixed effects in the regression specification. By including individual unit fixed effects in TWFE regressions, researchers hope to control for local confounders, including pre-treatment differences in the outcome. However, when following common guidance to drop observations in the periods after the nonrepeatable event is first realized, these fixed effects do not behave as the researcher expects. Observations that realize the event (i.e., are deforested) in years prior to treatment are, by definition, not observed post-treatment. Because the event only happens once, estimation with individual unit fixed effects fails to remove time invariant heterogeneity at the unit level, making their inclusion meaningless. In the context of nonrepeatable outcomes, $\beta_{TWFE}$ is distinct from $\beta_{DID}$, even in the 2x2 case. 
+
+<!-- Excerpt from Farbmacher: However, the logic that these transformations remove unit-specific time-invariant heterogeneity and therefore allow for consistent and unbiased estimation by least squares does not apply in a discrete-time hazard setting, in which an observation unit is observed only until that period in which the event of interest occurs. The impossibility of eliminating unit-specific unobserved heterogeneity by transforming the data becomes intuitive by recognizing that, in this setting, only a single outcome, that is, the length of the spell at risk, is observed for a unit, although the data seemingly exhibits a panel structure. -->
 
 <!-- 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1420,7 +1422,7 @@ Researchers can take several practical steps in the design of their econometric 
 
 Finally, we provide evidence suggesting that researchers should seek to align the structure of their econometric models to match the real-world units at which land use decisions are being made. For example, if unobservable, property-level characteristics are thought to be an important driver of deforestation, the inclusion of property-level fixed effects can improve the accuracy of model estimates and inference. We encourage researchers to apply their understanding of the institutional context to help decide which level of aggregation might best reflect patterns of autocorrelation within a landscape. Methods to address autocorrelation exist [e.g., @geniaux_new_2018], but we are unaware of any work empirically estimating the scale at which it operates within a landscape. Ultimately, context plays a role in what is feasible, and researchers should make clear the limits to their impact evaluation strategy. 
 
-Although we have sought to address several of the most important considerations for the design of panel, econometric analyses of conservation impacts, multiple extensions deserve further consideration in future research. First, applied researchers may benefit from a more thorough evaluation of the tradeoffs between different deforestation rate calculations. Our chosen formula is the most common in the conservation literature and performed best in the context of our DGP. However, alternate DGPs, such as those that explicitly incorporate the nonlinearity often found in deforestation (ADD CITE - XX), may affect which calculations perform best. Second, we have not identified clear solutions to to the selection bias that may emerge in settings with nonrepeatable outcomes. This bias may be a minor issue in many settings, but there is room for researchers to develop approaches to either reduce or diagnose this bias in empirical applications (XX - Might want to cite reviewers suggested paper that notes this bias is very small?). Finally, deforestation in one location may affect the returns landowners receive from clearing nearby forests. For example, proximate deforestation may make additional clearing less costly, or may remove ecosystem services that enhance agricultural productivity. In such cases, models that explicitly account for spatial autocorrelation due to deforestation spillovers may be necessary. While complete solutions to all of these challenges are beyond the scope of this paper, we do provide public access to our simulation model's code in the hope that it will enable continued improvement in the design of conservation impact evaluations.
+Although we have sought to address several of the most important considerations for the design of panel, econometric analyses of conservation impacts, multiple extensions deserve further consideration in future research. First, applied researchers may benefit from a more thorough evaluation of the tradeoffs between different deforestation rate calculations. Our chosen formula is the most common in the conservation literature and performed best in the context of our DGP. However, alternate DGPs, such as those that explicitly incorporate the nonlinearity often found in deforestation [@sales_nonlinear_2023], may affect which calculations perform best. Second, we have not identified clear solutions to to the selection bias that may emerge in settings with nonrepeatable outcomes. This bias may be a minor issue in many settings [@farbmacher_linear_2023], but there is room for researchers to develop approaches to either reduce or diagnose this bias in empirical applications. Finally, deforestation in one location may affect the returns landowners receive from clearing nearby forests. For example, proximate deforestation may make additional clearing less costly, or may remove ecosystem services that enhance agricultural productivity. In such cases, models that explicitly account for spatial autocorrelation due to deforestation spillovers may be necessary. While complete solutions to all of these challenges are beyond the scope of this paper, we do provide public access to our simulation model's code in the hope that it will enable continued improvement in the design of conservation impact evaluations.
 
 This paper complements an emerging literature calling for a deeper understanding of the interdependencies between the creation of remotely sensed data and the interpretation of that data through econometric models [@jain2020; @alix-garcia_remotely_2022; @proctor_parameter_2023]. However, we have largely abstracted away from prior concerns that characteristics of the remote sensing data collection process, including sensor properties, atmospheric conditions, and image processing methods, may influence the structure of output data products. Of particular concern is the potential for these processes to give rise to non-classical measurement error, which can lead to biased estimates of the $ATT$ [@wooldridge2010]. Importantly, our study implicitly assumes that pixel-level outcomes are measured without any non-classical measurement error.
 
@@ -1429,7 +1431,7 @@ This paper complements an emerging literature calling for a deeper understanding
 ### BELOW PARAGRAPH: MODIFIED AND ADDED TO IN REVISIONS
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -->
-This paper focuses upon efforts to identify the impacts of conservation policies on deforestation. However, the lessons we highlight are relevant to a wider audience, and many of our key findings apply to diverse settings in which the outcome of interest represents a nonrepeatable event. For example, estimates of the impacts of policies on unidirectional technology adoption, recidivism, or mortality may suffer from the same biases that we have identified in the context of deforestation. Prior work has addressed fixed effects estimation broadly in the context of nonrepeated event data. For example, @allison_nonrepeated_2006 address concerns relating to fixed effects in nonlinear hazard models, particularly the use of covariates that are a monotonic function of time. A recent paper by @farbmacher_linear_2023 shows that linear fixed effects models may fail to remove individual heterogeneity, a result similar to ours. They introduce an alternative instrumental variables approach, although it requires stronger assumptions than typical fixed-effects models. 
+This paper focuses upon efforts to identify the impacts of conservation policies on deforestation. However, the lessons we highlight are relevant to a wider audience, and many of our key findings apply to diverse settings in which the outcome of interest represents a nonrepeatable event. For example, estimates of the impacts of policies on unidirectional technology adoption, recidivism, or mortality may suffer from the same biases that we have identified in the context of deforestation. Prior work has addressed fixed effects estimation broadly in the context of nonrepeated event data. For example, @allison_nonrepeated_2006 address concerns relating to fixed effects in nonlinear hazard models, particularly the use of covariates that are a monotonic function of time. A recent paper by @farbmacher_linear_2023 shows that linear fixed effects models may fail to remove individual heterogeneity, a result similar to ours. They propose an alternative instrumental variables approach and show its validity in cases with continuous explanatory variables, although it requires stronger assumptions than typical fixed-effects models. 
 
 Moving forward, researchers should carefully consider the underlying structure of their data, and ensure that their chosen models minimize bias and allow inference at expected levels of confidence. Misleading causal inference may lead policymakers to avoid effective policies, or to adopt interventions that worsen environmental damages. 
 
@@ -1923,7 +1925,7 @@ kable(twfe_comp, format = "latex", row.names = FALSE,  booktabs = T,
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -->
 
-```{r keep-pixels, message=FALSE, out.width="100%", fig.cap="Distribution of DID and individual unit TWFE coefficient estimates. Distributions of DID and TWFE coefficients when keeping pixels appear in purple, since they are numerically equivalent.", fig.pos='H', fig.align='center'}
+```{r keep-pixels, message=FALSE, out.width="100%", fig.cap="Distribution of DID and individual unit TWFE coefficient estimates. Distributions of DID and TWFE coefficients when keeping pixels appear in purple, since they are numerically equivalent.", fig.width = 8, fig.height = 5, fig.pos='H', fig.show='hold', fig.align='center'}
 
 keeps <- readRDS("results/results_pixKeep.rds")
 
@@ -1941,18 +1943,20 @@ ggplot(data = dropkeep_coeff, aes(x = coeff, fill=model)) +
     geom_density(alpha = .5) +
     guides(fill=guide_legend(title=NULL))+
     geom_vline(xintercept = ATT, color = palette$green, linetype = "dashed")+
+  geom_vline(xintercept = DID_keep_estimand, color = palette$dark, linetype = "dashed")+
     theme(plot.caption = element_text(hjust = 0.5))+
      labs(x= "Coefficient estimates", y = "")+
   xlim(-0.02, 0.122)+
-    theme_minimal(base_size = 12)+
+    theme_bw(base_size = 14)+
   scale_fill_manual(labels=c("DID dropping pixels", "TWFE w/o dropping pixels", "DID w/o dropping pixels"), values = c( palette$green, palette$red, palette$blue)
                     )+
   scale_x_continuous(limits = c(-0.025, DID_keep_estimand + 0.01),
-                     breaks = c(ATT, 0),
-                     labels = c("ATT(-0.01)", "0"))+
-  annotate("text", x = ATT - 0.0023, y = 20, 
+                     breaks = c(-0.02, ATT, 0, 0.01, DID_keep_estimand),
+                     labels = c("-0.02", "ATT (-0.01)", "0", "0.01", expression(psi))
+  )+
+  annotate("text", x = ATT - 0.003, y = 20, size = 5,
            parse = T, label = as.character(drop_beta))+
-  annotate("text", x = 0.0185, y = 20, 
+  annotate("text", x = 0.011, y = 50, size = 5,
            parse = T, label = as.character(keep_beta))
 ```
 
@@ -2566,7 +2570,7 @@ Lastly, we consider a formula derived from the Compound Interest Law that has al
 \text{Outcome 3:} &= ln(F_{i,t-1}/F_{it})
 \end{align}
 
-```{r deforrates, message=FALSE,out.width="100%", fig.cap="Distribution of estimates produced by different outcome variable formulae", fig.pos='H', fig.align='center'}
+```{r deforrates, message=FALSE,out.width="100%", fig.cap="Distribution of estimates produced by different outcome variable formulae", fig.width = 7, fig.height = 5, fig.pos='H', fig.show='hold', fig.align='center'}
 #knitr::include_graphics("figs/outcome.png")
 outcome <- readRDS("results/outcomes.rds")
  suppressWarnings(cbias <- melt(outcome, value.name = "bias"))
@@ -2578,8 +2582,8 @@ ggplot(data = cbias, aes(x = bias, fill=variable)) +
     guides(fill=guide_legend(title=NULL))+
     geom_vline(xintercept = 0, linetype = "dashed")+
     labs(x= "Bias", caption = caption) +
-  scale_x_continuous(breaks = c(-0.01, 0, 0.01))+
-  theme_minimal(base_size = 13)+
+  scale_x_continuous(breaks = c(-0.01, -0.005, 0, 0.005))+
+  theme_bw(base_size = 14)+
   theme(plot.caption = element_text(hjust = 0.5))+
   scale_fill_manual(labels=c("Outcome 1", "Outcome 2", "Outcome 3"), values = c(palette$dark, palette$red, palette$blue)
                     )
