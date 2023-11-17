@@ -630,7 +630,7 @@ Alternate forms of aggregation may provide a useful way to avoid the issues asso
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -->
 
-In principle, it is possible for $\beta_{FE,j}$ from Regression 3 to suffer from bias similar to that of the individual unit TWFE regression. This occurs if an entire aggregated unit, $j$ is deforested prior to $t_0$. Figure \@ref(fig:varying-gridsize) in \@ref(gridsize-bias) shows bias in $\beta_{FE,j}$ as a function of grid size. When grid sizes are particularly small, $\beta_{FE,j}$ suffers from bias, since it is more likely that an entire grid cell becomes deforested early on. Because this is more likely to occur in grid cells with higher pre-treatment deforestation rates (the treatment group in our simulations), some of the \textit{nonrepeatable unit TWFE bias} leaks into $\beta_{FE,j}$ of the aggregated unit TWFE regression. In practice, this bias is more likely to arise when the aggregated unit, $j$ has few pixels or when spatial autocorrelation is severe. Luckily, researchers can examine their dataset to determine whether this bias may be relevant.
+It is possible for both $\beta_{FE,j}$ and $\beta_j$ from Regression 3 to suffer from bias similar to that of $\beta_{TWFE}$ from the individual-unit TWFE regression. This occurs if an entire aggregated unit is deforested prior to the end of the panel. In practice, the bias is more likely to bleed into $\beta_{FE,j}$ ir $\beta_j$ when the aggregated unit, $j$ has few pixels or when spatial autocorrelation is severe. Luckily, researchers can examine their dataset to determine whether this bias may be relevant.
 
 Similarly, columns 5-7 show that $\beta_{j}$ from TWFE regressions in the form of Regression 4 is an unbiased estimator of the $ATT$. These TWFE regressions use an aggregated unit of analysis, where the deforestation rate for unit $j$ is explicitly calculated in each time $t$. The following results are based on equation \@ref(eq:deforrate). Neither the bias nor RMSE of the estimates vary dramatically across different levels of aggregation. 
 
@@ -2366,58 +2366,53 @@ text(x=mean(1:nrow(select_results))
 
 ```
 
-## Specifications in the form of Regression 3 may suffer from bias if aggregated unit is too small {#gridsize-bias}
-<!-- 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-### ADDED IN REVISIONS
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
--->
-
-```{r varying-gridsize, out.width="100%", fig.cap="Mean coefficient bias varies with grid cell size for Regressions 3 and 4. Mean coefficient bias and 0.05 to 0.95 quantiles shown by regression specification.", fig.width = 9, fig.height = 5, fig.pos='H', fig.show='hold'}
-
-results_gridsize <- readRDS("results/results_gridsize.rds")
-
-gridsize_summary <- results_gridsize %>%
-  mutate_at(vars(bias, cover), as.numeric
-  )%>%
-  select(bias, cover, grid, grid.fe, gridsize)%>%
-  mutate_at(vars(grid, grid.fe), ~ as.logical(as.integer(.))
-  )%>%
-  group_by(grid, grid.fe, gridsize)%>%
-  summarise(RMSE = rmse(bias, 0),
-            q05 = quantile(bias, probs = .05),
-            q95 = quantile(bias, probs = .95),
-            Bias = mean(bias),
-            cover = mean(cover),
-            .groups = 'drop')%>%
-  select(Bias, everything())%>%
-  ungroup()%>%
-  filter(gridsize > 1)%>%
-  mutate(Model = ifelse(grid == TRUE, "Regression 4", "Regression 3"))
-
-ggplot(data=gridsize_summary, aes(x=gridsize, y=Bias, color=Model, fill = Model
-                                  ))+
-  geom_ribbon(aes(ymin=q05, ymax=q95), alpha=0.15, linetype = 0) +
-  #geom_hline(yintercept = 0, linetype = "dashed")+
-  geom_line(linewidth=1.5)+
-  ylab("Mean coefficient bias")+
- # ylim(-0.006, 0.006)+
-  xlab("Grid cell size")+
-  scale_color_manual(values=c(palette$red, palette$blue))+
-  scale_fill_manual(values=c(palette$red, palette$blue))+
-  theme_minimal(base_size = 14)+
-  theme(legend.key.size = unit(.5, "cm"),
-        legend.title.align = 0.5,
-        text = element_text(size = 14),
-        panel.border = element_rect(colour = "black", fill=NA, linewidth=1)
-        )+
-  scale_x_continuous(labels = c("2x2", "5x5", "10x10", "20x20"),
-                     breaks = c(2, 5, 10, 20))+
-  guides(color = guide_legend(override.aes = list(fill = c("white", "white"))))
-  
 
 
-```
+<!-- ```{r varying-gridsize, out.width="100%", fig.cap="Mean coefficient bias varies with grid cell size for Regressions 3 and 4. Mean coefficient bias and 0.05 to 0.95 quantiles shown by regression specification.", fig.width = 9, fig.height = 5, fig.pos='H', fig.show='hold'} -->
+
+<!-- results_gridsize <- readRDS("results/results_gridsize.rds") -->
+
+<!-- gridsize_summary <- results_gridsize %>% -->
+<!--   mutate_at(vars(bias, cover), as.numeric -->
+<!--   )%>% -->
+<!--   select(bias, cover, grid, grid.fe, gridsize)%>% -->
+<!--   mutate_at(vars(grid, grid.fe), ~ as.logical(as.integer(.)) -->
+<!--   )%>% -->
+<!--   group_by(grid, grid.fe, gridsize)%>% -->
+<!--   summarise(RMSE = rmse(bias, 0), -->
+<!--             q05 = quantile(bias, probs = .05), -->
+<!--             q95 = quantile(bias, probs = .95), -->
+<!--             Bias = mean(bias), -->
+<!--             cover = mean(cover), -->
+<!--             .groups = 'drop')%>% -->
+<!--   select(Bias, everything())%>% -->
+<!--   ungroup()%>% -->
+<!--   filter(gridsize > 1)%>% -->
+<!--   mutate(Model = ifelse(grid == TRUE, "Regression 4", "Regression 3")) -->
+
+<!-- ggplot(data=gridsize_summary, aes(x=gridsize, y=Bias, color=Model, fill = Model -->
+<!--                                   ))+ -->
+<!--   geom_ribbon(aes(ymin=q05, ymax=q95), alpha=0.15, linetype = 0) + -->
+<!--   #geom_hline(yintercept = 0, linetype = "dashed")+ -->
+<!--   geom_line(linewidth=1.5)+ -->
+<!--   ylab("Mean coefficient bias")+ -->
+<!--  # ylim(-0.006, 0.006)+ -->
+<!--   xlab("Grid cell size")+ -->
+<!--   scale_color_manual(values=c(palette$red, palette$blue))+ -->
+<!--   scale_fill_manual(values=c(palette$red, palette$blue))+ -->
+<!--   theme_minimal(base_size = 14)+ -->
+<!--   theme(legend.key.size = unit(.5, "cm"), -->
+<!--         legend.title.align = 0.5, -->
+<!--         text = element_text(size = 14), -->
+<!--         panel.border = element_rect(colour = "black", fill=NA, linewidth=1) -->
+<!--         )+ -->
+<!--   scale_x_continuous(labels = c("2x2", "5x5", "10x10", "20x20"), -->
+<!--                      breaks = c(2, 5, 10, 20))+ -->
+<!--   guides(color = guide_legend(override.aes = list(fill = c("white", "white")))) -->
+
+
+
+<!-- ``` -->
 
 ## DGP for multiple groups and variation in treatment timing {#multiDGP}
 
