@@ -107,7 +107,7 @@ In this paper, we investigate whether the binary, nonrepeatable data structure t
 <!-- 3-4 paragraphs detailed findings -->
 One of our core results shows that TWFE regressions with individual unit fixed effects do not identify the desired treatment effect when applied to panel datasets with binary, nonrepeatable outcomes. In more traditional data settings, the DID estimator is numerically equivalent to the linear TWFE estimator in the case of two-periods (each of which can consist of multiple years) and two-groups [@imai_kim_2021; @goodman-bacon2021]. However we demonstrate that, when applied to binary, nonrepeatable panel data, the TWFE estimator is distinct from the standard DID estimator. Specifically, the coefficient of interest in TWFE specifications does not recover the $ATT$, but instead recovers an ex-post difference in deforestation rates between treatment and control areas. This is particularly worrisome in the context of forest conservation, where interventions often target areas with high deforestation rates (e.g., Brazil's blacklisted Priority Municipalities) or low opportunity costs (e.g., protected areas). Papers published in both conservation science and economics journals frequently use this problematic specification to recover treatment effect estimates. We further show that this concern extends to many recently developed DID estimators that estimate treatment effects in staggered adoption settings [e.g., @sun_dynamic_2021; @gardner2021; @borusyak2021]. 
 
-To help guide future impact evaluations, we identify multiple ways in which this bias can be reduced or even eliminated. In the land use context, one easily implemented solution is to aggregate the binary pixels spatially. Both pixel-level TWFE specifications with spatially aggregated unit fixed effects and TWFE specifications with spatially aggregated units of analysis recover the expected treatment effect parameter. Another potential solution is for researchers to adopt non-linear survival models that explicitly account for the nonrepeatable nature of the outcome variable. However, we show that prior efforts to use survival models in DID research designs require identifying assumptions that would violate the traditional linear common trends assumption. In response, we develop and test a new survival-based DID estimator that relies on the more traditional linear common trends assumption. 
+To help guide future impact evaluations, we identify multiple ways in which this bias can be reduced or even eliminated. In the land use context, one easily implemented solution is to aggregate the binary pixels spatially. Both pixel-level TWFE specifications with spatially aggregated unit fixed effects and TWFE specifications with spatially aggregated units of analysis recover the true treatment effect. Another potential solution is for researchers to adopt non-linear survival models that explicitly account for the nonrepeatable nature of the outcome variable. However, we show that prior efforts to use survival models in DID research designs require identifying assumptions that would violate the traditional linear common trends assumption. In response, we develop and test a new survival-based DID estimator that relies on the more traditional linear common trends assumption. 
 
 Finally, we reflect on the econometric benefits that emerge when researchers are able to incorporate institutional knowledge into their analyses by aligning their model structure with the relevant scale of decisionmaking. For example, in settings where individual landowners may have strong, heterogeneous preferences affecting land-use change, we show that incorporating property-level fixed effects can reduce bias and improve statistical coverage over alternate model structures.
 
@@ -162,7 +162,7 @@ This generic clearing rule underpins a broad class of more specific static and d
 
 However, this basic model makes an assumption that the decision to deforest is reversible and repeatable. In reality, a number of characteristics of both the process of deforestation, as well as the empirical reality of detecting deforestation in individual pixels, complicate this assumption. First, the goal of many conservation interventions is to prevent the loss of mature forests that may take decades, if not centuries, to regrow. In such cases, deforestation itself may be considered nonrepeatable in human time scales, focusing the researchers' attention upon the first instance in which a plot is deforested. Even when deforestation of secondary forests is an object of interest, constraints imposed by remote sensing methods and datasets often force empirical researchers to treat deforestation as an absorbing state. Gradual processes of reforestation are inherently harder to identify than abrupt losses of forest cover. As a result, commonly used deforestation datasets such as the Global Forest Change product generally only identify the first year in which a pixel was cleared [@hansen2013]. When converted to a panel dataset, deforestation must thus be treated as an absorbing state, meaning that once a pixel is deforested, it cannot revert to a forested state. Whether desired, or due to technical limitations, the resulting inability to observe repeated deforestation means that deforestation is, in effect, treated as a nonrepeatable process in the vast majority of conservation impact evaluations. To incorporate this nonrepeatability into our model, we denote $C_i$ as the first year in which $y^*_{ivt} > 0$, where $y_{ivt}$ is not observed when $t > C_i$. 
 
-In response to this nonrepeatability, @jones2015 suggest that deforested pixels should be dropped in the periods after they are first cleared. We, alongside most studies in this literature, follow this guidance, further modifying our outcome, $y^o_{ivt}$, the observed binary deforestation variable:
+In response to this nonrepeatability, @jones2015 suggest that deforested pixels should be dropped in the periods after they are first cleared. We, alongside most studies in this literature, follow this guidance in our baseline model, further modifying the definition of our binary deforestation outcome:
 
 \begin{align}
  y^o_{ivt} = \begin{cases}
@@ -180,14 +180,14 @@ Our parameter of interest, the $ATT$, is the average effect of an intervention o
 ATT = E[y_{ivt}(1) - y_{ivt}(0) |  t\geq t_0, D_i=1]
 \end{align}
 
-DID and TWFE methods have become popular in part, because the researcher does not need random assignment of treatment to generate convincing estimates of a program's impact on avoided deforestation. Instead, the researcher must make a common trends assumption, under which we evaluate each method. 
+DID and TWFE methods have become popular tools to estimate this $ATT$ because the researcher does not need random assignment of treatment to generate convincing estimates of a program's impact on avoided deforestation. Instead, the researcher must make a common trends assumption, under which we evaluate each method. 
 
 \textbf{Assumption 1:} (Common trends)
 \begin{align*}
 E[y_{ivt}(0) |  t\geq t_0, D_i=1]-E[y_{ivt}(0) |  t< t_0, D_i=1]=E[y_{ivt}(0) |  t\geq t_0, D_i=0]-E[y_{ivt}(0) |  t< t_0, D_i=0]
 \end{align*}
 
-Assumption 1 requires that pixels in treated and untreated areas would have experienced the same change in their probability of deforestation across the two periods had no intervention occurred. While fundamentally untestable, researchers can take steps to address the plausibility of this assumption [@butsic2017; @roth_pretest_2022]. 
+Assumption 1 requires that pixels in treated and untreated areas would have experienced the same change in their probability of deforestation across the two periods had no intervention occurred. While fundamentally untestable, researchers can take steps to explore the plausibility of this assumption [@butsic2017; @roth_pretest_2022]. 
 
 We also make the following stable unit treatment value assumption (SUTVA)
 
@@ -200,7 +200,7 @@ Assumption 2 requires that the potential outcomes for pixel $i$, $y_{it}(1)$ and
 
 ## Candidate empirical models
 
-We present five empirical model specifications that we will evaluate and refer to throughout the remainder of the paper: (1) the traditional difference-in-differences model; (2) the individual unit-level two-way fixed effects model; (3) the two-way fixed effects model with aggregated unit fixed effects; (4) the two-way fixed effects model with aggregated units of analysis; and (5) the Cox proportional hazards difference-in-differences model. These models have all been used in the forest conservation literature to estimate the $ATT$ of specific conservation interventions. While some approaches, such as the Cox proportional hazards model, are only beginning to emerge in the deforestation literature, they are popular in other areas of research that seek to estimate the impact of an intervention on the occurrence of nonrepeatable events.  
+We present five empirical model specifications that we will evaluate and refer to throughout the remainder of the paper: (1) the traditional difference-in-differences model; (2) the individual, unit-level two-way fixed effects model; (3) the two-way fixed effects model with aggregated unit fixed effects; (4) the two-way fixed effects model with aggregated units of analysis; and (5) the Cox proportional hazards difference-in-differences model. These models have all been used in the forest conservation literature to estimate the $ATT$ of specific conservation interventions. While some approaches, such as the Cox proportional hazards model, are only beginning to emerge in the deforestation literature, they are popular in other areas of research that seek to estimate the impact of an intervention on the occurrence of nonrepeatable events.  
 
 ### Traditional difference-in-differences model 
 
@@ -212,7 +212,7 @@ Let $\beta_{DID}$ denote the coefficient of the interaction between $D_{i}$ and 
 y^o_{ivt} = \alpha_0 + \alpha_1 D_i + \alpha_2 \mathbb{1} \{ t\geq t_0\}+ \beta_{DID} \times D_i \mathbb{1} \{ t\geq t_0\}  + \epsilon_{ivt}
 \end{align*}
 
-Conceptually, the DID estimator calculates the treatment effect as the difference between the differences of the treated and untreated observations before and after treatment [@butsic2017]. 
+Conceptually, the DID estimator calculates the treatment effect as the change in deforestation before and after treatment (first difference), differenced across treated and untreated observations (second difference) [@butsic2017]. 
 \begin{align*}
 \beta_{DID} = E[y^o_{ivt} |  t\geq t_0, D_i=1] - E[y^o_{ivt} |  t<t_0, D_i=1] - (E[y^o_{ivt} |  t\geq t_0, D_i=0] - E[y^o_{ivt} |  t<t_0, D_i=0] )
 \end{align*}
@@ -237,7 +237,7 @@ In the case of two groups and two time periods, the TWFE regression typically yi
 
 ### TWFE model with aggregated unit fixed effects 
 
-Some researchers have used unit fixed effects at the level of an aggregated unit rather than the individual binary unit. In the forest conservation context, aggregation is generally done spatially, aggregating pixels into larger units. For example, researchers using pixel-level TWFE regressions have used unit fixed effects at the level of a larger administrative unit such as the county [e.g., @blackman2015] or municipality [e.g., @heilmayr2020]. Regression 3 outlines the form of these individual unit-level TWFE models with aggregated unit fixed effects.
+Rather than relying upon individual fixed effects, some researchers have included fixed effects that aggregate over multiple individual units. In the forest conservation context, aggregation is generally done spatially, aggregating pixels into larger units. For example, researchers using pixel-level TWFE regressions have used unit fixed effects at the level of larger administrative units such as the county [e.g., @blackman2015] or municipality [e.g., @heilmayr2020]. Regression 3 outlines the form of these individual unit-level TWFE models with aggregated unit fixed effects.
 
 \textbf{Regression 3:} (Individual unit-level TWFE regression with aggregated unit fixed effects)
 Let $\beta_{FE,j}$ denote the coefficient of the interaction between $D_{i}$ and $\mathbb{1} \{ t\geq t_0\}$  in the following (population) OLS regression:
@@ -437,16 +437,16 @@ Several of the papers listed in Table 1 combine matching with regression analysi
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -->
 
-In response to the Nonrepeatable unit FE bias shown above, some researchers may consider an alternate construction of the outcome variable, whereby units for which the nonrepeatable event has occurred are left in the panel:
+In response to the nonrepeatable unit FE bias shown above, some researchers may consider an alternate construction of the outcome variable, whereby units for which the nonrepeatable event has occurred are left in the panel:
 
 \begin{align}
  y^{alt}_{ivt} = \begin{cases}
-      0   &  t < C_0 \\
-      1 & t \geq C_0
+      0   &  t < C_i \\
+      1 & t \geq C_i
    \end{cases}
 \end{align}
 
-The use of $y^{alt}_{ivt}$ introduces its own concerns, however. In settings with nonrepeatable outcomes, unit $i$ is only effectively observed until $C_0$. If $y_{ivt} = 1$, unit $i$ has reached an absorbing state and for all periods in which $y^{alt}_{ivt}=1$, only one period of risk is actually observed. Therefore, any panel regression will not use observations on $i$ later than the period in which $i$ enters the absorbing state, because they are not informative about the transition to that state [@farbmacher_linear_2023]. In other words, any subsequent observations of $y^{alt}_{ivt}$ beyond $C_0$ do not contain any information about the data generating process of interest.
+The use of $y^{alt}_{ivt}$ introduces its own concerns, however. In settings with nonrepeatable outcomes, unit $i$ is only effectively observed until $C_i$. If $y_{ivt} = 1$, unit $i$ has reached an absorbing state and for all periods in which $y^{alt}_{ivt}=1$, only one period of risk is actually observed. Therefore, any panel regression will not use observations on $i$ later than the period in which $i$ enters the absorbing state, because they are not informative about the transition to that state [@farbmacher_linear_2023]. In other words, any subsequent observations of $y^{alt}_{ivt}$ beyond $C_i$ do not contain any information about the data generating process of interest.
 
 <!-- , because $P(y^{alt}_{ivt+s} = 1 | y^{alt}_{ivt} = 1)$ always holds for $s\geq 1$. -->
 
@@ -1431,7 +1431,7 @@ This paper complements an emerging literature calling for a deeper understanding
 ### BELOW PARAGRAPH: MODIFIED AND ADDED TO IN REVISIONS
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -->
-This paper focuses upon efforts to identify the impacts of conservation policies on deforestation. However, the lessons we highlight are relevant to a wider audience, and many of our key findings apply to diverse settings in which the outcome of interest represents a nonrepeatable event. For example, estimates of the impacts of policies on unidirectional technology adoption, recidivism, or mortality may suffer from the same biases that we have identified in the context of deforestation. Prior work has addressed fixed effects estimation broadly in the context of nonrepeated event data. For example, @allison_nonrepeated_2006 address concerns relating to fixed effects in nonlinear hazard models, particularly the use of covariates that are a monotonic function of time. A recent paper by @farbmacher_linear_2023 shows that linear fixed effects models may fail to remove individual heterogeneity, a result similar to ours. They propose an alternative instrumental variables approach and show its validity in cases with continuous explanatory variables, although it requires stronger assumptions than typical fixed-effects models. 
+This paper focuses upon efforts to identify the impacts of conservation policies on deforestation. However, the lessons we highlight are relevant to a wider community of researchers studying the frequency of nonrepeatable events. For example, estimates of the impacts of policies on unidirectional technology adoption, recidivism, or mortality may suffer from the same biases that we have identified in the context of deforestation. Prior work has addressed fixed effects estimation broadly in the context of nonrepeated event data. For example, @allison_nonrepeated_2006 address concerns relating to fixed effects in nonlinear hazard models, particularly the use of covariates that are a monotonic function of time. A recent paper by @farbmacher_linear_2023 shows that linear fixed effects models may fail to remove individual heterogeneity, a result similar to ours. They propose an alternative instrumental variables approach and show its validity in cases with continuous explanatory variables, although it requires stronger assumptions than typical fixed-effects models. 
 
 Moving forward, researchers should carefully consider the underlying structure of their data, and ensure that their chosen models minimize bias and allow inference at expected levels of confidence. Misleading causal inference may lead policymakers to avoid effective policies, or to adopt interventions that worsen environmental damages. 
 
