@@ -1725,7 +1725,7 @@ E[  y^{C}_{i2}(0) | D_i= 1] = & E[ y^{C}_{i2}(0)| D_i= 0] \label{eq:CTA-alt}
 This shows that the implicit common trends assumption made when using $y^{alt}_{it}$ as an outcome is equivalent to assuming that the probability of clearing post-treatment for the control units is equivalent to what it would have been for the treatment units had they not received treatment.
 
 
-#### Coefficient under retention of deforested pixels
+#### Coefficient under retention of deforested pixels {#impute-coef}
 
 Define the traditional individual unit-level TWFE regression, similar to Regression 1, but this time with respect to the outcome $y^{alt}_{it}$:
 
@@ -1924,6 +1924,8 @@ kable(twfe_comp, format = "latex", row.names = FALSE,  booktabs = T,
 ### ADDED IN REVISIONS
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -->
+
+Figure \@ref(fig:keep-pixels) shows that retention of pixels changes the estimated parameter in our simulations. While retaining pixels does resolve the distinction between TWFE and DID regressions in the 2x2 setting, $\beta_{impute}$ is not an appropriate estimator in our simulations. Denote $\psi$ as the DID estimand when using the imputed outcome $y^{alt}_{ivt}$, where $\psi = E[  y^{C}_{i2}(1)| D_i= 1] - E[ y^{C}_{i2}(0)| D_i= 0]$. We see that $\beta_{impute}$ does estimate $\psi$, which is distinct from the $ATT$. In fact, while the $ATT$ in our simulated landscape is negative, $\psi$ is positive.
 
 ```{r keep-pixels, message=FALSE, out.width="100%", fig.cap="Distribution of DID and individual unit TWFE coefficient estimates. Distributions of DID and TWFE coefficients when keeping pixels appear in purple, since they are numerically equivalent.", fig.width = 8, fig.height = 5, fig.pos='H', fig.show='hold', fig.align='center'}
 
