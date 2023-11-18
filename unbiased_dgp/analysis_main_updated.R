@@ -255,21 +255,6 @@ outcome <- outcomes$coeff_bias
 library(rio)
 export(outcome, here::here("paper", "results", "results_outcomeFormula.rds"))
 
-
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#### DID keeping vs. dropping obs
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-source(here::here('unbiased_dgp', 'DID_keep.R'))
-
-set.seed(0930)
-keeps <- DID_keep(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
-keeps <- keeps$did_keeps
-
-library(rio)
-export(keeps, here::here("paper", "results", "results_pixKeep.rds"))
-
-
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ######## show TWFE is equivalent to dropping all pixels deforested in first period
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -288,3 +273,19 @@ summary_wide  <- summary_coeff %>%
             Bias = mean(bias))
 
 export(summary_wide, here::here("paper", "results", "twfe_comp_summary.rds"))
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#### DID keeping vs. dropping obs
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+years = 1
+
+source(here::here('unbiased_dgp', 'DID_keep.R'))
+
+set.seed(0930)
+keeper <- DID_keep(n, nobs, years, b0, b1, b2_0, b2_1, b3, std_a, std_v)
+keeps <- keeper$did_keeps %>%
+  mutate(ATT = ATT)
+
+library(rio)
+export(keeps, here::here("paper", "results", "results_pixKeep.rds"))
