@@ -400,15 +400,8 @@ Despite widespread use of pixel level analyses of deforestation, the application
 
 Regression 2 thus forgoes the benefits that panel methods provide, failing to properly control for time-invariant differences in treated and control units. If the treated area has a different baseline deforestation rate than the control, Regression 2 will generate a biased estimate of the intervention's impact. Many conservation interventions are specifically targeted towards locations with either low opportunity costs for conservation or high threats of conversion. As a result, it is likely that many conservation impact evaluations will have treatment and control units that experienced different pre-treatment deforestation rates. It is important to note that this bias could even lead to changes in the estimated treatment effect's sign, in addition to errors in the effect's magnitude and significance. 
 
-Intuition for this result stems from the use of individual unit fixed effects in the regression specification. By including individual unit fixed effects in TWFE regressions, researchers hope to control for local confounders, including pre-treatment differences in the outcome. However, when following common guidance to drop observations in the periods after the nonrepeatable event is first realized, these fixed effects do not behave as the researcher expects. Observations that realize the event (i.e., are deforested) in years prior to treatment are, by definition, not observed post-treatment. Because the event only happens once, estimation with individual unit fixed effects fails to remove time invariant heterogeneity at the unit level, making their inclusion meaningless. In the context of nonrepeatable outcomes, $\beta_{TWFE}$ is distinct from $\beta_{DID}$, even in the 2x2 case. 
+Intuition for this result stems from the use of individual unit fixed effects in the regression specification. By including individual unit fixed effects in TWFE regressions, researchers hope to control for local confounders, including pre-treatment differences in the outcome. However, when following common guidance to drop observations in the periods after the nonrepeatable event is first realized, these fixed effects do not behave as the researcher expects. Observations that realize the event (i.e., are deforested) in years prior to treatment are, by definition, not observed post-treatment. Ultimately, estimation with individual unit fixed effects fails to remove time invariant heterogeneity at the unit level, because the event only happens once. This makes their inclusion meaningless. In the context of nonrepeatable outcomes, $\beta_{TWFE}$ is distinct from $\beta_{DID}$, even in the 2x2 case. 
 
-<!-- Excerpt from Farbmacher: However, the logic that these transformations remove unit-specific time-invariant heterogeneity and therefore allow for consistent and unbiased estimation by least squares does not apply in a discrete-time hazard setting, in which an observation unit is observed only until that period in which the event of interest occurs. The impossibility of eliminating unit-specific unobserved heterogeneity by transforming the data becomes intuitive by recognizing that, in this setting, only a single outcome, that is, the length of the spell at risk, is observed for a unit, although the data seemingly exhibits a panel structure. -->
-
-<!-- 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-### BELOW: ADDED IN REVISIONS
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
--->
 
 The full proof for Result 1 is contained in \@ref(TWFE-proof), but here, we demonstrate the intuition discussed above. In the 2x2 case, the estimator, $\hat{\beta}_{TWFE}$, can be expressed as:
 
@@ -937,7 +930,8 @@ schart(select_results,labels, ylim = ylim, index.ci=index.ci, col.est = c(palett
 Axis(side=2, at = c( 0, 0.01), labels=TRUE)
 abline(h=topline)
 abline(h=midline)
-#abline(h=bottomline)
+segments(8.5, topline, x1 = 8.5, y1 = 0.015, lty = 2)
+segments(5.5, topline, x1 = 5.5, y1 = 0.015, lty = 2)
 lapply(1:(length(RMSE_print)), function(i) {
   # text(x= i, y=min(ylim)+.002, paste0(i), col="black", font=2, cex = 1)
   mtext(if(i<10){paste0(i)}, side=1, at = i + 1, font=2, cex=.95)#, line=1, at=-1)
