@@ -388,6 +388,8 @@ We compare econometric models using a combination of estimate bias, root mean sq
 
 
 # Analytical results {#results-analytical}
+Here we use analytical proofs to explore the properties of econometric models of nonrepeatable deforestation events in the simple two-group, two-period setting. First, in Section XX, we prove that TWFE models with pixel level fixed effects (Regression XX) do not estimate the $ATT$. In contrast, a more traditional DID (Regression XX) does recover an unbiased estimate of the $ATT$. Then, in Section XX, we explore how survival models can be used to generate unbiased estimates of a treatment effect in a difference in differences research design.  Finally, in Section XX we demonstrate that the occurrence of nonrepeatable events generates additional sample selection bias when XX.
+
 
 ## TWFE with nonrepeatable outcomes yields biased estimate of $ATT$ {#results-analytical-twfe}
 
@@ -495,8 +497,7 @@ This bias is due to a difference between the expectation of the $y^o_{iv2}$s and
 
 
 # Simulation results {#results-simulation}
-
-In response to the analytical results presented in Section XX, we draw upon Monte Carlo simulations to guide researchers towards empirical specifications that effectively address common sources of bias.
+In response to the analytical results presented in Section XX, we draw upon Monte Carlo simulations to guide researchers towards empirical specifications that effectively address common sources of bias. First, in Section XX, we use our simulation model to illustrate the \textit{nonrepeatable outcome, unit FE bias} in an empirical setting. Then, in Section XX we show that researchers can easily address this bias by aggregating fixed effects or units of observation. Alternatively, Section XX shows that our proposed survival analysis-based estimator can also yield unbiased estimates of the $ATT$. However, all of these estimators may still face some bias due to sample selection, which we illustrate in Section XX. Next, in Section XX, we provide results guiding researchers towards the appropriate scale at which to aggregate their analyses. Finally, Section XX extends our analysis to settings with staggered exposure to a treatment.
 
 
 ## TWFE bias {#twfe-bias}
