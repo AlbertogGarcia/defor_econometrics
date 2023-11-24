@@ -469,11 +469,6 @@ Nonrepeatability in observed deforestation creates the potential for non-random 
 
 \textbf{Proof:} Appendix \@ref(selection-proof) Q.E.D.
 
-<!-- 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-### BELOW: ADDED EXPLANATION IN REVISIONS
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
--->
 
 This bias is due to a difference between the expectation of the $y^o_{iv2}$s and $y_{iv2}$s. The terms containing $y^o_{iv2}$ are conditional on the pixel remaining forested after the first period. That is, $y^o_{iv2}$ is only observed when $y_{ivt} = 0$. If the $y^o_{ivt}$s are i.i.d., there is no selection bias since $E[y^o_{ivt}] = E[y_{ivt}]$. However, this may not be the case in reality. For example, pixels with extremely high returns to clearing are more likely to be cleared early on, meaning that in subsequent periods, these high return pixels are less likely to be present in the sample. Therefore, the distribution of the returns to clearing across the landscape may change between the first and second period. If this selection process differs across treatment and control groups, non-random sample selection will bias the researcher's estimate of $ATT$.
 
@@ -1290,11 +1285,6 @@ Although we have sought to address several of the most important considerations 
 
 This paper complements an emerging literature calling for a deeper understanding of the interdependencies between the creation of remotely sensed data and the interpretation of that data through econometric models [@jain2020; @alix-garcia_remotely_2022; @proctor_parameter_2023]. However, we have largely abstracted away from prior concerns that characteristics of the remote sensing data collection process, including sensor properties, atmospheric conditions, and image processing methods, may influence the structure of output data products. Of particular concern is the potential for these processes to give rise to non-classical measurement error, which can lead to biased estimates of the $ATT$ [@wooldridge2010]. Importantly, our study implicitly assumes that pixel level outcomes are measured without any non-classical measurement error.
 
-<!-- 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-### BELOW PARAGRAPH: MODIFIED AND ADDED TO IN REVISIONS
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
--->
 Although this paper focuses upon conservation policies, the lessons we highlight are relevant to a wider community of researchers studying the frequency of any nonrepeatable events. For example, estimates of the impacts of policies on unidirectional technology adoption, recidivism, or mortality may suffer from the same biases that we have identified in the context of deforestation. Prior work has addressed fixed effects estimation broadly in the context of nonrepeated event data. For example, @allison_nonrepeated_2006 address concerns relating to fixed effects in nonlinear hazard models, particularly the use of covariates that are a monotonic function of time. @farbmacher_linear_2023 show that linear fixed effects models may fail to remove individual heterogeneity, a result similar to ours. They propose an alternative instrumental variables approach and show its validity in cases with continuous explanatory variables, although it requires stronger assumptions than typical fixed-effects models. 
 
 Moving forward, researchers should carefully consider the underlying structure of their data, and ensure that their chosen models minimize bias and allow inference at expected levels of confidence. Misleading causal inference may lead policymakers to avoid effective policies, or to adopt interventions that worsen environmental damages. 
@@ -1721,14 +1711,7 @@ kable(twfe_comp, format = "latex", row.names = FALSE,  booktabs = T,
 
 ```
 
-
-
 ## Monte Carlo evidence individual unit DID and TWFE recover alternate parameter if pixels are retained
-<!-- 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-### ADDED IN REVISIONS
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
--->
 
 Figure \@ref(fig:keep-pixels) shows that retention of pixels changes the estimated parameter in our simulations. While retaining pixels does resolve the distinction between TWFE and DID regressions in the 2x2 setting, $\beta_{impute}$ is not an appropriate estimator in our simulations. Denote $\psi$ as the DID estimand when using the imputed outcome $y^{alt}_{ivt}$, where $\psi = E[  y^{C}_{i2}(1)| D_i= 1] - E[ y^{C}_{i2}(0)| D_i= 0]$. We see that $\beta_{impute}$ does estimate $\psi$, which is distinct from the $ATT$. In fact, while the $ATT$ in our simulated landscape is negative, $\psi$ is positive. We also see in Figure \@ref(fig:keep-pixels) that the coefficient from the pixel level DID is no longer distinct from the pixel level TWFE when using $y^{alt}_{ivt}$. 
 
