@@ -1649,7 +1649,7 @@ Define the traditional individual unit level TWFE regression, similar to Regress
 
 $$ y^{alt}_{it} = \alpha + \beta_{impute} \text{ x } W_{it}  + \gamma_i + \lambda_t+ \epsilon_{it}$$
 
-By using the same approach as above, we can derive the estimator, $\hat{\beta}_{impute}$:
+By using the same approach as in \@ref(TWFE-proof), we can derive the estimator, $\hat{\beta}_{impute}$:
 
 \begin{align*}
 \hat{\beta}_{impute}&= \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y^{alt}_{i2} - \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y^{alt}_{i1} - (\frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y^{alt}_{i2} - \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y^{alt}_{i1})
@@ -1695,7 +1695,7 @@ One concern with this alternate parameter is that pixels deforested prior to tre
 In order to recover an interpretable $ATT_{alt}$, one must implicitly make the assumption that $E[  y^{C}_{i2}(0) | D_i= 1] = E[ y^{C}_{i2}(0)| D_i= 0]$. This assumption may be less plausible when $E[  y^{C}_{i1}(0) | D_i= 1] \neq E[ y^{C}_{i1}(0)| D_i= 0]$. Further, when $E[  y^{C}_{i1}(0) | D_i= 1] \neq E[ y^{C}_{i1}(0)| D_i= 0]$, in order for \@ref(eq:CTA-alt) to hold, $E[y^C_{it}|y^C_{it} = 0]$ must differ across treatment and control groups. This is because the proportion of at-risk versus already cleared units differs across control and treatment groups. 
 
 
-## Further Monte Carlo evidence that individual unit level TWFE is equivalent to coefficient from same regression on dataset without pixels deforested pre-treatment {#TWFE-equivalence}
+## Monte Carlo evidence that individual unit level TWFE is equivalent to coefficient from same regression on dataset without pixels deforested pre-treatment {#TWFE-equivalence}
 
 Table \@ref(tab:twfe-comp) shows coefficient estimates from the Monte Carlo setup described in the main text on altered datasets. It demonstrates that the coefficient of interest from Regression 2 is numerically equivalent to that from the same regression on a dataset where all pixels deforested in the first period are excluded from the dataset completely. The estimated coefficient is not numerically equivalent to the ex-post difference in means, although this is true in the 2x2 case. This exercise provides further evidence that this commonly used TWFE regression does not use the pre-treatment variation in deforestation at all, which is necessary to recover the $ATT$ in this setting.  
 
