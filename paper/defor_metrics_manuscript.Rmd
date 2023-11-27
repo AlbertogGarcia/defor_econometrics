@@ -373,7 +373,7 @@ y^*_{ivt}(1) =&\beta_0 + \beta_1 +\beta_{2,1} + \beta_3 +
 The $ATT$ in our simulated setting is, therefore, defined as:
 
 \begin{align}
-ATT =& P(y^*_{ivt}(1) > 0 | D_i = 1, t \geq t_0) - P(y^*_{ivt}(0) > 0 | D_i = 1, t \geq t_0)\\
+ATT =& P(y^*_{ivt}(1) > 0 | D_i = 1, t \geq t_0) - P(y^*_{ivt}(0) > 0 | D_i = 1, t \geq t_0) \notag \\
 =& P(\beta_0 + \beta_1 + \beta_{2,1} + \beta_3 + \alpha_i + u_{it} + \rho_{v} > 0) - P(\beta_0 + \beta_1 + \beta_{2,1} + \alpha_i + u_{it} + \rho_{v} > 0)
 \end{align}
 
@@ -387,7 +387,7 @@ We compare econometric models using a combination of estimate bias, root mean sq
 
 
 # Analytical results {#results-analytical}
-Here we use analytical proofs to explore the properties of econometric models of nonrepeatable events in the simple two-group, two-period setting. First, in Section \@ref(results-analytical-twfe), we prove that TWFE models with pixel level fixed effects (Regression 2) do not estimate the $ATT$. In contrast, a more traditional DID (Regression 1) does recover an unbiased estimate of the $ATT$. Then, in Section \@ref(results-analytical-survival), we explore how survival models can be used to generate unbiased estimates of a treatment effect in a difference in differences research design.  Finally, in Section \@ref(results-analytical-selection) we demonstrate that the occurrence of nonrepeatable events generates additional sample selection bias when the risk distribution changes across at-risk units through time. 
+Here we use analytical proofs to explore the properties of econometric models of nonrepeatable events in the simple two-group, two-period setting. First, in Section \@ref(results-analytical-twfe), we prove that TWFE models with pixel level fixed effects (Regression 2) do not estimate the $ATT$. In contrast, a more traditional DID (Regression 1) does recover an unbiased estimate of the $ATT$. Then, in Section \@ref(results-analytical-survival), we explore how survival models can be used to generate unbiased estimates of a treatment effect in a difference in differences research design.  Finally, in Section \@ref(results-analytical-selection) we demonstrate that the occurrence of nonrepeatable events can generate additional sample selection bias if the distribution of clearing risk differs across groups among at-risk units through time.
 
 
 ## TWFE with nonrepeatable outcomes yields biased estimate of $ATT$ {#results-analytical-twfe}
@@ -395,9 +395,9 @@ Here we use analytical proofs to explore the properties of econometric models of
 Despite widespread use of pixel level analyses of deforestation, the application of TWFE models to a nonrepeatable process yields a biased estimate of the $ATT$. Specifically, we show that the coefficient of interest from the individual unit level TWFE model $(\beta_{TWFE})$ estimates the post-treatment difference in outcomes (single difference), rather than the desired $ATT$. 
 
 \textbf{Result 1:} (Nonrepeatable outcome, unit FE bias)
-\begin{align}
+\begin{equation} \label{eq:twfe-bias-eqn}
 \beta_{TWFE} = ATT + \underbrace{E[y_{iv1}(0) | D_i=1] - E[y_{iv1}(0) | D_i=0]}_{\text{pre-treatment difference in deforestation rates}}
-\end{align}
+\end{equation}
 
 Regression 2 thus forgoes the benefits that panel methods provide, failing to properly control for time-invariant differences in treated and control units. If the treated area has a different baseline deforestation rate than the control, Regression 2 will generate a biased estimate of the intervention's impact. Many conservation interventions are specifically targeted towards locations with either low opportunity costs for conservation or high threats of conversion. As a result, it is likely that many conservation impact evaluations will have treatment and control units that experienced different pre-treatment deforestation rates. It is important to note that this bias could even lead to changes in the estimated treatment effect's sign, in addition to errors in the effect's magnitude and significance. 
 
@@ -464,7 +464,7 @@ Nonrepeatability in observed deforestation creates the potential for non-random 
 \textbf{Result:} Under Assumptions 1 and 2, in the two-group, two-period case, $\beta_{DID}$ suffers from non-random sample selection bias when the $y^o_{ivt}$s are not i.i.d.
 
 \begin{align}
-\beta_{DID} = & ATT +  \underbrace{E[y^o_{iv2}| D_i=1]-E[y_{iv2}| D_i=1] - (E[y^o_{iv2}| D_i=0]-E[y_{iv2}| D_i=0])}_\text{{bias emerging from non-random sample selection}}
+\beta_{DID} = & ATT +  \underbrace{E[y^o_{iv2}| D_i=1]-E[y_{iv2}| D_i=1] - (E[y^o_{iv2}| D_i=0]-E[y_{iv2}| D_i=0])}_\text{{bias emerging from non-random sample selection}} \label{eq:selection-bias-eqn}
 \end{align}
 
 \textbf{Proof:} Appendix \@ref(selection-proof) Q.E.D.
@@ -483,7 +483,7 @@ Figure \@ref(fig:summary-fig) contrasts the results of the candidate models when
 
 Figure \@ref(fig:summary-fig) further shows that the TWFE and DID estimators are not numerically equivalent. We examine this finding further in \@ref(TWFE-equivalence), showing that the coefficient of interest from Regression 2 is numerically equivalent to that from the same regression applied to a dataset in which all pixels deforested in the first period are excluded from the dataset completely (i.e., there is no deforestation in the dataset pre-treatment). This exercise highlights that the individual unit TWFE regression uses none of the pre-treatment variation in deforestation, which is core to DID approaches.
 
-It is worth noting that many forest conservation impact evaluations pre-process their data through matching or weighting before applying panel econometric regressions (e.g. [@heilmayr2016; @carlson2018]). Although we do not explicitly analyze such two-stage estimation strategies, our analytical and empirical results do provide some insights into their performance. Since pre-processing typically reduces pre-treatment differences in observable characteristics between treatment and control groups, weighting or matching is likely to reduce the bias detailed in equation 10. This serves as a further example of how such doubly-robust estimators can reduce bias in contexts where a researcher has mis-specified their panel regression [@ho_matching_2007; @blackman2013; @santanna_doubly_2020]. Nevertheless, pre-processing is not guaranteed to perfectly balance pre-treatment outcomes across treatment and control observations [@jones2015]. Given a set matching strategy, researchers should attempt to model the second-stage outcome regression as accurately as possible. As a result, we believe that researchers should choose panel models that do not suffer from the \textit{nonrepeatable outcome, pixel FE bias}, even if they are pre-processing their data.
+It is worth noting that many forest conservation impact evaluations pre-process their data through matching or weighting before applying panel econometric regressions (e.g. [@heilmayr2016; @carlson2018]). Although we do not explicitly analyze such two-stage estimation strategies, our analytical and empirical results do provide some insights into their performance. Since pre-processing typically reduces pre-treatment differences in observable characteristics between treatment and control groups, weighting or matching is likely to reduce the bias detailed in Equation \@ref(eq:twfe-bias-eqn). This serves as a further example of how such doubly-robust estimators can reduce bias in contexts where a researcher has mis-specified their panel regression [@ho_matching_2007; @blackman2013; @santanna_doubly_2020]. Nevertheless, pre-processing is not guaranteed to perfectly balance pre-treatment outcomes across treatment and control observations [@jones2015]. Given a set matching strategy, researchers should attempt to model the second-stage outcome regression as accurately as possible. As a result, we believe that researchers should choose panel models that do not suffer from the \textit{nonrepeatable outcome, pixel FE bias}, even if they are pre-processing their data.
 
 ```{r summary-fig, echo = FALSE, warnings = FALSE, results = FALSE, message=FALSE, fig.cap="Comparison of candidate econometric model performance. Point illustrates mean bias while the confidence interval illustrates the 0.05 to 0.95 quantile range of this bias.",  fig.width = 9, fig.height = 12, out.width="100%"}
 
@@ -591,7 +591,7 @@ legend(x=8.5, y=0.047, col = "black", legend = "0.05 to 0.95 quantile\nof bias d
 
 In the two-group, two-period case, the traditional DID (Regression 1) is an unbiased estimator of the $ATT$, as shown in column 2 of Figure \@ref(fig:summary-fig) (The traditional DID is equivalent to including treatment fixed effects). However, this traditional DID is infeasible in research settings with more than two groups that are exposed to treatment over different periods of time. In such settings, alternate forms of aggregation may provide a useful way to avoid the \textit{nonrepeatable outcome, unit FE bias}. Columns 3-5 of Figure \@ref(fig:summary-fig) show the results from pixel level regressions with fixed effects aggregated at either the grid cell, county or property level (i.e. Regression 3). The parameter of interest from these regressions, $\beta_{FE,j}$, can yield unbiased estimates of the $ATT$. We also see that, in the absence of property level perturbations (i.e. $\sigma_p=0$ in the DGP), all three models provide similar estimate distributions.
 
-Columns 6-8 show that regressions with more aggregated units of analysis (e.g. Regression 4) also yield unbiased estimates of the $ATT$. In these regressions, the outcome of interest is transformed from the individual binary occurrence of deforestation in pixel $i$ into the aggregated rate of deforestation occurring across a broader spatial unit $j$ in each time $t$. In our primary results this aggregate rate is calculated using equation \@ref(eq:deforrate). Once again, we see that in the absence of property level perturbations (i.e. $\sigma_p=0$ in the DGP), neither the bias nor RMSE of the estimates vary dramatically across different levels of aggregation. 
+Columns 6-8 show that regressions with more aggregated units of analysis (e.g. Regression 4) also yield unbiased estimates of the $ATT$. In these regressions, the outcome of interest is transformed from the individual binary occurrence of deforestation in pixel $i$ into the aggregated rate of deforestation occurring across a broader spatial unit $j$ in each time $t$. In our primary results this aggregate rate is calculated using Equation \@ref(eq:deforrate). Once again, we see that in the absence of property level perturbations (i.e. $\sigma_p=0$ in the DGP), neither the bias nor RMSE of the estimates vary dramatically across different levels of aggregation. 
 
 It is possible for both $\beta_{FE,j}$ and $\beta_j$ from Regression 3 to suffer from bias similar to the \textit{nonrepeatable outcome, unit FE bias}. This occurs if an entire aggregated unit is deforested prior to the end of the panel. In practice, the bias is more likely to bleed into $\beta_{FE,j}$ or $\beta_j$ when the aggregated unit, $j$ has few pixels or when spatial autocorrelation is severe. Luckily, researchers can easily examine their dataset to determine whether this bias may be relevant.
 
@@ -609,7 +609,7 @@ We now explore how the non-random sample selection described in Section \@ref(re
 
 In order to see how this non-random selection influences estimates in our simulated setting, we set $\sigma_a$, the standard error of the time-invariant pixel level disturbances equal to $0.1$. Figure \@ref(fig:selection-fig) shows that non-random selection introduces a slight downward bias across every specification.
 
-In practice, researchers cannot recover the second and fourth terms of the bias term in Equation 16, meaning that the magnitude of this bias is unknown to the researcher. However, this bias is likely to be of a smaller magnitude than in our simulated setting if deforestation rates are lower or more similar across treated and control groups.
+In practice, researchers cannot recover the second and fourth terms of the bias term in Equation \@ref(eq:selection-bias-eqn), meaning that the magnitude of this bias is unknown to the researcher. However, this bias is likely to be of a smaller magnitude than in our simulated setting if deforestation rates are lower or more similar across treated and control groups.
 
 ```{r selection-fig, echo = FALSE, warnings = FALSE, results = FALSE, message=FALSE, fig.cap="Comparison of model performance in the presence of non-random sample selection. Candidate models are separated by whether they incorporate aggregated fixed effects in pixel level specifications, aggregated units of analysis, or survival analysis. Point illustrates mean bias while the confidence interval illustrates the 0.05 to 0.95 quantile range of this bias.",  fig.width = 9, fig.height = 8, out.width="100%"}
 
@@ -703,7 +703,7 @@ text(x=mean(1:nrow(select_results))
      , y=topline-.0018, "RMSE", col="black", font=2)
 text(x=3.5 , y=0.0108, "Aggregated\nfixed effects", col=palette$dark, font=1)
 text(x=6.9 , y=0.0108, "Aggregated unit\nof analysis", col=palette$dark, font=1)
-text(x=9.5 , y=0.0118, "Survival models", col=palette$dark, font=1)
+text(x=9.5 , y=0.0118, "Survival\nmodels", col=palette$dark, font=1)
 
 ```
 
@@ -1579,7 +1579,7 @@ Some researchers may consider an alternate outcome variable, where rather than d
 We can rewrite $y^{alt}_{it}$ in terms of an alternate variable, $y^C_{it}$, which denotes whether unit $i$ is observed in the exact year the nonrepeatable event is realized:
 
 \begin{align}
-y^{alt}_{it} = \sum^t_{k = 1} y^{C}_{it}
+y^{alt}_{it} = \sum^t_{k = 1} y^{C}_{it} \label{eq:clearing-equiv}
 \end{align}
 
 , where
@@ -1587,7 +1587,7 @@ y^{alt}_{it} = \sum^t_{k = 1} y^{C}_{it}
  y^{C}_{it} = \begin{cases}
       1   &  t = C_i \\
       0 & t \neq C_i
-   \end{cases}
+   \end{cases} 
 \end{align}
 
 Note that $y^C_{it}=0$ both in the years before the nonrepeatable event occurs and in the years after it has already happened.
@@ -1610,10 +1610,10 @@ $$ATT_{alt} = E[y^{alt}_{it}(1) - y^{alt}_{it}(0)| D_i = 1]$$
 Similarly, make the following analog parallel trends assumption, now relating to $y^{alt}_{it}$:
 
 \begin{align}
- E[y^{alt}_{i2}(0) - y^{alt}_{i1}(0)| D_i = 1] = & E[y^{alt}_{i2}(0) - y^{alt}_{i1}(0)| D_i = 0] 
+ E[y^{alt}_{i2}(0) - y^{alt}_{i1}(0)| D_i = 1] = & E[y^{alt}_{i2}(0) - y^{alt}_{i1}(0)| D_i = 0]
 \end{align}
 
-$ATT_{alt}$ can be rewritten in terms of $y^C_{it}$ based on equation 23 above.
+$ATT_{alt}$ can be rewritten in terms of $y^C_{it}$ based on Equation \@ref(eq:clearing-equiv) above.
 
 \begin{align}
 ATT_{alt} =& E[\sum^t_{k = 1} y^{C}_{it}(1) - \sum^t_{k = 1} y^{C}_{it}(0)| D_i = 1]\notag\\
@@ -1671,7 +1671,7 @@ Taking the expectation:
 
 
 
-Now imposing the parallel trends assumption given by equation \@ref(eq:CTA-alt) and substituting for $E[ y^{C}_{i2}(0)| D_i= 0]$ in $\beta_{impute}$ yields:
+Now imposing the parallel trends assumption given by Equation \@ref(eq:CTA-alt) and substituting for $E[ y^{C}_{i2}(0)| D_i= 0]$ in $\beta_{impute}$ yields:
 \begin{align*}
 \beta_{impute}&=E[  y^{C}_{i2}(1)| D_i= 1] - E[ y^{C}_{i2}(0)| D_i= 1]\\
 &=E[  y^{alt}_{i2}(1)| D_i= 1] - E[ y^{alt}_{i2}(0)| D_i= 1]\\
@@ -2344,7 +2344,7 @@ The formula used in the main text is:
 \end{align}
 , where $F_{it}$ and $F_{i,t-1}$ are the forest cover at times $t$ and $t-1$, respectively. This calculation is used consistently in the literature [e.g. @carlson2018; @busch2015], and is arguably the most widely used formula. 
 
-Some authors have also calculated the deforestation rate in relation to the initial observed level of forest cover, replacing $F_{it}$ with $F_{i0}$, the baseline forest cover, in equation (1). This gives Outcome 2:
+Some authors have also calculated the deforestation rate in relation to the initial observed level of forest cover, $F_{i0}$. This gives Outcome 2:
 \begin{align}
 \text{Outcome 2:} &= \frac{F_{i0} - F_{it}}{F_{i0}}
 \end{align}
