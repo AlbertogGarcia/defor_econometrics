@@ -1633,7 +1633,7 @@ E[  y^{C}_{i2}(0) | D_i= 1] = & E[ y^{C}_{i2}(0)| D_i= 0] \label{eq:CTA-alt}
 This shows that the implicit parallel trends assumption made when using $y^{alt}_{it}$ as an outcome is equivalent to assuming that the probability of clearing post-treatment for the control units is equivalent to what it would have been for the treatment units had they not received treatment.
 
 
-### Coefficient under retention of deforested pixels {#impute-coef}
+### TWFE coefficient under retention of deforested pixels {#impute-coef}
 
 Define the traditional individual unit level TWFE regression, similar to Regression 1, but this time with respect to the outcome $y^{alt}_{it}$:
 
@@ -1684,34 +1684,7 @@ One concern with this alternate parameter is that pixels deforested prior to tre
 
 In order to recover an interpretable $ATT_{alt}$, one must implicitly make the assumption that $E[  y^{C}_{i2}(0) | D_i= 1] = E[ y^{C}_{i2}(0)| D_i= 0]$. This assumption may be less plausible when $E[  y^{C}_{i1}(0) | D_i= 1] \neq E[ y^{C}_{i1}(0)| D_i= 0]$. Further, when $E[  y^{C}_{i1}(0) | D_i= 1] \neq E[ y^{C}_{i1}(0)| D_i= 0]$, in order for \@ref(eq:CTA-alt) to hold, $E[y^C_{it}|y^C_{it} = 0]$ must differ across treatment and control groups. This is because the proportion of at-risk versus already cleared units differs across control and treatment groups. 
 
-
-## Monte Carlo evidence that individual unit level TWFE is equivalent to coefficient from same regression on dataset without pixels deforested pre-treatment {#TWFE-equivalence}
-
-Table \@ref(tab:twfe-comp) shows coefficient estimates from the Monte Carlo setup described in the main text on altered datasets. It demonstrates that the coefficient of interest from Regression 2 is numerically equivalent to that from the same regression on a dataset where all pixels deforested in the first period are excluded from the dataset completely. The estimated coefficient is not numerically equivalent to the ex-post difference in means, although this is true in the 2x2 case. This exercise provides further evidence that this commonly used TWFE regression does not use the pre-treatment variation in deforestation at all, which is necessary to recover the $ATT$ in this setting.  
-
-```{r twfe-comp}
-models_of_interest <- c("DID", "TWFE", "TWFE on dataset dropping deforested pixels prior to treatment", "ex-post difference in means")#, "final year difference in means")
-
-twfe_comp <- readRDS("results/TWFE_comp.rds")%>%
-  mutate(q25 = round(q25, digits = 5),
-         q75 = round(q75, digits = 5),
-         Model = ifelse(model == "final period difference in means", "final year difference in means", model))%>%
-  unite("0.25 to 0.75 quantile", c(q25, q75), sep = " , ", remove = TRUE)%>%
-  filter(Model %in% models_of_interest)%>%
-  select(Model, Bias, everything(), - model)
-
-kable(twfe_comp, format = "latex", row.names = FALSE,  booktabs = T,
-      caption = "TWFE with pixel fixed effects is numerically equivalent to TWFE on dataset with all pixels deforested pre-treatment dropped completely from the dataset"
-       ,
-        col.names = NULL
-      ) %>%
-  add_header_above(c("Model"=1, "Bias" = 1, "RMSE" = 1, "0.25 to 0.75 quantile" = 1), escape = TRUE, line =TRUE, bold = TRUE)%>%
-  kable_styling(font_size = 10, latex_options = c("HOLD_position", "striped"),
-                position = "center")
-
-```
-
-## Monte Carlo evidence individual unit DID and TWFE recover alternate parameter if pixels are retained
+### Monte Carlo evidence individual unit DID and TWFE recover alternate parameter if pixels are retained
 
 Figure \@ref(fig:keep-pixels) shows that retention of pixels changes the estimated parameter in our simulations. While retaining pixels does resolve the distinction between TWFE and DID regressions in the 2x2 setting, $\beta_{impute}$ is not an appropriate estimator in our simulations. Denote $\psi$ as the DID estimand when using the imputed outcome $y^{alt}_{ivt}$, where $\psi = E[  y^{C}_{i2}(1)| D_i= 1] - E[ y^{C}_{i2}(0)| D_i= 0]$. We see that $\beta_{impute}$ does estimate $\psi$, which is distinct from the $ATT$. In fact, while the $ATT$ in our simulated landscape is negative, $\psi$ is positive. We also see in Figure \@ref(fig:keep-pixels) that the coefficient from the pixel level DID is no longer distinct from the pixel level TWFE when using $y^{alt}_{ivt}$. 
 
@@ -1749,6 +1722,35 @@ ggplot(data = dropkeep_coeff, aes(x = coeff, fill=model)) +
   annotate("text", x = 0.011, y = 50, size = 5,
            parse = T, label = as.character(keep_beta))
 ```
+
+
+
+## Monte Carlo evidence that individual unit level TWFE is equivalent to coefficient from same regression on dataset without pixels deforested pre-treatment {#TWFE-equivalence}
+
+Table \@ref(tab:twfe-comp) shows coefficient estimates from the Monte Carlo setup described in the main text on altered datasets. It demonstrates that the coefficient of interest from Regression 2 is numerically equivalent to that from the same regression on a dataset where all pixels deforested in the first period are excluded from the dataset completely. The estimated coefficient is not numerically equivalent to the ex-post difference in means, although this is true in the 2x2 case. This exercise provides further evidence that this commonly used TWFE regression does not use the pre-treatment variation in deforestation at all, which is necessary to recover the $ATT$ in this setting.  
+
+```{r twfe-comp}
+models_of_interest <- c("DID", "TWFE", "TWFE on dataset dropping deforested pixels prior to treatment", "ex-post difference in means")#, "final year difference in means")
+
+twfe_comp <- readRDS("results/TWFE_comp.rds")%>%
+  mutate(q25 = round(q25, digits = 5),
+         q75 = round(q75, digits = 5),
+         Model = ifelse(model == "final period difference in means", "final year difference in means", model))%>%
+  unite("0.25 to 0.75 quantile", c(q25, q75), sep = " , ", remove = TRUE)%>%
+  filter(Model %in% models_of_interest)%>%
+  select(Model, Bias, everything(), - model)
+
+kable(twfe_comp, format = "latex", row.names = FALSE,  booktabs = T,
+      caption = "TWFE with pixel fixed effects is numerically equivalent to TWFE on dataset with all pixels deforested pre-treatment dropped completely from the dataset"
+       ,
+        col.names = NULL
+      ) %>%
+  add_header_above(c("Model"=1, "Bias" = 1, "RMSE" = 1, "0.25 to 0.75 quantile" = 1), escape = TRUE, line =TRUE, bold = TRUE)%>%
+  kable_styling(font_size = 10, latex_options = c("HOLD_position", "striped"),
+                position = "center")
+
+```
+
 
 ## Initial Monte Carlo parameter to $\beta$ coefficient mapping {#parameter-mapping}
 
