@@ -1558,23 +1558,12 @@ In response to the \textit{nonrepeatable outcome, unit FE bias}, some researcher
    \end{cases}
 \end{align}
 
-The use of $y^{alt}_{ivt}$ introduces its own concerns, however. In settings with nonrepeatable outcomes, unit $i$ is only effectively observed until $C_i$. If $y_{ivt} = 1$, unit $i$ has reached an absorbing state and for all periods in which $y^{alt}_{ivt}=1$, only one period of risk is actually observed. Therefore, any panel regression will not use observations on $i$ later than the period in which $i$ enters the absorbing state, because they are not informative about the transition to that state [@farbmacher_linear_2023]. In other words, any subsequent observations of $y^{alt}_{ivt}$ beyond $C_i$ do not contain any information about the data generating process of interest.
-
 Here, we show that while the coefficient of a TWFE regression using $y^{alt}_{ivt}$ does not suffer from the \textit{nonrepeatable outcome, unit FE bias}, it estimates an alternate parameter from that of the $ATT$. Instead, the coefficient recovers an estimate of an intervention's average impact on cumulative deforestation across treated units. Identification of this treatment effect parameter requires the assumption that aggregate post-treatment clearing would have been the same in treatment and control areas without treatment. Consequently, if treatment and control areas have differing pre-treatment deforestation rates, this assumption implicitly requires a different deforestation rate among pixels still at risk across the two groups. This stems from the fact that the two groups will have a differing proportion of pixels at risk post-treatment. In addition, when reforestation timing is unaccounted for and deforestation is treated as an absorbing state, the interpretation of this parameter does not translate into the intervention's effect on deforested area (or forest cover if looking at $1 -$ deforested area).
 
 The $ATT$ as defined in Section 2 represents an estimate of the impact of an intervention on the frequency of deforestation events (i.e. the decision to clear). Economists have typically focused their attention on this clearing decision, estimating the impact of a policy on the deforestation rate (flow) rather than the stock of ever-cleared forest. For the reasons discussed here, we use $y^o_{ivt}$ rather than $y^{alt}_{ivt}$ as the relevant outcome for the remainder of the paper. 
 
 
 ### Interpreting the alternate $ATT$
-
-Some researchers may consider an alternate outcome variable, where rather than dropping units from the panel, the outcome is imputed as a 1 when $t > C_i$. Define this alternate outcome, $y^{alt}_{it}$, as follows:
-
-\begin{align}
- y^{alt}_{it} = \begin{cases}
-      0   &  t < C_i \\
-      1 & t \geq C_i
-   \end{cases}
-\end{align}
 
 We can rewrite $y^{alt}_{it}$ in terms of an alternate variable, $y^C_{it}$, which denotes whether unit $i$ is observed in the exact year the nonrepeatable event is realized:
 
