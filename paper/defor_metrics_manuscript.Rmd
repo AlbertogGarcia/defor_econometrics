@@ -1857,7 +1857,7 @@ full_summary <- results_full %>%
   )%>%
   mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county, cox, HE.estimator), ~ as.logical(as.integer(.))
   )%>%
-  group_by(std_a, std_v, std_p, pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, cox, HE.estimator, se_pixel, se_grid, se_property, se_county)%>%
+  group_by(std_a, std_v, std_p, pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, HE.estimator, se_pixel, se_grid, se_property, se_county)%>%
   summarise(RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
             q95 = quantile(bias, probs = .95),
@@ -1879,7 +1879,7 @@ labels <- list(#"Model:" = " ",
   "Unit of analysis:" = c("pixel", "grid", "property", "county"),
   "Fixed effects:" = c("grid FE", "property FE", "county FE", "treatment FE"),
  # "Weights:" = c("unit area"),
-  "Survival:" = c("Simple Cox DID", "ATT-Cox estimator"),
+  "Survival:" = c("ATT-Cox estimator"),
   "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
 
 
@@ -1908,10 +1908,9 @@ ylim <- c(topline,0.011)
 schart(select_results,labels, ylim = ylim, index.ci=index.ci, ylab="Bias", #highlight=highlight_rows,
 leftmargin = 15, 
        heights = c(5, 5), cex = c(1.75, 1.75),
-       col.est = c(palette$dark, palette$red),
-       # col.dot=c("black","lightgrey","red","#00A1D5"),
-       # bg.dot=c("black","lightgrey","white","#00A1D5"),
-       #,band.ref=c(-.05, .04)
+      col.est = c(palette$dark, palette$red),
+       bg.dot=c(palette$dark, "grey95", "white", palette$red),
+       col.dot=c(palette$dark, "grey95", "white", palette$red),
        axes = FALSE#, n=8
        #, col.band.ref="#c7e9f9"
 ) # make some room at the bottom
@@ -1950,7 +1949,7 @@ text(x=29
 
 Figure \@ref(fig:alt-param) shows model performance for two alternate landscape parameterizations in the presence of property unobservables ($\sigma_p$), ordered from least to most biased. The top panel considers our initial parameterization, but switches the pre-treatment deforestation rates for the two groups. This leaves a pre-treatment deforestation rate of 5\% in the control area and 2\% in the intervention area. The bottom panel considers the initial parameterization but with a positive $ATT$ (i.e. $ATT = 0.01$ rather than $-0.01$). 
 
-```{r alt-param, message = FALSE, warning = FALSE, results = FALSE, fig.align="center", fig.cap="Comparison of model performance in alternative landscape parameterizations. Candidate models are separated by whether they incorporate aggregated fixed effects in pixel-level specifications, aggregated units of analysis, or survival analysis. Point illustrates mean bias while the confidence interval illustrates the 0.05 to 0.95 quantile range of this bias.", out.width = "100%", fig.width = 9, fig.height = 5, fig.pos='H', fig.show='hold'}
+```{r alt-param, message = FALSE, warning = FALSE, results = FALSE, fig.align="center", fig.cap="Comparison of model performance in alternative landscape parameterizations. Candidate models are separated by whether they incorporate aggregated fixed effects in pixel-level specifications, aggregated units of analysis, or survival analysis. Point illustrates mean bias while the confidence interval illustrates the 0.05 to 0.95 quantile range of this bias.", out.width = "100%", fig.width = 9, fig.height = 6, fig.pos='H', fig.show='hold'}
 
 
 df_summary <- readRDS("results/results_alt.rds") %>%
@@ -2006,11 +2005,12 @@ midline = topline-0.01-.0025
 ylim <- c(midline-.01,0.035)
 
 schart(select_results,labels = labels, ylim = ylim, index.ci=index.ci, 
-       col.est = c(palette$dark, palette$red)
-       , ylab="Bias", highlight=highlight_rows
+       col.est = c(palette$dark, palette$red),
+       bg.dot=c(palette$dark, "grey95", "white", palette$red),
+       col.dot=c(palette$dark, "grey95", "white", palette$red),
+       ylab="Bias", highlight=highlight_rows
        ,band.ref=c(-.05, .04)
        , axes = FALSE
-       #, col.band.ref="#c7e9f9"
 ) # make some room at the bottom
 Axis(side=2, at = c( 0), labels=TRUE)
 abline(h=topline)
@@ -2018,8 +2018,8 @@ abline(h=midline)
 lapply(1:(length(RMSE_print)), function(i) {
   # text(x= i, y=min(ylim)+.002, paste0(i), col="black", font=2, cex = 1)
   mtext(if(i<10){paste0(i)}, side=1, at = i + 1, font=2, cex=.95)#, line=1, at=-1)
-  text(x= i, y=midline+0.002, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex)
-  text(x= i, y=min(ylim)+0.0008, paste0(c_print[i]), col="black", font=1, cex=cov_cex )
+  text(x= i, y=midline+0.0024, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex)
+  text(x= i, y=min(ylim)+0.001, paste0(c_print[i]), col="black", font=1, cex=cov_cex )
 })
 text(x=mean(1:nrow(select_results))
      , y=midline-.003, "Coverage probability", col="black", font=2)
@@ -2084,11 +2084,12 @@ midline = topline-0.01-.0025
 ylim <- c(midline-.01,0.01)
 
 schart(select_results,labels = labels, ylim = ylim, index.ci=index.ci, 
-       col.est = c(palette$dark, palette$red)
-       , ylab="Bias", highlight=highlight_rows
+       col.est = c(palette$dark, palette$red),
+       bg.dot=c(palette$dark, "grey95", "white", palette$red),
+       col.dot=c(palette$dark, "grey95", "white", palette$red), 
+       ylab="Bias", highlight=highlight_rows
        ,band.ref=c(-.05, .04)
        , axes = FALSE
-       #, col.band.ref="#c7e9f9"
 ) # make some room at the bottom
 Axis(side=2, at = c( 0), labels=TRUE)
 abline(h=topline)
@@ -2096,8 +2097,8 @@ abline(h=midline)
 lapply(1:(length(RMSE_print)), function(i) {
   # text(x= i, y=min(ylim)+.002, paste0(i), col="black", font=2, cex = 1)
   mtext(if(i<10){paste0(i)}, side=1, at = i + 1, font=2, cex=.95)#, line=1, at=-1)
-  text(x= i, y=midline+0.002, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex)
-  text(x= i, y=min(ylim)+0.0008, paste0(c_print[i]), col="black", font=1, cex=cov_cex )
+  text(x= i, y=midline+0.0024, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex)
+  text(x= i, y=min(ylim)+0.001, paste0(c_print[i]), col="black", font=1, cex=cov_cex )
 })
 text(x=mean(1:nrow(select_results))
      , y=midline-.003, "Coverage probability", col="black", font=2)
