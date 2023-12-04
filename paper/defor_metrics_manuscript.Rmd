@@ -1673,47 +1673,6 @@ One concern with this alternate parameter is that pixels deforested prior to tre
 
 In order to recover an interpretable $ATT_{alt}$, one must implicitly make the assumption that $E[  y^{C}_{i2}(0) | D_i= 1] = E[ y^{C}_{i2}(0)| D_i= 0]$. This assumption may be less plausible when $E[  y^{C}_{i1}(0) | D_i= 1] \neq E[ y^{C}_{i1}(0)| D_i= 0]$. Further, when $E[  y^{C}_{i1}(0) | D_i= 1] \neq E[ y^{C}_{i1}(0)| D_i= 0]$, in order for \@ref(eq:CTA-alt) to hold, $E[y^C_{it}|y^C_{it} = 0]$ must differ across treatment and control groups. This is because the proportion of at-risk versus already cleared units differs across control and treatment groups. 
 
-### Monte Carlo evidence individual unit DID and TWFE recover alternate parameter if pixels are retained
-
-Figure \@ref(fig:keep-pixels) shows that retention of pixels changes the estimated parameter in our simulations. While retaining pixels does resolve the distinction between TWFE and DID regressions in the 2x2 setting, $\beta_{impute}$ is not an appropriate estimator in our simulations. Denote $\psi$ as the DID estimand when using the imputed outcome $y^{alt}_{ivt}$, where $\psi = E[  y^{C}_{i2}(1)| D_i= 1] - E[ y^{C}_{i2}(0)| D_i= 0]$. We see that $\beta_{impute}$ does estimate $\psi$, which is distinct from the $ATT$. In fact, while the $ATT$ in our simulated landscape is negative, $\psi$ is positive. We also see in Figure \@ref(fig:keep-pixels) that the coefficient from the pixel-level DID is no longer distinct from the pixel-level TWFE when using $y^{alt}_{ivt}$. 
-
-```{r keep-pixels, message=FALSE, out.width="100%", fig.cap="Distribution of DID and individual unit TWFE coefficient estimates. Distributions of DID and TWFE coefficients when keeping pixels appear in purple, since they are numerically equivalent.", fig.width = 8, fig.height = 5, fig.pos='H', fig.show='hold', fig.align='center'}
-
-keeps <- readRDS("results/results_pixKeep.rds")
-
-dropkeep_coeff <- keeps %>%
-  pivot_longer(cols = c(1, 2, 3), names_to = "model", values_to = "coeff")
-
-DID_keep_estimand = dropkeep_coeff$DID_keep_estimand[1]
-ATT = dropkeep_coeff$ATT[1]
-  
-drop_beta = expression(hat(beta)[DID])
-
-keep_beta = expression(hat(beta)[impute])
-  
-ggplot(data = dropkeep_coeff, aes(x = coeff, fill=model)) +
-    geom_density(alpha = .5) +
-    guides(fill=guide_legend(title=NULL))+
-    geom_vline(xintercept = ATT, color = palette$green, linetype = "dashed")+
-  geom_vline(xintercept = DID_keep_estimand, color = palette$dark, linetype = "dashed")+
-    theme(plot.caption = element_text(hjust = 0.5))+
-     labs(x= "Coefficient estimates", y = "")+
-  xlim(-0.02, 0.122)+
-    theme_bw(base_size = 14)+
-  scale_fill_manual(labels=c("DID dropping pixels", "TWFE w/o dropping pixels", "DID w/o dropping pixels"), values = c( palette$green, palette$red, palette$blue)
-                    )+
-  scale_x_continuous(limits = c(-0.025, DID_keep_estimand + 0.01),
-                     breaks = c(-0.02, ATT, 0, 0.01, DID_keep_estimand),
-                     labels = c("-0.02", "ATT (-0.01)", "0", "0.01", expression(psi))
-  )+
-  annotate("text", x = ATT - 0.003, y = 20, size = 5,
-           parse = T, label = as.character(drop_beta))+
-  annotate("text", x = 0.011, y = 50, size = 5,
-           parse = T, label = as.character(keep_beta))
-```
-
-
-
 ## Monte Carlo evidence that individual unit-level TWFE is equivalent to coefficient from same regression on dataset without pixels deforested pre-treatment {#TWFE-equivalence}
 
 Table \@ref(tab:twfe-comp) shows coefficient estimates from the Monte Carlo setup described in the main text on altered datasets. It demonstrates that the coefficient of interest from Regression 2 is numerically equivalent to that from the same regression on a dataset where all pixels deforested in the first period are excluded from the dataset completely. The estimated coefficient is not numerically equivalent to the ex-post difference in means, although this is true in the 2x2 case. This exercise provides further evidence that this commonly used TWFE regression does not use the pre-treatment variation in deforestation at all, which is necessary to recover the $ATT$ in this setting.  
