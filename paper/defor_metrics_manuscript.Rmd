@@ -1678,18 +1678,21 @@ In order to recover an interpretable $ATT_{alt}$, one must implicitly make the a
 Table \@ref(tab:twfe-comp) shows coefficient estimates from the Monte Carlo setup described in the main text on altered datasets. It demonstrates that the coefficient of interest from Regression 2 is numerically equivalent to that from the same regression on a dataset where all pixels deforested in the first period are excluded from the dataset completely. The estimated coefficient is not numerically equivalent to the ex-post difference in means, although this is true in the 2x2 case. This exercise provides further evidence that this commonly used TWFE regression does not use the pre-treatment variation in deforestation at all, which is necessary to recover the $ATT$ in this setting.  
 
 ```{r twfe-comp}
-models_of_interest <- c("DID", "TWFE", "TWFE on dataset dropping deforested pixels prior to treatment", "ex-post difference in means")#, "final year difference in means")
+models_of_interest <- c("DID", "TWFE", "TWFE on dataset removing any pixel deforested pre-treatment", "ex-post difference in means")#, "final year difference in means")
 
 twfe_comp <- readRDS("results/TWFE_comp.rds")%>%
   mutate(q25 = round(q25, digits = 5),
          q75 = round(q75, digits = 5),
-         Model = ifelse(model == "final period difference in means", "final year difference in means", model))%>%
+         Bias = round(Bias, digits = 5),
+         RMSE = round(RMSE, digits = 5),
+         Model = ifelse(model == "TWFE on dataset dropping deforested pixels prior to treatment", "TWFE on dataset removing any pixel deforested pre-treatment", model),
+         Model = ifelse(Model == "final period difference in means", "final year difference in means", Model))%>%
   unite("0.25 to 0.75 quantile", c(q25, q75), sep = " , ", remove = TRUE)%>%
   filter(Model %in% models_of_interest)%>%
   select(Model, Bias, everything(), - model)
 
 kable(twfe_comp, format = "latex", row.names = FALSE,  booktabs = T,
-      caption = "TWFE with pixel fixed effects is numerically equivalent to TWFE on dataset with all pixels deforested pre-treatment dropped completely from the dataset"
+      caption = "TWFE with pixel fixed effects is numerically equivalent to TWFE on dataset with all pixels deforested pre-treatment removed completely from the dataset"
        ,
         col.names = NULL
       ) %>%
