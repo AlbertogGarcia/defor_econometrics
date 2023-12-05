@@ -1612,7 +1612,7 @@ ATT_{alt} =& E[\sum^t_{k = 1} y^{C}_{it}(1) - \sum^t_{k = 1} y^{C}_{it}(0)| D_i 
 
 Equation \@ref(eq:lat-ATT-int) now makes the interpretation of this alternative treatment effect parameter more clear. $ATT_{alt}$ is equal to the average effect of treatment on accumulated deforestation across all post-treatment years for treated units. 
 
-Importantly, there is a distinction between observing a clearing event for an at-risk pixel and $y^C_{it}$. This is because $y^C_{it} = 0$ for all $t > C_i$. As such, the interpretability of $ATT_{alt}$ is affected. It is not recovering the effect for at-risk pixels and is highly influenced by earlier deforestation events. Further, this causes $ATT_{alt}$ to be mechanically influenced by the length of time a previously deforested pixel is left in the panel, a less than desirable property. 
+Importantly, there is a distinction between observing a clearing event for an at-risk pixel and $y^C_{it}$. This is because $y^C_{it} = 0$ for all $t > C_i$. As such, the interpretability of $ATT_{alt}$ is affected. It is not recovering the effect for at-risk pixels and is highly influenced by earlier deforestation events. Further, this allows $ATT_{alt}$ to be mechanically influenced by the length of time a previously deforested pixel is left in the panel, a less than desirable property. 
 
 We can also rewrite the new parallel trends assumption, where it simplifies to the following:
 \begin{align}
