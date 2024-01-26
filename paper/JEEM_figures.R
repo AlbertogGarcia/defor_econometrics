@@ -218,14 +218,15 @@ df_summary <- specchart_long %>%
   filter(is.na(notes),
          pixel.fe ==0,
          weights == 0 ,
+         (cox == 0 | HE.estimator == 1),
          (grid.fe == 0 | gridsize == max(gridsize, na.rm = T)),
          (property.fe == 0 | se_county == 0)
   ) %>%
   mutate_at(vars(bias, cover), as.numeric
   )%>%
-  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, HE.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
+  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, HE.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
   )%>%
-  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, HE.estimator, se_pixel, se_grid, se_property, se_county)%>%
+  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, HE.estimator, se_pixel, se_grid, se_property, se_county)%>%
   summarise(RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
             q95 = quantile(bias, probs = .95),
@@ -233,13 +234,14 @@ df_summary <- specchart_long %>%
             cover = mean(cover))%>%
   select(Bias, everything())
 
-df_summary <- rbind(df_summary[5,], df_summary[7:9,],  df_summary[1:3,],
-                    df_summary[6,], df_summary[4,])
+df_summary <- rbind(df_summary[5:8,],
+                    df_summary[1:3,],
+                    df_summary[4,])
 
 
 labels <- list("Unit of analysis:" = c("pixel", "grid", "property", "county"),
                "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE", "treatment FE"),
-               "Survival" = c("Cox PH model", "ATT-Cox estimator"),
+               "Survival" = c("ATT-Cox estimator"),
                "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
 
 na_row <- setNames(data.frame(matrix(ncol = ncol(df_summary), nrow = 0)), colnames(df_summary))
@@ -266,7 +268,7 @@ topline = -0.009
 
 midline = topline-0.004-.0025
 
-ylim <- c(midline-.005,0.012)
+ylim <- c(midline-.005,0.008)
 #bottomline = (min(ylim)+topline)/2
 #Create the plot
 
@@ -284,6 +286,7 @@ schart(select_results,labels, ylim = ylim, index.ci=index.ci, col.est = c(palett
        ylab="    Bias"#, highlight=c(6,7,8)
        ,band.ref=c(-.05, .04)
        , axes = FALSE
+       , heights = c(3,2)
        #, col.band.ref="#c7e9f9"
 ) # make some room at the bottom
 Axis(side=2, at = c( 0, 0.01), labels=TRUE)
@@ -299,9 +302,9 @@ text(x=mean(1:nrow(select_results))
      , y=midline - 0.0015, "Coverage probability", col="black", font=2)
 text(x=mean(1:nrow(select_results))
      , y=topline-.0018, "RMSE", col="black", font=2)
-text(x=3.5 , y=0.0108, "Aggregated\nfixed effects", col=palette$dark, font=1)
-text(x=6.9 , y=0.0108, "Aggregated unit\nof analysis", col=palette$dark, font=1)
-text(x=9.7 , y=0.0108, "Survival\nmodels", col=palette$dark, font=1)
+text(x=3.3 , y=0.0065, "Aggregated\nfixed effects", col=palette$dark, font=1)
+text(x=7 , y=0.0065, "Aggregated unit\nof analysis", col=palette$dark, font=1)
+text(x=9.15 , y=0.0065, expression(widehat(ATT)["Cox"]), col=palette$dark, font=1)
 
 dev.off()
 
