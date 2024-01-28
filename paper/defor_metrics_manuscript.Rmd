@@ -3,7 +3,7 @@ title: "Impact evaluation with nonrepeatable outcomes: The case of forest conser
 author: 
 - Alberto Garcia^[University of California, Santa Barbara, Bren School of Environmental Science \& Management; \color{blue}albertogarcia@ucsb.edu]
 - Robert Heilmayr^[University of California, Santa Barbara, Bren School of Environmental Science \& Management and Environmental Studies Program; \color{blue}rheilmayr@ucsb.edu]
-date: "December 4, 2023"
+date: "January 28, 2023"
 output:
   bookdown::pdf_document2:
     latex_engine: xelatex
@@ -408,7 +408,7 @@ This result stems from the fact that inclusion of individual unit fixed effects 
 \end{align*}
 , which extends to Result 1 under Assumptions 1 and 2. 
 
-In the context of nonrepeatable outcomes, $\beta_{TWFE}$ is distinct from $\beta_{DID}$, even in the 2x2 case. Section \@ref(results-simulation) corroborates this fact and Result 1 through simulations. The traditional DID does not suffer from the \textit{nonrepeatable outcome, unit FE bias} in the context of forest conservation. In addition, we show in Section \@ref(TWFE-equivalence) that $\hat{\beta}_{TWFE}$ is equivalent to the coefficient from a TWFE regression on a dataset where any pixel deforested in years prior to treatment is completely excluded from the dataset, demonstrating further that no pre-treatment variation in deforestation is used to identify the $ATT$ at all. 
+In the context of nonrepeatable outcomes, $\beta_{TWFE}$ is distinct from $\beta_{DID}$, even in the 2x2 case. Section \@ref(results-simulation) corroborates this fact and Result 1 through simulations. The traditional DID does not suffer from the \textit{nonrepeatable outcome, unit fixed effects bias} in the context of forest conservation. In addition, we show in Section \@ref(TWFE-equivalence) that $\hat{\beta}_{TWFE}$ is equivalent to the coefficient from a TWFE regression on a dataset where any pixel deforested in years prior to treatment is completely excluded from the dataset, demonstrating further that no pre-treatment variation in deforestation is used to identify the $ATT$ at all. 
 
 ## Survival analysis {#results-analytical-survival}
 
@@ -483,7 +483,7 @@ Figure \@ref(fig:summary-fig) contrasts the results of the candidate models when
 
 Figure \@ref(fig:summary-fig) further shows that the TWFE and DID estimators are not numerically equivalent. We examine this finding further in \@ref(TWFE-equivalence), showing that the coefficient of interest from Regression 2 is numerically equivalent to that from the same regression applied to a dataset in which all pixels deforested in the first period are excluded from the dataset completely (i.e., there is no deforestation in the dataset pre-treatment). This exercise highlights that the individual unit TWFE regression uses none of the pre-treatment variation in deforestation, which is core to DID approaches.
 
-It is worth noting that many forest conservation impact evaluations pre-process their data through matching or weighting before applying panel econometric regressions [e.g. @heilmayr2016; @carlson2018]. Although we do not explicitly analyze such two-stage estimation strategies, our analytical and empirical results do provide some insights into their performance. Since pre-processing typically reduces pre-treatment differences in observable characteristics between treatment and control groups, weighting or matching is likely to reduce the bias detailed in Equation \@ref(eq:twfe-bias-eqn). This serves as a further example of how such doubly-robust estimators can reduce bias in contexts where a researcher has mis-specified their panel regression [@ho_matching_2007; @blackman2013; @santanna_doubly_2020]. Nevertheless, pre-processing is not guaranteed to perfectly balance pre-treatment outcomes across treatment and control observations [@jones2015]. Given a set matching strategy, researchers should attempt to model the second-stage outcome regression as accurately as possible. As a result, researchers should choose panel models that do not suffer from the \textit{nonrepeatable outcome, unit FE bias}, even if they are pre-processing their data.
+It is worth noting that many forest conservation impact evaluations pre-process their data through matching or weighting before applying panel econometric regressions [e.g. @heilmayr2016; @carlson2018]. Although we do not explicitly analyze such two-stage estimation strategies, our analytical and empirical results do provide some insights into their performance. Since pre-processing typically reduces pre-treatment differences in observable characteristics between treatment and control groups, weighting or matching is likely to reduce the bias detailed in Equation \@ref(eq:twfe-bias-eqn). This serves as a further example of how such doubly-robust estimators can reduce bias in contexts where a researcher has mis-specified their panel regression [@ho_matching_2007; @blackman2013; @santanna_doubly_2020]. Nevertheless, pre-processing is not guaranteed to perfectly balance pre-treatment outcomes across treatment and control observations [@jones2015]. Given a set matching strategy, researchers should attempt to model the second-stage outcome regression as accurately as possible. As a result, researchers should choose panel models that do not suffer from the \textit{nonrepeatable outcome, pixel FE bias}, even if they are pre-processing their data.
 
 ```{r summary-fig, echo = FALSE, warnings = FALSE, results = FALSE, message=FALSE, fig.cap="Comparison of candidate econometric model performance. Point illustrates mean bias while the confidence interval illustrates the 0.05 to 0.95 quantile range of this bias.",  fig.width = 9, fig.height = 12, out.width="100%"}
 
@@ -492,14 +492,15 @@ results_long <- readRDS("results/results_aggregation.rds")
 df_summary <- results_long %>%
   filter(is.na(notes),
          weights == 0 ,
+         (cox == 0 | HE.estimator == 1),
          (grid.fe == 0 | gridsize == max(gridsize, na.rm = T)),
          (property.fe == 0 | se_county == 0)
   ) %>%
   mutate_at(vars(bias, cover), as.numeric
   )%>%
-  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, HE.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
+  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, HE.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
   )%>%
-  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, HE.estimator, se_pixel, se_grid, se_property, se_county)%>%
+  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, HE.estimator, se_pixel, se_grid, se_property, se_county)%>%
   summarise(RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
             q95 = quantile(bias, probs = .95),
@@ -507,14 +508,16 @@ df_summary <- results_long %>%
             cover = mean(cover))%>%
   select(Bias, everything())
 
-df_summary <- rbind(df_summary[10,],
-                    df_summary[5,], df_summary[7:9,],  df_summary[1:3,],
-                    df_summary[6,], df_summary[4,])
+df_summary <- rbind(df_summary[9,],
+                    df_summary[5:8,], 
+                    df_summary[1:3,],
+                    df_summary[4,]
+                    )
 
 
 labels <- list("Unit of analysis:" = c("pixel", "grid", "property", "county"),
                "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE", "treatment FE"),
-               "Survival" = c("Cox PH model", "ATT-Cox estimator"),
+               "Survival" = c("ATT-Cox estimator"),
                "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
 
 na_row <- setNames(data.frame(matrix(ncol = ncol(df_summary), nrow = 0)), colnames(df_summary))
@@ -538,9 +541,9 @@ index.ci <- match(c("q05","q95"), names(select_results))
 # One could also add information about model fit to this chart
 topline = -0.007
 
-midline = topline-0.004-.0025
+midline = topline-0.004-.0022
 
-ylim <- c(midline-.005,0.045)
+ylim <- c(midline-.003,0.045)
 #bottomline = (min(ylim)+topline)/2
 #Create the plot
 
@@ -553,7 +556,7 @@ par(oma=c(1,0,1,1))
 schart(select_results,labels, ylim = ylim, index.ci=index.ci, col.est = c(palette$dark, palette$red),
        bg.dot=c(palette$dark, "grey95", "white", palette$red),
        col.dot=c(palette$dark, "grey95", "white", palette$red),
-       ylab="    Bias", highlight=c(2, 10)
+       ylab="    Bias", highlight=c(2)
        , heights = c(2.5,1)
        ,band.ref=c(-.05, .04)
        , axes = FALSE
@@ -564,26 +567,24 @@ abline(h=topline)
 abline(h=midline)
 #abline(h=bottomline)
 lapply(1:(length(RMSE_print)), function(i) {
-  # text(x= i, y=min(ylim)+.002, paste0(i), col="black", font=2, cex = 1)
-  mtext(if(i<=10){paste0(i)}, side=1, at = i + 1, font=2, cex=.95)#, line=1, at=-1)
+  mtext(if(i<=9){paste0(i)}, side=1, at = i + 1, font=2, cex=.95)#, line=1, at=-1)
   text(x= i, y=midline+0.0015, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex)
-  text(x= i, y=min(ylim)+0.0008, paste0(c_print[i]), col="black", font=1, cex=cov_cex )
+  text(x= i, y=min(ylim)-0.0008, paste0(c_print[i]), col="black", font=1, cex=cov_cex )
 })
-#segments(3.5, topline, x1 = 3.5, y1 = 0.048, lty = 2)
 segments(6.5, topline, x1 = 6.5, y1 = 0.041, lty = 2)
 segments(9.5, topline, x1 = 9.5, y1 = 0.041, lty = 2)
 text(x=mean(1:nrow(select_results))
      , y=midline - 0.0015, "Coverage probability", col="black", font=2)
 text(x=mean(1:nrow(select_results))
      , y=topline-.0018, "RMSE", col="black", font=2)
-text(x=4.5 , y=0.0401, "Aggregated\nfixed effects", col=palette$dark, font=1)
-text(x=7.9 , y=0.0401, "Aggregated unit\nof analysis", col=palette$dark, font=1)
-text(x=10.5 , y=0.0401, "Survival\nmodels", col=palette$dark, font=1)
-text(x=2
-     , y=0.0315, "Pixel-level\nTWFE", col=palette$red, font=1, cex = 0.9)
-text(x=3
-     , y=-0.0045, "pixel-level\nDID", col=palette$dark, font=1, cex = 0.9)
-legend(x=8.5, y=0.047, col = "black", legend = "0.05 to 0.95 quantile\nof bias distribution", seg.len=0.65, inset = 0.005,  box.lty=0, cex=leg_cex, lty = 1, lwd = 4, bg="transparent")
+text(x=4.5 , y=0.038, "Aggregated\nfixed effects", col=palette$dark, font=1)
+text(x=7.9 , y=0.038, "Aggregated unit\nof analysis", col=palette$dark, font=1)
+text(x=10.1 , y=0.0065, expression(widehat(ATT)["Cox"]), col=palette$dark, font=1, cex = 0.9)
+text(x=2, y=0.0315, "Pixel-level\nTWFE", col=palette$red, font=1, cex = 0.9)
+text(x=3, y=-0.0045, "pixel-level\nDID", col=palette$dark, font=1, cex = 0.9)
+legend(x=8, y=0.047, col = "black", legend = "0.05 to 0.95 quantile\nof bias distribution", seg.len=0.65, inset = 0.005,  box.lty=0, cex=leg_cex, lty = 1, lwd = 4, bg="transparent")
+
+
 
 ```
 
@@ -605,6 +606,78 @@ The most crucial issue that survival analysis addresses is censoring [@turkson_h
 
 While the above factors make both the Cox DID regression and $\widehat{ATT}_{Cox}$ less appealing in the deforestation context, they may be of more utility in settings where researchers have traditionally been drawn to survival analysis for reasons beyond the binary nature of the outcome. Censoring that never arises in the deforestation context such as random, double, independent, or interval censoring may lead a researcher to demand a survival approach  [@turkson_handling_2021]. When comparing the Cox DID regression and $\widehat{ATT}_{Cox}$, the determination of a plausible trends assumption is key. If the traditional parallel trends assumption is plausible, $\beta_{coxDID}$ from Regression 5, will not identify the desired treatment effect parameter.
 
+```{r survival-fig, echo = FALSE, warnings = FALSE, results = FALSE, message=FALSE, fig.cap="Comparison of $\\hat{\\beta}_{coxDID}$ and $\\widehat{ATT}_{Cox}$ when different common trends assumptions hold. The left panel illustrates both estimators when the traditional parallel trends assumption (Assumption 1) holds, while the right panel illustrates the estimators when the proportional trends assumption (Assumption 3) holds. Point illustrates mean bias while the confidence interval illustrates the 0.05 to 0.95 quantile range of this bias.",  fig.width = 8, fig.height = 5, out.width="100%"}
+
+results_proportional <- readRDS("results/results_proportional.rds") %>% filter(cox == 1) %>% mutate(t_assumption = "proportional")
+results_parallel <- readRDS("results/results_aggregation.rds") %>% filter(cox == 1)%>% mutate(t_assumption = "parallel")
+
+df_summary <- rbind(results_parallel, results_proportional) %>%
+  mutate_at(vars(bias, cover), as.numeric
+  )%>%
+  group_by(t_assumption, HE.estimator)%>%
+  summarise(RMSE = rmse(bias, 0),
+            q05 = quantile(bias, probs = .05),
+            q95 = quantile(bias, probs = .95),
+            Bias = mean(bias),
+            cover = mean(cover))%>%
+  select(Bias, everything())
+
+na_row <- setNames(data.frame(matrix(ncol = ncol(df_summary), nrow = 0)), colnames(df_summary))
+na_row[1,] <- NA
+
+select_results <- rbind(na_row, as.data.frame(df_summary)[1:2,], na_row, as.data.frame(df_summary)[3:4,], na_row)
+
+
+coverage <- select_results$cover
+c_print <- round(coverage, digits = 3)
+c_print[is.na(c_print)] <- " "
+
+RMSE <- select_results$RMSE
+RMSE <- as.numeric(RMSE)
+RMSE_print<- round(RMSE, digits = 4)
+RMSE_print[is.na(RMSE_print)] <- " "
+
+schart_results <- select_results %>%
+  mutate(F_col = FALSE, F_col2 = FALSE)%>%
+  select(c(Bias, F_col, F_col2, q05, q95))
+index.ci <- match(c("q05","q95"), names(schart_results))
+
+labels <- list("", "")
+
+topline = -0.006
+midline = topline-0.003
+ylim <- c(midline-0.002,0.017)
+
+par(oma=c(1, 0,1,0.5))
+
+schart(as.data.frame(schart_results), labels = labels, 
+       ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="              Bias",
+       col.est = c(palette$dark, palette$red), 
+       bg.dot=c("white", "white", "white", "white"),
+       col.dot=c("white", "white", "white", "white"),
+       heights = c(100,1), cex = c(1.25,1.25))
+Axis(side=2, at = c(-0.01, -0.005, 0, 0.005, 0.01), labels=TRUE)
+segments(4, topline, x1 = 4, y1 = 0.019)
+abline(h=topline)
+abline(h=midline)
+lapply(1:length(RMSE), function(i) {
+  text(x= i, y=topline-0.002, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex)
+  text(x= i, y=midline-0.0023, paste0(c_print[i]), col="black", font=1, cex=cov_cex)
+})
+text(x=mean(1:nrow(schart_results))
+     , y=midline-.001, "Coverage probability", col="black", font=2)
+text(x=mean(1:nrow(schart_results))
+     , y=topline-.001, "RMSE", col="black", font=2)
+text(x=2 , y=0.0115, expression(widehat(beta)["Cox"]), col=palette$dark, font=1, cex = 0.9)
+text(x=3 , y=0.0053, expression(widehat(ATT)["Cox"]), col=palette$dark, font=1, cex = 0.9)
+text(x=5 , y=0.0065, expression(widehat(beta)["Cox"]), col=palette$dark, font=1, cex = 0.9)
+text(x=6 , y=0.0138, expression(widehat(ATT)["Cox"]), col=palette$dark, font=1, cex = 0.9)
+text(x=1.75 , y=0.017, "Parallel trends holds", col=palette$dark, font=1)
+text(x=5.15 , y=0.017, "Proportional trends holds", col=palette$dark, font=1)
+
+
+```
+
 ## Non-random sample selection {#results-simulation-selection}
 
 We now explore how the non-random sample selection described in Section \@ref(results-analytical-selection) may influence estimates in our simulated landscapes. Non-random sample selection did not bias our initial simulations as presented in Figure \@ref(fig:summary-fig) because we assumed away time-invariant pixel and property-level disturbances. The sample of at risk pixels in each time period did not depend on the deforestation that occurred the previous period, since the $y^o_{ivt}$s were i.i.d.. However, once time-invariant disturbances enter the DGP, the distribution of the $y^o_{ivt}s$ is potentially different in each year of the panel. This is likely to be the case in reality, since each plot of land will have time-invariant characteristics that impact its expected returns to clearing such as market access or agricultural suitability. 
@@ -622,14 +695,15 @@ df_summary <- specchart_long %>%
   filter(is.na(notes),
          pixel.fe ==0,
          weights == 0 ,
+         cox == 0,
          (grid.fe == 0 | gridsize == max(gridsize, na.rm = T)),
          (property.fe == 0 | se_county == 0)
   ) %>%
   mutate_at(vars(bias, cover), as.numeric
   )%>%
-  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, HE.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
+  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
   )%>%
-  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, HE.estimator, se_pixel, se_grid, se_property, se_county)%>%
+  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, se_pixel, se_grid, se_property, se_county)%>%
   summarise(RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
             q95 = quantile(bias, probs = .95),
@@ -637,13 +711,13 @@ df_summary <- specchart_long %>%
             cover = mean(cover))%>%
   select(Bias, everything())
 
-df_summary <- rbind(df_summary[5,], df_summary[7:9,],  df_summary[1:3,],
-                    df_summary[6,], df_summary[4,])
+df_summary <- rbind(df_summary[4:7,],
+                    df_summary[1:3,])
 
 
 labels <- list("Unit of analysis:" = c("pixel", "grid", "property", "county"),
                "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE", "treatment FE"),
-               "Survival" = c("Cox PH model", "ATT-Cox estimator"),
+               #"Survival" = c("ATT-Cox estimator"),
                "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
 
 na_row <- setNames(data.frame(matrix(ncol = ncol(df_summary), nrow = 0)), colnames(df_summary))
@@ -666,11 +740,11 @@ select_results <- as.data.frame(subset(select_results, select=-c(cover, RMSE)))
 index.ci <- match(c("q05","q95"), names(select_results))
 
 # One could also add information about model fit to this chart
-topline = -0.009
+topline = -0.007
 
 midline = topline-0.004-.0025
 
-ylim <- c(midline-.005,0.012)
+ylim <- c(midline-.005,0.008)
 #bottomline = (min(ylim)+topline)/2
 #Create the plot
 
@@ -686,16 +760,14 @@ schart(select_results,labels, ylim = ylim, index.ci=index.ci, col.est = c(palett
        ylab="    Bias"#, highlight=c(6,7,8)
        ,band.ref=c(-.05, .04)
        , axes = FALSE
+       , heights = c(3,2)
        #, col.band.ref="#c7e9f9"
 ) # make some room at the bottom
-Axis(side=2, at = c( 0, 0.01), labels=TRUE)
+Axis(side=2, at = c(-0.005, 0, 0.005), labels=TRUE)
 abline(h=topline)
 abline(h=midline)
-segments(8.5, topline, x1 = 8.5, y1 = 0.015, lty = 2)
 segments(5.5, topline, x1 = 5.5, y1 = 0.015, lty = 2)
 lapply(1:(length(RMSE_print)), function(i) {
-  # text(x= i, y=min(ylim)+.002, paste0(i), col="black", font=2, cex = 1)
-  mtext(if(i<10){paste0(i)}, side=1, at = i + 1, font=2, cex=.95)#, line=1, at=-1)
   text(x= i, y=midline+0.0015, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex)
   text(x= i, y=min(ylim)+0.0008, paste0(c_print[i]), col="black", font=1, cex=cov_cex )
 })
@@ -703,9 +775,8 @@ text(x=mean(1:nrow(select_results))
      , y=midline - 0.0015, "Coverage probability", col="black", font=2)
 text(x=mean(1:nrow(select_results))
      , y=topline-.0018, "RMSE", col="black", font=2)
-text(x=3.5 , y=0.0108, "Aggregated\nfixed effects", col=palette$dark, font=1)
-text(x=6.9 , y=0.0108, "Aggregated unit\nof analysis", col=palette$dark, font=1)
-text(x=9.7 , y=0.0108, "Survival\nmodels", col=palette$dark, font=1)
+text(x=3.3 , y=0.0065, "Aggregated\nfixed effects", col=palette$dark, font=1)
+text(x=7 , y=0.0065, "Aggregated unit\nof analysis", col=palette$dark, font=1)
 
 ```
 
