@@ -1,0 +1,16 @@
+\begin{table}[H]
+
+\caption{\label{tab:twfe-comp}TWFE with pixel fixed effects is numerically equivalent to TWFE on dataset with all pixels deforested pre-treatment removed completely from the dataset}
+\centering
+\fontsize{10}{12}\selectfont
+\begin{tabular}[t]{lrrl}
+\toprule
+\multicolumn{1}{c}{\textbf{Model}} & \multicolumn{1}{c}{\textbf{Bias}} & \multicolumn{1}{c}{\textbf{RMSE}} & \multicolumn{1}{c}{\textbf{0.25 to 0.75 quantile}} \\
+\cmidrule(l{3pt}r{3pt}){1-1} \cmidrule(l{3pt}r{3pt}){2-2} \cmidrule(l{3pt}r{3pt}){3-3} \cmidrule(l{3pt}r{3pt}){4-4}
+DID & 0.00010 & 0.00153 & -0.00088 , 0.0011\\
+ex-post difference in means & 0.03004 & 0.03006 & 0.02935 , 0.03074\\
+TWFE & 0.03595 & 0.03597 & 0.03501 , 0.03684\\
+TWFE on dataset removing any pixel deforested pre-treatment & 0.03595 & 0.03597 & 0.03501 , 0.03684\\
+\bottomrule
+\end{tabular}
+\end{table}

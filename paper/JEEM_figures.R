@@ -110,14 +110,15 @@ results_long <- readRDS("results/results_aggregation.rds")
 df_summary <- results_long %>%
   filter(is.na(notes),
          weights == 0 ,
+         (cox == 0 | HE.estimator == 1),
          (grid.fe == 0 | gridsize == max(gridsize, na.rm = T)),
          (property.fe == 0 | se_county == 0)
   ) %>%
   mutate_at(vars(bias, cover), as.numeric
   )%>%
-  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, HE.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
+  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, HE.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
   )%>%
-  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, HE.estimator, se_pixel, se_grid, se_property, se_county)%>%
+  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, HE.estimator, se_pixel, se_grid, se_property, se_county)%>%
   summarise(RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
             q95 = quantile(bias, probs = .95),
@@ -125,14 +126,16 @@ df_summary <- results_long %>%
             cover = mean(cover))%>%
   select(Bias, everything())
 
-df_summary <- rbind(df_summary[10,],
-                    df_summary[5,], df_summary[7:9,],  df_summary[1:3,],
-                    df_summary[6,], df_summary[4,])
+df_summary <- rbind(df_summary[9,],
+                    df_summary[5:8,], 
+                    df_summary[1:3,],
+                    df_summary[4,]
+                    )
 
 
 labels <- list("Unit of analysis:" = c("pixel", "grid", "property", "county"),
                "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE", "treatment FE"),
-               "Survival" = c("Cox PH model", "ATT-Cox estimator"),
+               "Survival" = c("ATT-Cox estimator"),
                "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
 
 na_row <- setNames(data.frame(matrix(ncol = ncol(df_summary), nrow = 0)), colnames(df_summary))
@@ -166,14 +169,14 @@ rmse_cex = 0.95
 cov_cex = 1
 leg_cex = 1
 
-png(paste0(out_dir,"/Figure2.png"), width = 9, height = 11.75, units = "in", res = 300)
+png(paste0(out_dir,"/Figure2.png"), width = 9, height = 11, units = "in", res = 300)
 
 par(oma=c(1,0,1,1))
 
 schart(select_results,labels, ylim = ylim, index.ci=index.ci, col.est = c(palette$dark, palette$red),
        bg.dot=c(palette$dark, "grey95", "white", palette$red),
        col.dot=c(palette$dark, "grey95", "white", palette$red),
-       ylab="    Bias", highlight=c(2, 10)
+       ylab="    Bias", highlight=c(2)
        , heights = c(2.5,1)
        ,band.ref=c(-.05, .04)
        , axes = FALSE
@@ -184,31 +187,102 @@ abline(h=topline)
 abline(h=midline)
 #abline(h=bottomline)
 lapply(1:(length(RMSE_print)), function(i) {
-  # text(x= i, y=min(ylim)+.002, paste0(i), col="black", font=2, cex = 1)
-  mtext(if(i<=10){paste0(i)}, side=1, at = i + 1, font=2, cex=.95)#, line=1, at=-1)
+  mtext(if(i<=9){paste0(i)}, side=1, at = i + 1, font=2, cex=.95)#, line=1, at=-1)
   text(x= i, y=midline+0.0015, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex)
   text(x= i, y=min(ylim)-0.0008, paste0(c_print[i]), col="black", font=1, cex=cov_cex )
 })
-#segments(3.5, topline, x1 = 3.5, y1 = 0.048, lty = 2)
 segments(6.5, topline, x1 = 6.5, y1 = 0.041, lty = 2)
 segments(9.5, topline, x1 = 9.5, y1 = 0.041, lty = 2)
 text(x=mean(1:nrow(select_results))
      , y=midline - 0.0015, "Coverage probability", col="black", font=2)
 text(x=mean(1:nrow(select_results))
      , y=topline-.0018, "RMSE", col="black", font=2)
-text(x=4.5 , y=0.0401, "Aggregated\nfixed effects", col=palette$dark, font=1)
-text(x=7.9 , y=0.0401, "Aggregated unit\nof analysis", col=palette$dark, font=1)
-text(x=10.5 , y=0.0401, "Survival\nmodels", col=palette$dark, font=1)
-text(x=2
-     , y=0.0315, "Pixel-level\nTWFE", col=palette$red, font=1, cex = 0.9)
-text(x=3
-     , y=-0.0045, "pixel-level\nDID", col=palette$dark, font=1, cex = 0.9)
-legend(x=8.5, y=0.047, col = "black", legend = "0.05 to 0.95 quantile\nof bias distribution", seg.len=0.65, inset = 0.005,  box.lty=0, cex=leg_cex, lty = 1, lwd = 4, bg="transparent")
+text(x=4.5 , y=0.038, "Aggregated\nfixed effects", col=palette$dark, font=1)
+text(x=7.9 , y=0.038, "Aggregated unit\nof analysis", col=palette$dark, font=1)
+text(x=10.1 , y=0.0065, expression(widehat(ATT)["Cox"]), col=palette$dark, font=1, cex = 0.9)
+text(x=2, y=0.0315, "Pixel-level\nTWFE", col=palette$red, font=1, cex = 0.9)
+text(x=3, y=-0.0045, "pixel-level\nDID", col=palette$dark, font=1, cex = 0.9)
+legend(x=8, y=0.047, col = "black", legend = "0.05 to 0.95 quantile\nof bias distribution", seg.len=0.65, inset = 0.005,  box.lty=0, cex=leg_cex, lty = 1, lwd = 4, bg="transparent")
 
 dev.off()
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-######### Fig 3 (selection bias)
+######### Fig 3 (Cox models)
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+results_proportional <- readRDS("results/results_proportional.rds") %>% filter(cox == 1) %>% mutate(t_assumption = "proportional")
+results_parallel <- readRDS("results/results_aggregation.rds") %>% filter(cox == 1)%>% mutate(t_assumption = "parallel")
+
+df_summary <- rbind(results_parallel, results_proportional) %>%
+  mutate_at(vars(bias, cover), as.numeric
+  )%>%
+  group_by(t_assumption, HE.estimator)%>%
+  summarise(RMSE = rmse(bias, 0),
+            q05 = quantile(bias, probs = .05),
+            q95 = quantile(bias, probs = .95),
+            Bias = mean(bias),
+            cover = mean(cover))%>%
+  select(Bias, everything())
+
+na_row <- setNames(data.frame(matrix(ncol = ncol(df_summary), nrow = 0)), colnames(df_summary))
+na_row[1,] <- NA
+
+select_results <- rbind(na_row, as.data.frame(df_summary)[1:2,], na_row, as.data.frame(df_summary)[3:4,], na_row)
+
+
+coverage <- select_results$cover
+c_print <- round(coverage, digits = 3)
+c_print[is.na(c_print)] <- " "
+
+RMSE <- select_results$RMSE
+RMSE <- as.numeric(RMSE)
+RMSE_print<- round(RMSE, digits = 4)
+RMSE_print[is.na(RMSE_print)] <- " "
+
+schart_results <- select_results %>%
+  mutate(F_col = FALSE, F_col2 = FALSE)%>%
+  select(c(Bias, F_col, F_col2, q05, q95))
+index.ci <- match(c("q05","q95"), names(schart_results))
+
+labels <- list("", "")
+
+topline = -0.006
+midline = topline-0.003
+ylim <- c(midline-0.002,0.017)
+
+png(paste0(out_dir,"/Figure_proportional.png"), width = 8, height = 5, units = "in", res = 300)
+
+par(oma=c(1, 0,1,0.5))
+
+schart(as.data.frame(schart_results), labels = labels, 
+       ylim = ylim, axes = FALSE, index.ci=index.ci, ylab="              Bias",
+       col.est = c(palette$dark, palette$red), 
+       bg.dot=c("white", "white", "white", "white"),
+       col.dot=c("white", "white", "white", "white"),
+       heights = c(100,1), cex = c(1.25,1.25))
+Axis(side=2, at = c(-0.01, -0.005, 0, 0.005, 0.01), labels=TRUE)
+segments(4, topline, x1 = 4, y1 = 0.019)
+abline(h=topline)
+abline(h=midline)
+lapply(1:length(RMSE), function(i) {
+  text(x= i, y=topline-0.002, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex)
+  text(x= i, y=midline-0.0023, paste0(c_print[i]), col="black", font=1, cex=cov_cex)
+})
+text(x=mean(1:nrow(schart_results))
+     , y=midline-.001, "Coverage probability", col="black", font=2)
+text(x=mean(1:nrow(schart_results))
+     , y=topline-.001, "RMSE", col="black", font=2)
+text(x=2 , y=0.0115, expression(widehat(beta)["Cox"]), col=palette$dark, font=1, cex = 0.9)
+text(x=3 , y=0.0053, expression(widehat(ATT)["Cox"]), col=palette$dark, font=1, cex = 0.9)
+text(x=5 , y=0.0065, expression(widehat(beta)["Cox"]), col=palette$dark, font=1, cex = 0.9)
+text(x=6 , y=0.0138, expression(widehat(ATT)["Cox"]), col=palette$dark, font=1, cex = 0.9)
+text(x=1.75 , y=0.017, "Parallel trends holds", col=palette$dark, font=1)
+text(x=5.15 , y=0.017, "Proportional trends holds", col=palette$dark, font=1)
+
+dev.off()
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+######### Fig 4 (selection bias)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 specchart_long <- readRDS("results/results_selection.rds")
@@ -218,15 +292,15 @@ df_summary <- specchart_long %>%
   filter(is.na(notes),
          pixel.fe ==0,
          weights == 0 ,
-         (cox == 0 | HE.estimator == 1),
+         cox == 0,
          (grid.fe == 0 | gridsize == max(gridsize, na.rm = T)),
          (property.fe == 0 | se_county == 0)
   ) %>%
   mutate_at(vars(bias, cover), as.numeric
   )%>%
-  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, HE.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
+  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
   )%>%
-  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, HE.estimator, se_pixel, se_grid, se_property, se_county)%>%
+  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, se_pixel, se_grid, se_property, se_county)%>%
   summarise(RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
             q95 = quantile(bias, probs = .95),
@@ -234,14 +308,13 @@ df_summary <- specchart_long %>%
             cover = mean(cover))%>%
   select(Bias, everything())
 
-df_summary <- rbind(df_summary[5:8,],
-                    df_summary[1:3,],
-                    df_summary[4,])
+df_summary <- rbind(df_summary[4:7,],
+                    df_summary[1:3,])
 
 
 labels <- list("Unit of analysis:" = c("pixel", "grid", "property", "county"),
                "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE", "treatment FE"),
-               "Survival" = c("ATT-Cox estimator"),
+               #"Survival" = c("ATT-Cox estimator"),
                "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
 
 na_row <- setNames(data.frame(matrix(ncol = ncol(df_summary), nrow = 0)), colnames(df_summary))
@@ -264,7 +337,7 @@ select_results <- as.data.frame(subset(select_results, select=-c(cover, RMSE)))
 index.ci <- match(c("q05","q95"), names(select_results))
 
 # One could also add information about model fit to this chart
-topline = -0.009
+topline = -0.007
 
 midline = topline-0.004-.0025
 
@@ -276,7 +349,7 @@ rmse_cex = 1
 cov_cex = 1.1
 leg_cex = 1.2
 
-png(paste0(out_dir,"/Figure3.png"), width = 9, height = 8, units = "in", res = 300)
+png(paste0(out_dir,"/Figure4.png"), width = 9, height = 8, units = "in", res = 300)
 
 par(oma=c(1,0,1,1))
 
@@ -289,10 +362,9 @@ schart(select_results,labels, ylim = ylim, index.ci=index.ci, col.est = c(palett
        , heights = c(3,2)
        #, col.band.ref="#c7e9f9"
 ) # make some room at the bottom
-Axis(side=2, at = c( 0, 0.01), labels=TRUE)
+Axis(side=2, at = c(-0.005, 0, 0.005), labels=TRUE)
 abline(h=topline)
 abline(h=midline)
-segments(8.5, topline, x1 = 8.5, y1 = 0.015, lty = 2)
 segments(5.5, topline, x1 = 5.5, y1 = 0.015, lty = 2)
 lapply(1:(length(RMSE_print)), function(i) {
   text(x= i, y=midline+0.0015, paste0(RMSE_print[i]), col="black", font=1, cex=rmse_cex)
@@ -304,12 +376,11 @@ text(x=mean(1:nrow(select_results))
      , y=topline-.0018, "RMSE", col="black", font=2)
 text(x=3.3 , y=0.0065, "Aggregated\nfixed effects", col=palette$dark, font=1)
 text(x=7 , y=0.0065, "Aggregated unit\nof analysis", col=palette$dark, font=1)
-text(x=9.15 , y=0.0065, expression(widehat(ATT)["Cox"]), col=palette$dark, font=1)
 
 dev.off()
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-######### Fig 4 (DID property)
+######### Fig 5 (DID property)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 results_full <- readRDS("results/results_full.rds")
 
@@ -357,7 +428,7 @@ topline = -0.012
 midline = topline-0.003
 ylim <- c(midline-0.002,0.003)
 
-png(paste0(out_dir,"/Figure4.png"), width = 10, height = 7, units = "in", res = 300)
+png(paste0(out_dir,"/Figure5.png"), width = 10, height = 7, units = "in", res = 300)
 
 par(oma=c(1,0,1,1))
 
@@ -392,7 +463,7 @@ mtext(bquote("Value of " ~ sigma[p]), side=1, at = 0, font=2, cex=1.25, line=3)
 dev.off()
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-######### Fig 5 (aggregation property)
+######### Fig 6 (aggregation property)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 grid_p = 10
@@ -468,7 +539,7 @@ topline = -0.0125
 midline = topline-0.005
 ylim <- c(midline-0.004,0.0078)
 
-png(paste0(out_dir,"/Figure5.png"), width = 10, height = 7, units = "in", res = 300)
+png(paste0(out_dir,"/Figure6.png"), width = 10, height = 7, units = "in", res = 300)
 
 par(oma=c(1,0,1,1))
 
@@ -496,7 +567,7 @@ text(x=9.5 , y=0.0065, "Aggregated unit\nof analysis", col=palette$dark, font=1)
 dev.off()
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-######### Fig 6 (weighting)
+######### Fig 7 (weighting)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 summary_pweights <- readRDS("results/results_pweights.rds")
@@ -522,7 +593,7 @@ p_ATT <- round(mean(summary$p_ATT), digits = 4)
 
 df_summary <- summary 
 
-png(paste0(out_dir,"/Figure6.png"), width = 8, height = 5, units = "in", res = 300)
+png(paste0(out_dir,"/Figure7.png"), width = 8, height = 5, units = "in", res = 300)
 
 par(oma=c(1,0,1,1))
 
@@ -564,7 +635,7 @@ text(x=4.65 , y=mean(summary$ls_ATT), "landscape\nATT", col=palette$dark_blue, f
 dev.off()
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-######### Fig 7 (observed multi1)
+######### Fig 8 (observed multi1)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 rate_landscape <- readRDS("results_multi/landscape.rds")
@@ -582,10 +653,10 @@ ggplot(data=rate_landscape, aes(x=year, y=defor, colour=Group))+
     legend.title.align = 0.5,
     text = element_text(size = 14),
     panel.border = element_rect(colour = "black", fill=NA, linewidth=1))
-ggsave(filename = paste0(out_dir, "/Figure7.png"), width = 9, height = 5)
+ggsave(filename = paste0(out_dir, "/Figure8.png"), width = 9, height = 5)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-##### FIGURE 8
+##### FIGURE 9
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 county_es <- readRDS("results_multi/county_long.rds") %>%
@@ -698,7 +769,7 @@ p2 <- ggplot(out_county, ggplot2::aes(x = term, y = estimate, color = estimator,
 
 p2$labels$y <- " "
 
-png(paste0(out_dir,"/Figure8.png"), width = 9, height = 6, units = "in", res = 300)
+png(paste0(out_dir,"/Figure9.png"), width = 9, height = 6, units = "in", res = 300)
 
 ggarrange(p1, p2, ncol=2, nrow=1, 
           legend.grob = get_legend(p_leg), 
@@ -713,7 +784,7 @@ grid.rect(x= unit(0.5, "npc"), y = unit(y_u, "npc"), width = 0, height = ht, gp 
 dev.off()
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-##### FIGURE 9
+##### FIGURE 10
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 het_landscape <- readRDS("results_multi/het_landscape.rds")
 
@@ -729,10 +800,10 @@ ggplot(data=het_landscape, aes(x=year, y=defor, colour=Group))+
     legend.title.align = 0.5,
     text = element_text(size = 14),
     panel.border = element_rect(colour = "black", fill=NA, linewidth=1))
-ggsave(filename = paste0(out_dir, "/Figure9.png"), width = 9, height = 5)
+ggsave(filename = paste0(out_dir, "/Figure10.png"), width = 9, height = 5)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-##### FIGURE 10
+##### FIGURE 11
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 county_es <- readRDS("results_multi/county_long_hetTE.rds") %>%
   group_by(term, estimator, uoa)%>%
@@ -805,7 +876,7 @@ p2 <- ggplot(out_county , ggplot2::aes(x = term, y = estimate, color = estimator
 
 p2$labels$y <- " "
 
-png(paste0(out_dir,"/Figure10.png"), width = 9, height = 6, units = "in", res = 300)
+png(paste0(out_dir,"/Figure11.png"), width = 9, height = 6, units = "in", res = 300)
 
 ggarrange(p1, p2, ncol=2, nrow=1, legend.grob = get_legend(p_leg), legend="bottom")
 
@@ -885,7 +956,7 @@ full_summary <- results_full %>%
   ) %>%
   mutate_at(vars(bias, cover), as.numeric
   )%>%
-  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county, cox, HE.estimator), ~ as.logical(as.integer(.))
+  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, se_pixel, se_grid, se_property, se_county, HE.estimator), ~ as.logical(as.integer(.))
   )%>%
   group_by(std_a, std_v, std_p, pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, weights, HE.estimator, se_pixel, se_grid, se_property, se_county)%>%
   summarise(RMSE = rmse(bias, 0),
@@ -985,14 +1056,15 @@ df_summary <- readRDS("results/results_alt.rds") %>%
   filter(is.na(notes),
          pixel.fe ==0,
          weights == 0 ,
+         (cox == 0 | HE.estimator ==1),
          (grid.fe == 0 | gridsize == max(gridsize, na.rm = T)),
          (property.fe == 0 | se_county == 0)
   ) %>%
   mutate_at(vars(bias, cover), as.numeric
   )%>%
-  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, HE.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
+  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, HE.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
   )%>%
-  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, HE.estimator, se_pixel, se_grid, se_property, se_county)%>%
+  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, HE.estimator, se_pixel, se_grid, se_property, se_county)%>%
   summarise(RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
             q95 = quantile(bias, probs = .95),
@@ -1000,25 +1072,27 @@ df_summary <- readRDS("results/results_alt.rds") %>%
             cover = mean(cover))%>%
   select(Bias, everything())
 
-df_summary <- rbind(df_summary[5,], df_summary[7:9,],  df_summary[1:3,],
-                    df_summary[6,], df_summary[4,])
+df_summary <- rbind(df_summary[5:8,],
+                    df_summary[1:3,],
+                    df_summary[4,])
 
 
 labels <- list("Unit of analysis:" = c("pixel", "grid", "property", "county"),
                "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE", "treatment FE"),
-               "Survival" = c("Cox PH model", "ATT-Cox estimator"),
+               "Survival" = c("ATT-Cox estimator"),
                "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
 
 
 select_results <- as.data.frame(df_summary)
 
+cov_cex = 1
 coverage <- select_results$cover
 c_print <- round(coverage, digits = 3)
 c_print[is.na(c_print)] <- ""
 
 RMSE <- select_results$RMSE
 RMSE <- as.numeric(RMSE)
-RMSE_print<- round(RMSE, digits = 4)
+RMSE_print<- round(RMSE, digits = 3)
 RMSE_print[is.na(RMSE_print)] <- ""
 
 select_results <- as.data.frame(subset(select_results, select=-c(cover, RMSE)))
@@ -1033,7 +1107,7 @@ topline = -0.01
 midline = topline-0.01-.0025
 ylim <- c(midline-.01,0.035)
 
-png(paste0(out_dir,"/A-alt_param1.png"), width = 10, height = 6, units = "in", res = 300)
+png(paste0(out_dir,"/A-alt_param1.png"), width = 9, height = 6, units = "in", res = 300)
 
 par(oma=c(1,0,1,1))
 
@@ -1066,14 +1140,15 @@ df_summary <- readRDS("results/results_alt2.rds") %>%
   filter(is.na(notes),
          pixel.fe ==0,
          weights == 0 ,
+         (cox == 0 | HE.estimator ==1),
          (grid.fe == 0 | gridsize == max(gridsize, na.rm = T)),
          (property.fe == 0 | se_county == 0)
   ) %>%
   mutate_at(vars(bias, cover), as.numeric
   )%>%
-  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, HE.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
+  mutate_at(vars(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, HE.estimator, se_pixel, se_grid, se_property, se_county), ~ as.logical(as.integer(.))
   )%>%
-  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, cox, HE.estimator, se_pixel, se_grid, se_property, se_county)%>%
+  group_by(pixel, grid, property, county, pixel.fe, grid.fe, property.fe, county.fe, treatment.fe, HE.estimator, se_pixel, se_grid, se_property, se_county)%>%
   summarise(RMSE = rmse(bias, 0),
             q05 = quantile(bias, probs = .05),
             q95 = quantile(bias, probs = .95),
@@ -1081,13 +1156,14 @@ df_summary <- readRDS("results/results_alt2.rds") %>%
             cover = mean(cover))%>%
   select(Bias, everything())
 
-df_summary <- rbind(df_summary[5,], df_summary[7:9,],  df_summary[1:3,],
-                    df_summary[6,], df_summary[4,])
+df_summary <- rbind(df_summary[5:8,],
+                    df_summary[1:3,],
+                    df_summary[4,])
 
 
 labels <- list("Unit of analysis:" = c("pixel", "grid", "property", "county"),
                "Fixed effects:" = c("pixel FE", "grid FE", "property FE", "county FE", "treatment FE"),
-               "Survival" = c("Cox PH model", "ATT-Cox estimator"),
+               "Survival" = c("ATT-Cox estimator"),
                "SE structure:" = c("clustered at pixel", "clustered at grid", "clustered at property", "clustered at county"))
 
 
@@ -1099,7 +1175,7 @@ c_print[is.na(c_print)] <- ""
 
 RMSE <- select_results$RMSE
 RMSE <- as.numeric(RMSE)
-RMSE_print<- round(RMSE, digits = 4)
+RMSE_print<- round(RMSE, digits = 3)
 RMSE_print[is.na(RMSE_print)] <- ""
 
 select_results <- as.data.frame(subset(select_results, select=-c(cover, RMSE)))
@@ -1114,7 +1190,7 @@ topline = -0.037
 midline = topline-0.01-.0028
 ylim <- c(midline-.01,0.01)
 
-png(paste0(out_dir,"/A-alt_param2.png"), width = 10, height = 6, units = "in", res = 300)
+png(paste0(out_dir,"/A-alt_param2.png"), width = 9, height = 6, units = "in", res = 300)
 
 par(oma=c(1,0,1,1))
 
