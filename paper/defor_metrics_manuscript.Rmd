@@ -1630,14 +1630,11 @@ In response to the \textit{nonrepeatable outcome, unit FE bias}, some researcher
    \end{cases}
 \end{align}
 
-Here, we show that while the coefficient of a TWFE regression using $y^{alt}_{ivt}$ does not suffer from the \textit{nonrepeatable outcome, unit FE bias}, it estimates an alternate parameter from that of the $ATT$. Instead, the coefficient recovers an estimate of an intervention's average effect on the probability of post-treatment clearing across all post-treatment years for treated units. Importantly, $ATT_{alt}$ is mechanically influenced by previously deforested pixels, because there is no distinction of whether a pixel was actually at risk. 
-
-The $ATT$ as defined in Section 2 represents an estimate of the impact of an intervention on the frequency of deforestation events (i.e. the decision to clear). Economists have typically focused their attention on this clearing decision, estimating the impact of a policy on the deforestation rate (flow) rather than the stock of ever-cleared forest. For the reasons discussed here, we use $y^o_{ivt}$ rather than $y^{alt}_{ivt}$ as the relevant outcome for the main text of the paper. 
-
+Here, we explore the coefficient of a TWFE regression using $y^{alt}_{it}$. While it does not identify the $ATT$, it does estimate an alternate parameter from that of the $ATT$ under an alternative parallel trends assumption. Under this alternate assumption, the treatment effect parameter can be interpreted as the average effect on the probability that treated units are newly cleared post-treatment across post-treatment years. We also discuss complications with the interpretation of this alternate parameter in the deforestation context, which we argue make $y^{alt}_{it}$ an non-intuitive outcome to adopt. Importantly, $ATT_{alt}$ is mechanically influenced by previously deforested pixels, because there is no distinction of whether a pixel was actually at risk. As such, it is affected by the length of time previously deforested units are observed, a less-than-ideal property.
 
 ### Interpreting the alternate $ATT$
 
-We can rewrite $y^{alt}_{it}$ in terms of an alternate variable, $y^C_{it}$, which denotes whether unit $i$ is observed in the exact year the nonrepeatable event is realized:
+In order to understand how to interpret a treatment effect parameter relating to $y^{alt}_{it}$, first rewrite $y^{alt}_{it}$ in terms of an alternate variable, $y^C_{it}$, which denotes whether unit $i$ is observed in the exact year the nonrepeatable event is realized:
 
 \begin{align}
 y^{alt}_{it} = \sum^t_{k = 1} y^{C}_{it} \label{eq:clearing-equiv}
@@ -1666,13 +1663,7 @@ The relevant treatment effect parameter for the researcher, instead of the $ATT$
 
 $$ATT_{alt} = E[y^{alt}_{it}(1) - y^{alt}_{it}(0)| D_i = 1]$$
 
-Similarly, make the following analog parallel trends assumption, now relating to $y^{alt}_{it}$:
-
-\begin{align}
- E[y^{alt}_{i2}(0) - y^{alt}_{i1}(0)| D_i = 1] = & E[y^{alt}_{i2}(0) - y^{alt}_{i1}(0)| D_i = 0]
-\end{align}
-
-$ATT_{alt}$ can be rewritten in terms of $y^C_{it}$ based on Equation \@ref(eq:clearing-equiv) above.
+$ATT_{alt}$ can be rewritten in terms of $y^C_{it}$ based on Equation \@ref(eq:clearing-equiv) above:
 
 \begin{align}
 ATT_{alt} =& E[\sum^t_{k = 1} y^{C}_{it}(1) - \sum^t_{k = 1} y^{C}_{it}(0)| D_i = 1]\notag\\
@@ -1680,25 +1671,37 @@ ATT_{alt} =& E[\sum^t_{k = 1} y^{C}_{it}(1) - \sum^t_{k = 1} y^{C}_{it}(0)| D_i 
 =& E[\sum^T_{k = t_0} y^{C}_{it}(1) - \sum^T_{k = t_0} y^{C}_{it}(0)| D_i = 1] \label{eq:lat-ATT-int}
 \end{align}
 
-Equation \@ref(eq:lat-ATT-int) now makes the interpretation of this alternative treatment effect parameter more clear. $ATT_{alt}$ is equal to the average effect of treatment on the probability of post-treatment clearing across all post-treatment years for treated units. Importantly, there is a distinction between observing a clearing event for an at-risk pixel and $y^C_{it}$. This is because $y^C_{it} = 0$ for all $t > C_i$. As such, this parameter can be affected by the length of time previously deforested units are observed, a less than ideal property.
+Here $t_0$ indicates the first year of treatment and $T$ denotes the final year in the panel. 
+
+Equation \@ref(eq:lat-ATT-int) now makes the interpretation of this alternative treatment effect parameter more clear. $ATT_{alt}$ is equal to the average effect of treatment on the probability of new post-treatment clearing across all post-treatment years for treated units. Importantly, there is a distinction between observing a clearing event for an at-risk pixel and $y^C_{it}$. This is because $y^C_{it} = 0$ for all $t > C_i$. As such, this parameter is affected by the length of time previously deforested units are observed.
 
 
-We can also rewrite the new parallel trends assumption, where it simplifies to the following:
+### TWFE coefficient under retention of deforested pixels in two-period case {#impute-coef}
+
+Here, we explore the coefficient of a unit-level TWFE regression in the two-period case when $y^{alt}_{it}$ is the outcome variable. Define the traditional individual unit-level TWFE regression, similar to Regression 1, but this time with respect to the outcome $y^{alt}_{it}$:
+
+$$ y^{alt}_{it} = \alpha + \beta_{impute} \text{ x } W_{it}  + \gamma_i + \lambda_t+ \epsilon_{it}$$
+
+#### Alternate parallel trends assumption relating to $ATT_{alt}$
+
+Also, make the following two-period parallel trends assumption relating to $y^{alt}_{it}$:
+
+\begin{align}
+ E[y^{alt}_{i2}(0) - y^{alt}_{i1}(0)| D_i = 1] = & E[y^{alt}_{i2}(0) - y^{alt}_{i1}(0)| D_i = 0]
+\end{align}
+
+Rewritten in terms of $y^C_{i1}$:
 \begin{align}
 E[  y^{C}_{i2}(0) + y^{C}_{i1}(0) - y^{C}_{i1}(0)| D_i= 1] = & E[ y^{C}_{i2}(0) + y^{C}_{i1}(0) - y^{C}_{i1}(0)| D_i= 0] \notag \\
 \Leftrightarrow & \notag \\
 E[  y^{C}_{i2}(0) | D_i= 1] = & E[ y^{C}_{i2}(0)| D_i= 0] \label{eq:CTA-alt}
 \end{align}
 
-This shows that the implicit parallel trends assumption made when using $y^{alt}_{it}$ as an outcome is equivalent to assuming that the probability of clearing post-treatment for the control units is equal to what it would have been for the treatment units had they not received treatment. If treatment and control units have differing pre-treatment deforestation risk, the two groups will have a different proportion of the remaining pixels still at risk in the second period. This means that in order for Equation \@ref(eq:CTA-alt) to hold, pixels still at risk must experience differing clearing risk across the two groups. While this may not be an implausible requirement, it makes clear that the use of $y^{alt}_{it}$ can become complicated because it sacrifices important information about a pixel's risk status.
+This shows that the implicit parallel trends assumption made when using $y^{alt}_{it}$ as an outcome is equivalent to assuming that the probability of clearing post-treatment for the control units is equal to what it would have been for the treatment units had they not received treatment. If treatment and control units have differing pre-treatment deforestation risk, the two groups will have a different proportion of the remaining pixels still at risk in the second period. This means that if when $E[  y^{C}_{i1}(0) | D_i= 1] \neq E[ y^{C}_{i1}(0)| D_i= 0]$, pixels still at risk must experience differing clearing risk across the two groups in order for Equation \@ref(eq:CTA-alt) to hold. While this may not be an implausible requirement, it makes clear that the use of $y^{alt}_{it}$ can become complicated because it sacrifices important information about a pixel's risk status.
 
-### TWFE coefficient under retention of deforested pixels {#impute-coef}
+#### $\beta_{impute}$ recovers $ATT_{alt}$ under alternate parallel trends assumption
 
-Define the traditional individual unit-level TWFE regression, similar to Regression 1, but this time with respect to the outcome $y^{alt}_{it}$:
-
-$$ y^{alt}_{it} = \alpha + \beta_{impute} \text{ x } W_{it}  + \gamma_i + \lambda_t+ \epsilon_{it}$$
-
-By using the same approach as in \@ref(TWFE-proof), we can derive the estimator, $\hat{\beta}_{impute}$:
+By using the same approach as in \@ref(TWFE-proof) for the two-period case, we can derive the estimator, $\hat{\beta}_{impute}$:
 
 \begin{align*}
 \hat{\beta}_{impute}&= \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y^{alt}_{i2} - \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y^{alt}_{i1} - (\frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y^{alt}_{i2} - \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y^{alt}_{i1})
@@ -1710,7 +1713,7 @@ Rewriting $\hat{\beta}_{impute}$ in terms of $y^C_{it}$ gives:
 \hat{\beta}_{impute}&= \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} (y^{C}_{i1} + y^{C}_{i2}) - \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y^{C}_{i1} \\
 &- (\frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} (y^{C}_{i1} + y^{C}_{i2}) - \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y^{C}_{i1})\\
 &= \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y^{C}_{i1} + \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y^{C}_{i2} - \frac{1}{n_{i:D_i=1}}\sum_{i:D_i=1} y^{C}_{i1} \\
-&- (\frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y^{o}_{i1} + \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y^{C}_{i2} - \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y^{C}_{i1})
+&- (\frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y^{C}_{i1} + \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y^{C}_{i2} - \frac{1}{n_{i:D_i=0}}\sum_{i:D_i=0} y^{C}_{i1})
 \end{align*}
 
 The terms containing $y^C_{i1}$ cancel out, leaving:
@@ -1733,15 +1736,11 @@ Taking the expectation:
 Now imposing the parallel trends assumption given by Equation \@ref(eq:CTA-alt) and substituting for $E[ y^{C}_{i2}(0)| D_i= 0]$ in $\beta_{impute}$ yields:
 \begin{align*}
 \beta_{impute}&=E[  y^{C}_{i2}(1)| D_i= 1] - E[ y^{C}_{i2}(0)| D_i= 1]\\
-&=E[  y^{alt}_{i2}(1)| D_i= 1] - E[ y^{alt}_{i2}(0)| D_i= 1]\\
-&= ATT_{alt}
+&=E[  y^{alt}_{i2}(1)| D_i= 1] - E[ y^{alt}_{i2}(0)| D_i= 1]
 \end{align*}
 
-Thus, $\beta_{impute}$ recovers $ATT_{alt}$, which is equivalent to the difference in the probability that treated units are cleared post-treatment, with and without treatment.
+, which is equal to the two-period definition of $ATT_{alt}$.
 
-One concern with this alternate parameter is that pixels deforested prior to treatment are implicitly assumed to be at risk. Put another way, $P(  y^{C}_{i2} = 1|y^C_{i1} = 1) = 0$. However, units for which $y^C_{i1} = 1$ still contribute to the treatment effect parameter.
-
-In order to recover an interpretable $ATT_{alt}$, one must implicitly make the assumption that $E[  y^{C}_{i2}(0) | D_i= 1] = E[ y^{C}_{i2}(0)| D_i= 0]$. This assumption may be less plausible when $E[  y^{C}_{i1}(0) | D_i= 1] \neq E[ y^{C}_{i1}(0)| D_i= 0]$. Further, when $E[  y^{C}_{i1}(0) | D_i= 1] \neq E[ y^{C}_{i1}(0)| D_i= 0]$, in order for \@ref(eq:CTA-alt) to hold, $E[y^C_{it}|y^C_{it} = 0]$ must differ across treatment and control groups. This is because the proportion of at-risk versus already cleared units differs across control and treatment groups. 
 
 ## Monte Carlo evidence that individual unit-level TWFE is equivalent to coefficient from same regression on dataset without pixels deforested pre-treatment {#TWFE-equivalence}
 
