@@ -1,5 +1,5 @@
 ---
-  title: "Conservation impact evaluation using remotely sensed data"
+title: "Conservation impact evaluation using remotely sensed data"
 subtitle: "BIOECON XXII"
 author: "Alberto Garcia and Robert Heilmayr"
 institute: "University of California, Santa Barbara"
